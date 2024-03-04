@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <a href="tambahdataartikel">
+        <button>
+            Tambah Data
+        </button>
+    </a>
+    <table>
+        <th>
+            <tr>
+                <th>Kode Artikel</th>
+                <th>Bahan Baku Utama</th>
+                <th>Keterangan</th>
+                <th>Action</th>
+            </tr>
+            <tbody>
+                {% for i in data %}
+                <tr>
+                    <td>{{i.0.KodeArtikel}}</td>
+                    {% if i.1 == 'Belum diset' %}
+                    <td>{{i.1}}</td>
+                    {% else %}
+                    <td>{{i.1.KodeProduk}}</td>
+                    {% endif %}
+                    <td>{{i.0.keterangan}}</td>
+                    <td>
+                        <a href="{% url 'update_artikel' i.0.id %}">
+                            <button>Update</button>
+                        </a>
+                        <a href="{% url 'delete_artikel' i.0.id%}">
+                            <button>Delete</button>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </th>
+    </table>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+            {% endfor %}
+    </ul>
+    {% endif %}
+</body>
+
+</html>
