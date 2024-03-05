@@ -21,7 +21,7 @@ class Artikel(models.Model):
 
 
 class Lokasi(models.Model):
-    IDLokasi = models.IntegerField(primary_key=True)
+    IDLokasi = models.AutoField(primary_key=True)
     NamaLokasi = models.CharField(max_length=20)
 
     def __str__(self):
@@ -39,7 +39,7 @@ class SuratJalanPembelian(models.Model):
 
 
 class DetailSuratJalanPembelian(models.Model):
-    IDDetailSJPembelian = models.IntegerField(primary_key=True)
+    IDDetailSJPembelian = models.AutoField(primary_key=True)
     NoSuratJalan = models.ForeignKey(SuratJalanPembelian, on_delete=models.DO_NOTHING)
     KodeProduk = models.ForeignKey(Produk, on_delete=models.DO_NOTHING)
     Jumlah = models.IntegerField()
@@ -51,7 +51,7 @@ class DetailSuratJalanPembelian(models.Model):
 
 
 class TransaksiGudang(models.Model):
-    IDDetailTransaksiGudang = models.IntegerField(primary_key=True)
+    IDDetailTransaksiGudang = models.AutoField(primary_key=True)
     KodeProduk = models.ForeignKey(Produk, on_delete=models.DO_NOTHING)
     keterangan = models.CharField(max_length=20)
     jumlah = models.IntegerField()
@@ -64,7 +64,7 @@ class TransaksiGudang(models.Model):
 
 
 class Penyusun(models.Model):
-    IDKodePenyusun = models.IntegerField(primary_key=True)
+    IDKodePenyusun = models.AutoField(primary_key=True)
     KodeProduk = models.ForeignKey(Produk, on_delete=models.DO_NOTHING)
     KodeArtikel = models.ForeignKey(Artikel, on_delete=models.DO_NOTHING)
     Status = models.BooleanField()
@@ -75,7 +75,7 @@ class Penyusun(models.Model):
 
 
 class KonversiMaster(models.Model):
-    IDKodeKonversiMaster = models.IntegerField(primary_key=True)
+    IDKodeKonversiMaster = models.AutoField(primary_key=True)
     KodePenyusun = models.ForeignKey(Penyusun, on_delete=models.DO_NOTHING)
     Kuantitas = models.FloatField()
 
@@ -84,7 +84,7 @@ class KonversiMaster(models.Model):
 
 
 class Penyesuaian(models.Model):
-    IDPenyesuaian = models.IntegerField(primary_key=True)
+    IDPenyesuaian = models.AutoField(primary_key=True)
     KodePenyusun = models.ForeignKey(Penyusun, on_delete=models.DO_NOTHING)
     TanggalMulai = models.DateField()
     TanggalAkhir = models.DateField()
@@ -94,7 +94,7 @@ class Penyesuaian(models.Model):
 
 
 class DetailKonversiProduksi(models.Model):
-    IDDetailKonversiProduksi = models.IntegerField(primary_key=True)
+    IDDetailKonversiProduksi = models.AutoField(primary_key=True)
     KodePenyesuaian = models.ForeignKey(Penyesuaian, on_delete=models.DO_NOTHING)
     kuantitas = models.FloatField()
 
@@ -113,7 +113,7 @@ class SPK(models.Model):
 
 
 class DetailSPK(models.Model):
-    IDDetailSPK = models.IntegerField(primary_key=True)
+    IDDetailSPK = models.AutoField(primary_key=True)
     NoSPK = models.ForeignKey(SPK, on_delete=models.DO_NOTHING)
     KodeArtikel = models.ForeignKey(Artikel, on_delete=models.DO_NOTHING)
     Jumlah = models.IntegerField()
@@ -123,7 +123,7 @@ class DetailSPK(models.Model):
 
 
 class TransaksiProduksi(models.Model):
-    idTransaksiProduksi = models.IntegerField(primary_key=True)
+    idTransaksiProduksi = models.AutoField(primary_key=True)
     KodeArtikel = models.ForeignKey(Artikel, on_delete=models.DO_NOTHING)
     Lokasi = models.ForeignKey(Lokasi, on_delete=models.DO_NOTHING)
     Tanggal = models.DateField()
@@ -145,7 +145,7 @@ class SPPB(models.Model):
 
 
 class DetailSPPB(models.Model):
-    IDDetailSPPB = models.IntegerField(primary_key=True)
+    IDDetailSPPB = models.AutoField(primary_key=True)
     NoSPPb = models.ForeignKey(SPPB, on_delete=models.DO_NOTHING)
     NoSPK = models.ForeignKey(SPK, on_delete=models.DO_NOTHING)
     Jumlah = models.IntegerField()
@@ -155,7 +155,7 @@ class DetailSPPB(models.Model):
 
 
 class SaldoAwalBahanBaku(models.Model):
-    IDSaldoAwalBahanBaku = models.IntegerField(primary_key=True)
+    IDSaldoAwalBahanBaku = models.AutoField(primary_key=True)
     IDBahanBaku = models.ForeignKey(Produk, on_delete=models.DO_NOTHING)
     IDLokasi = models.ForeignKey(Lokasi, on_delete=models.DO_NOTHING)
     Jumlah = models.IntegerField()
@@ -166,7 +166,7 @@ class SaldoAwalBahanBaku(models.Model):
 
 
 class SaldoAwalArtikel(models.Model):
-    IDSaldoAwalBahanBaku = models.IntegerField(primary_key=True)
+    IDSaldoAwalBahanBaku = models.AutoField(primary_key=True)
     IDBahanBaku = models.ForeignKey(Artikel, on_delete=models.DO_NOTHING)
     IDLokasi = models.ForeignKey(Lokasi, on_delete=models.DO_NOTHING)
     Jumlah = models.IntegerField()
