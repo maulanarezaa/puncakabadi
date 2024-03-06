@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        function confirmDelete(id) {
+            var result = confirm("Apakah Anda yakin ingin menghapus data?");
+            if (result) {
+                // Jika pengguna mengkonfirmasi, kirimkan permintaan penghapusan ke server
+                window.location.href = "/deleteproduksi/" + id;
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <a href="addproduksi">
+        <button>
+            Tambah Data
+        </button>
+    </a>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tanggal</th>
+                <th>Lokasi</th>
+                <th>Kode Artikel</th>
+                <th>Jumlah</th>
+                <th>Keterangan</th>
+                <th>Jenis</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in dataproduksi %}
+            <tr>
+                <td>{{i.idTransaksiProduksi}}</td>
+                <td>{{i.Tanggal}}</td>
+                <td>{{i.IDLokasi.NamaLokasi}}</td>
+                <td>{{i.KodeArtikel}}</td>
+                <td>{{i.Jumlah}}</td>
+                <td>{{i.Keterangan}}</td>
+                <td>{{i.Jenis}}</td>
+                <td>
+                    <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
+                    <button onclick="confirmDelete({{ i.idTransaksiProduksi }})">Delete</button>
+                    <a href="{% url 'update_produksi' i.idTransaksiProduksi %}">
+                        <button>Update</button>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+            {% endfor %}
+    </ul>
+    {% endif %}
+</body>
+
+</html>

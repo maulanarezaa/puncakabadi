@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>Form ADD SPK</h1>
+    <form action="" method="post">
+        {% csrf_token %}
+        <label for="kode" name='kode'>Nomor SPK</label>
+        <input type="text" name="nomor_spk">
+        <br>
+        <label for="kode" name='kode'>Tanggal</label>
+        <input type="date" name="tanggal">
+        <br>
+        <label for="keterangan" name='keterangan'>Keterangan</label>
+        <input type="text" name="keterangan">
+        <br>
+        <label for="keterangan" name='keterangan'>Status</label>
+        <select id="cars" name="status">
+            <option value="False">Belum ACC</option>
+            <option value="True">Sudah ACC</option>
+          </select>
+        <br>
+        <button type="submit">Simpan Data</button>
+    </form>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+            {% endfor %}
+    </ul>
+    {% endif %}
+
+</body>
+
+</html>

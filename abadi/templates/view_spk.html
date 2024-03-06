@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        function confirmDelete(id) {
+            var result = confirm("Apakah Anda yakin ingin menghapus data?");
+            if (result) {
+                // Jika pengguna mengkonfirmasi, kirimkan permintaan penghapusan ke server
+                window.location.href = "/deletespk/" + id;
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <a href="addspk">
+        <button>
+            Tambah Data
+        </button>
+    </a>
+    <table>
+        <thead>
+            <tr>
+                <th>Nomor SPK</th>
+                <th>Tanggal</th>
+                <th>Keterangan</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in dataspk %}
+            <tr>
+                <td>{{i.NoSPK}}</td>
+                <td>{{i.Tanggal}}</td>
+                <td>{{i.Keterangan}}</td>
+                <td>{{i.KeteranganACC}}</td>
+                <td>
+                    <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
+                    <button onclick="confirmDelete({{ i.id }})">Delete</button>
+                    <a href="{% url 'update_spk' i.id %}">
+                        <button>Update</button>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+            {% endfor %}
+    </ul>
+    {% endif %}
+</body>
+
+</html>

@@ -103,7 +103,7 @@ class DetailKonversiProduksi(models.Model):
 
 
 class SPK(models.Model):
-    NoSPK = models.CharField(max_length=255, primary_key=True)
+    NoSPK = models.CharField(max_length=255)
     Tanggal = models.DateField()
     Keterangan = models.CharField(max_length=255)
     KeteranganACC = models.BooleanField()
@@ -136,7 +136,7 @@ class TransaksiProduksi(models.Model):
 
 
 class SPPB(models.Model):
-    NoSPPB = models.CharField(max_length=255, primary_key=True)
+    NoSPPB = models.CharField(max_length=255)
     Tanggal = models.DateField()
     Keterangan = models.CharField(max_length=255)
 
@@ -146,7 +146,7 @@ class SPPB(models.Model):
 
 class DetailSPPB(models.Model):
     IDDetailSPPB = models.AutoField(primary_key=True)
-    NoSPPb = models.ForeignKey(SPPB, on_delete=models.DO_NOTHING)
+    NoSPPB = models.ForeignKey(SPPB, on_delete=models.DO_NOTHING)
     NoSPK = models.ForeignKey(SPK, on_delete=models.DO_NOTHING)
     Jumlah = models.IntegerField()
 

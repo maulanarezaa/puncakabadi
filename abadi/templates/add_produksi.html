@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>Form ADD Transaksi Produksi</h1>
+    <form action="" method="post">
+        {% csrf_token %}
+        <label for="kode" name='kode'>Kode Artikel</label>
+        <select name="kode_artikel" id="">
+            {% for i in kode_artikel %}
+            <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <label for="kode" name='kode'>Lokasi</label>
+        <select name="nama_lokasi" id="">
+            {% for i in nama_lokasi %}
+            <option value="{{i.IDLokasi}}">{{i.NamaLokasi}}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <label for="kode" name='kode'>Tanggal</label>
+        <input type="date" name="tanggal">
+        <br>
+        <label for="kode" name='kode'>Jumlah</label>
+        <input type="number" name="jumlah">
+        <br>
+        <label for="keterangan" name='keterangan'>Keterangan</label>
+        <input type="text" name="keterangan">
+        <br>
+        <label for="kode" name='kode'>Jenis</label>
+        <input type="text" name="jenis">
+        <br>
+        <button type="submit">Simpan Data</button>
+    </form>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+            {% endfor %}
+    </ul>
+    {% endif %}
+
+</body>
+
+</html>
