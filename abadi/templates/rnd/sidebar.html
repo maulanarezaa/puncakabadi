@@ -1,0 +1,81 @@
+{% load static %}
+
+<nav class="sidebar sidebar-offcanvas" id="sidebar">
+  <ul class="nav">
+    <li class="nav-item">
+      <a class="nav-link" href="#">
+        <i class="typcn typcn-device-desktop menu-icon"></i>
+        <span class="menu-title">Dashboard</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'views_artikel' %}" aria-expanded="false" aria-controls="ui-basic">
+        <i class="typcn typcn-briefcase menu-icon"></i>
+        <span class="menu-title">Artikel</span>
+
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'penyusun_artikel' %}" aria-expanded="false" aria-controls="form-elements">
+        <i class="typcn typcn-film menu-icon"></i>
+        <span class="menu-title">Penyusun</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'views_sppb' %}" aria-expanded="false" aria-controls="charts">
+        <i class="typcn typcn-chart-pie-outline menu-icon"></i>
+        <span class="menu-title">SPPB</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{%url 'views_ksbj'%}" aria-expanded="false" aria-controls="tables">
+        <i class="typcn typcn-th-small-outline menu-icon"></i>
+        <span class="menu-title">KSBJ Produksi</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#icons" aria-expanded="false" aria-controls="icons">
+        <i class="typcn typcn-compass menu-icon"></i>
+        <span class="menu-title">Artikel</span>
+        <i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="icons">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="pages/charts/chartjs.html">Penyusun</a></li>
+        </ul>
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="pages/charts/chartjs.html">Konversi</a></li>
+        </ul>
+      </div>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#auth" aria-expanded="false" aria-controls="auth">
+        <i class="typcn typcn-user-add-outline menu-icon"></i>
+        <span class="menu-title">Lokasi</span>
+        <i class="menu-arrow"></i>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#err" aria-expanded="false" aria-controls="err">
+        <i class="typcn typcn-globe-outline menu-icon"></i>
+        <span class="menu-title">SPPB</span>
+        <i class="menu-arrow"></i>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#error" aria-expanded="false" aria-controls="error">
+        <i class="typcn typcn-globe-outline menu-icon"></i>
+        <span class="menu-title">Saldo Awal</span>
+        <i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="error">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="pages/charts/chartjs.html">Bahan Baku</a></li>
+        </ul>
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="pages/charts/chartjs.html">Artikel</a></li>
+        </ul>
+      </div>
+    </li>
+  </ul>
+</nav>
