@@ -284,3 +284,4 @@ def views_ksbj(request):
             
         #     print(getbahanbakuutama)
         return render(request,'rnd/views_ksbj.html',{'data':data,"kodeartikel":request.GET['kodeartikel'],"lokasi":lokasi,'listdata':listdata,'saldoawal':saldoawal})
+

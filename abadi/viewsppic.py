@@ -9,13 +9,14 @@ from django.db.models import Sum
 
 def laporanbarangjadi(request):
     if len(request.GET) == 0:
-        return render(request, "ppic/laporanstokgudang.html")
+        return render(request, "ppic/views_laporanstokfg.html")
     else:
         # Rumus = Saldo awal periode sampai tanggal akhir - Keluar awal periode sampai tanggal akhir
         tanggal_mulai = request.GET["tanggalawal"]
         tanggal_akhir = request.GET["tanggalakhir"]
         print(tanggal_mulai, tanggal_akhir)
         data = models.Artikel.objects.all()
+        grandtotal = 0
         for i in data:
             mutasifilterobj = models.TransaksiProduksi.objects.filter(
                 KodeArtikel=i.id,
@@ -47,13 +48,14 @@ def laporanbarangjadi(request):
                 nilaiFG += gethargafg(penyusunobj)
             i.HargaFG = nilaiFG
             i.NilaiTotal = nilaiFG * i.Jumlahakumulasi
+            grandtotal +=i.NilaiTotal
 
-        return render(request, "ppic/laporanstokgudang.html", {"data": data})
+        return render(request, "ppic/views_laporanstokfg.html", {"data": data,'tanggalawal':tanggal_mulai,'tanggalakhir':tanggal_akhir,'grandtotal':grandtotal})
 
 
 def laporanbarangmasuk(request):
     if len(request.GET) == 0:
-        return render(request, "ppic/laporanbarangmasuk.html")
+        return render(request, "ppic/views_laporanbarangmasuk.html")
     else:
         tanggalawal = request.GET["tanggalawal"]
         tanggalakhir = request.GET["tanggalakhir"]
@@ -63,6 +65,7 @@ def laporanbarangmasuk(request):
         ).order_by("Tanggal")
         print(dataspk)
         listdetailsjp = []
+        grandtotal = 0
         for i in dataspk:
             detailsjpembelianobj = models.DetailSuratJalanPembelian.objects.filter(
                 NoSuratJalan=i.NoSuratJalan
@@ -70,16 +73,18 @@ def laporanbarangmasuk(request):
             for j in detailsjpembelianobj:
                 j.supplier = i.supplier
                 j.totalharga = j.Jumlah * j.Harga
+                grandtotal += j.totalharga
                 listdetailsjp.append(j)
 
         print(listdetailsjp)
         return render(
             request,
-            "ppic/laporanbarangmasuk.html",
+            "ppic/views_laporanbarangmasuk.html",
             {
                 "data": listdetailsjp,
                 "tanggalawal": tanggalawal,
                 "tanggalakhir": tanggalakhir,
+                'grandtotal':grandtotal
             },
         )
 
@@ -109,7 +114,7 @@ def gethargafg(penyusunobj):
 
 def laporanbarangkeluar(request):
     if len(request.GET) == 0:
-        return render(request, "ppic/laporanbarangkeluar.html")
+        return render(request, "ppic/views_laporanbarangkeluar.html")
     else:
         tanggalawal = request.GET["tanggalawal"]
         tanggalakhir = request.GET["tanggalakhir"]
@@ -117,6 +122,9 @@ def laporanbarangkeluar(request):
             Tanggal__range=(tanggalawal, tanggalakhir)
         ).order_by("Tanggal")
         listharga = []
+        if not data.exists():
+            messages.warning(request,'Data SPPB tidak ditemukan pada rentang tanggal tersebut')
+            return redirect('laporanbarangkeluar')
         for i in data:
             detailsppb = models.DetailSPPB.objects.filter(NoSPPB=i.id)
             # print(detailsppb)
@@ -128,7 +136,7 @@ def laporanbarangkeluar(request):
                 penyusunfilterobj = models.Penyusun.objects.filter(
                     KodeArtikel=j["DetailSPK__KodeArtikel"]
                 )
-                print(penyusunfilterobj)
+                # print(penyusunfilterobj)
                 nilaiFG = 0
                 for penyusunobj in penyusunfilterobj:
                     print("nilai penyusunobj", penyusunobj)
@@ -141,7 +149,7 @@ def laporanbarangkeluar(request):
         grandtotal = sum(listharga)
         return render(
             request,
-            "ppic/laporanbarangkeluar.html",
+            "ppic/views_laporanbarangkeluar.html",
             {
                 "tanggalawal": tanggalawal,
                 "tanggalakhir": tanggalakhir,
@@ -153,13 +161,16 @@ def laporanbarangkeluar(request):
 
 def laporanpersediaanbarang(request):
     if len(request.GET) == 0:
-        return render(request, "ppic/laporanpersediaanbarang.html")
+        return render(request, "ppic/views_laporanpersediaan.html")
     else:
         tanggal_mulai = request.GET["tanggalawal"]
         tanggal_akhir = request.GET["tanggalakhir"]
 
         # Ambil total harga barang keluar dulu
         data = models.SPPB.objects.filter(Tanggal__range=(tanggal_mulai,tanggal_akhir)).order_by('Tanggal')
+        if  not data.exists():
+            messages.warning(request,"Data SPPB Tidak ditemukan pada rentang tanggal tersebut")
+            return redirect('laporanpersediaanbarang')
         listharga = []
         for i in data:
             detailsppb = models.DetailSPPB.objects.filter(NoSPPB =i.id)
@@ -219,7 +230,7 @@ def laporanpersediaanbarang(request):
             saldototal = Saldoawal + totalhargabarangmasuk - totalhargabarangkeluar
             saldowip = saldototal -totalhargabarangjadi
 
-        return render(request, "ppic/laporanpersediaanbarang.html",{
+        return render(request, "ppic/views_laporanpersediaan.html",{
             "tanggalawal": tanggal_mulai,
             'tanggalakhir':tanggal_akhir,
             'data':a,
