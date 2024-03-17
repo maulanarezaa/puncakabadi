@@ -5,9 +5,22 @@ from django.urls import reverse
 from . import models
 from django.db.models import Sum
 from urllib.parse import quote
+import datetime
 
 # Create your views here.
 # RND
+def dashboard(request):
+    dataspk = models.SPK.objects.filter(Tanggal = datetime.date.today())
+    print(dataspk)
+    for i in dataspk:
+        detailspk = models.DetailSPK.objects.filter(NoSPK = i.id)
+        i.detailspk = detailspk
+    
+    dataproduk = models.Produk.objects.filter(TanggalPembuatan = datetime.date.today())
+    print(dataproduk)
+    return render(request,'rnd/dashboard.html',{'dataspk':dataspk,'dataproduk':dataproduk})
+
+
 def views_artikel(request):
     datakirim = []
     data = models.Artikel.objects.all()
