@@ -53,6 +53,8 @@
                                 <td>Utama</td>
                                 <td>Konversi</td>
                                 <td>Konversi (2.5%) </td>
+                                <td>Harga</td>
+                                <td>Harga konversi</td>
                                 <td>action</td>
                             </tr>
                         </thead>
@@ -67,6 +69,8 @@
                                 <td>{{i.0.Status}}</td>
                                 <td>{{i.1.Kuantitas}}</td>
                                 <td>{{i.2}}</td>
+                                <td>{{i.3}}</td>
+                                <td>{{i.4}}</td>
                                 <td>
                                     <div class="template-demo">
                                         <a>
@@ -84,8 +88,13 @@
                                 </td>
                             </tr>
                             {% endfor %}
+                            <tr>
+                                <td>Nilai Total</td>
+                                <td colspan="10">{{nilaifg}}</td>
+                            </tr>
                         </tbody>
                     </table>
+
                     {% endif %}
                 </div>
             </div>
