@@ -19,8 +19,8 @@
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>Nomor SPPB</th>
                                 <th>Tanggal</th>
+                                <th>Nomor SPPB</th>
                                 <th>Keterangan</th>
                                 <th>SPK</th>
                                 <th>Artikel</th>
@@ -30,8 +30,8 @@
                         <tbody>
                             {% for i in data %}
                             <tr>
-                                <td>{{i.NoSPPB}}</td>
                                 <td>{{i.Tanggal}}</td>
+                                <td>{{i.NoSPPB}}</td>
                                 <td>{{i.Keterangan}}</td>
                                 {% if i.detailsppb.exists %}
                                 <td>
@@ -50,7 +50,7 @@
                                 <td>
                                     {% for j in i.detailsppb %}
                                     <li>
-                                        {{j.DetailSPK.Jumlah}}
+                                        {{j.Jumlah}}
                                     </li>
                                     {% endfor %}
                                 </td>
