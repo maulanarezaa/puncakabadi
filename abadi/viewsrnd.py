@@ -5,9 +5,51 @@ from django.urls import reverse
 from . import models
 from django.db.models import Sum
 from urllib.parse import quote
+import datetime
 
 # Create your views here.
 # RND
+def gethargafg(penyusunobj):
+    konversiobj = models.KonversiMaster.objects.get(
+        KodePenyusun=penyusunobj.IDKodePenyusun
+    )
+    konversialowance = konversiobj.Kuantitas + (konversiobj.Kuantitas * 0.025)
+    detailsjpembelian = models.DetailSuratJalanPembelian.objects.filter(
+        KodeProduk=penyusunobj.KodeProduk
+    )
+    print("ini detailsjpembelian", detailsjpembelian)
+    hargatotalkodeproduk = 0
+    jumlahtotalkodeproduk = 0
+    for m in detailsjpembelian:
+        hargatotalkodeproduk += m.Harga * m.Jumlah
+        jumlahtotalkodeproduk += m.Jumlah
+    print("ini jumlah harga total ", hargatotalkodeproduk)
+    rataratahargakodeproduk = hargatotalkodeproduk / jumlahtotalkodeproduk
+    print("selesai")
+    print(rataratahargakodeproduk)
+    nilaifgperkodeproduk = rataratahargakodeproduk * konversialowance
+    print("Harga Konversi : ", nilaifgperkodeproduk)
+    return nilaifgperkodeproduk
+
+
+def dashboard(request):
+    dataspk = models.SPK.objects.filter(Tanggal = datetime.date.today())
+    print(dataspk)
+    for i in dataspk:
+        detailspk = models.DetailSPK.objects.filter(NoSPK = i.id)
+        i.detailspk = detailspk
+    
+    dataproduk = models.Produk.objects.filter(TanggalPembuatan = datetime.date.today())
+    print(dataproduk)
+    datasppb = models.SPPB.objects.filter(Tanggal = datetime.date.today())
+    print(datasppb)
+    for i in datasppb:
+        detailsppb = models.DetailSPPB.objects.filter(NoSPPB=i.id)
+        i.detailsppb = detailsppb
+    return render(request,'rnd/dashboard.html',{'dataspk':dataspk,'dataproduk':dataproduk,'datasppb':datasppb})
+
+
+
 def views_artikel(request):
     datakirim = []
     data = models.Artikel.objects.all()
@@ -82,18 +124,35 @@ def views_penyusun(request):
             get_id_kodeartikel = models.Artikel.objects.get(KodeArtikel=kodeartikel)
             data = models.Penyusun.objects.filter(KodeArtikel=get_id_kodeartikel.id)
             datakonversi = []
+            nilaifg = 0
             if data.exists():
                 for i in data:
                     konversidataobj = models.KonversiMaster.objects.get(
                         KodePenyusun=i.IDKodePenyusun
                     )
+                    print(konversidataobj.Kuantitas)
+                    detailsjpembelian = models.DetailSuratJalanPembelian.objects.filter(KodeProduk = i.KodeProduk)
+                    hargatotalkodeproduk = 0
+                    jumlahtotalkodeproduk =0
+                    for j in detailsjpembelian:
+                        hargatotalkodeproduk += j.Harga*j.Jumlah
+                        jumlahtotalkodeproduk += j.Jumlah
+                    rataratahargakodeproduk = hargatotalkodeproduk/jumlahtotalkodeproduk
+                    kuantitaskonversi = konversidataobj.Kuantitas
+                    kuantitasallowance = kuantitaskonversi +kuantitaskonversi*0.025
+                    hargaperkotak = rataratahargakodeproduk*kuantitasallowance
+                    nilaifg +=hargaperkotak
+
                     datakonversi.append(
-                        [i, konversidataobj, konversidataobj.Kuantitas + (konversidataobj.Kuantitas * 0.025)]
+                        [i, konversidataobj,kuantitasallowance,rataratahargakodeproduk,hargaperkotak]
                     )
+                    
+                print(data)
+                print(datakonversi)
                 return render(
                     request,
                     "rnd/views_penyusun.html",
-                    {"data": datakonversi, "kodeartikel": get_id_kodeartikel},
+                    {"data": datakonversi, "kodeartikel": get_id_kodeartikel,"nilaifg":nilaifg},
                 )
             else:
                 messages.error(request, "Kode Artikel Belum memiliki penyusun")
@@ -150,17 +209,19 @@ def tambahdatapenyusun(request, id):
         newprodukobj = models.Produk.objects.get(KodeProduk=kodeproduk)
         lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
 
+        datapenyusunobj= models.Penyusun.objects.filter(KodeArtikel = id).filter(Status = True).exists()
+        if datapenyusunobj and statusproduk:
+            messages.error(request,"Artikel telah memiliki Bahan baku utama sebelumnya")
+            return redirect("tambah_data_penyusun",id=id)
         penyusunobj = models.Penyusun(
             Status=statusproduk,
             KodeArtikel=dataartikelobj,
             KodeProduk=newprodukobj,
             Lokasi=lokasiobj,
         )
-        datapenyusunobj= models.Penyusun.objects.filter(KodeArtikel = id).filter(Status = True).exists()
-        if datapenyusunobj and statusproduk:
-            messages.error(request,"Artikel telah memiliki Bahan baku utama sebelumnya")
-            return redirect("tambah_data_penyusun",id=id)
-        konversimasterobj = models.KonversiMaster(KodePenyusun=penyusunobj, Kuantitas=0)
+        penyusunobj.save()
+        kuantitas = request.POST['kuantitas']
+        konversimasterobj = models.KonversiMaster(KodePenyusun=penyusunobj, Kuantitas=0).save()
         messages.success(request,"Data penyusun berhasil ditambahkan")
         
         return redirect(f"/rnd/penyusun?kodeartikel={quote(dataartikelobj.KodeArtikel)}")
@@ -221,4 +282,3 @@ def views_sppb(request):
         detailsppb = models.DetailSPPB.objects.filter(NoSPPB = sppb.id)
         sppb.detailsppb = detailsppb
     return render (request,'rnd/views_sppb.html',{"data":data})
-

@@ -320,9 +320,9 @@ def view_ksbb(request):
 
 def views_ksbj(request):
     if len(request.GET) == 0:
-        return render(request,'produksi/view_ksbj.html')
+        return render(request,'rnd/views_ksbj.html')
     else:   
-
+        print(request.GET)
         lokasi = request.GET['lokasi']
         lokasiobj = models.Lokasi.objects.get(NamaLokasi = lokasi)
         try :
@@ -330,24 +330,30 @@ def views_ksbj(request):
         except:
             messages.error(request,"Kode Artikel Tidak ditemukan")
             return redirect('views_ksbj')
-        
         data = models.TransaksiProduksi.objects.filter(KodeArtikel = artikel.id,Lokasi =lokasiobj.IDLokasi).order_by('Tanggal')
         tanggallist = data.values_list('Tanggal',flat=True).distinct()
-
+        # print(tanggallist[0])
         listdata = []
         try:
             getbahanbakuutama = models.Penyusun.objects.get(KodeArtikel = artikel.id,Status = 1 )
-        except models.Penyusun.DoesNotExist():
+        except models.Penyusun.DoesNotExist:
             messages.error('Bahan Baku utama belum di set')
             return redirect('views_ksbj')
-        saldoawal = 1000
-        sisa = saldoawal
+        print(getbahanbakuutama)
+        try:
+            saldoawalobj = models.SaldoAwalArtikel.objects.get(IDArtikel = artikel.id, IDLokasi = lokasiobj.IDLokasi)
+            saldoawaltaun = saldoawalobj.Jumlah
+        except models.SaldoAwalArtikel.DoesNotExist as e:
+            print(e)
+            saldoawaltaun = 0
+
+        sisa = saldoawaltaun
         for i in tanggallist:
             
             jumlahhasil = 0
             jumlahmasuk = 0
             filtertanggal=data.filter(Tanggal = i)
-
+            print('ini tanggal',filtertanggal)
             for j in filtertanggal:
                 
                 if j.Jenis == "Produksi":
@@ -355,13 +361,14 @@ def views_ksbj(request):
                 else:
                     jumlahhasil += j.Jumlah
                 # Cari data konversi bahan baku utama pada artikel terkait
-            konversimasterobj = models.KonversiMaster.objects.get(IDKodeKonversiMaster = getbahanbakuutama.IDKodePenyusun)
+            konversimasterobj = models.KonversiMaster.objects.get(KodePenyusun = getbahanbakuutama.IDKodePenyusun)
+            print('Konversi', konversimasterobj.Kuantitas + ( konversimasterobj.Kuantitas*0.025))
             masukpcs = round(jumlahmasuk/((konversimasterobj.Kuantitas + ( konversimasterobj.Kuantitas*0.025)))*0.893643879)
                 # Cari data penyesuaian
             sisa = sisa - jumlahhasil +masukpcs
             listdata.append([i,getbahanbakuutama,jumlahmasuk,jumlahhasil,masukpcs,sisa])
 
-        return render(request,'produksi/view_ksbj.html',{'data':data,"kodeartikel":request.GET['kodeartikel'],"lokasi":lokasi,'listdata':listdata,'saldoawal':saldoawal})
+        return render(request,'rnd/views_ksbj.html',{'data':data,"kodeartikel":request.GET['kodeartikel'],"lokasi":lokasi,'listdata':listdata,'saldoawal':saldoawaltaun})
         
 def view_rekapbarang(request):
     if len(request.GET) == 0:

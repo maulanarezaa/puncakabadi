@@ -14,35 +14,33 @@ def laporanbarangjadi(request):
         # Rumus = Saldo awal periode sampai tanggal akhir - Keluar awal periode sampai tanggal akhir
         tanggal_mulai = request.GET["tanggalawal"]
         tanggal_akhir = request.GET["tanggalakhir"]
-        print(tanggal_mulai, tanggal_akhir)
         data = models.Artikel.objects.all()
         grandtotal = 0
         for i in data:
             mutasifilterobj = models.TransaksiProduksi.objects.filter(
-                KodeArtikel=i.id,
+                KodeArtikel=i.id
                 # Tanggal__range=(tanggal_mulai, tanggal_akhir),
             )
+            print(mutasifilterobj)
             saldomutasimasuktanggalakhir = mutasifilterobj.filter(
-                Lokasi=1, Tanggal__lte=(tanggal_akhir)
+                Lokasi=1, Tanggal__lte=(tanggal_akhir), Jenis = "Mutasi"
             )
             saldomutasikeluartanggalakhir = mutasifilterobj.filter(
-                Lokasi=2, Tanggal__lte=(tanggal_akhir)
+                Lokasi=2, Tanggal__lte=(tanggal_akhir), Jenis = "Mutasi"
             )
-            print(saldomutasimasuktanggalakhir)
             jumlahmasuk = 0
+            # jUMLAH kELUAR BELUM SYNC DENGAN MUTASI SPPB
             jumlahkeluar = 0
             for j in saldomutasimasuktanggalakhir:
                 jumlahmasuk += j.Jumlah
             for K in saldomutasikeluartanggalakhir:
                 jumlahkeluar += K.Jumlah
+            i.Jumlahakumulasi = jumlahmasuk - jumlahkeluar 
             print(jumlahmasuk)
             print(jumlahkeluar)
-            i.Jumlahakumulasi = jumlahmasuk - jumlahkeluar
-
             # Nilai FG --> penyusun artikel * konversi * harga di akumulasikan semua penyusun
             penyusunfilterobj = models.Penyusun.objects.filter(KodeArtikel=i.id)
 
-            print(penyusunfilterobj)
             nilaiFG = 0
             for penyusunobj in penyusunfilterobj:
                 nilaiFG += gethargafg(penyusunobj)
@@ -97,18 +95,18 @@ def gethargafg(penyusunobj):
     detailsjpembelian = models.DetailSuratJalanPembelian.objects.filter(
         KodeProduk=penyusunobj.KodeProduk
     )
-    print("ini detailsjpembelian", detailsjpembelian)
+    # print("ini detailsjpembelian", detailsjpembelian)
     hargatotalkodeproduk = 0
     jumlahtotalkodeproduk = 0
     for m in detailsjpembelian:
         hargatotalkodeproduk += m.Harga * m.Jumlah
         jumlahtotalkodeproduk += m.Jumlah
-    print("ini jumlah harga total ", hargatotalkodeproduk)
+    # print("ini jumlah harga total ", hargatotalkodeproduk)
     rataratahargakodeproduk = hargatotalkodeproduk / jumlahtotalkodeproduk
-    print("selesai")
-    print(rataratahargakodeproduk)
+    # print("selesai")
+    # print(rataratahargakodeproduk)
     nilaifgperkodeproduk = rataratahargakodeproduk * konversialowance
-    print("Harga Konversi : ", nilaifgperkodeproduk)
+    # print("Harga Konversi : ", nilaifgperkodeproduk)
     return nilaifgperkodeproduk
 
 
@@ -121,40 +119,74 @@ def laporanbarangkeluar(request):
         data = models.SPPB.objects.filter(
             Tanggal__range=(tanggalawal, tanggalakhir)
         ).order_by("Tanggal")
+        print('ini data',data)
         listharga = []
+        listdata = []
+        listkodeartikel = []
+        listjumlah = []
+        listhargafg = []
+        listnilaitotal =[]
+        datakirim = []
         if not data.exists():
             messages.warning(request,'Data SPPB tidak ditemukan pada rentang tanggal tersebut')
             return redirect('laporanbarangkeluar')
         for i in data:
             detailsppb = models.DetailSPPB.objects.filter(NoSPPB=i.id)
-            # print(detailsppb)
             a = detailsppb.values("DetailSPK__KodeArtikel").annotate(
                 total_jumlah=Sum("Jumlah")
             )
             print("nilai A", a)
             for j in a:
+                print(j['DetailSPK__KodeArtikel'])
+                kodeartikel = j['DetailSPK__KodeArtikel']
                 penyusunfilterobj = models.Penyusun.objects.filter(
-                    KodeArtikel=j["DetailSPK__KodeArtikel"]
+                    KodeArtikel=kodeartikel
                 )
-                # print(penyusunfilterobj)
-                nilaiFG = 0
-                for penyusunobj in penyusunfilterobj:
-                    print("nilai penyusunobj", penyusunobj)
+                if kodeartikel in listkodeartikel:
+                    index = listkodeartikel.index(kodeartikel)
+                    jumlah = listjumlah[index] + j['total_jumlah']
+                    listjumlah[index] = jumlah
+                    listnilaitotal[index] = jumlah * listhargafg[index]
+                else:
+                    listkodeartikel.append(kodeartikel)
+                    jumlah = j['total_jumlah']
+                    listjumlah.append(jumlah)
 
-                    nilaiFG += gethargafg(penyusunobj)
-                j.update({"HargaFG": nilaiFG})
-                j.update({"TotalNilai": nilaiFG * j["total_jumlah"]})
-                j["DetailSPK__KodeArtikel"] = penyusunobj.KodeArtikel.KodeArtikel
-                listharga.append(j["TotalNilai"])
-        grandtotal = sum(listharga)
+                    nilaiFG = 0
+                    for penyusunobj in penyusunfilterobj:
+
+                        nilaiFG += gethargafg(penyusunobj)
+                    listhargafg.append(nilaiFG)
+                    listnilaitotal.append(nilaiFG*jumlah)
+            
+                        
+
+            listdata.append(a)
+        # print(listdata)
+        grandtotal = sum(listnilaitotal)
+        print('listkodeartikel',listkodeartikel)
+        print('listjumlah',listjumlah)
+        print('listnilaitotal',listnilaitotal)
+        print('listhargafg',listhargafg)
+
+        for kode_artikel, jumlah, nilai_total, harga_fg in zip(listkodeartikel, listjumlah, listnilaitotal, listhargafg):
+            artikel = models.Artikel.objects.get(id = kode_artikel)
+            datakirim.append({
+        'kode_artikel': artikel,
+        'jumlah': jumlah,
+        'nilai_total': nilai_total,
+        'harga_fg': harga_fg
+    })
+
         return render(
             request,
             "ppic/views_laporanbarangkeluar.html",
             {
                 "tanggalawal": tanggalawal,
                 "tanggalakhir": tanggalakhir,
-                "data": a,
+                "data": datakirim,
                 "grandtotal": grandtotal,
+                
             },
         )
 
