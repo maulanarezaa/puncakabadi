@@ -1,0 +1,72 @@
+{% extends "produksi/base.html" %}
+{% load static %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+{% block javascripts %}
+{% endblock javascripts %}
+
+<!-- Page content  -->
+{% block content %}
+<div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">Rekap Barang WIP</h4>
+          <form class="form-inline" method="get">
+            <div class="form-group">
+                <label for="tanggalawal">Tanggal Awal</label>
+                {% if tanggalawal%}
+                <input type="date" class="form-control mb-2 mr-sm-2 ml-2" id="tanggalawal" name="tanggalawal"
+                    value="{{tanggalawal}}">
+                {% else %}
+                <input type="date" class="form-control mb-2 mr-sm-2 ml-2" id="tanggalawal" name="tanggalawal"
+                    required>
+                {% endif %}
+            </div>
+            <div class="form-group">
+
+                <label for="tanggalakhir">Tanggal Akhir</label>
+                <div class="input-group mb-2 mr-sm-2 ml-2">
+                    {% if tanggalakhir %}
+                    <input type="date" class="form-control" id="tanggalakhir" placeholder="Username"
+                        name="tanggalakhir" value="{{tanggalakhir}}">
+                    {% else %}
+                    <input type="date" class="form-control" id="tanggalakhir" placeholder="Username" required
+                        name="tanggalakhir">
+                    {% endif %}
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mb-2">Submit</button>
+          </form>
+          <div class="table-responsive pt-3">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Kode Produk</th>
+                    <th>Nama Produk</th>
+                    <th>Kuantitas</th>
+                    <th>Satuan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for i in databarang %}
+                <tr>
+                    <td>{{i.keterangan}}</td>
+                    <td>{{i.KodeProduk}}</td>
+                    <td>{{i.NamaProduk}}</td>
+                    <td>{{i.kuantitas}}</td>
+                    <td>{{i.unit}}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock content %}

@@ -1,4 +1,4 @@
-{% extends "inventory/base.html" %}
+{% extends "produksi/base.html" %}
 {% load static %}
 
 <!-- Specific Page CSS goes HERE  -->
@@ -6,15 +6,6 @@
 {% endblock stylesheets %}
 
 {% block javascripts %}
-<script>
-    function confirmDelete(id) {
-        var result = confirm("Apakah Anda yakin ingin menghapus data?");
-        if (result) {
-            // Jika pengguna mengkonfirmasi, kirimkan permintaan penghapusan ke server
-            window.location.href = "/deleteproduksi/" + id;
-        }
-    }
-</script>
 {% endblock javascripts %}
 
 <!-- Page content  -->
@@ -23,9 +14,9 @@
     <div class="col-lg-12 grid-margin stretch-card">
       <div class="card">
         <div class="card-body">
-          <h4 class="card-title">Transaksi Produksi</h4>
+          <h4 class="card-title">Transaksi Barang Retur</h4>
           <div class="template-demo">
-            <a href="/addproduksi">
+            <a href="/produksi/addgudang">
                 <button type="button" class="btn btn-success btn-icon-text">
                     <i class="typcn typcn-plus btn-icon-prepend"></i>                                                    
                     Tambah Data
@@ -36,36 +27,44 @@
             <table class="table table-bordered">
               <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Tanggal</th>
                     <th>Lokasi</th>
-                    <th>Kode Artikel</th>
+                    <th>Kode Produk</th>
                     <th>Jumlah</th>
                     <th>Keterangan</th>
-                    <th>Jenis</th>
+                    <th>Status</th>
                     <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {% for i in dataproduksi %}
+                {% for i in datagudang %}
                 <tr>
-                    <td>{{i.idTransaksiProduksi}}</td>
-                    <td>{{i.Tanggal}}</td>
+                    <td>{{i.tanggal}}</td>
                     <td>{{i.Lokasi.NamaLokasi}}</td>
-                    <td>{{i.KodeArtikel}}</td>
-                    <td>{{i.Jumlah}}</td>
-                    <td>{{i.Keterangan}}</td>
-                    <td>{{i.Jenis}}</td>
+                    <td>{{i.KodeProduk}}</td>
+                    <td>{{i.jumlah}}</td>
+                    <td>{{i.keterangan}}</td>
+                    <td>
+                      {% if i.KeteranganACC == True %}
+                      <button class="btn btn-success">
+                          <i class="typcn typcn typcn-tick"></i>                                                    
+                      </button>
+                      {% else %}
+                      <button class="btn btn-danger">
+                        <i class="typcn typcn typcn-times"></i>                                                    
+                      </button>
+                      {% endif %}
+                    </td>
                     <td>
                         <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                         <div class="template-demo">
-                            <a href="{% url 'update_produksi' i.idTransaksiProduksi %}">
+                            <a href="{% url 'update_gudang' i.IDDetailTransaksiGudang %}">
                                 <button type="button" class="btn btn-warning">
                                     <i class="typcn typcn-edit"></i>                                                    
                                 </button>
                             </a>
-                            <a href="">
-                                <button onclick="confirmDelete({{ i.idTransaksiProduksi }})" type="button" class="btn btn-danger">
+                            <a href="{% url 'delete_gudang' i.IDDetailTransaksiGudang %}">
+                                <button type="button" class="btn btn-danger">
                                     <i class="typcn typcn typcn-trash"></i>                                                    
                                 </button>
                             </a>

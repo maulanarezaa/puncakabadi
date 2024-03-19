@@ -90,7 +90,7 @@ class TransaksiGudang(models.Model):
 
 
     def __str__(self):
-        return str(self.id)
+        return str(self.IDDetailTransaksiGudang)
 
 
 class Penyusun(models.Model):
@@ -186,7 +186,7 @@ class SaldoAwalBahanBaku(models.Model):
     Tanggal = models.DateField(null=True, blank =True)
 
     def __str__(self):
-        return str(self.IDLokasi + str(self.IDBahanBaku))
+        return str(self.IDLokasi) + str(self.IDBahanBaku)
 
 
 class SaldoAwalArtikel(models.Model):

@@ -54,16 +54,13 @@ def views_artikel(request):
     datakirim = []
     data = models.Artikel.objects.all()
     for item in data:
-        print(item)
         detailartikelobj = models.Penyusun.objects.filter(KodeArtikel=item.id).filter(
             Status=1
         )
-        print(detailartikelobj)
         if detailartikelobj.exists():
             datakirim.append([item, detailartikelobj[0]])
         else:
             datakirim.append([item, "Belum diset"])
-    print(datakirim)
     return render(request, "rnd/views_artikel.html", {"data": datakirim})
 
 
@@ -93,11 +90,9 @@ def updatedataartikel(request, id):
     if request.method == "GET":
         return render(request, "rnd/update_artikel.html",{'artikel':data})
     else:
-        print(request.POST)
         kodeartikel = request.POST['kodeartikel']
         keterangan = request.POST['keterangan']
         if keterangan =='':
-            print('kosong')
             keterangan = '-'
         cekkodeartikel = models.Artikel.objects.filter(KodeArtikel = kodeartikel).exists()
         if cekkodeartikel:
@@ -112,7 +107,6 @@ def updatedataartikel(request, id):
 
 
 def deleteartikel(request, id):
-    print('tessssssss',id)
     dataobj = models.Artikel.objects.get(id=id)
     dataobj.delete()
     messages.success(request,"Data Berhasil dihapus")
@@ -177,7 +171,6 @@ def updatepenyusun(request, id):
         lokasiobj = models.Lokasi.objects.all()
         return render(request, "rnd/update_penyusun.html", {"kodestok": kodebahanbaku,"data":data,"lokasi":lokasiobj,"konversi":datakonversi})
     else :
-        print(request.POST)
         kodeproduk = request.POST['kodeproduk']
         lokasi = request.POST['lokasi']
         status = request.POST['status']
@@ -191,7 +184,6 @@ def updatepenyusun(request, id):
         data.save()
         konversiobj.Kuantitas = kuantitas
         konversiobj.save()
-        print(konversiobj)
         return redirect('penyusun_artikel')
 
 
@@ -206,7 +198,6 @@ def tambahdatapenyusun(request, id):
             {"kodeartikel": dataartikelobj, "dataproduk": dataprodukobj},
         )
     else:
-        print(request.POST)
         kodeproduk = request.POST["kodeproduk"]
         statusproduk = request.POST["Status"]
         if statusproduk == "True":
@@ -252,14 +243,12 @@ def konversi(request):
         if data.exists():
             listdata = []
             for i in data:
-                print(i.IDKodePenyusun)
                 allowance = models.KonversiMaster.objects.get(
                     KodePenyusun=i.IDKodePenyusun
                 )
                 listdata.append(
                     [i, allowance, allowance.Kuantitas + allowance.Kuantitas * 0.025]
                 )
-            print(listdata)
             return render(
                 request,
                 "views_konversi.html",
@@ -293,59 +282,3 @@ def views_sppb(request):
         detailsppb = models.DetailSPPB.objects.filter(NoSPPB = sppb.id)
         sppb.detailsppb = detailsppb
     return render (request,'rnd/views_sppb.html',{"data":data})
-
-def views_ksbj(request):
-    if len(request.GET) == 0:
-        return render(request,'rnd/views_ksbj.html')
-    else:   
-        print(request.GET)
-        lokasi = request.GET['lokasi']
-        lokasiobj = models.Lokasi.objects.get(NamaLokasi = lokasi)
-        try :
-            artikel = models.Artikel.objects.get(KodeArtikel = request.GET['kodeartikel'])
-        except:
-            messages.error(request,"Kode Artikel Tidak ditemukan")
-            return redirect('views_ksbj')
-        data = models.TransaksiProduksi.objects.filter(KodeArtikel = artikel.id,Lokasi =lokasiobj.IDLokasi).order_by('Tanggal')
-        tanggallist = data.values_list('Tanggal',flat=True).distinct()
-        # print(tanggallist[0])
-        listdata = []
-        try:
-            getbahanbakuutama = models.Penyusun.objects.get(KodeArtikel = artikel.id,Status = 1 )
-        except models.Penyusun.DoesNotExist:
-            messages.error('Bahan Baku utama belum di set')
-            return redirect('views_ksbj')
-        print(getbahanbakuutama)
-        try:
-            saldoawalobj = models.SaldoAwalArtikel.objects.get(IDArtikel = artikel.id, IDLokasi = lokasiobj.IDLokasi)
-            saldoawaltaun = saldoawalobj.Jumlah
-        except models.SaldoAwalArtikel.DoesNotExist as e:
-            print(e)
-            saldoawaltaun = 0
-
-        sisa = saldoawaltaun
-        for i in tanggallist:
-            
-            jumlahhasil = 0
-            jumlahmasuk = 0
-            filtertanggal=data.filter(Tanggal = i)
-            print('ini tanggal',filtertanggal)
-            for j in filtertanggal:
-                
-                if j.Jenis == "Produksi":
-                    jumlahmasuk += j.Jumlah
-                else:
-                    jumlahhasil += j.Jumlah
-                # Cari data konversi bahan baku utama pada artikel terkait
-            konversimasterobj = models.KonversiMaster.objects.get(KodePenyusun = getbahanbakuutama.IDKodePenyusun)
-            print('Konversi', konversimasterobj.Kuantitas + ( konversimasterobj.Kuantitas*0.025))
-            masukpcs = round(jumlahmasuk/((konversimasterobj.Kuantitas + ( konversimasterobj.Kuantitas*0.025)))*0.893643879)
-                # Cari data penyesuaian
-            sisa = sisa - jumlahhasil +masukpcs
-            listdata.append([i,getbahanbakuutama,jumlahmasuk,jumlahhasil,masukpcs,sisa])
-
-            
-            
-        #     print(getbahanbakuutama)
-        return render(request,'rnd/views_ksbj.html',{'data':data,"kodeartikel":request.GET['kodeartikel'],"lokasi":lokasi,'listdata':listdata,'saldoawal':saldoawaltaun})
-
