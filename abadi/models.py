@@ -60,7 +60,7 @@ class TransaksiGudang(models.Model):
     Lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
 
     def __str__(self):
-        return str(self.id)
+        return str(self.IDDetailTransaksiGudang)
 
 
 class Penyusun(models.Model):
@@ -162,7 +162,7 @@ class SaldoAwalBahanBaku(models.Model):
     Harga = models.FloatField()
 
     def __str__(self):
-        return str(self.IDLokasi + str(self.IDBahanBaku))
+        return str(self.IDLokasi) + str(self.IDBahanBaku)
 
 
 class SaldoAwalArtikel(models.Model):
