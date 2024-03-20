@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>Rekap Barang ( Purchase Order)</h1>
+    
+    <form action="" method="post">
+        {% csrf_token %}
+        <label for="">PO</label>
+        <select name="input_po" id="input_po">
+            {% for item in po_objall %}
+                {% if item.NoSuratJalan.PO == request.POST.input_po %}
+                    <option value="{{ item.NoSuratJalan.PO }}" selected>{{ item.NoSuratJalan.PO }}</option>
+                {% else %}
+                    <option value="{{ item.NoSuratJalan.PO }}">{{ item.NoSuratJalan.PO }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+        <button type="submit">Cek</button>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>Tanggal</th>
+                <th>Kode Produk</th>
+                <th>Nama Produk</th>
+                <th>Kuantitas</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in po_obj %}
+            <tr>
+                <td>{{i.NoSuratJalan.Tanggal}}</td>
+                <td>{{i.KodeProduk}}</td>
+                <td>{{i.KodeProduk.NamaProduk}}</td>
+                <td>{{i.Jumlah}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+
+</html>
