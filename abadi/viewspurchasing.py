@@ -220,7 +220,7 @@ def delete_produk(request,id) :
 
 # Tinggal dibikin gimana biar kodenya yang terkirim pas di reload kode itu lagi yang muncul
 def read_po(request) :
-    
+
     po_objall = models.DetailSuratJalanPembelian.objects.all()
     if request.method == 'GET':
         return render(request,'Purchasing/read_po.html',{
@@ -394,3 +394,94 @@ def rekap_harga(request) :
         })
     
 
+# Coba v2
+def rekap_harga2(request):
+    kodeprodukobj = models.Produk.objects.all() 
+    if len(request.GET) == 0 :
+        return render(request,'Purchasing/rekap_harga.html',{
+            'kodeprodukobj' : kodeprodukobj
+        })
+    else :
+        kode_produk= request.GET['kode_produk']
+        tanggal_awal = request.GET['awal']
+        tanggal_akhir = request.GET['akhir']
+        produkobj = models.Produk.objects.get(KodeProduk = kode_produk)
+        masukobj = models.DetailSuratJalanPembelian.objects.filter(KodeProduk = produkobj.KodeProduk)
+
+        tanggalmasuk = masukobj.values_list('NoSuratJalan__Tanggal',flat=True)
+
+        keluarobj = models.TransaksiGudang.objects.filter(jumlah__gte =0,KodeProduk = produkobj.KodeProduk)
+        tanggalkeluar = keluarobj.values_list('tanggal',flat=True)
+
+        saldoawal = 1000
+        hargasatuanawal = 80000
+        hargatotalawal = saldoawal *hargasatuanawal
+        hargatotalproduk = 0
+        jumlahtotalproduk = 0
+
+        print(tanggalmasuk)
+        print(tanggalkeluar)
+        listtanggal = sorted(list(set(tanggalmasuk.union(tanggalkeluar))))
+        print(listtanggal)
+        for i in listtanggal:
+            jumlahmasukperhari = 0
+            hargamasuktotalperhari = 0
+            hargamasuksatuanperhari = 0
+            jumlahkeluarperhari = 0
+            hargakeluartotalperhari = 0
+            hargakeluarsatuanperhari = 0
+            sjpobj = masukobj.filter(NoSuratJalan__Tanggal = i)
+            if sjpobj.exists():
+                for j in sjpobj:
+                    hargamasuktotalperhari +=j.Harga*j.Jumlah
+                    jumlahmasukperhari += j.Jumlah
+                hargamasuksatuanperhari += hargamasuktotalperhari/jumlahmasukperhari
+            else:
+                hargamasuktotalperhari = 0
+                jumlahmasukperhari = 0
+                hargamasuksatuanperhari = 0
+                
+            transaksigudangobj = keluarobj.filter(tanggal = i)
+            print(transaksigudangobj)
+            if transaksigudangobj.exists():
+                for j in transaksigudangobj:
+                    jumlahkeluarperhari += j.jumlah
+                    hargakeluartotalperhari += j.jumlah * hargasatuanawal
+                hargakeluarsatuanperhari += hargakeluartotalperhari/jumlahkeluarperhari
+            else:
+                hargakeluartotalperhari = 0
+                hargakeluarsatuanperhari = 0
+                jumlahkeluarperhari = 0
+                
+
+            print('Tanggal : ',i)
+            print('Sisa Stok Hari Sebelumnya : ',saldoawal)
+            print('harga awal Hari Sebelumnya :', hargasatuanawal)
+            print('harga total Hari Sebelumnya :', hargatotalawal)
+            print('Jumlah Masuk : ',jumlahmasukperhari)
+            print('Harga Satuan Masuk : ',hargamasuksatuanperhari)
+            print('Harga Total Masuk : ',hargamasuktotalperhari)
+            print("Jumlah Keluar : ",jumlahkeluarperhari )
+            print("Harga Keluar : ",hargakeluarsatuanperhari)
+            print("Harga Total Keluar : ",hargakeluarsatuanperhari*jumlahkeluarperhari)
+            '''
+            Rumus dari Excel KSBB Purchasing
+            Sisa = Sisa hari sebelumnya + Jumlah masuk hari ini - jumlah keluar hari ini 
+            harga sisa satuan = total sisa / harga total sisa
+            Harga keluar = harga satuan hari sebelumnya
+
+            '''
+            saldoawal += jumlahmasukperhari -jumlahkeluarperhari 
+            hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
+            hargasatuanawal = hargatotalawal / saldoawal
+            
+            print('Sisa Stok Hari Ini : ',saldoawal)
+            print('harga awal Hari Ini :', hargasatuanawal)
+            print('harga total Hari Ini :', hargatotalawal,"\n")
+            
+            
+                    
+
+
+
+        return render(request,'purchasing/rekap_harga.html')

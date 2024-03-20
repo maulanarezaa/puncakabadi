@@ -142,6 +142,9 @@ def views_penyusun(request):
                     kuantitasallowance = kuantitaskonversi +kuantitaskonversi*0.025
                     hargaperkotak = rataratahargakodeproduk*kuantitasallowance
                     nilaifg +=hargaperkotak
+                    print('harga rata rata : ',rataratahargakodeproduk)
+                    print('harga total kode produk : ',hargatotalkodeproduk)
+                    print('jumlah kotak : ',jumlahtotalkodeproduk)
 
                     datakonversi.append(
                         [i, konversidataobj,kuantitasallowance,rataratahargakodeproduk,hargaperkotak]

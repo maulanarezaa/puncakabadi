@@ -25,6 +25,6 @@ urlpatterns = [
 
     # R PO
     path("read_po",viewspurchasing.read_po,name="read_po"),
-    path("rekap_harga",viewspurchasing.rekap_harga,name="rekap_harga")
+    path("rekap_harga",viewspurchasing.rekap_harga2,name="rekap_harga")
 ]
 
