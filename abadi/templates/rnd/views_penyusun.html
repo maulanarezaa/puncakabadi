@@ -75,7 +75,7 @@
                                     <div class="template-demo">
                                         <a>
                                             <!-- Buat Modal di JS bawah -->
-                                            <button onclick="confirmDelete({{i.0.id}})" type="button"
+                                            <button onclick="confirmDelete({{i.0.IDKodePenyusun}})" type="button"
                                                 class="btn btn-danger">
                                                 <i class="typcn typcn typcn-trash"></i>
                                             </button>
@@ -131,7 +131,7 @@
 <script>
     function confirmDelete(id) {
         var deleteForm = document.getElementById('deleteForm');
-        deleteForm.action = "artikel/delete/" + id;
+        deleteForm.action = "penyusun/delete/" + id;
         $('#confirmDeleteModal').modal('show');
     }
 

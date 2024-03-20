@@ -286,6 +286,8 @@ def view_ksbb(request):
                 kuantitas_konversi[penyusun.IDKodePenyusun] = konversi[0].Kuantitas
             else:
                 kuantitas_konversi[penyusun.IDKodePenyusun] = 0
+        
+        print(dataproduksi)
 
         for data in dataproduksi:
             if data.KodeArtikel in artikel_penyusun:
@@ -320,7 +322,7 @@ def view_ksbb(request):
 
 def views_ksbj(request):
     if len(request.GET) == 0:
-        return render(request,'rnd/views_ksbj.html')
+        return render(request,'produksi/view_ksbj.html')
     else:   
         print(request.GET)
         lokasi = request.GET['lokasi']
@@ -368,7 +370,7 @@ def views_ksbj(request):
             sisa = sisa - jumlahhasil +masukpcs
             listdata.append([i,getbahanbakuutama,jumlahmasuk,jumlahhasil,masukpcs,sisa])
 
-        return render(request,'rnd/views_ksbj.html',{'data':data,"kodeartikel":request.GET['kodeartikel'],"lokasi":lokasi,'listdata':listdata,'saldoawal':saldoawaltaun})
+        return render(request,'produksi/view_ksbj.html',{'data':data,"kodeartikel":request.GET['kodeartikel'],"lokasi":lokasi,'listdata':listdata,'saldoawal':saldoawaltaun})
         
 def view_rekapbarang(request):
     if len(request.GET) == 0:
