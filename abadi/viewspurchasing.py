@@ -403,8 +403,8 @@ def rekap_harga2(request):
         })
     else :
         kode_produk= request.GET['kode_produk']
-        tanggal_awal = request.GET['awal']
-        tanggal_akhir = request.GET['akhir']
+
+
         produkobj = models.Produk.objects.get(KodeProduk = kode_produk)
         masukobj = models.DetailSuratJalanPembelian.objects.filter(KodeProduk = produkobj.KodeProduk)
 
@@ -412,13 +412,25 @@ def rekap_harga2(request):
 
         keluarobj = models.TransaksiGudang.objects.filter(jumlah__gte =0,KodeProduk = produkobj.KodeProduk)
         tanggalkeluar = keluarobj.values_list('tanggal',flat=True)
+        
+        saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(IDBahanBaku = produkobj.KodeProduk,IDLokasi = 1).order_by('-Tanggal').first()
+        if  saldoawalobj:
+            print('ada data')
+            saldoawal = saldoawalobj.Jumlah 
+            hargasatuanawal = saldoawalobj.Harga
+            hargatotalawal = saldoawal * hargasatuanawal
 
-        saldoawal = 1000
-        hargasatuanawal = 80000
-        hargatotalawal = saldoawal *hargasatuanawal
-        hargatotalproduk = 0
-        jumlahtotalproduk = 0
-
+        else : 
+            saldoawal = 0
+            hargasatuanawal = 0
+            hargatotalawal = saldoawal *hargasatuanawal
+        saldoawalobj = {
+            'saldoawal' : saldoawal,
+            'hargasatuanawal' : hargasatuanawal,
+            'hargatotalawal' : hargatotalawal
+        }
+        hargaterakhir = 0
+        listdata = []
         print(tanggalmasuk)
         print(tanggalkeluar)
         listtanggal = sorted(list(set(tanggalmasuk.union(tanggalkeluar))))
@@ -464,6 +476,22 @@ def rekap_harga2(request):
             print("Jumlah Keluar : ",jumlahkeluarperhari )
             print("Harga Keluar : ",hargakeluarsatuanperhari)
             print("Harga Total Keluar : ",hargakeluarsatuanperhari*jumlahkeluarperhari)
+            if saldoawal + jumlahmasukperhari - jumlahkeluarperhari < 0:
+                messages.warning(request, 'Sisa stok menjadi negatif pada tanggal {}.\nCek kembali mutasi barang'.format(i))
+
+            dumy = {
+                'Tanggal' : i,
+                'Jumlahstokawal':saldoawal,
+                "Hargasatuanawal":hargasatuanawal,
+                "Hargatotalawal" : hargatotalawal,
+                "Jumlahmasuk" :jumlahmasukperhari,
+                'Hargamasuksatuan' : hargamasuksatuanperhari,
+                'Hargamasuktotal' : hargamasuktotalperhari,
+                'Jumlahkeluar':jumlahkeluarperhari,
+                'Hargakeluarsatuan':hargakeluarsatuanperhari,
+                'Hargakeluartotal':hargakeluartotalperhari
+
+            }
             '''
             Rumus dari Excel KSBB Purchasing
             Sisa = Sisa hari sebelumnya + Jumlah masuk hari ini - jumlah keluar hari ini 
@@ -478,10 +506,16 @@ def rekap_harga2(request):
             print('Sisa Stok Hari Ini : ',saldoawal)
             print('harga awal Hari Ini :', hargasatuanawal)
             print('harga total Hari Ini :', hargatotalawal,"\n")
-            
+            dumy['Sisahariini'] = saldoawal
+            dumy['Hargasatuansisa'] = hargasatuanawal
+            dumy['Hargatotalsisa'] = hargatotalawal
+
+            listdata.append(dumy)
+        
+        hargaterakhir += hargasatuanawal
             
                     
 
 
 
-        return render(request,'purchasing/rekap_harga.html')
+        return render(request,'purchasing/rekap_harga2.html',{'data':listdata,"Hargaakhir":hargaterakhir,"Saldoawal":saldoawalobj,'kodeprodukobj' : kodeprodukobj})
