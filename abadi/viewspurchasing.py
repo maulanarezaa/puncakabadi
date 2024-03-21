@@ -632,7 +632,7 @@ def views_rekapharga(request):
             "purchasing/views_ksbb.html",
             {
                 "data": listdata,
-                "Hargaakhir": hargaterakhir,
+                "Hargaakhir": round(hargaterakhir, 2),
                 "Saldoawal": saldoawalobj,
                 "kodeprodukobj": kodeprodukobj,
             },
