@@ -45,21 +45,21 @@
             <table class="table table-bordered">
               <thead>
                 <tr>
-                    <th>Status</th>
-                    <th>Kode Produk</th>
-                    <th>Nama Produk</th>
-                    <th>Kuantitas</th>
-                    <th>Satuan</th>
+                  <th>Kode Produk</th>
+                  <th>Nama Produk</th>
+                  <th>Kuantitas</th>
+                  <th>Satuan</th>
+                  <th>Keterangan</th>
                 </tr>
               </thead>
               <tbody>
                 {% for i in databarang %}
                 <tr>
-                    <td>{{i.keterangan}}</td>
-                    <td>{{i.KodeProduk}}</td>
-                    <td>{{i.NamaProduk}}</td>
-                    <td>{{i.kuantitas}}</td>
-                    <td>{{i.unit}}</td>
+                  <td>{{i.KodeProduk}}</td>
+                  <td>{{i.NamaProduk}}</td>
+                  <td>{{i.kuantitas}}</td>
+                  <td>{{i.unit}}</td>
+                  <td>{{i.keterangan}}</td>
                 </tr>
                 {% endfor %}
               </tbody>

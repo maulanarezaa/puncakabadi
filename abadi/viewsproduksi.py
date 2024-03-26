@@ -3,6 +3,7 @@ from django.contrib import messages
 from . import models
 from django.db.models import Sum
 from datetime import datetime
+from calendar import monthrange
 
 # Create your views here.
 #Dashboard Gudang
@@ -179,6 +180,9 @@ def view_gudang(request):
 
 def view_gudangretur(request):
     datagudang = models.TransaksiGudang.objects.filter(jumlah__lt=0)
+    for data in datagudang:
+        jumlah_baru = -data.jumlah
+        data.retur = jumlah_baru
 
     return render(request, "produksi/view_gudangretur.html", {"datagudang": datagudang})
 
@@ -186,11 +190,14 @@ def add_gudang(request):
     if request.method == "GET":
         data_produk = models.Produk.objects.all()
         data_lokasi = models.Lokasi.objects.all()
+        detail_spk = models.DetailSPK.objects.all()
+        data_spk = models.SPK.objects.all()
+        data_artikel = models.Artikel.objects.all()
 
         return render(
             request,
             "produksi/add_gudang.html",
-            {"kode_produk": data_produk, "nama_lokasi": data_lokasi},
+            {"kode_produk": data_produk, "nama_lokasi": data_lokasi, "detail_spk":detail_spk, "data_spk":data_spk, "data_artikel":data_artikel},
         )
 
     if request.method == "POST":
@@ -199,9 +206,11 @@ def add_gudang(request):
         tanggal = request.POST["tanggal"]
         jumlah = request.POST["jumlah"]
         keterangan = request.POST["keterangan"]
+        detail_spk = request.POST["detail_spk"]
 
         produkref = models.Produk.objects.get(KodeProduk=kode_produk)
         lokasiref = models.Lokasi.objects.get(IDLokasi=lokasi)
+        detailspkref = models.DetailSPK.objects.get(IDDetailSPK=detail_spk)
 
         data_gudang = models.TransaksiGudang(
             KodeProduk=produkref,
@@ -210,6 +219,7 @@ def add_gudang(request):
             jumlah=jumlah,
             keterangan=keterangan,
             KeteranganACC=False,
+            DetailSPK = detailspkref
         ).save()
         messages.success(request, "Data berhasil disimpan")
 
@@ -267,17 +277,34 @@ def view_ksbb(request):
         except:
             messages.error(request, "Data Produk tidak ditemukan")
             return redirect('view_ksbb')
+
+        if request.GET['periode']:
+            tahun_bulan = request.GET['periode']
+        else:
+            sekarang = datetime.now()
+            tahun_bulan = sekarang.strftime("%Y-%m")
+
+        # Convert to Month Year format
+        date = datetime.strptime(tahun_bulan, "%Y-%m")
+        formatted_date = date.strftime("%B %Y")
         
-        datagudang = models.TransaksiGudang.objects.filter(KodeProduk=produk).order_by('tanggal')
+        # tahun_bulan = request.GET['periode'] #2024-01
+        tahun, bulan = map(int, tahun_bulan.split('-'))
+        tanggal_mulai = datetime(tahun, bulan, 1).date()
+        tanggal_akhir = datetime(tahun, bulan, monthrange(tahun, bulan)[1]).date()
+
+        
+        datagudang = models.TransaksiGudang.objects.filter(KodeProduk=produk,tanggal__range=(tanggal_mulai,tanggal_akhir)).order_by('tanggal')
 
         # Mendapatkan semua penyusun yang terkait dengan produk
         penyusun_produk = models.Penyusun.objects.filter(KodeProduk=produk)
 
         # Mendapatkan artikel yang terkait dengan penyusun produk
-        artikel_penyusun = [penyusun.KodeArtikel for penyusun in penyusun_produk]
+        artikel_penyusun = [penyusun.KodeArtikel.id for penyusun in penyusun_produk]
 
         # Memfilter transaksi produksi berdasarkan artikel yang terkait dengan penyusun produk
-        dataproduksi = models.TransaksiProduksi.objects.filter(KodeArtikel__in=artikel_penyusun,Jenis="Mutasi").order_by('Tanggal')
+        dataproduksi = models.TransaksiProduksi.objects.filter(KodeArtikel__in=artikel_penyusun,Jenis="Mutasi",Tanggal__range=(tanggal_mulai,tanggal_akhir)).values('KodeArtikel','Tanggal').annotate(Jumlah=Sum('Jumlah')).order_by('Tanggal')
+        tanggalproduksi = dataproduksi.first()
 
         kuantitas_konversi = {}
         for penyusun in penyusun_produk:
@@ -287,40 +314,63 @@ def view_ksbb(request):
             else:
                 kuantitas_konversi[penyusun.IDKodePenyusun] = 0
 
-        for data in dataproduksi:
-            if data.KodeArtikel in artikel_penyusun:
-                penyusun = models.Penyusun.objects.get(KodeProduk=produk, KodeArtikel=data.KodeArtikel)
-                data.kuantitas = kuantitas_konversi[penyusun.IDKodePenyusun] + (kuantitas_konversi[penyusun.IDKodePenyusun]*2.5/100)
-                data.keluar = data.Jumlah * data.kuantitas
+        saldo = None
         try:
-            saldo = models.SaldoAwalBahanBaku.objects.get(IDBahanBaku=request.GET['kodebarang'],IDLokasi=1)
-        except:
-            messages.error(request, "Masukkan Saldo Awal Bahan Baku")
-            return redirect('view_ksbb')
-        
-        saldoawal = saldo.Jumlah
-        sisa = saldo.Jumlah
+            datasaldo = models.SaldoAwalBahanBaku.objects.filter(IDBahanBaku=request.GET['kodebarang'], IDLokasi=1,Tanggal__range=(tanggal_mulai,tanggal_akhir)).order_by('Tanggal')
+            saldo = datasaldo.first()
+        except models.SaldoAwalBahanBaku.DoesNotExist:
+            pass
+
+        if saldo is not None and saldo.Tanggal < tanggalproduksi['Tanggal']:
+            saldoawal = saldo.Jumlah
+            sisa = saldo.Jumlah
+        else:
+            saldoawal = 0
+            sisa = 0
+
+        for data in dataproduksi:
+            data['keluar'] = 0
+            data['kuantitas'] = 0
+            if data['KodeArtikel'] in artikel_penyusun:
+                penyusun = models.Penyusun.objects.filter(KodeProduk=produk, KodeArtikel=data['KodeArtikel'])
+    
+                data['kuantitas'] = 0
+                for i in penyusun:
+                    data['kuantitas'] += kuantitas_konversi[i.IDKodePenyusun] + (kuantitas_konversi[i.IDKodePenyusun]*2.5/100)
+
+                nama = models.Artikel.objects.get(id=data['KodeArtikel'])
+                data['nama'] = nama.KodeArtikel
+                data['keluar'] = data['Jumlah'] * data['kuantitas']
 
         for data in dataproduksi:
             masuk_total = 0
             for data_gudang in datagudang:
-                if data_gudang.tanggal == data.Tanggal:
+                if data_gudang.tanggal == data['Tanggal']:
                     masuk_total += data_gudang.jumlah
-            data.masuk = masuk_total
-            
-            sisa = sisa + data.masuk - data.keluar
-            data.sisa = sisa
+            data['masuk'] = masuk_total
+
+            if datasaldo:
+                for i in datasaldo:
+                    if i.Tanggal == data['Tanggal']:
+                        data['sisa'] =  i.Jumlah
+                    else:           
+                        sisa = sisa + data['masuk'] - data['keluar']
+                        data['sisa'] = sisa
+            else:           
+                sisa = sisa + data['masuk'] - data['keluar']
+                data['sisa'] = sisa
         
         return render(request, "produksi/view_ksbb.html", {"kodebarang":request.GET['kodebarang'],
                                                   'nama':nama,
                                                   'satuan':satuan,
                                                   'data':dataproduksi,
-                                                  'saldoawal':saldoawal
+                                                  'saldo':saldoawal,
+                                                  'tahun_bulan':formatted_date
                                                   })
 
 def views_ksbj(request):
     if len(request.GET) == 0:
-        return render(request,'rnd/views_ksbj.html')
+        return render(request,'produksi/view_ksbj.html')
     else:   
         print(request.GET)
         lokasi = request.GET['lokasi']
@@ -368,7 +418,7 @@ def views_ksbj(request):
             sisa = sisa - jumlahhasil +masukpcs
             listdata.append([i,getbahanbakuutama,jumlahmasuk,jumlahhasil,masukpcs,sisa])
 
-        return render(request,'rnd/views_ksbj.html',{'data':data,"kodeartikel":request.GET['kodeartikel'],"lokasi":lokasi,'listdata':listdata,'saldoawal':saldoawaltaun})
+        return render(request,'produksi/view_ksbj.html',{'data':data,"kodeartikel":request.GET['kodeartikel'],"lokasi":lokasi,'listdata':listdata,'saldoawal':saldoawaltaun})
         
 def view_rekapbarang(request):
     if len(request.GET) == 0:
@@ -400,7 +450,9 @@ def view_rekapbarang(request):
             for penyusun in item['Penyusun']:
                 konversi = item['Konversi'].filter(KodePenyusun=penyusun)
                 total_kuantitas = sum(konv.Kuantitas for konv in konversi)
+                print(total_kuantitas)
                 total = total_kuantitas * item['Jumlah']
+                print(total)
                 if penyusun.KodeProduk in total_per_produk:
                     total_per_produk[penyusun.KodeProduk] += total
                 else:
@@ -409,7 +461,8 @@ def view_rekapbarang(request):
         databarang = models.Produk.objects.all()       
 
         datagudang = models.TransaksiGudang.objects.filter(Lokasi=1,tanggal__range=(tanggal_mulai,tanggal_akhir)).values('KodeProduk').annotate(kuantitas=Sum('jumlah'))
-        
+
+        print(total_per_produk)
         # Output hasil perhitungan
         for barang in databarang:
             kode_produk = barang.KodeProduk

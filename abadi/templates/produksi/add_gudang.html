@@ -69,9 +69,47 @@
           <div class="row">
             <div class="col-md-6">
               <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Detail SPK</label>
+                <div class="col-sm-9">
+                    <select class="form-control" id="exampleSelectGender" name="detail_spk">
+                        {% for i in detail_spk %}
+                        <option value="{{i.NoSPK}}">{{i.NoSPK}} | {{i.KodeArtikel}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Nomor SPK</label>
+                <div class="col-sm-9">
+                  <select class="form-control" id="exampleSelectGender" name="nomor_spk">
+                    {% for i in data_spk %}
+                      <option value="{{i.NoSPK}}">{{i.NoSPK}}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Keterangan</label>
                 <div class="col-sm-9">
                     <textarea class="form-control" name="keterangan"  rows="3"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Kode Artikel</label>
+                <div class="col-sm-9">
+                    <select class="form-control" id="exampleSelectGender" name="kode_artikel">
+                        {% for i in data_artikel %}
+                        <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
+                        {% endfor %}
+                    </select>
                 </div>
               </div>
             </div>

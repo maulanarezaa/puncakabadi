@@ -29,18 +29,32 @@
                             </div>
                         </div>
                     </div>
-                    {% else %}
                     <div class="row">
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Masukkan Kode Barang"
-                                        aria-label="Masukkan Kode Barang" name="kodebarang">
+                                    <input type="month" class="form-control"  value="tahun_bulan_sekarang" placeholder="Masukkan Periode"
+                                        aria-label="Masukkan Periode" name="periode">
                                     <div class="input-group-append">
-                                        <button class="btn btn-sm btn-primary" type="submit">Search</button>
+                                        <button class="btn btn-sm btn-primary"  type="submit">Filter</button>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="row">
+                        <div class="col-lg-4">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="Masukkan Kode Barang"
+                                            aria-label="Masukkan Kode Barang" name="kodebarang">
+                                        <input type="month" name="periode" value="tahun_bulan_sekarang" style="display: none;">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-sm btn-primary" type="submit">Search</button>
+                                        </div>
+                                    </div>
+                                </div>
                         </div>
                     </div>
                     {% endif %}
@@ -51,29 +65,26 @@
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <td>Tanggal</td>
-                                <td>Artikel</td>
-                                <td>Per Kotak</td>
-                                <td>Konversi</td>
+                                <td style="text-align:center;">Tanggal</td>
+                                <td colspan="3"  style="text-align:center;">Keterangan</td>
                                 <td>Masuk</td>
                                 <td>Keluar</td>
-                                <td>Sisa</td>
+                                <td style="text-align:center;">Sisa</td>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Saldo awal</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td>{{saldoawal}}</td>
+                                <td>{{tahun_bulan}}</td>
+                                <td>Artikel</td>
+                                <td>Per Kotak</td>
+                                <td>Konversi</td>
+                                <td colspan="2"  style="text-align:center;">Saldo awal</td>
+                                <td>{{saldo}}</td>
                             </tr>
                             {% for i in data %}
                             <tr>
                                 <td>{{i.Tanggal}}</td>
-                                <td>{{i.KodeArtikel}}</td>
+                                <td>{{i.nama}}</td>
                                 <td>{{i.Jumlah}}</td>
                                 <td>{{i.kuantitas}}</td>
                                 <td>{{i.masuk}}</td>
