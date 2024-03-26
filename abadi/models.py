@@ -86,7 +86,7 @@ class TransaksiGudang(models.Model):
     tanggal = models.DateField()
     KeteranganACC = models.BooleanField()
     Lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
-    DetailSPK = models.ForeignKey(DetailSPK,on_delete = models.CASCADE,null = True)
+    DetailSPK = models.ForeignKey(DetailSPK,on_delete = models.CASCADE,null = True,blank=True)
 
 
     def __str__(self):

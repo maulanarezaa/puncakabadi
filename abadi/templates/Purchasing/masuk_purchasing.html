@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>Notifikasi Barang Masuk</h1>
+    
+    <form action="" method="GET">
+        <label for="">Tanggal Awal</label>
+        <input type="date" name="awal" id="awal" value="{{input_awal}}" required>
+        <label for="">Tanggal Akhir</label>
+        <input type="date" name="akhir" id="akhir" value="{{input_terakhir}}" required>
+        <button type="submit">Cek</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>No</th> <!-- Kolom untuk nomor urutan -->
+                <th>Tanggal</th>
+                <th>Supplier</th>
+                <th>Kode Produk</th>
+                <th>Nama Produk</th>
+                <th>Kuantitas</th>
+                <th>Harga</th>
+                <th>Harga Total</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            {% for i in data_hasil_filter %}
+            <tr>
+                <!-- Tanggal di sini -->
+                <td>{{i.NoSuratJalan.Tanggal}}</td>
+                <td>{{i.NoSuratJalan.supplier}}</td>
+                <td>{{i.KodeProduk}}</td>
+                <td>{{i.KodeProduk.NamaProduk}}</td>
+                <td>{{i.Jumlah}}</td>
+                <td>{{i.Harga}}</td>
+                <td>{{i.harga_total}}</td>
+                <td>
+                    <a href="{% url 'update_barang_masuk' i.IDDetailSJPembelian input_awal input_terakhir %}">
+                        <button>Update</button>
+                    </a>
+                    <a href="{% url 'delete_barang_masuk' i.IDDetailSJPembelian input_awal input_terakhir %}">
+                        <button>Delete</button>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+            {% endfor %}
+    </ul>
+    {% endif %}
+
+    <script>
+        // Mendapatkan elemen tbody
+        var tableBody = document.getElementById("tableBody");
+        // Mendapatkan semua baris di dalam tbody
+        var rows = tableBody.getElementsByTagName("tr");
+        // Loop melalui setiap baris dan tambahkan nomor urutan
+        for (var i = 0; i < rows.length; i++) {
+            // Membuat elemen kolom untuk nomor urutan
+            var cell = rows[i].insertCell(0);
+            // Mengatur nomor urutan
+            cell.textContent = i + 1;
+        }
+    </script>
+</body>
+</html>
