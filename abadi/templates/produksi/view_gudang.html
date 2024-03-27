@@ -28,6 +28,8 @@
               <thead>
                 <tr>
                     <th>Tanggal</th>
+                    <th>No. SPK</th>
+                    <th>Kode Artikel</th>
                     <th>Lokasi</th>
                     <th>Kode Produk</th>
                     <th>Jumlah</th>
@@ -40,6 +42,8 @@
                 {% for i in datagudang %}
                 <tr>
                     <td>{{i.tanggal}}</td>
+                    <td>{{i.DetailSPK.NoSPK}}</td>
+                    <td>{{i.DetailSPK.KodeArtikel}}</td>
                     <td>{{i.Lokasi.NamaLokasi}}</td>
                     <td>{{i.KodeProduk}}</td>
                     <td>{{i.jumlah}}</td>

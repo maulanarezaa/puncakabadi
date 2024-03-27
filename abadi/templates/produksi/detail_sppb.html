@@ -27,7 +27,7 @@
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Tanggal</label>
                 <div class="col-sm-9">
-                  <input type="date" class="form-control" name="tanggal" />
+                  <input type="date" class="form-control" name="tanggal" value="{{tanggal}}"/>
                 </div>
               </div>
             </div>
@@ -35,7 +35,7 @@
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Nomor SPPB</label>
                 <div class="col-sm-9">
-                    <input type="text" class="form-control" name="nomor_sppb" />
+                    <input type="text" class="form-control" name="nomor_sppb" value="{{datasppb.NoSPPB}}"/>
                 </div>
               </div>
             </div>
@@ -45,20 +45,25 @@
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Keterangan</label>
                 <div class="col-sm-9">
-                    <textarea class="form-control" name="keterangan"  rows="3"></textarea>
+                    <textarea class="form-control" name="keterangan"  rows="3">{{datasppb.Keterangan}}</textarea>
                 </div>
               </div>
             </div>
           </div>
           <h4 class="card-title">Detail SPPB</h4>
           <div id="artikels">
+            {% for i in datadetail %}
             <div class="row" id="artikel_1">
                 <div class="col-md-5">
                     <div class="form-group">
-                        <label for="artikel_1">Artikel 1:</label>
+                        <label for="artikel_{{ forloop.counter }}">Artikel {{ forloop.counter }}:</label>
                         <select class="form-control artikel" name="artikel[]">
                             {% for item in data %}
-                            <option value="{{ item.IDDetailSPK }}">{{ item.NoSPK }} - {{ item.KodeArtikel }}</option>
+                              {% if item.IDDetailSPK == i.DetailSPK.IDDetailSPK %}
+                                <option selected value="{{ item.IDDetailSPK }}">{{ item.NoSPK }} - {{ item.KodeArtikel }}</option>
+                              {% else %}
+                                <option value="{{ item.IDDetailSPK }}">{{ item.NoSPK }} - {{ item.KodeArtikel }}</option>
+                              {% endif %}
                             {% endfor %}
                         </select>
                     </div>
@@ -66,14 +71,17 @@
                 <div class="col-md-5">
                     <div class="form-group">
                         <label for="quantity_1">Jumlah</label>
-                        <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity">
+                        <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity" value="{{i.Jumlah}}">
                     </div>
                 </div>
                 <div class="col-md-1">
                     <label for="hapus1"></label>
-                    <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
+                    <a href="{% url 'delete_detailsppb' i.IDDetailSPPB %}">
+                      <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
+                    </a>
                 </div>
             </div>
+            {% endfor %}
         </div>
         <button type="button" class="btn btn-primary" onclick="addProduct()">Tambahkan Artikel</button>
         <br><br>
