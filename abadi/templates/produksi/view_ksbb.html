@@ -33,7 +33,7 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="month" class="form-control"  value="tahun_bulan_sekarang" placeholder="Masukkan Periode"
+                                    <input type="number" class="form-control"  value="tahun_bulan_sekarang" placeholder="Masukkan Periode" min="2024" max="2200"
                                         aria-label="Masukkan Periode" name="periode">
                                     <div class="input-group-append">
                                         <button class="btn btn-sm btn-primary"  type="submit">Filter</button>
@@ -83,13 +83,42 @@
                             </tr>
                             {% for i in data %}
                             <tr>
-                                <td>{{i.Tanggal}}</td>
-                                <td>{{i.nama}}</td>
-                                <td>{{i.Jumlah}}</td>
-                                <td>{{i.kuantitas}}</td>
+                                <td>{{i.tanggal}}</td>
+                                <td>
+                                    {% for detail_item in i.detail %}
+                                        <p>{{ detail_item.nama.first }}</p>
+                                        <br>
+                                    {% endfor %}
+                                </td>
+                                <td>
+
+                                    {% for detail_item in i.detail %}
+                                        <p>{{ detail_item.jumlah }}</p>
+                                        <br>
+                                    {% endfor %}
+                                </td>
+                                <td>
+
+                                    {% for detail_item in i.detail %}
+                                        <p>{{ detail_item.konversi }}</p>
+                                        <br>
+                                    {% endfor %}
+                                </td>
                                 <td>{{i.masuk}}</td>
-                                <td>{{i.keluar}}</td>
-                                <td>{{i.sisa}}</td>
+                                <td>
+
+                                    {% for detail_item in i.detail %}
+                                        <p>{{ detail_item.keluar }}</p>
+                                        <br>
+                                    {% endfor %}
+                                </td>
+                                <td>
+
+                                    {% for detail_item in i.detail %}
+                                        <p>{{ detail_item.sisa }}</p>
+                                        <br>
+                                    {% endfor %}
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>

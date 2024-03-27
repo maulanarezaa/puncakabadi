@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Create Produk</h1>
+    <form action="" method="POST">
+        {% csrf_token %}
+        <table>
+            <tr>
+                <td><label for=""> Kode Produk</label></td>
+                <td><input type="text" name="kode_produk" required ></td>
+            </tr>
+            <tr>
+                <td><label for="">Nama Produk</label></td>
+                <td><input type="text" name="nama_produk" required ></td>
+            </tr>
+            <tr>
+                <td><label for=""> Unit </label></td>
+                <td><input type="text" name="unit_produk" id="unit_produk" required ></td>
+            </tr>
+            <tr>
+                <td><label for=""> Keterangan</label></td>
+                <td><input type="text" name="keterangan_produk" id="keterangan_produk" ></td>
+
+            </tr>
+            
+        </table>
+    
+        <a href="{% url 'read_produk' %}">
+            <button>Submit</button>
+        </a>
+    </form>
+    <!-- <script>
+        function updateHargaTotal() {
+        var hargaSatuan = document.getElementById("harga_barang").value;
+        var kuantitas = document.getElementById("kuantitas_masuk").value;
+        var hargaTotal = hargaSatuan * kuantitas;
+        document.getElementById("harga_total").value = hargaTotal;
+        }
+    </script> -->
+</body>
+</html>

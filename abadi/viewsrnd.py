@@ -142,6 +142,9 @@ def views_penyusun(request):
                     kuantitasallowance = kuantitaskonversi +kuantitaskonversi*0.025
                     hargaperkotak = rataratahargakodeproduk*kuantitasallowance
                     nilaifg +=hargaperkotak
+                    print('harga rata rata : ',rataratahargakodeproduk)
+                    print('harga total kode produk : ',hargatotalkodeproduk)
+                    print('jumlah kotak : ',jumlahtotalkodeproduk)
 
                     datakonversi.append(
                         [i, konversidataobj,kuantitasallowance,rataratahargakodeproduk,hargaperkotak]
@@ -226,6 +229,13 @@ def tambahdatapenyusun(request, id):
         
         return redirect(f"/rnd/penyusun?kodeartikel={quote(dataartikelobj.KodeArtikel)}")
 
+def delete_penyusun(request,id):
+    penyusunobj= models.Penyusun.objects.get(IDKodePenyusun = id)
+    # penyusunobj.delete()
+    print(penyusunobj)
+    print(id)
+    return redirect('penyusun_artikel')
+
 
 # Update Delete Penyusun belum masuk
 def konversi(request):
@@ -282,3 +292,96 @@ def views_sppb(request):
         detailsppb = models.DetailSPPB.objects.filter(NoSPPB = sppb.id)
         sppb.detailsppb = detailsppb
     return render (request,'rnd/views_sppb.html',{"data":data})
+
+def views_ksbj(request):
+    if len(request.GET) == 0:
+        return render(request,'rnd/view_ksbj.html')
+    else:   
+        # print(request.GET)
+        lokasi = request.GET['lokasi']
+        lokasiobj = models.Lokasi.objects.get(NamaLokasi = lokasi)
+
+            
+        try :
+            artikel = models.Artikel.objects.get(KodeArtikel = request.GET['kodeartikel'])
+        except:
+            messages.error(request,"Kode Artikel Tidak ditemukan")
+            return redirect('views_ksbj')
+            
+        data = models.TransaksiProduksi.objects.filter(KodeArtikel = artikel.id).order_by('Tanggal')
+        if lokasi == "WIP":
+            data = data.filter(Lokasi = lokasiobj.IDLokasi)
+        tanggallist = data.values_list('Tanggal',flat=True).distinct()
+        print(tanggallist)
+        listdata = []
+        try:
+            getbahanbakuutama = models.Penyusun.objects.get(KodeArtikel = artikel.id,Status = 1 )
+        except models.Penyusun.DoesNotExist:
+            messages.error('Bahan Baku utama belum di set')
+            return redirect('views_ksbj')
+        print(getbahanbakuutama)
+        try:
+            saldoawalobj = models.SaldoAwalArtikel.objects.get(IDArtikel = artikel.id, IDLokasi = lokasiobj.IDLokasi)
+            saldoawaltaun = saldoawalobj.Jumlah
+        except models.SaldoAwalArtikel.DoesNotExist as e:
+            # print(e)
+            saldoawaltaun = 0
+        # if lokasi == "FG":
+        #     print('fg')
+        #     datawip = models.TransaksiProduksi.objects.filter(KodeArtikel = artikel.id, )
+
+        sisa = saldoawaltaun
+        if lokasi == 'WIP':
+            print('ini WIP')
+            for i in tanggallist:
+                
+                jumlahhasil = 0
+                jumlahmasuk = 0
+                filtertanggal=data.filter(Tanggal = i)
+                # print('ini tanggal',filtertanggal)
+                for j in filtertanggal:
+                    
+                    if j.Jenis == "Produksi":
+                        jumlahmasuk += j.Jumlah
+                    else:
+                        jumlahhasil += j.Jumlah
+                    # Cari data konversi bahan baku utama pada artikel terkait
+                konversimasterobj = models.KonversiMaster.objects.get(KodePenyusun = getbahanbakuutama.IDKodePenyusun)
+                # print('Konversi', konversimasterobj.Kuantitas + ( konversimasterobj.Kuantitas*0.025))
+                masukpcs = round(jumlahmasuk/((konversimasterobj.Kuantitas + ( konversimasterobj.Kuantitas*0.025)))*0.893643879)
+                    # Cari data penyesuaian
+                sisa = sisa - jumlahhasil +masukpcs
+                listdata.append([i,getbahanbakuutama,jumlahmasuk,jumlahhasil,masukpcs,sisa])
+
+                
+                
+            #     print(getbahanbakuutama)
+
+        else : 
+            print('ini FG')
+            for i in tanggallist:
+                jumlahhasil = 0
+                jumlahmasuk = 0
+                filtertanggal=data.filter(Tanggal = i)
+                print(filtertanggal)
+
+                for j in filtertanggal:
+                    
+                    if j.Jenis == "Mutasi" and j.Lokasi.NamaLokasi == 'WIP':
+                        print('mutasi')
+                        jumlahmasuk += j.Jumlah
+                    elif j.Jenis == "Mutasi" and j.Lokasi.NamaLokasi == "FG":
+                        print('Keluar')
+                        jumlahhasil += j.Jumlah
+                        # Tambah data objectnya
+                        
+                    else:
+                        continue
+                    
+                masukpcs =jumlahmasuk
+                sisa = sisa - jumlahhasil +masukpcs
+                listdata.append([i,getbahanbakuutama,jumlahmasuk,jumlahhasil,sisa])
+
+                print(listdata)
+            
+        return render(request,'rnd/view_ksbj.html',{'data':data,"kodeartikel":request.GET['kodeartikel'],"lokasi":lokasi,'listdata':listdata,'saldoawal':saldoawaltaun})

@@ -21,5 +21,5 @@ urlpatterns = [
     path('produksi/',include('abadi.urlsproduksi')),
     path('ppic/',include('abadi.urlsppic')),
     path('rnd/',include('abadi.urlsrnd')),
-    path('chaining/', include('smart_selects.urls')),
+    path('purchasing/',include('abadi.urlspurchasing'))
 ]

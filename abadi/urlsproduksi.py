@@ -7,16 +7,19 @@ urlpatterns = [
 
     path("viewspk", viewsproduksi.view_spk, name="view_spk"),
     path("addspk", viewsproduksi.add_spk, name="add_spk"),
-    path("updatespk/<str:id>", viewsproduksi.update_spk, name="update_spk"),
+    path("detailspk/<str:id>", viewsproduksi.detail_spk, name="detail_spk"),
     path("deletespk/<str:id>", viewsproduksi.delete_spk, name="delete_spk"),
+    path("deletedetailspk/<str:id>", viewsproduksi.delete_detailspk, name="delete_detailspk"),
     
     path("viewsppb", viewsproduksi.view_sppb, name="view_sppb"),
     path("addsppb", viewsproduksi.add_sppb, name="add_sppb"),
-    path("updatesppb/<str:id>", viewsproduksi.update_sppb, name="update_sppb"),
+    path("detailsppb/<str:id>", viewsproduksi.detail_sppb, name="detail_sppb"),
     path("deletesppb/<str:id>", viewsproduksi.delete_sppb, name="delete_sppb"),
+    path("deletedetailsppb/<str:id>", viewsproduksi.delete_detailsppb, name="delete_detailsppb"),
 
     path("viewproduksi", viewsproduksi.view_produksi, name="view_produksi"),
     path("addproduksi", viewsproduksi.add_produksi, name="add_produksi"),
+    path("load_detailspk/", viewsproduksi.load_detailspk, name="load_detailspk"),
     path("updateproduksi/<str:id>", viewsproduksi.update_produksi, name="update_produksi"),
     path("deleteproduksi/<str:id>", viewsproduksi.delete_produksi, name="delete_produksi"),
 
