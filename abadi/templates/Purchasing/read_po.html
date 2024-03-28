@@ -1,49 +1,72 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "purchasing/base.html" %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
 
-<body>
-    <h1>Rekap Barang ( Purchase Order)</h1>
-    
-    <form action="" method="post">
-        {% csrf_token %}
-        <label for="">PO</label>
-        <select name="input_po" id="input_po">
-            {% for item in po_objall %}
-                {% if item.NoSuratJalan.PO == request.POST.input_po %}
-                    <option value="{{ item.NoSuratJalan.PO }}" selected>{{ item.NoSuratJalan.PO }}</option>
-                {% else %}
-                    <option value="{{ item.NoSuratJalan.PO }}">{{ item.NoSuratJalan.PO }}</option>
-                {% endif %}
-            {% endfor %}
-        </select>
-        <button type="submit">Cek</button>
-    </form>
-    <table>
-        <thead>
-            <tr>
-                <th>Tanggal</th>
-                <th>Kode Produk</th>
-                <th>Nama Produk</th>
-                <th>Kuantitas</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for i in po_obj %}
-            <tr>
-                <td>{{i.NoSuratJalan.Tanggal}}</td>
-                <td>{{i.KodeProduk}}</td>
-                <td>{{i.KodeProduk.NamaProduk}}</td>
-                <td>{{i.Jumlah}}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
+<!-- Page content  -->
+{% block content %}
+<div class="col-12 grid-margin">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Rekap Barang (Purchase Order)</h4>
+      <br>
+      <form class="form-sample" action="" method="get">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">PO</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" name="input_po" id="input_po" value="{{input_po}}" required />
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary mr-2">Cek</button>
+      </form>
+      {% if po_obj%}
+      <div class="row">
+        <div class="col-lg-12 grid-margin stretch-card">
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive pt-3">
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th>No</th>
+                      <th>Nomor Surat Jalan</th>
+                      <th>Supplier</th>
+                      <th>Tanggal</th>
+                      <th>Kode Produk</th>
+                      <th>Nama Produk</th>
+                      <th>Kuantitas</th>
+                      <th>Harga Satuan</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tableBody">
+                    {% for i in po_obj %}
+                    <tr>
+                      <td>{{forloop.counter}}</td>
+                      <td>{{i.NoSuratJalan.NoSuratJalan}}</td>
+                      <td>{{i.NoSuratJalan.supplier}}</td>
+                      <td>{{i.NoSuratJalan.Tanggal}}</td>
+                      <td>{{i.KodeProduk}}</td>
+                      <td>{{i.KodeProduk.NamaProduk}}</td>
+                      <td>{{i.Jumlah}}</td>
+                      <td>{{i.Harga}}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
 
-</html>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock content %}

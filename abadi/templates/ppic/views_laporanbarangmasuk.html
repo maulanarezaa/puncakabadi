@@ -41,6 +41,15 @@
 
                     <button type="submit" class="btn btn-primary mb-2">Submit</button>
                 </form>
+                {% if data %}
+                <form method="post" action="{% url  'laporanbarangmasukexcel' %}">
+                    {% csrf_token %}
+                    <input type="text" value="{{tanggalawal}}" hidden name="tanggalawal">
+                    <input type="text" name="tanggalakhir" value="{{tanggalakhir}}" id="" hidden>
+                    <button type="submit" class="btn btn-primary mb-2">Cetak Excel</button>
+                </form>
+                {% endif %}
+                </a>
 
                 <div class="table-responsive pt-3">
                     {% if data %}
@@ -61,7 +70,11 @@
                         </thead>
                         <tbody>
                             {% for i in data %}
+                            {% if i.totalharga == 0 %}
+                            <tr style="background-color: yellow;">
+                                {% else %}
                             <tr>
+                                {% endif %}
                                 <td>{{forloop.counter}}</td>
                                 <td>{{i.NoSuratJalan}}</td>
                                 <td>{{i.supplier}}</td>

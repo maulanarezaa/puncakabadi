@@ -22,7 +22,12 @@
                             <div class="form-group">
                                 <div class="input-group">
                                     <input type="text" class="form-control" placeholder="Masukkan Nama Artikel"
-                                        aria-label="Masukkan Nama Artikel" name="kodeartikel">
+                                        aria-label="Masukkan Nama Artikel" name="kodeartikel" list="listartikel">
+                                    <datalist id="listartikel">
+                                        {% for i in dataartikel %}
+                                        <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
+                                        {% endfor %}
+                                    </datalist>
                                     <div class="input-group-append">
                                         <button class="btn btn-sm btn-primary" type="submit">Search</button>
                                     </div>
@@ -62,25 +67,25 @@
                             {% for i in data %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
-                                <td>{{i.0.KodeProduk}}</td>
-                                <td>{{i.0.KodeProduk.NamaProduk}}</td>
-                                <td>{{i.0.KodeProduk.unit}}</td>
-                                <td>{{i.0.Lokasi.NamaLokasi}}</td>
-                                <td>{{i.0.Status}}</td>
-                                <td>{{i.1.Kuantitas}}</td>
-                                <td>{{i.2}}</td>
-                                <td>{{i.3}}</td>
-                                <td>{{i.4}}</td>
+                                <td>{{i.Penyusunobj.KodeProduk}}</td>
+                                <td>{{i.Penyusunobj.KodeProduk.NamaProduk}}</td>
+                                <td>{{i.Penyusunobj.KodeProduk.unit}}</td>
+                                <td>{{i.Penyusunobj.Lokasi.NamaLokasi}}</td>
+                                <td>{{i.Penyusunobj.Status}}</td>
+                                <td>{{i.Konversi}}</td>
+                                <td>{{i.Allowance}}</td>
+                                <td>{{i.HargaSatuan}}</td>
+                                <td>{{i.Hargakotak}}</td>
                                 <td>
                                     <div class="template-demo">
                                         <a>
                                             <!-- Buat Modal di JS bawah -->
-                                            <button onclick="confirmDelete({{i.0.IDKodePenyusun}})" type="button"
-                                                class="btn btn-danger">
+                                            <button onclick="confirmDelete({{i.Penyusunobj.IDKodePenyusun}})"
+                                                type="button" class="btn btn-danger">
                                                 <i class="typcn typcn typcn-trash"></i>
                                             </button>
                                         </a>
-                                        <a href="{% url 'update_penyusun' i.0.IDKodePenyusun%}">
+                                        <a href="{% url 'update_penyusun' i.Penyusunobj.IDKodePenyusun%}">
                                             <button type="button" class="btn btn-warning">
                                                 <i class="typcn typcn-edit"></i>
                                             </button>
