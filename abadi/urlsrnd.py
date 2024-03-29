@@ -13,5 +13,6 @@ urlpatterns = [
     path("penyusun/update/<str:id>", viewsrnd.updatepenyusun, name="update_penyusun"),
     path("penyusun/delete/<str:id>",viewsrnd.delete_penyusun,name='delete_penyusun'),
     path('ksbj',viewsrnd.views_ksbj,name='views_ksbj'),
-    path("sppb",viewsrnd.views_sppb,name='views_sppb')
+    path("sppb",viewsrnd.views_sppb,name='views_sppb'),
+    path('upload-excel', viewsrnd.uploadexcel, name='upload-excel'),
 ]

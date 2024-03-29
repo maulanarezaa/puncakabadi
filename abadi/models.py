@@ -142,7 +142,7 @@ class TransaksiProduksi(models.Model):
     Jumlah = models.IntegerField()
     Keterangan = models.CharField(max_length=255)
     Jenis = models.CharField(max_length=20)
-    DetailSPK = models.ForeignKey(DetailSPK,on_delete = models.CASCADE,null = True)
+    DetailSPK = models.ForeignKey(DetailSPK,on_delete = models.CASCADE,null = True,blank=True)
 
 
     def __str__(self):
@@ -165,7 +165,7 @@ class DetailSPPB(models.Model):
     Jumlah = models.IntegerField()
 
     def __str__(self):
-        return str(self.IDDetailSPPB)
+        return f'{self.IDDetailSPPB} - {self.NoSPPB} - {self.DetailSPK} - {self.Jumlah}'
 
 class TransaksiSubkon(models.Model):
     IDTransaksiSubkon = models.AutoField(primary_key=True)
@@ -186,7 +186,7 @@ class SaldoAwalBahanBaku(models.Model):
     Tanggal = models.DateField(null=True, blank =True)
 
     def __str__(self):
-        return str(self.IDLokasi) + str(self.IDBahanBaku)
+        return f'{self.IDLokasi} - {self.IDBahanBaku}- {self.Tanggal.year}'
 
 
 class SaldoAwalArtikel(models.Model):
@@ -197,7 +197,7 @@ class SaldoAwalArtikel(models.Model):
     Tanggal = models.DateField(null=True, blank =True)
 
     def __str__(self):
-        return str(self.IDLokasi )+ ' ' +str(self.IDArtikel)
+        return f"{self.IDLokasi} - {self.IDArtikel} - {self.Tanggal.year}"
 
 class SaldoAwalSubkon(models.Model):
     IDSaldoAwalProdukSubkon = models.AutoField(primary_key=True)

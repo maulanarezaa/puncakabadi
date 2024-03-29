@@ -1,10 +1,14 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.http import Http404
+from django.http import Http404,HttpResponse
 from django.urls import reverse
 from . import models
 from django.db.models import Sum
-
+from io import BytesIO
+import pandas as pd
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+from datetime import datetime
 # Create your views here.
 
 def laporanbarangjadi(request):
@@ -49,6 +53,93 @@ def laporanbarangjadi(request):
             grandtotal +=i.NilaiTotal
 
         return render(request, "ppic/views_laporanstokfg.html", {"data": data,'tanggalawal':tanggal_mulai,'tanggalakhir':tanggal_akhir,'grandtotal':grandtotal})
+
+def excel_laporanbarangmasuk(request):
+    if request.method == "POST" :
+        tanggalawal = request.POST['tanggalawal']
+        tanggalakhir = request.POST['tanggalakhir']
+        dataspk = models.SuratJalanPembelian.objects.filter(
+            Tanggal__range=(tanggalawal, tanggalakhir)
+        ).order_by("Tanggal")
+        # print(dataspk)
+        listdetailsjp = []
+        grandtotal = 0
+        for i in dataspk:
+            detailsjpembelianobj = models.DetailSuratJalanPembelian.objects.filter(
+                NoSuratJalan=i.NoSuratJalan
+            )
+            for j in detailsjpembelianobj:
+                j.supplier = i.supplier
+                j.totalharga = j.Jumlah * j.Harga
+                grandtotal += j.totalharga
+                listdetailsjp.append(j)
+
+        # print(listdetailsjp)
+        listnomor = []
+        listsjp =[]
+        listsupplier =[]
+        listkodeproduk = []
+        listnamabarang = []
+        listsatuan =[]
+        listqty = []
+        listhargasatuan = []
+        listhargatotal = []
+        for no,i in enumerate(listdetailsjp):
+            listnomor.append(no)
+            listsjp.append(i.NoSuratJalan.NoSuratJalan) 
+            listsupplier.append(i.supplier) 
+            listkodeproduk.append(i.KodeProduk.KodeProduk)
+            listnamabarang.append(i.KodeProduk.NamaProduk)
+            listsatuan.append(i.KodeProduk.unit) 
+            listqty.append(i.Jumlah)
+            listhargasatuan.append(i.Harga)
+            listhargatotal.append(i.totalharga)
+        tabel = {
+            "No":listnomor,
+            "SJ Pembelian" : listsjp,
+            "Supplier" : listsupplier,
+            "Kode Stok" : listkodeproduk,
+            "Nama Barang" : listnamabarang,
+            "Satuan" : listsatuan,
+            'Kuantitas' : listqty,
+            'Harga Satuan' : listhargasatuan,
+            'Harga Total' : listhargatotal
+        }
+        df = pd.DataFrame(tabel)
+        print(df)
+
+        excel_file = BytesIO()
+        # df.to_excel('export data.xlsx',index=False)
+        wb = Workbook()
+        ws = wb.active
+        headers = list(df.columns)
+        ws.append(headers)
+        for r_idx, row in enumerate(df.itertuples(), start=1):
+            for c_idx, value in enumerate(row[1:], start=1):
+                ws.cell(row=r_idx+1, column=c_idx, value=value)
+        
+        start_row = len(df) + 1  # Ganti angka 2 dengan jumlah baris tambahan sebelum merge
+        end_row = start_row   # Ganti angka 4 dengan jumlah baris yang ingin digabungkan
+        totalhargacell = f'I{end_row}'
+        labeltotalhargacell = f'H{end_row}'
+        ws[totalhargacell] = grandtotal
+        ws[labeltotalhargacell] = "Total Harga"
+        excel_buffer = BytesIO()
+        wb.save(excel_buffer)
+        excel_buffer.seek(0)
+        file_name = f"Laporan_{tanggalawal}-{tanggalakhir}.xlsx"
+        response = HttpResponse(
+    excel_buffer,
+    content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+)
+        response["Content-Disposition"] = f'attachment; filename="{file_name}"'
+        # with pd.ExcelWriter(excel_file, engine='xlsxwriter') as writer:
+        #     df.to_excel(writer, index=False)
+        # excel_file.seek(0)
+        # response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        # response['Content-Disposition'] = f'attachment; filename="Laporan{tanggalawal}-{tanggalakhir}.xlsx"'
+                
+        return response
 
 
 def laporanbarangmasuk(request):
@@ -197,6 +288,7 @@ def laporanpersediaanbarang(request):
     else:
         tanggal_mulai = request.GET["tanggalawal"]
         tanggal_akhir = request.GET["tanggalakhir"]
+        tanggal_obj = datetime.strptime(tanggal_akhir, '%Y-%m-%d').date()
 
         # Ambil total harga barang keluar dulu
         data = models.SPPB.objects.filter(Tanggal__range=(tanggal_mulai,tanggal_akhir)).order_by('Tanggal')
@@ -255,21 +347,40 @@ def laporanpersediaanbarang(request):
             i.NilaiTotal = nilaiFG * i.Jumlahakumulasi
             totalhargabarangjadi += i.NilaiTotal
         
-            # Saldo awal Belum dibuat
-            Saldoawal = 1000000
+        # Saldo awal Belum dibuat
+        Saldoawal = 0
+        # Anggap dari 
+        # Ambil data semua bahan baku di wip
+        databahanproduksi = models.Produk.objects.filter(KodeProduk__startswith = 'A')
+        print(databahanproduksi)
+        for i in databahanproduksi:
+            print('ini i',i)
+            datasaldoawaltahun = models.SaldoAwalBahanBaku.objects.filter(Tanggal__lte = tanggal_akhir,IDBahanBaku = i.KodeProduk).order_by('-Tanggal').first()
+            if not datasaldoawaltahun or datasaldoawaltahun.Tanggal.year != tanggal_obj.year:
+                print('data tidak ada')
+                hargasaldoawalbahanbaku = 0
+            else:
+                print(datasaldoawaltahun)
+                print('data ada')
+                hargasaldoawalbahanbaku = datasaldoawaltahun.Harga * datasaldoawaltahun.Jumlah
+            
+            Saldoawal+=hargasaldoawalbahanbaku
 
-            # 
-            saldototal = Saldoawal + totalhargabarangmasuk - totalhargabarangkeluar
-            saldowip = saldototal -totalhargabarangjadi
+        
+
+
+        # 
+        saldototal = Saldoawal + totalhargabarangmasuk - totalhargabarangkeluar
+        saldowip = saldototal -totalhargabarangjadi
 
         return render(request, "ppic/views_laporanpersediaan.html",{
             "tanggalawal": tanggal_mulai,
             'tanggalakhir':tanggal_akhir,
             'data':a,
-            'barangkeluar':totalhargabarangkeluar,
-            'barangmasuk':totalhargabarangmasuk,
-            'barangfg':totalhargabarangjadi,
-            "saldoawal":Saldoawal,
-            "saldototal":saldototal,
-            "saldowip" : saldowip})
+            'barangkeluar':round(totalhargabarangkeluar,2),
+            'barangmasuk':round(totalhargabarangmasuk,2),
+            'barangfg':round(totalhargabarangjadi,2),
+            "saldoawal":round(Saldoawal,2),
+            "saldototal":round(saldototal,2),
+            "saldowip" : round(saldowip,2)})
     

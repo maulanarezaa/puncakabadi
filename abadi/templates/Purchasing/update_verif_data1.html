@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Notifikasi Barang Masuk</h1>
+    <form id="updateForm" method="POST">
+        {% csrf_token %}
+        <table>
+            <tr>
+                <td><label for=""> Tanggal</label></td>
+                <td><input type="text" name="tanggal_masuk" value="{{verifobj.NoSuratJalan.Tanggal}}" readonly></td>
+            </tr>
+            <tr>
+                <td><label for=""> Kode Produk</label></td>
+                <td><input type="text" name="kode_produk" value="{{verifobj.KodeProduk}}" readonly></td>
+            </tr>
+            <tr>
+                <td><label for="">Nama Produk</label></td>
+                <td><input type="text" name="nama_produk" value="{{verifobj.KodeProduk.NamaProduk}}" readonly></td>
+            </tr>
+            <tr>
+                <td><label for=""> Kuantitas</label></td>
+                <td><input type="number" name="kuantitas_masuk" id="kuantitas_masuk" value="{{verifobj.Jumlah}}" readonly></td>
+            </tr>
+            <tr>
+                <td><label for=""> Harga Satuan</label></td>
+                <td><input type="number" name="harga_barang" id="harga_barang" value="{{verifobj.Harga}}" onchange="update_harga_total()"></td>
+            </tr>
+            <tr>
+                <td><label for=""> Harga Total</label></td>
+                <td><input type="number" name="harga_total" id="harga_total" value="{{harga_total}}"  readonly></td>
+            </tr>
+            <tr>
+                <td><label for=""> Supplier</label></td>
+                <td><input type="text" c></td>
+            </tr>
+            <tr>
+                <td><label for=""> PO</label></td>
+                <td><input type="text" name="po_barang" value="{{verifobj.NoSuratJalan.PO}}"></td>
+            </tr>
+            <tr>
+                <td colspan="2"><button type="submit">Verifikasi</button></td>
+            </tr>
+        </table>
+    </form>
+    <script type="text/javascript">
+        function update_harga_total(){
+    var kuantitas = $("#kuantitas_masuk").val();
+    var harga_satuan = $("#harga_barang").val();
+    var harga_total_barang = kuantitas*harga_satuan;
+    $.ajax ({
+        success:function(data)
+        {
+
+            $("#harga_total").val(harga_total_barang);
+        }
+    });
+    }
+    </script>
+   
+</body>
+</html>

@@ -13,18 +13,14 @@ urlpatterns = [
         viewspurchasing.verifikasi_data,
         name="update_verif_purchasing",
     ),
-    path("acc_spk/<str:id>", viewspurchasing.acc_notif_spk, name="acc_spk"),
+    path("acc_spk/<str:id>",viewspurchasing.acc_notif_spk,name="acc_spk"),
+    
     # barang_masuk
     path("barang_masuk", viewspurchasing.barang_masuk, name="barang_masuk"),
     path(
         "update_barang_masuk/<str:id>/<str:input_awal>/<str:input_terakhir>",
         viewspurchasing.update_barang_masuk,
         name="update_barang_masuk",
-    ),
-    path(
-        "delete_barang_masuk/<str:id>/<str:input_awal>/<str:input_terakhir>",
-        viewspurchasing.delete_barang_masuk,
-        name="delete_barang_masuk",
     ),
     # rekap purchasing(gudang+produksi)
     path("rekap_purchasing", viewspurchasing.rekap_purchasing, name="rekap_purchasing"),

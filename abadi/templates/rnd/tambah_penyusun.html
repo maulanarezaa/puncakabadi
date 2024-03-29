@@ -46,11 +46,14 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Kode Produk</label>
                             <div class="col-sm-9">
-                                <select name="kodeproduk" class="form-control" id="">
+                                <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
+                                    aria-label="Masukkan Nama bahanbaku" name="kodeproduk" list="listproduk" required>
+                                <datalist id="listproduk">
                                     {% for i in dataproduk %}
                                     <option value="{{i.KodeProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
                                     {% endfor %}
-                                </select>
+                                </datalist>
+
                             </div>
                         </div>
                     </div>

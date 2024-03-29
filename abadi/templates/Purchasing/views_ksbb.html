@@ -13,16 +13,21 @@
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Bahan Baku : <span style="font-weight: lighter;">
-                    </span></h4>
+                <h4 class="card-title">Penyusun Artikel : <span style="font-weight: lighter;">
+                        {{kodeartikel}}</span></h4>
                 <form action="" method="get">
                     <div class="row">
 
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Masukkan Kode Bahan Baku"
-                                        aria-label="Masukkan Nama Artikel" name="kode_produk">
+                                    <input type="text" class="form-control" placeholder="Masukkan Kode Produk"
+                                        aria-label="Masukkan Nama Artikel" name="kode_produk" list="listkodeproduk">
+                                    <datalist id="listkodeproduk">
+                                        {% for i in kodeprodukobj %}
+                                        <option value="{{i.KodeProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
+                                        {% endfor %}
+                                    </datalist>
                                     <div class="input-group-append">
                                         <button class="btn btn-sm btn-primary" type="submit">Search</button>
                                     </div>
@@ -83,7 +88,6 @@
 
                         </tbody>
                     </table>
-                    <h5 class="mt-3">Harga Terakhir : {{Hargaakhir}}</h5 class="mt-3">
 
                     {% endif %}
                 </div>

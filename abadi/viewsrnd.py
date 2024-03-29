@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.http import Http404,JsonResponse
+from django.http import Http404,JsonResponse,HttpResponse
 from django.urls import reverse
 from . import models
 from django.db.models import Sum
 from urllib.parse import quote
-import datetime
+import pandas as pd
+from io import BytesIO
+from datetime import datetime, timedelta,date
 
 # Create your views here.
 # RND
@@ -33,15 +35,15 @@ def gethargafg(penyusunobj):
 
 
 def dashboard(request):
-    dataspk = models.SPK.objects.filter(Tanggal = datetime.date.today())
+    dataspk = models.SPK.objects.filter(Tanggal = date.today())
     print(dataspk)
     for i in dataspk:
         detailspk = models.DetailSPK.objects.filter(NoSPK = i.id)
         i.detailspk = detailspk
     
-    dataproduk = models.Produk.objects.filter(TanggalPembuatan = datetime.date.today())
+    dataproduk = models.Produk.objects.filter(TanggalPembuatan = date.today())
     print(dataproduk)
-    datasppb = models.SPPB.objects.filter(Tanggal = datetime.date.today())
+    datasppb = models.SPPB.objects.filter(Tanggal = date.today())
     print(datasppb)
     for i in datasppb:
         detailsppb = models.DetailSPPB.objects.filter(NoSPPB=i.id)
@@ -117,7 +119,8 @@ def views_penyusun(request):
     print(request.GET)
     data = request.GET
     if len(request.GET) == 0:
-        return render(request, "rnd/views_penyusun.html")
+        data = models.Artikel.objects.all()
+        return render(request, "rnd/views_penyusun.html",{'dataartikel':data})
     else:
         kodeartikel = request.GET["kodeartikel"]
         try:
@@ -126,29 +129,85 @@ def views_penyusun(request):
             datakonversi = []
             nilaifg = 0
             if data.exists():
-                for i in data:
+                for item in data:
                     konversidataobj = models.KonversiMaster.objects.get(
-                        KodePenyusun=i.IDKodePenyusun
+                        KodePenyusun=item.IDKodePenyusun
                     )
                     print(konversidataobj.Kuantitas)
-                    detailsjpembelian = models.DetailSuratJalanPembelian.objects.filter(KodeProduk = i.KodeProduk)
-                    hargatotalkodeproduk = 0
-                    jumlahtotalkodeproduk =0
-                    for j in detailsjpembelian:
-                        hargatotalkodeproduk += j.Harga*j.Jumlah
-                        jumlahtotalkodeproduk += j.Jumlah
-                    rataratahargakodeproduk = hargatotalkodeproduk/jumlahtotalkodeproduk
-                    kuantitaskonversi = konversidataobj.Kuantitas
-                    kuantitasallowance = kuantitaskonversi +kuantitaskonversi*0.025
-                    hargaperkotak = rataratahargakodeproduk*kuantitasallowance
-                    nilaifg +=hargaperkotak
-                    print('harga rata rata : ',rataratahargakodeproduk)
-                    print('harga total kode produk : ',hargatotalkodeproduk)
-                    print('jumlah kotak : ',jumlahtotalkodeproduk)
+                    masukobj = models.DetailSuratJalanPembelian.objects.filter(KodeProduk = item.KodeProduk)
+                    print('ini detail sjp',masukobj)
+                    tanggalmasuk = masukobj.values_list("NoSuratJalan__Tanggal", flat=True)
+                    keluarobj  = models.TransaksiGudang.objects.filter(jumlah__gte = 0, KodeProduk = item.KodeProduk)
+                    tanggalkeluar = keluarobj.values_list('tanggal',flat=True)
+                    print(item)
+                    saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(IDBahanBaku = item.KodeProduk.KodeProduk).order_by("-Tanggal").first()
+                    if saldoawalobj:
+                        print(saldoawalobj)
+                        saldoawal = saldoawalobj.Jumlah
+                        hargasatuanawal = saldoawalobj.Harga
+                        hargatotalawal = saldoawal * hargasatuanawal
+                    else:
+                        saldoawal = 0
+                        hargasatuanawal = 0
+                        hargatotalawal = saldoawal * hargasatuanawal
+                    
+                    hargaterakhir = 0
+                    listdata =[]
+                    listtanggal = sorted(list(set(tanggalmasuk.union(tanggalkeluar))))
+                    print('inii',listtanggal)
+                    for i in listtanggal:
+                        jumlahmasukperhari = 0
+                        hargamasuktotalperhari = 0
+                        hargamasuksatuanperhari = 0
+                        jumlahkeluarperhari = 0
+                        hargakeluartotalperhari = 0
+                        hargakeluarsatuanperhari = 0
+                        sjpobj = masukobj.filter(NoSuratJalan__Tanggal=i)
+                        if sjpobj.exists():
+                            for j in sjpobj:
+                                hargamasuktotalperhari += j.Harga * j.Jumlah
+                                jumlahmasukperhari += j.Jumlah
+                            hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
+                        else:
+                            hargamasuktotalperhari = 0
+                            jumlahmasukperhari = 0
+                            hargamasuksatuanperhari = 0
 
-                    datakonversi.append(
-                        [i, konversidataobj,kuantitasallowance,rataratahargakodeproduk,hargaperkotak]
-                    )
+                        transaksigudangobj = keluarobj.filter(tanggal=i)
+                        print(transaksigudangobj)
+                        if transaksigudangobj.exists():
+                            for j in transaksigudangobj:
+                                jumlahkeluarperhari += j.jumlah
+                                hargakeluartotalperhari += j.jumlah * hargasatuanawal
+                            hargakeluarsatuanperhari += (
+                                hargakeluartotalperhari / jumlahkeluarperhari
+                            )
+                        else:
+                            hargakeluartotalperhari = 0
+                            hargakeluarsatuanperhari = 0
+                            jumlahkeluarperhari = 0
+                        
+                        saldoawal += jumlahmasukperhari - jumlahkeluarperhari
+                        hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
+                        hargasatuanawal = hargatotalawal / saldoawal
+
+                        print('ini hargasatuan awal : ',hargasatuanawal)
+                    
+                    hargaterakhir += hargasatuanawal
+                    kuantitaskonversi= konversidataobj.Kuantitas
+                    kuantitasallowance = kuantitaskonversi + kuantitaskonversi*0.025
+                    hargaperkotak = hargaterakhir * kuantitasallowance
+                    print('\n',hargaterakhir,'\n')
+                    nilaifg += hargaperkotak
+
+                    datakonversi.append({
+                        'HargaSatuan' : round(hargaterakhir,2),
+                        'Penyusunobj' : item,
+                        'Konversi' : round(kuantitaskonversi,5),
+                        'Allowance' : round(kuantitasallowance,5),
+                        'Hargakotak' :round(hargaperkotak,2)
+
+                    })
                     
                 print(data)
                 print(datakonversi)
@@ -293,95 +352,262 @@ def views_sppb(request):
         sppb.detailsppb = detailsppb
     return render (request,'rnd/views_sppb.html',{"data":data})
 
+def hariterakhirdatetime(tahun):
+    next_year = datetime(tahun + 1, 1, 1)
+    last_day = next_year - timedelta(days=1)
+    return last_day
+
 def views_ksbj(request):
     if len(request.GET) == 0:
-        return render(request,'rnd/view_ksbj.html')
+        dataartikel = models.Artikel.objects.all()
+        return render(request,'rnd/view_ksbj.html',{'dataartikel' : dataartikel})
     else:   
-        # print(request.GET)
+        print(request.GET)
         lokasi = request.GET['lokasi']
+        tahun = request.GET['tahun']
+        kodeartikel = request.GET['kodeartikel']
         lokasiobj = models.Lokasi.objects.get(NamaLokasi = lokasi)
+        saldoawalobj = models.SaldoAwalArtikel.objects.filter(IDArtikel__KodeArtikel =kodeartikel,IDLokasi=lokasiobj.IDLokasi)
 
-            
+        # Cek apabila Kode Artikel user tidak ada
         try :
-            artikel = models.Artikel.objects.get(KodeArtikel = request.GET['kodeartikel'])
+            artikel = models.Artikel.objects.get(KodeArtikel = kodeartikel)
         except:
             messages.error(request,"Kode Artikel Tidak ditemukan")
             return redirect('views_ksbj')
-            
-        data = models.TransaksiProduksi.objects.filter(KodeArtikel = artikel.id).order_by('Tanggal')
-        if lokasi == "WIP":
-            data = data.filter(Lokasi = lokasiobj.IDLokasi)
-        tanggallist = data.values_list('Tanggal',flat=True).distinct()
-        print(tanggallist)
-        listdata = []
+        # Cek apabila penyusun utama belum di setting
         try:
             getbahanbakuutama = models.Penyusun.objects.get(KodeArtikel = artikel.id,Status = 1 )
         except models.Penyusun.DoesNotExist:
-            messages.error('Bahan Baku utama belum di set')
+            messages.error(request,'Bahan Baku utama belum di set')
             return redirect('views_ksbj')
-        print(getbahanbakuutama)
-        try:
-            saldoawalobj = models.SaldoAwalArtikel.objects.get(IDArtikel = artikel.id, IDLokasi = lokasiobj.IDLokasi)
-            saldoawaltaun = saldoawalobj.Jumlah
-        except models.SaldoAwalArtikel.DoesNotExist as e:
-            # print(e)
-            saldoawaltaun = 0
-        # if lokasi == "FG":
-        #     print('fg')
-        #     datawip = models.TransaksiProduksi.objects.filter(KodeArtikel = artikel.id, )
 
-        sisa = saldoawaltaun
+        data = models.TransaksiProduksi.objects.filter(KodeArtikel = artikel.id)
+        # if lokasi == "WIP":
+        # # print(tanggallist)
+        listdata = []
+
+
         if lokasi == 'WIP':
-            print('ini WIP')
+            data = data.filter(Lokasi = lokasiobj.IDLokasi)
+            try:
+                saldoakhirgte = saldoawalobj.filter(Tanggal__year__gt = tahun).order_by('Tanggal').first()
+                saldoawallte = saldoawalobj.filter(Tanggal__year__lte = tahun).order_by('-Tanggal').first()
+                print('Ini saldo gte : ', saldoakhirgte)
+                print('Ini Saldo LTE : ', saldoawallte)
+                print('Tahun saat ini : ',tahun)
+                print('Saldo Awal Tahun : ',saldoawallte)
+                print('Saldo Akhir Tahun : ',saldoakhirgte)
+            except:
+                saldoawallte = None
+                saldoakhirgte = None
+            print(saldoawalobj)
+
+            if saldoawallte and saldoakhirgte:
+                tanggalawal = saldoawallte.Tanggal
+                tanggalakhir = saldoakhirgte.Tanggal
+            elif saldoawallte and not saldoakhirgte:
+                tanggalawal = saldoawallte.Tanggal
+                tanggalakhir = datetime.max
+            elif not saldoawallte and saldoakhirgte:
+                print('data awal tidak ditemukan')
+                tanggalawal = datetime.min
+                tanggalakhir = saldoakhirgte.Tanggal
+            else :
+                print('Tidak ditemukan data awal dan akhir')
+                tanggalawal = datetime.min
+                tanggalakhir = datetime.max
+            
+            tanggallist = data.filter(Tanggal__range = (tanggalawal,tanggalakhir)).values_list("Tanggal",flat=True).order_by('Tanggal').distinct()
+
+            saldoawalobj = saldoawallte
+
+            if saldoawalobj:
+                saldoawal = saldoawalobj.Jumlah
+            else:
+                saldoawal = 0
+            # print('ini WIP')
+            saldoawaltaun = saldoawal
             for i in tanggallist:
                 
                 jumlahhasil = 0
                 jumlahmasuk = 0
+                # print(data)
+                print(i)
                 filtertanggal=data.filter(Tanggal = i)
-                # print('ini tanggal',filtertanggal)
-                for j in filtertanggal:
-                    
-                    if j.Jenis == "Produksi":
-                        jumlahmasuk += j.Jumlah
-                    else:
-                        jumlahhasil += j.Jumlah
+                print(filtertanggal)
+                if filtertanggal:
+                    jumlahmasuk = filtertanggal.filter(Jenis = "Produksi").aggregate(total=Sum('Jumlah'))['total']
+                    print(jumlahmasuk)
+                    if jumlahmasuk is None:
+                        jumlahmasuk = 0
+                    jumlahhasil = filtertanggal.filter(Jenis = "Mutasi").aggregate(total=Sum('Jumlah'))['total']
+                    if jumlahhasil is None:
+                        jumlahhasil = 0
+                    print(jumlahhasil)
+
+
+                
                     # Cari data konversi bahan baku utama pada artikel terkait
+                
                 konversimasterobj = models.KonversiMaster.objects.get(KodePenyusun = getbahanbakuutama.IDKodePenyusun)
                 # print('Konversi', konversimasterobj.Kuantitas + ( konversimasterobj.Kuantitas*0.025))
                 masukpcs = round(jumlahmasuk/((konversimasterobj.Kuantitas + ( konversimasterobj.Kuantitas*0.025)))*0.893643879)
                     # Cari data penyesuaian
-                sisa = sisa - jumlahhasil +masukpcs
-                listdata.append([i,getbahanbakuutama,jumlahmasuk,jumlahhasil,masukpcs,sisa])
+                saldoawal = saldoawal - jumlahhasil +masukpcs
+                if saldoawal < 0 :
+                    messages.warning(
+                    request,
+                    "Sisa stok menjadi negatif pada tanggal {}.\nCek kembali mutasi barang".format(
+                        i
+                    ))
+                # listdata.append([i,getbahanbakuutama,jumlahmasuk,jumlahhasil,masukpcs,sisa])
+                listdata.append({
+                    'Tanggal':i,
+                    'Bahanbakuutama':getbahanbakuutama,
+                    'Jumlahmasuk':jumlahmasuk,
+                    'Jumlahhasil' : jumlahhasil,
+                    'Masukpcs' : masukpcs,
+                    'Sisa' : saldoawal
+                })
 
+            stockopname = 0
+            if saldoakhirgte:
+                stockopname = saldoakhirgte.Jumlah - saldoawal
+            print(saldoakhirgte)
+
+            return render(request,'rnd/view_ksbj.html',{'data':data,"kodeartikel":kodeartikel,"lokasi":lokasi,'listdata':listdata,'saldoawal':saldoawalobj,'tahun':tahun,'stockopname':stockopname,'saldoakhir':saldoakhirgte})
                 
                 
             #     print(getbahanbakuutama)
 
         else : 
-            print('ini FG')
+            data = data.filter(Lokasi = 1)
+            saldoawalperiode = saldoawalobj.values_list('Tanggal__year',flat=True).distinct().order_by("-Tanggal")
+            print(saldoawalperiode)
+            try:
+                saldoakhirgte = saldoawalobj.filter(Tanggal__year__gt = tahun).order_by('Tanggal').first()
+                saldoawallte = saldoawalobj.filter(Tanggal__year__lte = tahun).order_by('-Tanggal').first()
+                print('Ini saldo gte : ', saldoakhirgte)
+                print('Ini Saldo LTE : ', saldoawallte)
+                print('Tahun saat ini : ',tahun)
+                print('Saldo Awal Tahun : ',saldoawallte)
+                print('Saldo Akhir Tahun : ',saldoakhirgte)
+            except ValueError:
+                saldoawallte = None
+                saldoakhirgte = None
+
+
+            # IF Saldo awal LTE kosong --> Data saldoawal belum di set --> Harusnya di set semua pertahun
+            if saldoawallte and saldoakhirgte:
+                tanggalawal = saldoawallte.Tanggal
+                tanggalakhir = saldoakhirgte.Tanggal
+            elif saldoawallte and not saldoakhirgte:
+                tanggalawal = saldoawallte.Tanggal
+                tanggalakhir = datetime.max
+            elif not saldoawallte and saldoakhirgte:
+                print('data awal tidak ditemukan')
+                tanggalawal = datetime.min
+                tanggalakhir = saldoakhirgte.Tanggal
+            else :
+                print('Tidak ditemukan data awal dan akhir')
+                tanggalawal = datetime.min
+                tanggalakhir = datetime.max
+            # IF Saldo Akhir GT kosong --> Data filter data tahun saat ini
+            tanggallist = data.filter(Tanggal__range = (tanggalawal,tanggalakhir)).values_list("Tanggal",flat=True).distinct()
+
+            saldoawalobj = saldoawallte
+
+            if saldoawalobj:
+                saldoawal = saldoawalobj.Jumlah
+            else:
+                saldoawal = 0
+            sppb = models.DetailSPPB.objects.filter(DetailSPK__KodeArtikel__KodeArtikel = kodeartikel, NoSPPB__Tanggal__range = (tanggalawal,tanggalakhir))
+            tanggalsppb = sppb.values_list('NoSPPB__Tanggal',flat=True).distinct()
+            # print(tanggalsppb)
+            tanggallist = sorted(list(set(tanggallist.union(tanggalsppb))))
+            # print(tanggallist)
+
+            # print('ini FG')
+            saldoawaltaun = saldoawal
             for i in tanggallist:
                 jumlahhasil = 0
                 jumlahmasuk = 0
-                filtertanggal=data.filter(Tanggal = i)
-                print(filtertanggal)
+                totalmasuk = 0
+                totalkeluar = 0
+                nosppb =[]
+                nospk = []
+                jumlah = []
+                listsppbobj = []
 
-                for j in filtertanggal:
-                    
-                    if j.Jenis == "Mutasi" and j.Lokasi.NamaLokasi == 'WIP':
-                        print('mutasi')
-                        jumlahmasuk += j.Jumlah
-                    elif j.Jenis == "Mutasi" and j.Lokasi.NamaLokasi == "FG":
-                        print('Keluar')
-                        jumlahhasil += j.Jumlah
-                        # Tambah data objectnya
-                        
-                    else:
-                        continue
-                    
-                masukpcs =jumlahmasuk
-                sisa = sisa - jumlahhasil +masukpcs
-                listdata.append([i,getbahanbakuutama,jumlahmasuk,jumlahhasil,sisa])
+                penyerahanwip = models.TransaksiProduksi.objects.filter(Tanggal = i, KodeArtikel__KodeArtikel = kodeartikel,Jenis = "Mutasi",Lokasi__NamaLokasi="WIP")
+                detailsppbobj = sppb.filter(NoSPPB__Tanggal = i)
+                # print(detailsppbobj)
+                if penyerahanwip:
+                    # print('data penyerahan ada ',i)
+                    totalmasuk=penyerahanwip.aggregate(total=Sum('Jumlah'))['total']
+                
+                    # print(totalmasuk)
+                if detailsppbobj:
+                    # print('data Pengiriman Ada',i)
+                    totalkeluar = detailsppbobj.aggregate(total=Sum('Jumlah'))['total']
+                    # print(totalkeluar)
+                    for j in detailsppbobj:
+                        nosppb.append(j.NoSPPB)
+                        nospk.append(j.DetailSPK.NoSPK)
+                        jumlah.append(j.Jumlah)
+                saldoawal += totalmasuk-totalkeluar
+                if saldoawal < 0 :
+                     messages.warning(
+                    request,
+                    "Sisa stok menjadi negatif pada tanggal {}.\nCek kembali mutasi barang".format(
+                        i
+                    ),
+                )
+                # print('Tanggal : ',i)
+                # print('Jumlah Penyerahan dari WIP : ',totalmasuk)
+                # print('SPPB : ', nosppb)
+                # print('SPK : ',nospk)
+                # print('Jumlah Kirim : ',jumlah)
+                # print('Sisa : ')
+                # print('\n')
 
-                print(listdata)
+                listdata.append({
+                    'Tanggal' : i,
+                    'JumlahPenyerahan' : totalmasuk,
+                    'SPPB' : nosppb,
+                    'SPK' : nospk,
+                    'Jumlahkirim' :jumlah,
+                    'Sisa' : saldoawal
+                })
+
+
+            print('ini saldo awal',saldoawalobj)
+            # print('saldoakhir ', saldoakhirgte.Jumlah)
+            stockopname = 0
+            if saldoakhirgte :
+                stockopname = saldoakhirgte.Jumlah - saldoawal
+                print(stockopname)
             
-        return render(request,'rnd/view_ksbj.html',{'data':data,"kodeartikel":request.GET['kodeartikel'],"lokasi":lokasi,'listdata':listdata,'saldoawal':saldoawaltaun})
+            return render(request,'rnd/view_ksbj.html',{'data':data,"kodeartikel":kodeartikel,"lokasi":'FG','listdata':listdata,'saldoawal':saldoawalobj,'tahun':tahun,'saldoakhir':saldoakhirgte,'stockopname':stockopname})
+    
+
+def uploadexcel(request):
+    if request.method == 'POST':
+        excel_file = request.FILES['excel_file']
+        if excel_file.name.endswith('.xlsx'):
+            df = pd.read_excel(excel_file)
+            print(df['KodeProduk'].tolist())
+            # Lakukan operasi yang diperlukan dengan dataframe
+            # Misalnya, simpan dataframe ke database atau lakukan analisis
+            excel_file = BytesIO()
+            # df.to_excel('export data.xlsx',index=False)
+            with pd.ExcelWriter(excel_file, engine='xlsxwriter') as writer:
+                df.to_excel(writer, index=False)
+            excel_file.seek(0)
+            response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = 'attachment; filename="data_export.xlsx"'
+            return response
+        else:
+            return HttpResponse('File harus berformat .xlsx')
+    return render(request, 'rnd/formexcel.html')
