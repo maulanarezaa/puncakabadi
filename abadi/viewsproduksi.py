@@ -414,13 +414,14 @@ def update_gudang(request, id):
         jumlah = request.POST["jumlah"]
         keterangan = request.POST["keterangan"]
         detail_spk = request.POST["detail_spk"]
+        detspkobj = models.DetailSPK.objects.get(IDDetailSPK=detail_spk)
 
         gudangobj.KodeProduk = getproduk
         gudangobj.Lokasi = getlokasi
         gudangobj.tanggal = tanggal
         gudangobj.jumlah = jumlah
         gudangobj.keterangan = keterangan
-        gudangobj.DetailSPK = detail_spk
+        gudangobj.DetailSPK = detspkobj
 
         gudangobj.save()
         messages.success(request, "Data berhasil diupdate")

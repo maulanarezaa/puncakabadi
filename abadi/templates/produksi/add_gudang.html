@@ -76,8 +76,7 @@
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Nomor SPK</label>
                 <div class="col-sm-9">
-                  <select class="form-control" name="nomor_spk" hx-get="{% url 'load_detailspk' %}" hx-trigger="change" hx-target="#detail">
-                      <option selected>Open this select menu</option>
+                  <select class="form-control" name="nomor_spk" hx-get="{% url 'load_detailspk' %}" hx-trigger="change" hx-indicator=".htmx-indicator" hx-target="#detail">
                       {% for i in data_spk %}
                         <option value="{{i.NoSPK}}">{{i.NoSPK}}</option>
                       {% endfor %}
