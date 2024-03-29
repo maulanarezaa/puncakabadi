@@ -250,7 +250,8 @@ def views_penyusun(request):
                 )
         except models.Artikel.DoesNotExist:
             messages.error(request, "Kode Artikel Tidak ditemukan")
-            return render(request, "rnd/views_penyusun.html")
+            return render(request, "rnd/views_penyusun.html", {"dataartikel": models.Artikel.objects.all()})
+
 
 
 def updatepenyusun(request, id):
