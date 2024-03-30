@@ -26,6 +26,7 @@ class ProdukSubkon (models.Model):
     NamaProduk = models.CharField(max_length = 255)
     Unit = models.CharField(max_length = 20)
     KodeArtikel = models.ForeignKey(Artikel, on_delete=models.CASCADE)
+    keterangan = models.TextField(blank= True, null = True)
     
     def __str__(self):
         return str(self.NamaProduk)
@@ -172,6 +173,7 @@ class TransaksiSubkon(models.Model):
     IDProdukSubkon = models.ForeignKey(ProdukSubkon, on_delete=models.CASCADE)
     Tanggal = models.DateField()
     Jumlah = models.IntegerField()
+
 
     def __str__(self):
         return str(self.IDProdukSubkon.NamaProduk) + '-' +str(self.Tanggal)

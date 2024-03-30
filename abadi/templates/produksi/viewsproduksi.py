@@ -955,130 +955,59 @@ def delete_pemusnahan(request,id):
 
 
 # Produk SUBKON
-def read_produksubkon(request):
-    produkobj = models.ProdukSubkon.objects.all()
-    return render(request, "produksi/read_produksubkon.html", {"produkobj": produkobj})
-
 def create_produksubkon(request):
-    kodeartikel = models.Artikel.objects.all()
     if request.method == "GET":
-        return render(request, "produksi/create_produksubkon.html",{'kodeartikel' : kodeartikel})
+        return render(request, "produksi/create_produk.html")
     else:
         kode_produk = request.POST["kode_produk"]
         nama_produk = request.POST["nama_produk"]
         unit_produk = request.POST["unit_produk"]
         keterangan_produk = request.POST["keterangan_produk"]
-        print(request.POST)
-        # produkobj = models.Produk.objects.filter(KodeProduk=kode_produk)
-        try:
-            artikelobj = models.Artikel.objects.get(KodeArtikel = kode_produk )
-        except models.Artikel.DoesNotExist:
-            messages.error(request,'Kode Artikel Peruntukan tidak ditemukan')
-            return redirect('update_produksubkon')
-        listkodeproduk = models.ProdukSubkon.objects.filter(KodeArtikel = artikelobj.id).values_list('NamaProduk',flat=True).distinct()
-        print(listkodeproduk)
-
-        if nama_produk in listkodeproduk:
-           messages.error(request,'Nama Produk untuk Artikel terkait sudah ada pada Database')
-           return redirect('create_produksubkon')
+        jumlah_minimal = request.POST["jumlah_minimal"]
+        produkobj = models.Produk.objects.filter(KodeProduk=kode_produk)
+        print(produkobj)
+        if len(produkobj) == 1 :
+            messages.error(request, "Kode Produk sudah ada")
+            return redirect("create_produk")
         else :
-            new_produk = models.ProdukSubkon(
-                NamaProduk = nama_produk,
-                Unit = unit_produk,
-                KodeArtikel = artikelobj,
-                keterangan = keterangan_produk
+            new_produk = models.Produk(
+                KodeProduk=kode_produk,
+                NamaProduk=nama_produk,
+                unit=unit_produk,
+                keterangan=keterangan_produk,
+                TanggalPembuatan = datetime.datetime.now(),
+                Jumlahminimal = jumlah_minimal
             )
             new_produk.save()
-            return redirect("read_produksubkon")
+            return redirect("read_produk")
 
 
-def update_produksubkon(request, id):
-    produkobj = models.ProdukSubkon.objects.get(pk=id)
-    dataartikel = models.Artikel.objects.all()
+def update_produk(request, id):
+    produkobj = models.Produk.objects.get(pk=id)
     if request.method == "GET":
         return render(
-            request, "produksi/update_produksubkon.html", {"produkobj": produkobj,'dataartikel':dataartikel}
+            request, "Purchasing/update_produk.html", {"produkobj": produkobj}
         )
     else:
         kode_produk = request.POST["kode_produk"]
         nama_produk = request.POST["nama_produk"]
         unit_produk = request.POST["unit_produk"]
         keterangan_produk = request.POST["keterangan_produk"]
+        jumlah_minimal = request.POST["jumlah_minimal"]
         produkobj.KodeProduk = kode_produk
         produkobj.NamaProduk = nama_produk
         produkobj.unit = unit_produk
         produkobj.keterangan = keterangan_produk
+        produkobj.Jumlahminimal = jumlah_minimal 
         produkobj.save()
-        return redirect("read_produksubkon")
+        return redirect("read_produk")
 
 
-def delete_produksubkon(request, id):
+def delete_produk(request, id):
     print(id)
-    produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=id)
+    produkobj = models.Produk.objects.get(KodeProduk=id)
     produkobj.delete()
     messages.success(request,"Data Berhasil dihapus")
-    return redirect("read_produksubkon")
-
-# Transaksi subkon masuk = nilai + pada kolom jumlah berarti masuk dari subkon ke pabrik, Transaksi nilai - pada kolom jumlah berarti keluar ke WIP
-def transaksi_subkon_terima(request):
-    produkobj = models.TransaksiSubkon.objects.all()
-    for i in produkobj:
-        i.Tanggal = i.Tanggal.strftime('%d-%m-%Y')
-    return render(request, "produksi/read_transaksisubkon_terima.html", {"produkobj": produkobj})
-
-def create_transaksi_subkon_terima(request):
-    produksubkon = models.ProdukSubkon.objects.all()
-    if request.method == "GET":
-        return render(request, "produksi/create_transaksisubkon_terima.html",{'produksubkon' : produksubkon})
-    else:
-        print(request.POST)
-        tanggal = request.POST["tanggal"]
-        nama_produk = request.POST["nama_produk"]
-        jumlah = request.POST["jumlah"]
-        print(request.POST)
-        # produkobj = models.Produk.objects.filter(KodeProduk=kode_produk)
-        try:
-            produksubkonobj = models.ProdukSubkon.objects.get(IDProdukSubkon = nama_produk )
-        except models.Artikel.DoesNotExist:
-            messages.error(request,'Kode Produk Subkon tidak ditemukan')
-            return redirect('update_transaksi_subkon_terima')
-        new_produk = models.TransaksiSubkon(
-            Tanggal = tanggal,
-            Jumlah = jumlah,
-            IDProdukSubkon = produksubkonobj,
-        )
-        new_produk.save()
-        return redirect("transaksi_subkon_terima")
+    return redirect("read_produk")
 
 
-def update_transaksi_subkon_terima(request, id):
-    produkobj = models.TransaksiSubkon.objects.get(pk=id)
-    produkobj.Tanggal = produkobj.Tanggal.strftime("%Y-%m-%d")
-    produksubkon = models.ProdukSubkon.objects.all()
-    if request.method == "GET":
-        return render(
-            request, "produksi/update_transaksisubkon_terima.html", {"produkobj": produkobj,'produksubkon':produksubkon}
-        )
-    else:
-        jumlah = request.POST["kode_produk"]
-        nama_produk = request.POST["nama_produk"]
-        tanggal = request.POST["unit_produk"]
-        try:
-            produksubkonobj = models.ProdukSubkon.objects.get(IDProdukSubkon = nama_produk )
-        except models.Artikel.DoesNotExist:
-            messages.error(request,'Kode Produk Subkon tidak ditemukan')
-            return redirect('update_transaksi_subkon_terima')
-        produkobj.IDProdukSubkon = produksubkonobj
-        produkobj.Jumlah = jumlah
-        produkobj.Tanggal = tanggal
-
-        produkobj.save()
-        return redirect("transaksi_subkon_terima")
-
-
-def delete_transaksi_subkon_terima(request, id):
-    print(id)
-    produkobj = models.TransaksiSubkon.objects.get(IDTransaksiSubkon=id)
-    produkobj.delete()
-    messages.success(request,"Data Berhasil dihapus")
-    return redirect("transaksi_subkon_terima")

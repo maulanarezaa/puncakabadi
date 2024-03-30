@@ -31,5 +31,21 @@ urlpatterns = [
 
     path('viewksbb',viewsproduksi.view_ksbb,name='view_ksbb'),
     path('viewksbj',viewsproduksi.views_ksbj,name='views_ksbj'),
-    path('viewrekapbarang',viewsproduksi.view_rekapbarang,name='view_rekapbarang')
+    path('viewrekapbarang',viewsproduksi.view_rekapbarang,name='view_rekapbarang'),
+
+    # Tambahan 28/03/2024
+    path('viewpemusnahan',viewsproduksi.view_pemusnahan,name='view_pemusnahan'),
+    path('addpemusnahan',viewsproduksi.add_pemusnahan,name= 'add_pemusnahan'),
+    path('updatepemusnahan/<str:id>',viewsproduksi.update_pemusnahan,name='update_pemusnahan'),
+    path('deletepemusnahan/<str:id>',viewsproduksi.delete_pemusnahan,name= 'delete_pemusnahan'),
+
+    path('produksubkon',viewsproduksi.read_produksubkon,name='read_produksubkon'),
+    path('addproduksubkon',viewsproduksi.create_produksubkon,name='create_produksubkon'),
+    path('updateproduksubkon/<str:id>',viewsproduksi.update_produksubkon,name='update_produksubkon'),
+    path('deleteproduksubkon/<str:id>',viewsproduksi.delete_produksubkon,name='delete_produksubkon'),
+
+    path('subkonterima',viewsproduksi.transaksi_subkon_terima,name='transaksi_subkon_terima'),
+    path('addtransaksisubkonterima',viewsproduksi.create_transaksi_subkon_terima,name='create_transaksi_subkon_terima'),
+    path('updatetransaksisubkonterima/<str:id>',viewsproduksi.update_transaksi_subkon_terima,name='update_transaksi_subkon_terima'),
+    path('deletetransaksisubkonterima/<str:id>',viewsproduksi.delete_transaksi_subkon_terima,name='delete_transaksi_subkon_terima'),
 ]

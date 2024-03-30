@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="{% static 'assets/css/vertical-layout-light/style.css' %}">
   <!-- endinject -->
   <link rel="shortcut icon" href="{% static 'assets/images/favicon.png' %}" />
+  <script src=" {% static 'assets/js/jquery-1.10.2.js' %}"></script>
 </head>
 
 <body>
@@ -92,13 +93,21 @@
   <!-- End custom js for this page-->
   <!-- Datatable -->
 
-  <script src=" {% static 'assets/js/jquery-1.10.2.js' %}"></script>
+
   <script src=" {% static 'assets/vendors/datatables.net/jquery.dataTables.js' %}"></script>
   <script src=" {% static 'assets/vendors/datatables.net-bs4/dataTables.bootstrap4.js' %}"></script>
 
   <script>
     $(document).ready(function () {
       $('#dataTables-example').dataTable();
+    });
+    $(document).ready(function () {
+      $('#spk').dataTable();
+    });
+  </script>
+  <script>
+    $(document).ready(function () {
+      $('#ksbbpurchasing').dataTable();
     });
   </script>
   <script>

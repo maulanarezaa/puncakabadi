@@ -11,26 +11,38 @@
     <li class="nav-item">
       <a class="nav-link" href="{% url 'views_artikel' %}" aria-expanded="false" aria-controls="ui-basic">
         <i class="typcn typcn-briefcase menu-icon"></i>
-        <span class="menu-title">Artikel</span>
+        <span class="menu-title">Daftar Artikel</span>
 
       </a>
     </li>
     <li class="nav-item">
       <a class="nav-link" href="{% url 'penyusun_artikel' %}" aria-expanded="false" aria-controls="form-elements">
         <i class="typcn typcn-film menu-icon"></i>
-        <span class="menu-title">Penyusun</span>
+        <span class="menu-title">Konversi</span>
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="{% url 'views_sppb' %}" aria-expanded="false" aria-controls="charts">
-        <i class="typcn typcn-chart-pie-outline menu-icon"></i>
-        <span class="menu-title">SPPB</span>
+      <a class="nav-link" href="{%url 'rekaphargarnd'%}" aria-expanded="false" aria-controls="tables">
+        <i class="typcn typcn-th-small-outline menu-icon"></i>
+        <span class="menu-title">KSBB Purchasing</span>
       </a>
     </li>
     <li class="nav-item">
       <a class="nav-link" href="{%url 'views_ksbj'%}" aria-expanded="false" aria-controls="tables">
         <i class="typcn typcn-th-small-outline menu-icon"></i>
         <span class="menu-title">KSBJ Produksi</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'views_spk' %}" aria-expanded="false" aria-controls="charts">
+        <i class="typcn typcn-chart-pie-outline menu-icon"></i>
+        <span class="menu-title">SPK</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'views_sppb' %}" aria-expanded="false" aria-controls="charts">
+        <i class="typcn typcn-chart-pie-outline menu-icon"></i>
+        <span class="menu-title">SPPB</span>
       </a>
     </li>
   </ul>

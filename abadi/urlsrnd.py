@@ -14,5 +14,7 @@ urlpatterns = [
     path("penyusun/delete/<str:id>",viewsrnd.delete_penyusun,name='delete_penyusun'),
     path('ksbj',viewsrnd.views_ksbj,name='views_ksbj'),
     path("sppb",viewsrnd.views_sppb,name='views_sppb'),
+    path("spk",viewsrnd.view_spk,name='views_spk'),
+    path('rekapharga',viewsrnd.views_rekapharga,name='rekaphargarnd'),
     path('upload-excel', viewsrnd.uploadexcel, name='upload-excel'),
 ]
