@@ -885,8 +885,9 @@ def view_rekapbarang(request):
 TAMBAHAN 28/03/2024
 1. Pemusnahan
 2. CRUD Produk SUBKON
-2. Transaksi Subkon - Puncak (Masuk)
-3. Transaksi Puncak - Subkon (Keluar)
+3. Transaksi Subkon - Puncak (Masuk)
+4. Transaksi Puncak - Subkon (Keluar)
+5. Coba Tracking SPK Sampai Mana
 '''
 def view_pemusnahan(request):
     dataproduksi = models.PemusnahanArtikel.objects.all()
@@ -1082,3 +1083,25 @@ def delete_transaksi_subkon_terima(request, id):
     produkobj.delete()
     messages.success(request,"Data Berhasil dihapus")
     return redirect("transaksi_subkon_terima")
+
+def track_spk (request,id):
+    dataartikel = models.Artikel.objects.all()
+    dataspk = models.SPK.objects.get(id=id)
+    datadetail = models.DetailSPK.objects.filter(NoSPK=dataspk.id)
+
+    # Data SPK terkait yang telah di request ke Gudang
+    transaksigudangobj = models.TransaksiGudang.objects.filter(DetailSPK__NoSPK = dataspk.id,jumlah__gte=0)
+
+    # Data SPK Terkait yang telah jadi di FG
+    transaksiproduksiobj = models.TransaksiProduksi.objects.filter(DetailSPK__NoSPK = dataspk.id,Jenis = "Mutasi")
+
+    # Data SPK Terkait yang telah dikirim
+    sppbobj = models.DetailSPPB.objects.filter(DetailSPK__NoSPK = dataspk.id)
+
+    if request.method == "GET":
+        tanggal = datetime.strftime(dataspk.Tanggal, "%Y-%m-%d")
+
+        return render(request,'produksi/trackingspk.html',{'data':dataartikel,'dataspk':dataspk,'datadetail':datadetail, 'tanggal':tanggal,
+                                                           'transaksigudang':transaksigudangobj,
+                                                           'transaksiproduksi':transaksiproduksiobj,
+                                                           'transaksikeluar':sppbobj})

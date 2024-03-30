@@ -48,4 +48,5 @@ urlpatterns = [
     path('addtransaksisubkonterima',viewsproduksi.create_transaksi_subkon_terima,name='create_transaksi_subkon_terima'),
     path('updatetransaksisubkonterima/<str:id>',viewsproduksi.update_transaksi_subkon_terima,name='update_transaksi_subkon_terima'),
     path('deletetransaksisubkonterima/<str:id>',viewsproduksi.delete_transaksi_subkon_terima,name='delete_transaksi_subkon_terima'),
+    path('trackingspk/<str:id>',viewsproduksi.track_spk,name='tracking_spk'),
 ]
