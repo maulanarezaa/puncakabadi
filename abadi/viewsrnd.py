@@ -342,7 +342,7 @@ def tambahdatapenyusun(request, id):
 
 def delete_penyusun(request, id):
     penyusunobj = models.Penyusun.objects.get(IDKodePenyusun=id)
-    # penyusunobj.delete()
+    penyusunobj.delete()
     print(penyusunobj)
     print(id)
     return redirect("penyusun_artikel")

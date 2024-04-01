@@ -438,8 +438,9 @@ def delete_gudang(request, id):
 
 # Rekapitulasi
 def view_ksbb(request):
+    kodeproduk = models.Produk.objects.all()
     if len(request.GET) == 0:
-        return render(request, "produksi/view_ksbb.html")
+        return render(request, "produksi/view_ksbb.html",{'kodeprodukobj':kodeproduk})
     else:
         try:
             produk = models.Produk.objects.get(KodeProduk=request.GET["kodebarang"])
@@ -454,6 +455,7 @@ def view_ksbb(request):
         else:
             sekarang = datetime.now()
             tahun = sekarang.year
+        # print(produk)
         
         tanggal_mulai = datetime(year=tahun, month=1, day=1)
         tanggal_akhir = datetime(year=tahun, month=12, day=31)
@@ -461,107 +463,153 @@ def view_ksbb(request):
         datagudang = models.TransaksiGudang.objects.filter(KodeProduk=produk,tanggal__range=(tanggal_mulai,tanggal_akhir))
 
         # Mendapatkan semua penyusun yang terkait dengan produk
-        penyusun_produk = models.Penyusun.objects.filter(KodeProduk=produk)
+        penyusun_produk = models.Penyusun.objects.filter(KodeProduk=produk).values_list('KodeArtikel',flat=True).distinct()
+
+        # print(penyusun_produk)
+
+        pemusnahanobj = models.PemusnahanArtikel.objects.filter(KodeArtikel__id__in=penyusun_produk,Tanggal__range=(tanggal_mulai,tanggal_akhir))
+        print(pemusnahanobj, 'Pemusnahan Artikel')
+
+        '''
+        Revisi
+        1. KSBB hanya mengambil jumlah konversi sesuai dengan jumlah penggunaan kode bahan baku tersebut per artikel bukan kumulatif semua penyusun artikel 
+
+        '''
 
         # Mendapatkan artikel yang terkait dengan penyusun produk
-        artikel_penyusun = [penyusun.KodeArtikel for penyusun in penyusun_produk]
+        # artikel_penyusun = [penyusun.KodeArtikel for penyusun in penyusun_produk]
 
         # Memfilter transaksi produksi berdasarkan artikel yang terkait dengan penyusun produk
-        dataproduksi = models.TransaksiProduksi.objects.filter(KodeArtikel__in=artikel_penyusun,Jenis="Mutasi",Tanggal__range=(tanggal_mulai,tanggal_akhir)).values('KodeArtikel','Tanggal').annotate(Jumlah=Sum('Jumlah'))
-
+        dataproduksi = models.TransaksiProduksi.objects.filter(KodeArtikel__id__in=penyusun_produk,Jenis="Mutasi",Tanggal__range=(tanggal_mulai,tanggal_akhir))
+        # print(dataproduksi)
+        # Memfilter transaksi pemusnahan artikel yang terkait
+        # datapemusnahan = models.PemusnahanArtikel.objects.filter(KodeArtikel = )
         kuantitas_konversi = {}
         for penyusun in penyusun_produk:
-            konversi = models.KonversiMaster.objects.filter(KodePenyusun=penyusun)
+            konversi = models.KonversiMaster.objects.filter(KodePenyusun__KodeArtikel=penyusun,KodePenyusun__KodeProduk = produk)
             if konversi.exists():
-                kuantitas_konversi[penyusun.IDKodePenyusun] = konversi[0].Kuantitas
+                kuantitas = konversi.aggregate(total=Sum('Kuantitas'))
+                # print('ini kuantitas',kuantitas)
+                # Simpan ke dictionary kuantitas konversi dengan keynya adalah ID Kode Artikel
+                kuantitas_konversi[penyusun] = kuantitas['total']
+
             else:
-                kuantitas_konversi[penyusun.IDKodePenyusun] = 0
+                kuantitas_konversi[penyusun] = 0
+        print(kuantitas_konversi)
+        # Belum dikalikan dengan penyesuaian
 
         tanggalmasuk = datagudang.values_list("tanggal", flat=True)
         tanggalkeluar = dataproduksi.values_list("Tanggal", flat=True)
+        tanggalpemusnahan = pemusnahanobj.values_list('Tanggal',flat=True)
 
-        listtanggal = sorted(list(set(tanggalmasuk.union(tanggalkeluar))))
+
+        listtanggal = sorted(list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalpemusnahan))))
 
         try:
             saldoawal = models.SaldoAwalBahanBaku.objects.get(IDBahanBaku=request.GET['kodebarang'], IDLokasi=1,Tanggal__range=(tanggal_mulai,tanggal_akhir))
             saldo = saldoawal.Jumlah
+            saldoawal.Tanggal = saldoawal.Tanggal.strftime('%d-%m-%Y')
+
         except models.SaldoAwalBahanBaku.DoesNotExist:
             saldo = 0
+            saldoawal = None
 
         sisa = saldo
 
         data = []
         for i in listtanggal:
-            try:
-                datamasuk = datagudang.filter(tanggal=i)
-                masuk = 0
-                for k in datamasuk:
-                    masuk += k.jumlah
-            except:
-                masuk = 0
+            datamasuk = datagudang.filter(tanggal=i)
+            masuk = 0
+            for k in datamasuk:
+                masuk += k.jumlah
 
-            detail = []
-            try:
-                is_first_iteration = True
-                datakeluar = dataproduksi.filter(Tanggal=i)
-                for keluar in datakeluar:
-                    kode_artikel = models.Artikel.objects.filter(id=keluar['KodeArtikel'])
-                    for kode in kode_artikel:
-                        if kode in artikel_penyusun:
-                            konversi = 0
-                            penyusun = models.Penyusun.objects.filter(KodeProduk=produk, KodeArtikel=kode)
-                            for j in penyusun:
-                                konversi += kuantitas_konversi[j.IDKodePenyusun] + (kuantitas_konversi[j.IDKodePenyusun]*2.5/100)
+            datakeluar = dataproduksi.filter(Tanggal=i)
+            datapemusnahan = pemusnahanobj.filter(Tanggal = i)
 
-                    jumlah = keluar['Jumlah']
-                    fkonversi = round(konversi,6)
-                    keluar = jumlah*konversi
-                    fkeluar = round(keluar,6)
-                    if is_first_iteration:
-                        sisa = sisa + masuk - fkeluar
-                        is_first_iteration = False
-                    else:
-                        sisa = sisa - fkeluar
-                    
-                    fsisa = round(sisa,4)
-                            
-                    dummy = {
-                            "nama" : kode_artikel,
-                            "jumlah" : jumlah,
-                            "konversi" : fkonversi,
-                            "keluar" : fkeluar,
-                            "sisa" : fsisa
-                        }
-                    detail.append(dummy)
-            except:
-                pass
-
-            if not detail:
-                sisa = sisa + masuk
-                fsisa = round(sisa,4)
-                deta = {
-                        "nama" : 0,
-                        "jumlah" : 0,
-                        "konversi" : 0,
-                        "keluar" : 0,
-                        "sisa" : fsisa
-                    }
-                detail.append(deta)
             
-            dumy = {
-                "tanggal" : i,
-                "detail" : detail,
-                "masuk" : masuk,
-            }
-            data.append(dumy)
-      
+
+            listartikelobjkeluar = []
+            for j in datakeluar:
+                artikelobj = models.Artikel.objects.get(id = j.KodeArtikel.id)
+                jumlah = j.Jumlah
+                artikelobj.Jumlahkeluar = jumlah
+                artikelobj.Konversi = kuantitas_konversi[artikelobj.id]
+                listartikelobjkeluar.append(artikelobj)
+
+            listartikelobjpemusnahan = []
+
+
+            for j in datapemusnahan:
+                artikelobj = models.Artikel.objects.get(id = j.KodeArtikel.id)
+                print('ini artikel pemusnahan',artikelobj,j.Tanggal)
+                artikelobj.Jumlahpemusnahan = j.Jumlah
+                listartikelobjpemusnahan.append(artikelobj)
+    
+            
+            print(f'ini list masuk {masuk} ini list artikel keluar {listartikelobjkeluar} ini list artikel pemusnahan {listartikelobjpemusnahan}')
+            datakirim = []
+            totalkonversisemuaartikel = 0
+            dataartikel = set(listartikelobjpemusnahan+listartikelobjkeluar)
+            for item in dataartikel:
+                artikelobj = models.Artikel.objects.get(id = item.id)
+                artikelobj.totalkeluar = 0
+                konversi = kuantitas_konversi[artikelobj.id]
+                konversi = round(konversi + konversi * 2.5 / 100,5)
+                print(konversi)
+
+                print('ini artikel obj', artikelobj)
+                for objkeluar in listartikelobjkeluar:
+                    if objkeluar.id == artikelobj.id:
+                        artikelobj.totalkeluar += objkeluar.Jumlahkeluar
+                    else:
+                        continue
+                for objpemusnahan in listartikelobjpemusnahan:
+                    if objpemusnahan.id == artikelobj.id:
+                        artikelobj.totalkeluar += objpemusnahan.Jumlahpemusnahan
+                artikelobj.konversikeluar = round(konversi * artikelobj.totalkeluar,4)
+                datakirim.append(artikelobj)
+                artikelobj.konversi = konversi
+                artikelobj.sisa = sisa - artikelobj.konversikeluar
+                totalkonversisemuaartikel += artikelobj.konversikeluar
+                print(artikelobj.totalkeluar)
+                print(artikelobj.konversikeluar)
+                
+            sisa = sisa + masuk - totalkonversisemuaartikel
+            data.append({
+                'Tanggal':i.strftime('%d-%m-%Y'),
+                'Artikel' :datakirim,
+                'Masuk' : masuk,
+                'Sisa' : round(sisa,3)
+            })
+
         return render(request, "produksi/view_ksbb.html", {"kodebarang":request.GET['kodebarang'],
                                                   'nama':nama,
                                                   'satuan':satuan,
                                                   'data':data,
-                                                  'saldo':saldo,
-                                                  'tahun':tahun
+                                                  'saldo':saldoawal,
+                                                  'tahun':tahun,
                                                   })
+
+def detailksbb(request,id,tanggal):
+    tanggal = datetime.strptime(tanggal, "%d-%m-%Y")
+    tanggal = tanggal.strftime("%Y-%m-%d")
+
+    # Transaksi Gudang
+    datagudang = models.TransaksiGudang.objects.filter(tanggal = tanggal,KodeProduk = id)
+    listartikel = models.Penyusun.objects.filter(KodeProduk__KodeProduk = id).values_list('KodeArtikel__KodeArtikel',flat=True).distinct()
+   
+    # Transaksi Produksi
+    dataproduksi = models.TransaksiProduksi.objects.filter(KodeArtikel__KodeArtikel__in = listartikel,Jenis = "Mutasi",Tanggal = tanggal)
+    print(dataproduksi)
+
+    # Transaksi Pemusnahan
+    datapemusnahan = models.PemusnahanArtikel.objects.filter(KodeArtikel__KodeArtikel__in = listartikel, Tanggal = tanggal)
+    print(datapemusnahan)
+    return render (request,'produksi/view_detailksbb.html',{
+        'datagudang' :datagudang,
+        'dataproduksi' : dataproduksi,
+        'datapemusnahan' : datapemusnahan
+    })
 
 
 def views_ksbj(request):
@@ -1105,3 +1153,79 @@ def track_spk (request,id):
                                                            'transaksigudang':transaksigudangobj,
                                                            'transaksiproduksi':transaksiproduksiobj,
                                                            'transaksikeluar':sppbobj})
+
+def penyesuaian (request):
+    datapenyesuaian = models.DetailKonversiProduksi.objects.all()
+    return render (request,'produksi/view_penyesuaian.html',{
+        'datapenyesuaian':datapenyesuaian
+    })
+
+def addpenyesuaian (request):
+    dataartikel = models.Artikel.objects.all()
+    if request.method == "GET":
+        return render(request,'produksi/add_penyesuaian.html',{'Artikel':dataartikel})
+    else:
+        print(request.POST)
+        # Add Penyesuaian
+        tanggalmulai = request.POST['tanggalmulai']
+        tanggalakhir = request.POST['tanggalakhir']
+        if tanggalakhir == '':
+            tanggalakhir = datetime.max
+        kodepenyusun = request.POST['penyusun']
+        kuantitas = request.POST['kuantitas']
+        penyusunobj = models.Penyusun.objects.get(IDKodePenyusun = kodepenyusun)
+        print(penyusunobj)
+        penyesuaianobj = models.Penyesuaian(
+            TanggalMulai = tanggalmulai,
+            TanggalAkhir = tanggalakhir,
+            KodePenyusun = penyusunobj
+        )
+        penyesuaianobj.save()
+        # Add detail konversi produksi
+        print(penyesuaianobj.IDPenyesuaian)
+        detailkonversiproduk = models.DetailKonversiProduksi(
+            KodePenyesuaian = penyesuaianobj,
+            kuantitas = kuantitas
+        )
+        detailkonversiproduk.save()
+
+        return redirect('view_penyesuaian')
+
+def load_penyusun(request):
+    kodeartikel = request.GET.get('artikel')
+    penyusun = models.Penyusun.objects.filter(KodeArtikel = kodeartikel)
+
+
+    return render(request, "produksi/opsi_penyusun.html", {"penyusun":penyusun})
+
+def delete_penyesuaian(request,id):
+    datapenyesuaian = models.Penyesuaian.objects.get(IDPenyesuaian = id)
+    datapenyesuaian.delete()
+    return redirect('view_penyesuaian')
+
+def update_penyesuaian(request,id):
+    datapenyesuaianobj = models.DetailKonversiProduksi.objects.get(IDDetailKonversiProduksi = id)
+    datapenyesuaianobj.KodePenyesuaian.TanggalMulai = datapenyesuaianobj.KodePenyesuaian.TanggalMulai.strftime('%Y-%m-%d')
+    dataartikel = models.Artikel.objects.all()
+    if request.method == "GET":
+        return render(request,'produksi/update_penyesuaian.html',{
+            'dataobj' : datapenyesuaianobj,
+            "Artikel":dataartikel
+        })
+    else:
+        print(request.POST)
+        detailkonversiobj = models.DetailKonversiProduksi.objects.get(
+            IDDetailKonversiProduksi = request.POST['id']
+        )
+        print(detailkonversiobj)
+        penyesuaianobj = models.Penyesuaian.objects.get(IDPenyesuaian = detailkonversiobj.IDDetailKonversiProduksi)
+        print(penyesuaianobj)
+        penyesuaianobj.TanggalMulai = request.POST['tanggalmulai']
+        tanggalakhir = request.POST['tanggalakhir']
+        if tanggalakhir == '':
+            tanggalakhir = datetime.max
+        penyesuaianobj.TanggalAkhir  = tanggalakhir
+        detailkonversiobj.kuantitas = request.POST['kuantitas']
+        detailkonversiobj.save()
+        penyesuaianobj.save()
+        return redirect('view_penyesuaian')

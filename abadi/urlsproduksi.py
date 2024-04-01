@@ -30,6 +30,7 @@ urlpatterns = [
     path("deletegudang/<str:id>", viewsproduksi.delete_gudang, name="delete_gudang"),
 
     path('viewksbb',viewsproduksi.view_ksbb,name='view_ksbb'),
+    path('viewksbb/<str:id>/<str:tanggal>',viewsproduksi.detailksbb,name='detail_ksbb'),
     path('viewksbj',viewsproduksi.views_ksbj,name='views_ksbj'),
     path('viewrekapbarang',viewsproduksi.view_rekapbarang,name='view_rekapbarang'),
 
@@ -49,4 +50,10 @@ urlpatterns = [
     path('updatetransaksisubkonterima/<str:id>',viewsproduksi.update_transaksi_subkon_terima,name='update_transaksi_subkon_terima'),
     path('deletetransaksisubkonterima/<str:id>',viewsproduksi.delete_transaksi_subkon_terima,name='delete_transaksi_subkon_terima'),
     path('trackingspk/<str:id>',viewsproduksi.track_spk,name='tracking_spk'),
+
+    path('penyesuaian',viewsproduksi.penyesuaian,name='view_penyesuaian'),
+    path('addpenyesuaian',viewsproduksi.addpenyesuaian,name='addpenyesuaian'),
+    path('deletepenyesuaian/<str:id>',viewsproduksi.delete_penyesuaian,name='delete_penyesuaian'),
+    path('updatepenyesuaian/<str:id>',viewsproduksi.update_penyesuaian,name='update_penyesuaian'),
+    path('load_penyusun',viewsproduksi.load_penyusun,name='load_penyusun'),
 ]

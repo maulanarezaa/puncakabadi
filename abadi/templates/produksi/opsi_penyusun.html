@@ -1,0 +1,5 @@
+<select class="form-control" name="penyusun">
+    {% for i in penyusun %}
+    <option value="{{i.IDKodePenyusun}}">{{i.KodeProduk.KodeProduk}} - {{i.KodeProduk.NamaProduk}} </option>
+    {% endfor %}
+</select>
