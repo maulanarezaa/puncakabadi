@@ -43,4 +43,8 @@ urlpatterns = [
     path("read_po", viewspurchasing.read_po, name="read_po"),
     # path("rekap_harga", viewspurchasing.rekap_harga, name="rekap_harga"),
     path("rekap_harga", viewspurchasing.views_rekapharga, name="rekapharga"),
+    # TAMBAHAN 28/03/2024
+    path('spkpurchasing',viewspurchasing.view_spk,name='spk_purchasing'),
+    path('sppbpurchasing',viewspurchasing.view_sppb,name='sppb_purchasing'),
+    path('detail_sppb_purchasing/<str:id>',viewspurchasing.detail_sppb,name='detail_sppb_purchasing')
 ]

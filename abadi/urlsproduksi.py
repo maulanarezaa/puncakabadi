@@ -56,4 +56,5 @@ urlpatterns = [
     path('deletepenyesuaian/<str:id>',viewsproduksi.delete_penyesuaian,name='delete_penyesuaian'),
     path('updatepenyesuaian/<str:id>',viewsproduksi.update_penyesuaian,name='update_penyesuaian'),
     path('load_penyusun',viewsproduksi.load_penyusun,name='load_penyusun'),
+    path('kalkulatorpenyesuaian',viewsproduksi.kalkulatorpenyesuaian,name='kalkulatorpenyesuaian')
 ]

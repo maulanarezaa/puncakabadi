@@ -161,12 +161,13 @@ def rekap_gudang(request) :
         messages.error(request, "Tidak ada barang masuk ke gudang")
 
     datagudang = models.TransaksiGudang.objects.values('KodeProduk').annotate(kuantitas=Sum('jumlah')).order_by()
-
+    print(datasjb)
+    print(datagudang)
     for item in datasjb:
         kode_produk = item['KodeProduk']
         try:
             corresponding_gudang_item = datagudang.get(KodeProduk=kode_produk)
-            item['kuantitas'] += corresponding_gudang_item['kuantitas']
+            item['kuantitas'] -= corresponding_gudang_item['kuantitas']
 
             if item['kuantitas'] + corresponding_gudang_item['kuantitas'] < 0 :
                 messages.info("Kuantitas gudang menjadi minus")
