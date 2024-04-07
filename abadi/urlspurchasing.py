@@ -4,7 +4,7 @@ from . import viewspurchasing
 urlpatterns = [
     # notif purchasing +spk
     path(
-        "notif_purchasing",
+        "",
         viewspurchasing.notif_barang_purchasing,
         name="notif_purchasing",
     ),
@@ -13,8 +13,7 @@ urlpatterns = [
         viewspurchasing.verifikasi_data,
         name="update_verif_purchasing",
     ),
-    path("acc_spk/<str:id>",viewspurchasing.acc_notif_spk,name="acc_spk"),
-    
+    path("acc_spk/<str:id>", viewspurchasing.acc_notif_spk, name="acc_spk"),
     # barang_masuk
     path("barang_masuk", viewspurchasing.barang_masuk, name="barang_masuk"),
     path(
@@ -44,7 +43,11 @@ urlpatterns = [
     # path("rekap_harga", viewspurchasing.rekap_harga, name="rekap_harga"),
     path("rekap_harga", viewspurchasing.views_rekapharga, name="rekapharga"),
     # TAMBAHAN 28/03/2024
-    path('spkpurchasing',viewspurchasing.view_spk,name='spk_purchasing'),
-    path('sppbpurchasing',viewspurchasing.view_sppb,name='sppb_purchasing'),
-    path('detail_sppb_purchasing/<str:id>',viewspurchasing.detail_sppb,name='detail_sppb_purchasing')
+    path("spkpurchasing", viewspurchasing.view_spk, name="spk_purchasing"),
+    path("sppbpurchasing", viewspurchasing.view_sppb, name="sppb_purchasing"),
+    path(
+        "detail_sppb_purchasing/<str:id>",
+        viewspurchasing.detail_sppb,
+        name="detail_sppb_purchasing",
+    ),
 ]
