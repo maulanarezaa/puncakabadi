@@ -46,7 +46,7 @@
                     {% csrf_token %}
                     <input type="text" value="{{tanggalawal}}" hidden name="tanggalawal">
                     <input type="text" name="tanggalakhir" value="{{tanggalakhir}}" id="" hidden>
-                    <button type="submit" class="btn btn-primary mb-2">Cetak Excel</button>
+                    <button type="submit" class="btn btn-primary mb-2" hidden>Cetak Excel</button>
                 </form>
                 {% endif %}
                 </a>

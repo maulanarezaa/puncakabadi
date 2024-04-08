@@ -11,6 +11,9 @@ from openpyxl.utils import get_column_letter
 from datetime import datetime
 # Create your views here.
 
+def dashboard(request):
+    return render(request,'ppic/dashboard.html')
+
 def laporanbarangjadi(request):
     if len(request.GET) == 0:
         return render(request, "ppic/views_laporanstokfg.html")
@@ -186,14 +189,17 @@ def gethargafg(penyusunobj):
     detailsjpembelian = models.DetailSuratJalanPembelian.objects.filter(
         KodeProduk=penyusunobj.KodeProduk
     )
-    # print("ini detailsjpembelian", detailsjpembelian)
+    print("ini detailsjpembelian", detailsjpembelian)
     hargatotalkodeproduk = 0
     jumlahtotalkodeproduk = 0
     for m in detailsjpembelian:
         hargatotalkodeproduk += m.Harga * m.Jumlah
         jumlahtotalkodeproduk += m.Jumlah
     # print("ini jumlah harga total ", hargatotalkodeproduk)
-    rataratahargakodeproduk = hargatotalkodeproduk / jumlahtotalkodeproduk
+    try:
+        rataratahargakodeproduk = hargatotalkodeproduk / jumlahtotalkodeproduk
+    except ZeroDivisionError:
+        rataratahargakodeproduk = 0
     # print("selesai")
     # print(rataratahargakodeproduk)
     nilaifgperkodeproduk = rataratahargakodeproduk * konversialowance

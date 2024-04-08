@@ -47,7 +47,7 @@
                 {% endif %}
                 <div class="table-responsive pt-3">
                     {% if data %}
-                    <table class="table table-bordered">
+                    <table class="table table-bordered" id="datapenyusun">
                         <thead>
                             <tr>
                                 <td>No</td>
@@ -93,10 +93,10 @@
                                 </td>
                             </tr>
                             {% endfor %}
-                            <tr>
+                            <!-- <tr>
                                 <td>Nilai Total</td>
                                 <td colspan="10">{{nilaifg}}</td>
-                            </tr>
+                            </tr> -->
                         </tbody>
                     </table>
 
@@ -132,7 +132,6 @@
 </div>
 
 {% block javascripts %}
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script>
     function confirmDelete(id) {
         var deleteForm = document.getElementById('deleteForm');
