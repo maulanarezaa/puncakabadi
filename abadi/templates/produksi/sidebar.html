@@ -24,10 +24,19 @@
       </div>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/produksi/viewproduksi">
+      <a class="nav-link" data-toggle="collapse" href="#produksi" aria-expanded="false" aria-controls="produksi">
         <i class="typcn typcn-film menu-icon"></i>
-        <span class="menu-title">Input Mutasi</span>
+        <span class="menu-title">Transaksi Produksi</span>
+        <i class="menu-arrow"></i>
       </a>
+      <div class="collapse" id="produksi">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="/produksi/viewmutasi">Mutasi</a></li>
+        </ul>
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="/produksi/viewproduksi">Produksi</a></li>
+        </ul>
+      </div>
     </li>
     <li class="nav-item">
       <a class="nav-link" href="/produksi/viewspk">
@@ -53,6 +62,12 @@
         <i class="typcn typcn-user-add-outline menu-icon"></i>
         <span class="menu-title">KS Barang Jadi</span>
 
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/produksi/viewrekapbarang">
+        <i class="typcn typcn-globe-outline menu-icon"></i>
+        <span class="menu-title">Rekap Bahan Baku</span>
       </a>
     </li>
     <li class="nav-item">

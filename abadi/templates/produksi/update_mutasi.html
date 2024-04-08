@@ -12,7 +12,7 @@
       <div class="card-body">
         <h4 class="card-title">Form Transaksi Produksi</h4>
         <div class="template-demo">
-            <a href="/produksi/viewproduksi">
+            <a href="/produksi/viewmutasi">
                 <button type="button" class="btn btn-light btn-icon-text">
                     <i class="typcn typcn-chevron-left btn-icon-prepend"></i>                                                    
                     Kembali
@@ -93,6 +93,22 @@
             </div>
           </div>
           <div class="row">
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Lokasi</label>
+                <div class="col-sm-9">
+                    <select class="form-control" id="exampleSelectGender" name="nama_lokasi">
+                        {% for i in nama_lokasi %}
+                          {% if i.NamaLokasi == produksi.Lokasi.NamaLokasi %}
+                            <option selected value="{{i.IDLokasi}}">{{i.NamaLokasi}}</option>
+                          {% else %}
+                            <option value="{{i.IDLokasi}}">{{i.NamaLokasi}}</option>
+                          {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+              </div>
+            </div>
             <div class="col-md-6">
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Keterangan</label>
