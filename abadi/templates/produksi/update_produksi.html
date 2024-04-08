@@ -31,19 +31,27 @@
                 </div>
               </div>
             </div>
+          </div>
+          <div class="row">
             <div class="col-md-6">
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Artikel</label>
                 <div class="col-sm-9">
-                    <select class="form-control" id="exampleSelectGender" name="kode_artikel">
-                        {% for i in kode_artikel %}
-                          {% if i.KodeArtikel == produksi.KodeArtikel.KodeArtikel %}
-                            <option selected value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
-                          {% else %}
-                            <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
-                          {% endif %}
-                        {% endfor %}
-                    </select>
+                  <input required type="text" class="form-control" name="kode_artikel" list="listartikel" value="{{produksi.KodeArtikel}}">
+                  <datalist  id="listartikel">
+                    {% for i in kode_artikel %}
+                    <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
+                    {% endfor %}
+                  </datalist>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Jumlah</label>
+                <div class="col-sm-9">
+                  <input type="number" class="form-control" name="jumlah" value="{{ produksi.Jumlah }}"/>
                 </div>
               </div>
             </div>
@@ -51,25 +59,35 @@
           <div class="row">
             <div class="col-md-6">
               <div class="form-group row">
-                <label class="col-sm-3 col-form-label">Lokasi</label>
+                <label class="col-sm-3 col-form-label">Nomor SPK</label>
                 <div class="col-sm-9">
-                    <select class="form-control" id="exampleSelectGender" name="nama_lokasi">
-                        {% for i in nama_lokasi %}
-                          {% if i.NamaLokasi == produksi.Lokasi.NamaLokasi %}
-                            <option selected value="{{i.IDLokasi}}">{{i.NamaLokasi}}</option>
-                          {% else %}
-                            <option value="{{i.IDLokasi}}">{{i.NamaLokasi}}</option>
-                          {% endif %}
-                        {% endfor %}
-                    </select>
-                </div>
+                  <select class="form-control" name="nomor_spk" hx-get="{% url 'load_htmx' %}" hx-trigger="change" hx-indicator=".htmx-indicator" hx-target="#detail">
+                    <option value="">Masukkan Nomor SPK</option>
+                    {% for i in data_spk %}
+                      {% if i.NoSPK == produksi.DetailSPK.NoSPK.NoSPK %}
+                        <option selected value="{{i.NoSPK}}">{{i.NoSPK}}</option>
+                      {% else %}
+                        <option value="{{i.NoSPK}}">{{i.NoSPK}}</option>
+                      {% endif %}
+                    {% endfor %}
+                  </select>
+                </div>              
               </div>
             </div>
             <div class="col-md-6">
               <div class="form-group row">
-                <label class="col-sm-3 col-form-label">Jumlah</label>
-                <div class="col-sm-9">
-                  <input type="number" class="form-control" name="jumlah" value="{{ produksi.Jumlah }}"/>
+                <label class="col-sm-3 col-form-label">Kode Artikel</label>
+                <div class="col-sm-9" id="detail">
+                  <select class="form-control" name="detail_spk">
+                    <option value="">Masukkan Kode Artikel</option>
+                    {% for i in data_detailspk %}
+                      {% if i.IDDetailSPK == produksi.DetailSPK.IDDetailSPK %}
+                        <option selected value="{{i.IDDetailSPK}}">{{i.KodeArtikel}}</option>
+                      {% else %}
+                        <option value="{{i.IDDetailSPK}}">{{i.KodeArtikel}}</option>
+                      {% endif %}
+                    {% endfor %}
+                  </select>
                 </div>
               </div>
             </div>

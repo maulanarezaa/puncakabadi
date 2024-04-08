@@ -2,9 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db.models import Sum
 from . import models
-
+import datetime
 """PURCHASING"""
-
 
 # READ NOTIF BARANG MASUK PURCHASIN +SPK G+ACC
 def notif_barang_purchasing(request):
@@ -45,12 +44,27 @@ def verifikasi_data(request, id):
         verifobj.save()
         verifobj.NoSuratJalan.save()
         harga_total = verifobj.Jumlah * verifobj.Harga
-        return redirect("Purchasing/notif_purchasing")
+        return redirect("notif_purchasing")
 
 
 def acc_notif_spk(request, id):
     print(id)
-    accobj = models.SPK.objects.get(id=id)
+    # accobj = models.DetailSPK.objects.get(IDDetailSPK=id)
+    # if request.method == 'GET':
+    #     print(accobj.NoSPK.Tanggal)
+    #     return render(request,'Purchasing/cek_detailspk.html',{
+    #         "accobj" : accobj
+    #     })
+    # else :
+    #     jumlah_post = request.POST["jumlah_barang"]
+    #     print(jumlah_post)
+    #     accobj.NoSPK.KeteranganACC = True
+    #     accobj.Jumlah = jumlah_post
+    #     accobj.save()
+    #     accobj.NoSPK.save()
+    #     return redirect("notif_purchasing")
+    accobj = models.SPK.objects.get(pk=id)
+    print("ini acc obj",accobj)
     accobj.KeteranganACC = True
     accobj.save()
     return redirect("notif_purchasing")
@@ -117,15 +131,6 @@ def update_barang_masuk(request, id, input_awal, input_terakhir):
             f"/purchasing/barang_masuk?awal={input_awal}&akhir={input_terakhir}"
         )
         # return JsonResponse({'harga_total': harga_total})
-
-
-def delete_barang_masuk(request, id, input_awal, input_terakhir):
-    masukobj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
-    masukobj.delete()
-    return redirect(
-        f"/purchasing/barang_masuk?awal={input_awal}&akhir={input_terakhir}"
-    )
-
 
 def rekap_purchasing(request):
     return render(request, "Purchasing/rekap_purchasing.html")
@@ -229,7 +234,7 @@ def rekap_produksi_purchasing(request):
         {"datagudang": datagudang, "sisa_produksi": sisa_produksi},
     )
 
-
+'''REVISI DELETE ADA YANG ERROR, TRS ERROR HANDLING GABOLE CREATE DENGAN KODE YG SAMA(done)'''
 def read_produk(request):
     produkobj = models.Produk.objects.all()
     return render(request, "Purchasing/read_produk.html", {"produkobj": produkobj})
@@ -243,15 +248,23 @@ def create_produk(request):
         nama_produk = request.POST["nama_produk"]
         unit_produk = request.POST["unit_produk"]
         keterangan_produk = request.POST["keterangan_produk"]
-
-        new_produk = models.Produk(
-            KodeProduk=kode_produk,
-            NamaProduk=nama_produk,
-            unit=unit_produk,
-            keterangan=keterangan_produk,
-        )
-        new_produk.save()
-        return redirect("read_produk")
+        jumlah_minimal = request.POST["jumlah_minimal"]
+        produkobj = models.Produk.objects.filter(KodeProduk=kode_produk)
+        print(produkobj)
+        if len(produkobj) == 1 :
+            messages.error(request, "Kode Produk sudah ada")
+            return redirect("create_produk")
+        else :
+            new_produk = models.Produk(
+                KodeProduk=kode_produk,
+                NamaProduk=nama_produk,
+                unit=unit_produk,
+                keterangan=keterangan_produk,
+                TanggalPembuatan = datetime.datetime.now(),
+                Jumlahminimal = jumlah_minimal
+            )
+            new_produk.save()
+            return redirect("read_produk")
 
 
 def update_produk(request, id):
@@ -265,38 +278,61 @@ def update_produk(request, id):
         nama_produk = request.POST["nama_produk"]
         unit_produk = request.POST["unit_produk"]
         keterangan_produk = request.POST["keterangan_produk"]
+        jumlah_minimal = request.POST["jumlah_minimal"]
         produkobj.KodeProduk = kode_produk
         produkobj.NamaProduk = nama_produk
         produkobj.unit = unit_produk
         produkobj.keterangan = keterangan_produk
+        produkobj.Jumlahminimal = jumlah_minimal 
         produkobj.save()
-        return redirect("Purchasing/read_produk")
+        return redirect("read_produk")
 
 
 def delete_produk(request, id):
     print(id)
     produkobj = models.Produk.objects.get(KodeProduk=id)
     produkobj.delete()
-    return redirect("Purchasing/read_produk")
+    messages.success(request,"Data Berhasil dihapus")
+    return redirect("read_produk")
 
 
 # Tinggal dibikin gimana biar kodenya yang terkirim pas di reload kode itu lagi yang muncul
-def read_po(request):
-
-    po_objall = models.DetailSuratJalanPembelian.objects.all()
-    if request.method == "GET":
-        return render(request, "Purchasing/read_po.html", {"po_objall": po_objall})
-    else:
-        input_po = request.POST["input_po"]
+def read_po(request) :
+    if len(request.GET) == 0 :
+        return render(request, "Purchasing/read_po.html")
+    else :
+        input_po = request.GET["input_po"]
         po_obj = models.DetailSuratJalanPembelian.objects.filter(
             NoSuratJalan__PO=input_po
         )
+        if len(po_obj) == 0 :
+            messages.error(request, "Data tidak ditemukan")
+            return redirect(read_po)
+        else :
+            return render(
+                request,
+                "Purchasing/read_po.html",
+                {"po_obj": po_obj,
+                 "input_po" :input_po})
+# def read_po(request):
 
-        return render(
-            request,
-            "Purchasing/read_po.html",
-            {"po_objall": po_objall, "po_obj": po_obj},
-        )
+#     po_objall = models.SuratJalanPembelian.objects.all()
+#     # po_objall = models.DetailSuratJalanPembelian.objects.all()
+#     if request.method == "GET":
+#         return render(request, "Purchasing/read_po.html", {"po_objall": po_objall})
+#     else:
+#         input_po = request.POST["input_po"]
+#         po_obj = models.DetailSuratJalanPembelian.objects.filter(
+#             NoSuratJalan__PO=input_po
+#         )
+#         if len(po_obj) == 0 :
+#             return redirect(read_po)
+#         else :
+#             return render(
+#                 request,
+#                 "Purchasing/read_po.html",
+#                 {"po_objall": po_objall, "po_obj": po_obj},
+#             )
 
 
 # Tinggal dibikin gimana biar kodenya yang terkirim pas di reload kode itu lagi yang muncul
@@ -506,13 +542,17 @@ def views_rekapharga(request):
             KodeProduk=produkobj.KodeProduk
         )
 
+
         tanggalmasuk = masukobj.values_list("NoSuratJalan__Tanggal", flat=True)
 
         keluarobj = models.TransaksiGudang.objects.filter(
             jumlah__gte=0, KodeProduk=produkobj.KodeProduk
         )
         tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
-
+        print('ini kode bahan baku',keluarobj)
+        if not keluarobj.exists():
+            messages.error(request,'Tidak ditemukan data Transaksi Barang')
+            return redirect('rekapharga')
         saldoawalobj = (
             models.SaldoAwalBahanBaku.objects.filter(
                 IDBahanBaku=produkobj.KodeProduk, IDLokasi=1
@@ -632,7 +672,7 @@ def views_rekapharga(request):
             "purchasing/views_ksbb.html",
             {
                 "data": listdata,
-                "Hargaakhir": round(hargaterakhir, 2),
+                "Hargaakhir": hargaterakhir,
                 "Saldoawal": saldoawalobj,
                 "kodeprodukobj": kodeprodukobj,
             },

@@ -1,72 +1,117 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "Purchasing/base.html" %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-</head>
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
 
-<body>
-    <h1>Update Barang Masuk</h1>
-    <form id="updateForm" method="POST">
+<!-- Page content  -->
+{% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<div class="col-12 grid-margin">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Update Barang Masuk</h4>
+        <br>
+        <form class="form-sample" action="" method="post">
         {% csrf_token %}
-        <table>
-            <tr>
-                <td><label for="">Tanggal</label></td>
-                <td><input type="text" name="tanggal_masuk" value="{{updateobj.NoSuratJalan.Tanggal}}" readonly></td>
-            </tr>
-            <tr>
-                <td><label for="">Kode Produk</label></td>
-                <td><input type="text" name="kode_produk" value="{{updateobj.KodeProduk}}" readonly></td>
-            </tr>
-            <tr>
-                <td><label for="">Nama Produk</label></td>
-                <td><input type="text" name="nama_produk" value="{{updateobj.KodeProduk.NamaProduk}}" readonly></td>
-            </tr>
-            <tr>
-                <td><label for="">Kuantitas</label></td>
-                <td><input type="number" name="kuantitas_masuk" id="kuantitas_masuk" value="{{updateobj.Jumlah}}"
-                        readonly></td>
-            </tr>
-            <tr>
-                <td><label for="">Harga Satuan</label></td>
-                <td><input type="number" name="harga_barang" id="harga_barang" value="{{updateobj.Harga}}"
-                        onchange="update_harga_total()"></td>
-            </tr>
-            <tr>
-                <td><label for="">Harga Total</label></td>
-                <td><input type="number" name="harga_total" id="harga_total" value="{{harga_total}}" readonly disabled>
-                </td>
-            </tr>
-            <tr>
-                <td><label for="">Supplier</label></td>
-                <td><input type="text" name="supplier" value="{{updateobj.NoSuratJalan.supplier}}"></td>
-            </tr>
-            <tr>
-                <td><label for="">PO</label></td>
-                <td><input type="text" name="po_barang" value="{{updateobj.NoSuratJalan.PO}}"></td>
-            </tr>
-            <tr>
-                <td colspan="2"><button type="submit">Update</button></td>
-            </tr>
-        </table>
-    </form>
-    <script type="text/javascript">
-        function update_harga_total() {
-            var kuantitas = $("#kuantitas_masuk").val();
-            var harga_satuan = $("#harga_barang").val();
-            var harga_total_barang = kuantitas * harga_satuan;
-            $.ajax({
-                success: function (data) {
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Tanggal</label>
+                <div class="col-sm-9">
+                  <input type="text" class="form-control" name="tanggal_masuk" value="{{updateobj.NoSuratJalan.Tanggal}}" readonly/>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Kode Produk</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" name="kode_produk" value="{{updateobj.KodeProduk}}" readonly/>
+                  </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Nama Produk</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" name="nama_produk" value="{{updateobj.KodeProduk.NamaProduk}}" readonly/>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Kuantitas</label>
+                <div class="col-sm-9">
+                  <input type="number" class="form-control" name="kuantitas_masuk" id="kuantitas_masuk" value="{{updateobj.Jumlah}}"
+                  readonly/>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Harga Satuan</label>
+                <div class="col-sm-9">
+                    <input type="number" class="form-control" name="harga_barang" id="harga_barang" value="{{updateobj.Harga}}"
+                    onchange="update_harga_total()"/>
+                  </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Harga Total</label>
+                <div class="col-sm-9">
+                    <input type="number" class="form-control"  name="harga_total" id="harga_total" value="{{harga_total}}" readonly disabled/>
+                  </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Supplier</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" name="supplier" value="{{updateobj.NoSuratJalan.supplier}}"/>
+                  </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">PO</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" name="po_barang" value="{{updateobj.NoSuratJalan.PO}}"/>
+                  </div>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary mr-2">Update</button>
+        </form>
+      </div>
+    </div>
+</div>
 
-                    $("#harga_total").val(harga_total_barang);
-                }
-            });
-        }
+<script type="text/javascript">
+    function update_harga_total() {
+        var kuantitas = $("#kuantitas_masuk").val();
+        var harga_satuan = $("#harga_barang").val();
+        var harga_total_barang = kuantitas * harga_satuan;
+        $.ajax({
+            success: function (data) {
 
-    </script>
-</body>
+                $("#harga_total").val(harga_total_barang);
+            }
+        });
+    }
 
-</html>
+</script>
+{% endblock content %}

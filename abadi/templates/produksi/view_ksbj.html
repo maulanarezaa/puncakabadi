@@ -26,14 +26,26 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="number" name="tahun" class="form-control" placeholder="Masukan Tahun"
+                                        value="{{tahun}}">
+
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
                                     <select name="lokasi" id="" class="form-control">
+                                        {% if lokasi == "FG" %}
                                         <option value="WIP">WIP</option>
+                                        <option value="FG" selected>FG</option>
+                                        {% else %}
+                                        <option value="WIP" selected>WIP</option>
                                         <option value="FG">FG</option>
+                                        {% endif %}
                                     </select>
                                     <div class="input-group-append">
                                         <button class="btn btn-sm btn-primary" type="submit">Search</button>
@@ -48,8 +60,14 @@
                             <div class="form-group">
                                 <div class="input-group">
                                     <input type="text" class="form-control" placeholder="Masukkan Nama Artikel"
-                                        aria-label="Masukkan Nama Artikel" name="kodeartikel">
+                                        aria-label="Masukkan Nama Artikel" name="kodeartikel" list="listartikel">
+                                    <datalist id="listartikel">
+                                        {% for i in dataartikel %}
+                                        <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
+                                        {% endfor %}
+                                    </datalist>
                                     <input type="text" name="lokasi" value="WIP" style="display: none;">
+                                    <input type="number" name="tahun" value="2024" style="display: none;">
                                     <div class="input-group-append">
                                         <button class="btn btn-sm btn-primary" type="submit">Search</button>
                                     </div>
@@ -61,7 +79,7 @@
                 </form>
 
                 <div class="table-responsive pt-3">
-                    {% if data.count > 0 and kodeartikel%}
+                    {% if data.count > 0 and kodeartikel and lokasi == 'WIP'%}
                     <table class="table table-bordered">
                         <thead>
                             <tr>
@@ -77,26 +95,101 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Saldo awal </td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td>{{saldoawal}}</td>
+                                <td colspan="6">Saldo awal ({{saldoawal.Tanggal}}) </td>
+
+                                <td>{{saldoawal.Jumlah}}</td>
                             </tr>
                             {% for i in listdata %}
                             <tr>
-                                <td>{{i.0}}</td>
-                                <td></td>
+                                <td>{{i.Tanggal}}</td>
                                 <td>{{i.1}}</td>
-                                <td>{{i.2}}</td>
-                                <td>{{i.4}}</td>
-                                <td>{{i.3}}</td>
-                                <td>{{i.5}}</td>
+                                <td>{{i.Bahanbakuutama}}</td>
+                                <td>{{i.Jumlahmasuk}}</td>
+                                <td>{{i.Masukpcs}}</td>
+                                <td>{{i.Jumlahhasil}}</td>
+                                <td>{{i.Sisa}}</td>
                             </tr>
 
                             {% endfor %}
+                            {% if saldoakhir %}
+                            <tr>
+                                <td colspan="6">Saldo Akhir {{saldoakhir.Tanggal}}</td>
+                                <td>{{saldoakhir.Jumlah}}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="6">Selisih SO</td>
+                                <td> {{stockopname}}</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+
+                    {% elif data.count > 0 and kodeartikel and lokasi == 'FG'%}
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <td>Tanggal</td>
+                                <td>Penyerahan dari WIP</td>
+                                <td>SPK</td>
+                                <td>SPPB</td>
+                                <td>Jumlah Kirim</td>
+                                <td>Sisa</td>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Saldo awal ({{saldoawal.Tanggal}} )</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>{{saldoawal.Jumlah}}</td>
+                            </tr>
+                            {% for i in listdata %}
+                            <tr>
+                                <td>{{i.Tanggal}}</td>
+                                <td>{{i.JumlahPenyerahan}}</td>
+                                {% if i.SPK %}
+                                <td>
+                                    {% for j in i.SPK %}
+
+                                    <li>{{j}}</li>
+
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% for j in i.SPPB %}
+                                    <li>{{j}}</li>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% for j in i.Jumlahkirim %}
+                                    <li>
+                                        {{j}}
+                                    </li>
+                                    {% endfor %}
+
+                                </td>
+                                {% else %}
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                {% endif %}
+                                <td>{{i.Sisa}}</td>
+                            </tr>
+                            {% endfor %}
+                            {% if saldoakhir%}:
+                            <tr>
+                                <td colspan="5"> Saldo Awal tahun {{saldoakhir.Tanggal}}</td>
+                                <td>{{saldoakhir.Jumlah}}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="5">Selisih SO</td>
+                                <td>{{stockopname}}</td>
+                            </tr>
+                            {% endif %}
+
                         </tbody>
                     </table>
                     {% else %}

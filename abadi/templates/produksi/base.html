@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="{% static 'assets/css/vertical-layout-light/style.css' %}">
     <!-- endinject -->
     <link rel="shortcut icon" href="{% static 'assets/images/favicon.png' %}" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.css" />
   </head>
   <body>
     <div class="container-scroller">
@@ -62,5 +63,14 @@
     <!-- End custom js for this page-->
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.6.0"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
+
+    <script>
+      let table = new DataTable('#myTable',{
+        order: false
+      });
+    </script>
   </body>
 </html>

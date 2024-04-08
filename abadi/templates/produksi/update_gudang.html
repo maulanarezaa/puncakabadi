@@ -27,33 +27,15 @@
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Tanggal</label>
                 <div class="col-sm-9">
-                  <input type="date" class="form-control" name="tanggal" value="{{ tanggal }}"/>
+                  <input required type="date" class="form-control" name="tanggal" value="{{ tanggal }}"/>
                 </div>
               </div>
             </div>
-            <div class="col-md-6">
-              <div class="form-group row">
-                <label class="col-sm-3 col-form-label">Produk</label>
-                <div class="col-sm-9">
-                    <select class="form-control" id="exampleSelectGender" name="kode_produk">
-                        {% for i in kode_produk %}
-                          {% if i.KodeProduk == gudang.KodeProduk.KodeProduk %}
-                            <option selected value="{{i.KodeProduk}}">{{i.KodeProduk}}</option>
-                          {% else %}
-                            <option value="{{i.KodeProduk}}">{{i.KodeProduk}}</option>
-                          {% endif %}
-                        {% endfor %}
-                    </select>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="row">
             <div class="col-md-6">
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Lokasi</label>
                 <div class="col-sm-9">
-                    <select class="form-control" id="exampleSelectGender" name="nama_lokasi">
+                    <select required class="form-control" id="exampleSelectGender" name="nama_lokasi">
                         {% for i in nama_lokasi %}
                           {% if i.NamaLokasi == gudang.Lokasi.NamaLokasi %}
                             <option selected value="{{i.IDLokasi}}">{{i.NamaLokasi}}</option>
@@ -65,11 +47,26 @@
                 </div>
               </div>
             </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Produk</label>
+                <div class="col-sm-9">
+                  <input required type="text" class="form-control" name="kode_produk" list="listproduk" value="{{ gudang.KodeProduk }}" >
+                  <datalist  id="listproduk">
+                      {% for i in kode_produk %}
+                      <option value="{{i.KodeProduk}}">{{i.KodeProduk}} / {{i.NamaProduk}}</option>
+                      {% endfor %}
+                  </datalist>
+                </div>
+              </div>
+            </div>
             <div class="col-md-6">
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Jumlah</label>
                 <div class="col-sm-9">
-                  <input type="number" class="form-control" name="jumlah" value="{{ gudang.jumlah }}"/>
+                  <input required type="number" class="form-control" name="jumlah" value="{{ gudang.jumlah }}"/>
                 </div>
               </div>
             </div>
@@ -79,14 +76,15 @@
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Nomor SPK</label>
                 <div class="col-sm-9">
-                  <select class="form-control" name="nomor_spk" hx-get="{% url 'load_detailspk' %}" hx-trigger="change" hx-indicator=".htmx-indicator" hx-target="#detail">
-                      {% for i in data_spk %}
-                        {% if i.NoSPK == gudang.DetailSPK.NoSPK.NoSPK %}
-                          <option selected value="{{i.NoSPK}}">{{i.NoSPK}}</option>
-                        {% else %}
-                          <option value="{{i.NoSPK}}">{{i.NoSPK}}</option>
-                        {% endif %}
-                      {% endfor %}
+                  <select class="form-control" name="nomor_spk" hx-get="{% url 'load_htmx' %}" hx-trigger="change" hx-indicator=".htmx-indicator" hx-target="#detail">
+                    <option value="">Masukkan Nomor SPK</option>
+                    {% for i in data_spk %}
+                      {% if i.NoSPK == gudang.DetailSPK.NoSPK.NoSPK %}
+                        <option selected value="{{i.NoSPK}}">{{i.NoSPK}}</option>
+                      {% else %}
+                        <option value="{{i.NoSPK}}">{{i.NoSPK}}</option>
+                      {% endif %}
+                    {% endfor %}
                   </select>
                 </div>              
               </div>
@@ -95,7 +93,16 @@
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Detail SPK</label>
                 <div class="col-sm-9" id="detail">
-                  {% include 'produksi/opsi_spk.html' with gudang=gudang %} 
+                  <select class="form-control" name="detail_spk">
+                    {% for i in data_detailspk %}
+                      {% if i.IDDetailSPK == gudang.DetailSPK.IDDetailSPK %}
+                        <option selected value="{{i.IDDetailSPK}}">{{i.KodeArtikel}}</option>
+                      {% else %}
+                        <option value="{{i.IDDetailSPK}}">{{i.KodeArtikel}}</option>
+                      {% endif %}
+                    {% endfor %}
+                  </select>
+                  
                 </div>
               </div>
             </div>

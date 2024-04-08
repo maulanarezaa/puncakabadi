@@ -59,11 +59,22 @@
                                 <td>{{ saldoawal }}</td>
                             </tr>
                             <tr>
-                                <td>Total Barang Masuk</td>
+                                <td>
+                                    <a
+                                        href="{% url 'laporanbarangmasuk' %}?tanggalawal={{tanggalawal}}&tanggalakhir={{tanggalakhir}}">
+                                        Total Barang Masuk
+                                    </a>
+                                </td>
                                 <td>{{barangmasuk}}</td>
                             </tr>
                             <tr>
-                                <td>Total Barang Keluar</td>
+                                <td>
+                                    <a
+                                        href="{% url 'laporanbarangkeluar' %}?tanggalawal={{tanggalawal}}&tanggalakhir={{tanggalakhir}}">
+
+                                        Total Barang Keluar
+                                    </a>
+                                </td>
                                 <td>{{barangkeluar}}</td>
                             </tr>
                             <tr>

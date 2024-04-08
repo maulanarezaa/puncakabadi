@@ -1,4 +1,5 @@
-<select class="form-control" name="detail_spk">
+<select class="form-control" name="detail_spk[]">
+    <option value="">Masukkan Kode Artikel</option>
     {% for i in detailspk %}
         <option value="{{i.IDDetailSPK}}">{{i.KodeArtikel}}</option>
     {% endfor %}

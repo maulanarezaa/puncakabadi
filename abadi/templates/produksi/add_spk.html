@@ -56,11 +56,12 @@
                 <div class="col-md-5">
                     <div class="form-group">
                         <label for="artikel_1">Artikel 1:</label>
-                        <select class="form-control artikel" name="artikel[]">
-                            {% for item in data %}
-                            <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
-                            {% endfor %}
-                        </select>
+                        <input required type="text" class="form-control artikel" name="artikel[]" list="listartikel" >
+                        <datalist  id="listartikel">
+                          {% for item in data %}
+                          <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
+                          {% endfor %}
+                        </datalist>
                     </div>
                 </div>
                 <div class="col-md-5">
@@ -70,14 +71,22 @@
                     </div>
                 </div>
                 <div class="col-md-1">
-                    <label for="hapus1"></label>
-                    <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
+                  <br>
+                  <label for="hapus1"></label>
+                  <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
                 </div>
             </div>
-        </div>
-        <button type="button" class="btn btn-primary" onclick="addProduct()">Tambahkan Artikel</button>
-        <br><br>
-        <button type="submit" class="btn btn-primary mr-2">Submit</button>
+          </div>
+          <br><br>
+          <div class="row">
+            <div class="col-auto mr-auto">
+              <button type="button" class="btn btn-success" onclick="addProduct()">
+                <i class="typcn typcn-plus btn-icon-prepend"></i>
+                Tambahkan Artikel
+              </button>
+            </div>
+            <div class="col-auto"><button type="submit" class="btn btn-primary mr-2">Submit</button></div>            
+          </div>
         </form>
       </div>
     </div>
@@ -93,11 +102,12 @@
         productRow.innerHTML = `<div class="col-md-5">
                                     <div class="form-group">
                                         <label for="artikel_${productCounter}">Artikel ${productCounter}:</label>
-                                        <select class="form-control artikel" name="artikel[]">
-                                            {% for item in data %}
-                                            <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
-                                            {% endfor %}
-                                        </select>
+                                        <input required type="text" class="form-control artikel" name="artikel[]" list="listartikel" >
+                                        <datalist  id="listartikel">
+                                          {% for item in data %}
+                                          <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
+                                          {% endfor %}
+                                        </datalist>
                                     </div>
                                 </div>
                                 <div class="col-md-5">
@@ -107,6 +117,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-1">
+                                    <br>
                                     <label for="hapus1"></label>
                                     <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
                                 </div>`;
