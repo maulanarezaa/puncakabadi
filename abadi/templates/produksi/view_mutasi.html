@@ -11,9 +11,9 @@
     <div class="col-lg-12 grid-margin stretch-card">
       <div class="card">
         <div class="card-body">
-          <h4 class="card-title">Transaksi Barang Retur</h4>
+          <h4 class="card-title">Transaksi Produksi</h4>
           <div class="template-demo">
-            <a href="/produksi/addgudangretur">
+            <a href="/produksi/addmutasi">
                 <button type="button" class="btn btn-success btn-icon-text">
                     <i class="typcn typcn-plus btn-icon-prepend"></i>                                                    
                     Tambah Data
@@ -25,44 +25,36 @@
               <thead>
                 <tr>
                     <th>Tanggal</th>
+                    <th>Jenis</th>
                     <th>Lokasi</th>
-                    <th>Kode Produk</th>
+                    <th>No SPK</th>
+                    <th>Kode Artikel</th>
                     <th>Jumlah</th>
                     <th>Keterangan</th>
-                    <th>Status</th>
                     <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {% for i in datagudang %}
+                {% for i in dataproduksi %}
                 <tr>
-                    <td>{{i.tanggal}}</td>
+                    <td>{{i.Tanggal}}</td>
+                    <td>{{i.Jenis}}</td>
                     <td>{{i.Lokasi.NamaLokasi}}</td>
-                    <td>{{i.KodeProduk}}</td>
-                    <td>{{i.retur}}</td>
-                    <td>{{i.keterangan}}</td>
-                    <td>
-                      {% if i.KeteranganACC == True %}
-                      <button class="btn btn-success">
-                          <i class="typcn typcn typcn-tick"></i>                                                    
-                      </button>
-                      {% else %}
-                      <button class="btn btn-danger">
-                        <i class="typcn typcn typcn-times"></i>                                                    
-                      </button>
-                      {% endif %}
-                    </td>
+                    <td>{{i.DetailSPK.NoSPK}} - {{i.DetailSPK.KodeArtikel}}</td>
+                    <td>{{i.KodeArtikel}}</td>
+                    <td>{{i.Jumlah}}</td>
+                    <td>{{i.Keterangan}}</td>
                     <td>
                         <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                         <div class="template-demo">
-                            <a href="{% url 'update_gudangretur' i.IDDetailTransaksiGudang %}">
+                            <a href="{% url 'update_mutasi' i.idTransaksiProduksi %}">
                                 <button type="button" class="btn btn-warning">
                                     <i class="typcn typcn-edit"></i>                                                    
                                 </button>
                             </a>
-                            <a>
-                              <button type="button" onclick="confirmDelete('{{ i.IDDetailTransaksiGudang }}')" class="btn btn-danger">
-                                  <i class="typcn typcn typcn-trash"></i>                                                    
+                            <a >
+                              <button type="button" onclick="confirmDelete('{{ i.idTransaksiProduksi  }}')" class="btn btn-danger">
+                                <i class="typcn typcn typcn-trash"></i>                                                    
                               </button>
                             </a>
                         </div>
@@ -106,7 +98,7 @@
   function confirmDelete(id) {
       console.log(id)
       var deleteForm = document.getElementById('deleteForm');
-      deleteForm.action = "deletegudang/" + id;
+      deleteForm.action = "deletemutasi/" + id;
       $('#confirmDeleteModal').modal('show');
   }
 </script>
