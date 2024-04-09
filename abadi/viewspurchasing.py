@@ -677,3 +677,28 @@ def views_rekapharga(request):
                 "kodeprodukobj": kodeprodukobj,
             },
         )
+
+'''
+TAMBAHAN 28/03/2024
+'''
+
+def view_spk(request):
+    dataspk = models.SPK.objects.all()
+
+    return render(request, "purchasing/view_spk.html", {"dataspk": dataspk})
+
+def view_sppb(request):
+    datasppb = models.SPPB.objects.all()
+
+    return render(request, "purchasing/view_sppb.html", {"datasppb": datasppb})
+
+def detail_sppb(request,id):
+    datadetailspk = models.DetailSPK.objects.all()
+    datasppb = models.SPPB.objects.get(id=id)
+    datadetailsppb = models.DetailSPPB.objects.filter(NoSPPB=datasppb.id)
+
+    if request.method == "GET":
+        datasppb.Tanggal = datasppb.Tanggal.strftime("%Y-%m-%d")
+
+        return render(request,'purchasing/detail_sppb.html',{'data':datadetailspk,'datasppb':datasppb,'datadetail':datadetailsppb})
+    

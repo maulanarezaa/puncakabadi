@@ -19,4 +19,8 @@ admin.site.register(models.Penyusun)
 admin.site.register(models.Lokasi)
 admin.site.register(models.SaldoAwalArtikel)
 admin.site.register(models.SaldoAwalBahanBaku)
+admin.site.register(models.TransaksiSubkon)
+admin.site.register(models.ProdukSubkon)
+admin.site.register(models.PemusnahanArtikel)
+admin.site.register(models.PemusnahanBahanBaku)
 
