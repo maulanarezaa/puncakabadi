@@ -1,9 +1,9 @@
 from django.contrib import admin
 from . import models
+
 # Register your models here.
 
 admin.site.register(models.Artikel)
-admin.site.register(models.DetailKonversiProduksi)
 admin.site.register(models.DetailSPK)
 admin.site.register(models.DetailSPPB)
 admin.site.register(models.DetailSuratJalanPembelian)
@@ -23,4 +23,3 @@ admin.site.register(models.TransaksiSubkon)
 admin.site.register(models.ProdukSubkon)
 admin.site.register(models.PemusnahanArtikel)
 admin.site.register(models.PemusnahanBahanBaku)
-

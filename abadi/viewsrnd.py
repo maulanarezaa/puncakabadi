@@ -127,21 +127,33 @@ def views_penyusun(request):
         return render(request, "rnd/views_penyusun.html", {"dataartikel": data})
     else:
         kodeartikel = request.GET["kodeartikel"]
+
         try:
             get_id_kodeartikel = models.Artikel.objects.get(KodeArtikel=kodeartikel)
             data = models.Penyusun.objects.filter(KodeArtikel=get_id_kodeartikel.id)
+            dataversi = data.values_list("versi", flat=True).distinct()
+            print(dataversi)
+            if request.GET["versi"] == "":
+                versiterpilih = dataversi.order_by("-versi").first()
+                print("ini versi terbaru", versiterpilih)
+            else:
+                versiterpilih = request.GET["versi"]
+            data = data.filter(versi=versiterpilih)
+            dataversi = [date.strftime("%Y-%m-%d") for date in dataversi]
+            print(dataversi)
             datakonversi = []
             nilaifg = 0
+            print(data)
             if data.exists():
                 for item in data:
                     konversidataobj = models.KonversiMaster.objects.get(
                         KodePenyusun=item.IDKodePenyusun
                     )
-                    print(konversidataobj.Kuantitas)
+                    # print(konversidataobj.Kuantitas)
                     masukobj = models.DetailSuratJalanPembelian.objects.filter(
                         KodeProduk=item.KodeProduk
                     )
-                    print("ini detail sjp", masukobj)
+                    # print("ini detail sjp", masukobj)
                     tanggalmasuk = masukobj.values_list(
                         "NoSuratJalan__Tanggal", flat=True
                     )
@@ -149,7 +161,7 @@ def views_penyusun(request):
                         jumlah__gte=0, KodeProduk=item.KodeProduk
                     )
                     tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
-                    print(item)
+                    # print(item)
                     saldoawalobj = (
                         models.SaldoAwalBahanBaku.objects.filter(
                             IDBahanBaku=item.KodeProduk.KodeProduk
@@ -158,7 +170,7 @@ def views_penyusun(request):
                         .first()
                     )
                     if saldoawalobj:
-                        print(saldoawalobj)
+                        # print(saldoawalobj)
                         saldoawal = saldoawalobj.Jumlah
                         hargasatuanawal = saldoawalobj.Harga
                         hargatotalawal = saldoawal * hargasatuanawal
@@ -170,7 +182,7 @@ def views_penyusun(request):
                     hargaterakhir = 0
                     listdata = []
                     listtanggal = sorted(list(set(tanggalmasuk.union(tanggalkeluar))))
-                    print("inii", listtanggal)
+                    # print("inii", listtanggal)
                     for i in listtanggal:
                         jumlahmasukperhari = 0
                         hargamasuktotalperhari = 0
@@ -192,7 +204,7 @@ def views_penyusun(request):
                             hargamasuksatuanperhari = 0
 
                         transaksigudangobj = keluarobj.filter(tanggal=i)
-                        print(transaksigudangobj)
+                        # print(transaksigudangobj)
                         if transaksigudangobj.exists():
                             for j in transaksigudangobj:
                                 jumlahkeluarperhari += j.jumlah
@@ -211,13 +223,13 @@ def views_penyusun(request):
                         )
                         hargasatuanawal = hargatotalawal / saldoawal
 
-                        print("ini hargasatuan awal : ", hargasatuanawal)
+                        # print("ini hargasatuan awal : ", hargasatuanawal)
 
                     hargaterakhir += hargasatuanawal
                     kuantitaskonversi = konversidataobj.Kuantitas
                     kuantitasallowance = kuantitaskonversi + kuantitaskonversi * 0.025
                     hargaperkotak = hargaterakhir * kuantitasallowance
-                    print("\n", hargaterakhir, "\n")
+                    # print("\n", hargaterakhir, "\n")
                     nilaifg += hargaperkotak
 
                     datakonversi.append(
@@ -230,8 +242,8 @@ def views_penyusun(request):
                         }
                     )
 
-                print(data)
-                print(datakonversi)
+                # print(data)
+                # print(datakonversi)
                 return render(
                     request,
                     "rnd/views_penyusun.html",
@@ -239,6 +251,8 @@ def views_penyusun(request):
                         "data": datakonversi,
                         "kodeartikel": get_id_kodeartikel,
                         "nilaifg": nilaifg,
+                        "versiterpilih": versiterpilih,
+                        "dataversi": dataversi,
                     },
                 )
             else:
@@ -250,8 +264,11 @@ def views_penyusun(request):
                 )
         except models.Artikel.DoesNotExist:
             messages.error(request, "Kode Artikel Tidak ditemukan")
-            return render(request, "rnd/views_penyusun.html", {"dataartikel": models.Artikel.objects.all()})
-
+            return render(
+                request,
+                "rnd/views_penyusun.html",
+                {"dataartikel": models.Artikel.objects.all()},
+            )
 
 
 def updatepenyusun(request, id):
@@ -409,12 +426,11 @@ def views_sppb(request):
 def view_spk(request):
     dataspk = models.SPK.objects.all()
     for spk in dataspk:
-        detailspk = models.DetailSPK.objects.filter(NoSPK = spk.id)
+        detailspk = models.DetailSPK.objects.filter(NoSPK=spk.id)
         spk.detailspk = detailspk
-        spk.Tanggal = spk.Tanggal.strftime('%d-%m-%Y')
+        spk.Tanggal = spk.Tanggal.strftime("%d-%m-%Y")
 
     return render(request, "rnd/views_spk.html", {"dataspk": dataspk})
-
 
 
 def hariterakhirdatetime(tahun):
@@ -766,12 +782,11 @@ def uploadexcel(request):
             return HttpResponse("File harus berformat .xlsx")
     return render(request, "rnd/formexcel.html")
 
+
 def views_rekapharga(request):
     kodeprodukobj = models.Produk.objects.all()
     if len(request.GET) == 0:
-        return render(
-            request, "rnd/views_ksbb.html", {"kodeprodukobj": kodeprodukobj}
-        )
+        return render(request, "rnd/views_ksbb.html", {"kodeprodukobj": kodeprodukobj})
     else:
         kode_produk = request.GET["kode_produk"]
 
@@ -786,17 +801,16 @@ def views_rekapharga(request):
             KodeProduk=produkobj.KodeProduk
         )
 
-
         tanggalmasuk = masukobj.values_list("NoSuratJalan__Tanggal", flat=True)
 
         keluarobj = models.TransaksiGudang.objects.filter(
             jumlah__gte=0, KodeProduk=produkobj.KodeProduk
         )
         tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
-        print('ini kode bahan baku',keluarobj)
+        print("ini kode bahan baku", keluarobj)
         if not keluarobj.exists():
-            messages.error(request,'Tidak ditemukan data Transaksi Barang')
-            return redirect('rekapharga')
+            messages.error(request, "Tidak ditemukan data Transaksi Barang")
+            return redirect("rekapharga")
         saldoawalobj = (
             models.SaldoAwalBahanBaku.objects.filter(
                 IDBahanBaku=produkobj.KodeProduk, IDLokasi=1
@@ -818,7 +832,7 @@ def views_rekapharga(request):
             "saldoawal": saldoawal,
             "hargasatuanawal": hargasatuanawal,
             "hargatotalawal": hargatotalawal,
-            "Tanggal" : saldoawalobj.Tanggal.strftime("%d-%m-%Y")
+            "Tanggal": saldoawalobj.Tanggal.strftime("%d-%m-%Y"),
         }
         hargaterakhir = 0
         listdata = []
@@ -879,7 +893,7 @@ def views_rekapharga(request):
                 )
 
             dumy = {
-                "Tanggal": i.strftime('%d-%m-%Y'),
+                "Tanggal": i.strftime("%d-%m-%Y"),
                 "Jumlahstokawal": saldoawal,
                 "Hargasatuanawal": round(hargasatuanawal, 2),
                 "Hargatotalawal": round(hargatotalawal, 2),
@@ -921,4 +935,34 @@ def views_rekapharga(request):
                 "Saldoawal": saldoawalobj,
                 "kodeprodukobj": kodeprodukobj,
             },
+        )
+
+
+def tambahversi(request, id):
+    data = models.Artikel.objects.get(id=id)
+    tanggal = date.today().strftime("%Y-%m-%d")
+    print(tanggal)
+    if request.method == "GET":
+        return render(
+            request, "rnd/tambah_versi.html", {"data": data, "versi": tanggal}
+        )
+    else:
+        print(request.POST)
+        kodeproduk = request.POST.getlist("kodeproduk")
+        status = request.POST.getlist("Status")
+        lokasi = request.POST.getlist("lokasi")
+        kuantitas = request.POST.getlist("kuantitas")
+        dataproduk = list(zip(kodeproduk, status, lokasi, kuantitas))
+        print(dataproduk)
+        for i in dataproduk:
+            newpenyusun = models.Penyusun(
+                KodeProduk=models.Produk.objects.get(KodeProduk=i[0]),
+                KodeArtikel=data,
+                Status=i[3],
+                Lokasi=models.Lokasi.objects.get(NamaLokasi=i[2]),
+                versi=tanggal,
+            )
+            print(newpenyusun)
+        return render(
+            request, "rnd/tambah_versi.html", {"data": data, "versi": tanggal}
         )

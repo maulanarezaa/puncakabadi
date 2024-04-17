@@ -1,0 +1,165 @@
+{% extends "rnd/base.html" %}
+{% load static %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+<!-- Page content  -->
+{% block content %}
+<div class="col-12 grid-margin">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Form Tambah Data Versi Penyusun Artikel : <span style="font-weight: lighter;">
+                    {{kodeartikel.KodeArtikel}} </span></h4>
+            <div class="template-demo">
+                <a href="/viewproduksi">
+                    <button type="button" class="btn btn-light btn-icon-text">
+                        <i class="typcn typcn-chevron-left btn-icon-prepend"></i>
+                        Kembali
+                    </button>
+                </a>
+            </div>
+            <br>
+            <form class="form-sample" action="" method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Kode Artikel</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" value="{{data.KodeArtikel}}" disabled />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">keterangan</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" value="{{data.keterangan}}" disabled />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Versi</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" disabled name="versi" value="{{versi}}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" id="products">
+                    <div class="col-md-3">
+                        <div class="form-group row p-3">
+                            <label class="">Kode Produk</label>
+                            <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
+                                aria-label="Masukkan Nama bahanbaku" name="kodeproduk" list="listproduk" required>
+                            <datalist id="listproduk">
+                                {% for i in dataproduk %}
+                                <option value="{{i.KodeProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group row p-3">
+                            <label class="">Status</label>
+                            <select name="Status" class="form-control" id="">
+                                <option value="False">Bahan Baku Non Utama</option>
+                                <option value="True">Bahan Utama</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group row p-3">
+                            <label class="">Lokasi</label>
+                            <select name="lokasi" class="form-control" id="">
+                                <option value="WIP">WIP</option>
+                                <option value="FG">FG</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group row p-3">
+                            <label class="">Konversi</label>
+                            <input min="0" value="0" step="any" type="number" class="form-control" name="kuantitas"
+                                required>
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-outline-info" onclick="addProduct()">Tambahkan produk</button>
+                <button type="submit" class="btn btn-primary mr-2">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    function addProduct() {
+        let productDiv = document.createElement('div');
+        productDiv.className = "row";
+        productDiv.innerHTML = `<div class="col-md-3">
+                                    <div class="form-group row p-3">
+                                        <label class="">Kode Produk</label>
+                                        <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
+                                            aria-label="Masukkan Nama bahanbaku" name="kodeproduk" list="listproduk" required>
+                                        <datalist id="listproduk">
+                                            {% for i in dataproduk %}
+                                            <option value="{{i.KodeProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
+                                            {% endfor %}
+                                        </datalist>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group row p-3">
+                                        <label class="">Status</label>
+                                        <select name="Status" class="form-control" id="">
+                                            <option value="False">Bahan Baku Non Utama</option>
+                                            <option value="True">Bahan Utama</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group row p-3">
+                                        <label class="">Lokasi</label>
+                                        <select name="lokasi" class="form-control" id="">
+                                            <option value="WIP">WIP</option>
+                                            <option value="FG">FG</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group row p-3">
+                                        <label class="">Konversi</label>
+                                        <input min="0" value="0" step="any" type="number" class="form-control" name="kuantitas"
+                                            required>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mt-4">
+                                    <div class="form-group p-3">
+                                            <button type="button" class="btn btn-danger " onclick="removeProduct(this)">Hapus</button>
+                                    </div>
+                                </div>`;
+        document.getElementById('products').appendChild(productDiv);
+        // Hapus baris jika terlalu banyak
+        removeExcessRows();
+    }
+
+    function removeProduct(button) {
+        let row = button.closest('.row');
+        row.parentNode.removeChild(row);
+    }
+
+    function removeExcessRows() {
+        let productsDiv = document.getElementById('products');
+        let rows = productsDiv.getElementsByClassName('row');
+        if (rows.length > 5) { // Misalnya, batas jumlah baris adalah 5
+            productsDiv.removeChild(rows[rows.length - 1]); // Hapus baris terakhir
+        }
+    }
+</script>
+{% endblock content %}

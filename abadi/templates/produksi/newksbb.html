@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <table>
+        <thead>
+
+            <tr>
+                <th>Tanggal</th>
+                <th>Artikel</th>
+                <th>Perkotak</th>
+                <th>Konversi</th>
+                <th>Masuk</th>
+                <th>Keluar</th>
+                <th>Sisa</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in data %}
+            <tr>
+                <td>{{i.Tanggal}}</td>
+                <td>{{i.Artikel}}</td>
+                <td>{{i.Perkotak}}</td>
+                <td>{{i.Konversi}}</td>
+                <td>{{i.Masuk}}</td>
+                <td>{{i.Keluar}}</td>
+                <td>{{i.Sisa}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    td
+</body>
+
+</html>
