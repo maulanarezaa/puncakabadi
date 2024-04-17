@@ -203,7 +203,7 @@ class SaldoAwalArtikel(models.Model):
     Tanggal = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.IDLokasi} - {self.IDArtikel} - {self.Tanggal.year}"
+        return f"{self.IDLokasi} - {self.IDArtikel} - {self.Tanggal}"
 
 
 class SaldoAwalSubkon(models.Model):

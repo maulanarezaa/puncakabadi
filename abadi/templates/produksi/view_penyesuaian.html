@@ -45,19 +45,19 @@
             <tbody>
               {% for i in datapenyesuaian %}
               <tr>
-                <td>{{i.KodePenyesuaian.KodePenyusun.KodeArtikel.KodeArtikel}}</td>
-                <td>{{i.KodePenyesuaian.KodePenyusun.KodeProduk.KodeProduk}}</td>
-                <td>{{i.KodePenyesuaian.TanggalMulai}}</td>
-                <td>{{i.KodePenyesuaian.TanggalAkhir}}</td>
-                <td>{{i.kuantitas}}</td>
+                <td>{{i.KodePenyusun}}</td>
+                <td>{{i.KodePenyusun.KodeProduk.KodeProduk}}</td>
+                <td>{{i.TanggalMulai}}</td>
+                <td>{{i.TanggalAkhir}}</td>
+                <td>{{i.konversi}}</td>
                 <td>
-                  <a href="{% url 'update_penyesuaian' i.KodePenyesuaian.IDPenyesuaian %}">
+                  <a href="{% url 'update_penyesuaian' i.IDPenyesuaian %}">
 
                     <button class="btn btn-warning">
                       <i class="typcn typcn typcn-edit"></i>
                     </button>
                   </a>
-                  <a href=" {% url 'delete_penyesuaian' i.KodePenyesuaian.IDPenyesuaian %}">
+                  <a href=" {% url 'delete_penyesuaian' i.IDPenyesuaian %}">
                     <button class="btn btn-danger">
                       <i class="typcn typcn typcn-delete"></i>
                     </button>

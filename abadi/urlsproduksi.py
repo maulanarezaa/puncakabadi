@@ -122,6 +122,11 @@ urlpatterns = [
         name="kalkulatorpenyesuaian",
     ),
     path(
+        "kalkulatorpenyesuaian2",
+        viewsproduksi.kalkulatorpenyesuaian2,
+        name="kalkulatorpenyesuaian2",
+    ),
+    path(
         "viewksbb/<str:id>/<str:tanggal>", viewsproduksi.detailksbb, name="detail_ksbb"
     ),
 ]
