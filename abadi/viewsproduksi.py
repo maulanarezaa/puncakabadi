@@ -2089,6 +2089,9 @@ def kalkulatorpenyesuaian(request):
             print("Perkalian jumlah dan konversi untuk", key, ":", jumlahxkonversi)
 
             keluarpenyesuaian = datajumlah - (dataaktual - datasisaminus)
+            print(datajumlah)
+            print(dataaktual)
+            print(datasisaminus)
             print("Keluar Penyesuaian untuk", key, ":", keluarpenyesuaian)
 
             jumlahpenyesuaian = dataajumlahartikel[key] / keluarpenyesuaian
@@ -2730,13 +2733,15 @@ def kalkulatorpenyesuaian2(request):
                         indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalpenyesuaian).index(tanggalversiterdekat)
                         konversiterdekat = listartikelmaster[indexartikel].listpenyesuaian[indextanggalterdekat]
 
-
+                konversiterdekat += konversiterdekat * 0.025
+                konversiterdekat = round(konversiterdekat,4)
                 datamodelskonversi.append(konversiterdekat)
-                datamodelskeluar.append(konversiterdekat*total['total'])
+                datamodelskeluar.append(round((konversiterdekat*total['total']),2))
                 datamodelsartikel.append(artikelkeluarobj)
                 datamodelsperkotak.append(total['total'])
                 sisa -= konversiterdekat*total['total']
-                datamodelssisa.append(sisa)
+            
+                datamodelssisa.append(round((sisa),3))
             for j in artikelpemusnahan:
                 artikelkeluarobj = models.Artikel.objects.get(id = j)
                 total = datapemusnahan.filter(KodeArtikel__id = j).aggregate(total=Sum('Jumlah'))
@@ -2786,108 +2791,128 @@ def kalkulatorpenyesuaian2(request):
         sisa_minus_pertama = None
         tanggalminus = None
         lanjut = True
+        datakuantitasperhitungan = {
+            'saldodata': 0,
+            'saldofisik':0,
+            'datakeluar': 0,
+        }
         for item in listdata:
             sisa = item['Sisa']
             for j in sisa:
                 if j <0 :
                     sisa_minus_pertama = sisa.index(j)
                     tanggalminus = item['Tanggal']
+                    datasisaminus = j
                     lanjut = False
                     break
             if not lanjut:
                 break
-                    
+        
+        
         print(sisa_minus_pertama)
         print(tanggalminus)
+        listdataperhitungan = {}
+        if not tanggalminus:
+            return render(
+            request,
+            "produksi/newkalkulator_penyesuaian.html",
+            {
+                "kodebarang": request.GET["kodebarang"],
+                "nama": nama,
+                "satuan": satuan,
+                "data": listdata,
+                'dataperhitungan' : listdataperhitungan,
+                "saldo": saldoawal,
+                "tahun": tahun,
+                "jumlahartikel": dataajumlahartikel,
+                "konversiawal": datakonversiartikel,
+                "datakuantitas" : datakuantitasperhitungan
+            },
+        )
         '''
         1. Kumpulkan data perartikel (v)
         2. Cek index dan sisa minus  (v)
         3. Datajumlah artikel tetap 
-        4. datakonversiartikel tetap
+        4. datakonversiartikel tetap (v)
         '''
-        listdataperhitungan = {}
+
         for item in listartikel:
+            kuantitas = 0
             artikelmaster = models.Artikel.objects.get(id = item)
+            print(tanggalminus)
             dataartikelfiltertanggalminus = dataproduksi.filter(KodeArtikel = artikelmaster,Tanggal__lte = tanggalminus)
             dataartikeljumlah = dataartikelfiltertanggalminus.aggregate(total=Sum('Jumlah'))['total']
             datakonversiversiterdekat = models.Penyusun.objects.filter(KodeArtikel =artikelmaster,versi__lte=tanggalminus).order_by('-versi').first()
             print('data konversi awal', datakonversiversiterdekat)
             if not datakonversiversiterdekat:
                 datakonversiversiterdekat = models.Penyusun.objects.filter(KodeArtikel =artikelmaster,versi__gte=tanggalminus).order_by('versi').first()
+            kuantitas = models.KonversiMaster.objects.get(KodePenyusun = datakonversiversiterdekat.IDKodePenyusun).Kuantitas
+            kuantitas += kuantitas *0.025
+            print(f'Kuantitas Awal {kuantitas}')
             # cari data penyesuaian apabila ada
             datapenyesuaian = models.Penyesuaian.objects.filter(KodePenyusun__KodeArtikel = artikelmaster, TanggalMulai__lte = tanggalminus).order_by('-TanggalMulai').first()
             print(datapenyesuaian)
             if datapenyesuaian:
                 datakonversiversiterdekat = datapenyesuaian
+                kuantitas = datakonversiversiterdekat.konversi
+            if dataartikeljumlah is None:
+                dataartikeljumlah = 0
+                
+            print(f'Kuantitas akhir {kuantitas}')
             print('data konversi Akhir', datakonversiversiterdekat)
 
             '''
             Data penyesuaian dan konversi master sudah didapatkan 
             Kurang ambil kuantitasnya
             '''
+            kuantitas = round(kuantitas,4)
+            datakuantitasperhitungan['datakeluar'] += (dataartikeljumlah * kuantitas)
+            listdataperhitungan [item] = {'artikelobj' : artikelmaster, 'jumlah' : dataartikeljumlah,'konversi':kuantitas}
+            print(listdataperhitungan)
+        
+        print('data kuantitas Perhitingan',datakuantitasperhitungan)
 
-            listdataperhitungan [item] = {'artikelobj' : artikelmaster, 'jumlah' : dataartikeljumlah}
-            print(dataartikeljumlah)
-
-        for i in item["Artikel"]:
-            dataajumlahartikel.setdefault(i.KodeArtikel, 0)
-            dataajumlahartikel[i.KodeArtikel] += i.totalkeluar
-            datakonversiartikel.setdefault(i.KodeArtikel, 0)
-            datakonversiartikel[i.KodeArtikel] = i.konversi
-            datajumlah += i.konversikeluar
-        if item["Sisa"] < 0 and firstindex:
-            datasisaminus = item["Sisa"]
-            firstindex = False
-
-        print(dataajumlahartikel)
-        print(datakonversiartikel)
-        print(datasisaminus)
-        print(datajumlah)
-        print(dataaktual)
-        # Perhitungan konversi
-
-        sum_product = sum(
-            dataajumlahartikel[key] * datakonversiartikel[key]
-            for key in dataajumlahartikel
-        )
+        sum_product = sum(listdataperhitungan[key]['jumlah'] * listdataperhitungan[key]['konversi'] for key in listdataperhitungan)
+        print(sum_product)
         print("Sum Product 2 Dictionary : ", sum_product)
-        # Contoh perhitungan untuk 1 kode artikel 9010/ACC
-        # jumlahxkonversi = dataajumlahartikel['9010/ACC'] * datakonversiartikel['9010/ACC']
-        # print('Perkalian jumlah dan konversi : ',jumlahxkonversi)
-        # keluarpenyesuaian = datajumlah-(dataaktual-datasisaminus)
-        # print('Keluar Penyesuaian : ',keluarpenyesuaian)
-        # jumlahpenyesuaian = dataajumlahartikel['9010/ACC']/keluarpenyesuaian
-        # nilaikonversibaru = jumlahxkonversi /(sum_product * jumlahpenyesuaian)
-        # print('Nilai konversi Baru : ', nilaikonversibaru)
-        datakonversiakhir = {}
-        for key in dataajumlahartikel:
-            jumlahxkonversi = dataajumlahartikel[key] * datakonversiartikel[key]
+
+        print('aaaa')
+        datakuantitasperhitungan['saldodata'] = datasisaminus
+        datakuantitasperhitungan['saldofisik'] = dataaktual
+        for key in listdataperhitungan:
+            print(key)
+            jumlahxkonversi = listdataperhitungan[key]['jumlah'] * listdataperhitungan[key]['konversi']
+
+            keluarpenyesuaian = datakuantitasperhitungan['datakeluar'] - (datakuantitasperhitungan['saldofisik'] - datakuantitasperhitungan['saldodata'])
+            print(f'Data Jumlah : {datajumlah}\nData Aktual : {dataaktual}\nData Sisa : {datasisaminus}')
             print("Perkalian jumlah dan konversi untuk", key, ":", jumlahxkonversi)
-
-            keluarpenyesuaian = datajumlah - (dataaktual - datasisaminus)
             print("Keluar Penyesuaian untuk", key, ":", keluarpenyesuaian)
-
-            jumlahpenyesuaian = dataajumlahartikel[key] / keluarpenyesuaian
-            nilaikonversibaru = jumlahxkonversi / (sum_product * jumlahpenyesuaian)
+            try:
+                print(f"jumlah : {listdataperhitungan[key]['jumlah']}")
+                jumlahpenyesuaian = listdataperhitungan[key]['jumlah'] / keluarpenyesuaian
+                nilaikonversibaru = round(jumlahxkonversi / (sum_product * jumlahpenyesuaian),5)
+                print('ini konversi baru',nilaikonversibaru)
+            except ZeroDivisionError:
+                nilaikonversibaru = listdataperhitungan[key]['konversi']
             print("Nilai konversi Baru untuk", key, ":", nilaikonversibaru)
-            datakonversiakhir[key] = nilaikonversibaru
-
+            listdataperhitungan[key]['konversibaru'] = nilaikonversibaru
+        
+        datakuantitasperhitungan
+        print('bbb')
         return render(
             request,
-            "produksi/kalkulator_penyesuaian.html",
+            "produksi/newkalkulator_penyesuaian.html",
             {
                 "kodebarang": request.GET["kodebarang"],
                 "nama": nama,
                 "satuan": satuan,
-                "data": data,
+                "data": listdata,
+                'dataperhitungan' : listdataperhitungan,
                 "saldo": saldoawal,
                 "tahun": tahun,
                 "jumlahartikel": dataajumlahartikel,
                 "konversiawal": datakonversiartikel,
-                "jumlahaktual": dataaktual,
-                "datasisaminus": datasisaminus,
-                "datajumlah": datajumlah,
-                "datakonversiakhir": datakonversiakhir,
+                "datakuantitas" : datakuantitasperhitungan
             },
         )
 
