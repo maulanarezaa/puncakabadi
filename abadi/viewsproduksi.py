@@ -2706,6 +2706,7 @@ def kalkulatorpenyesuaian2(request):
             for k in datamasuk:
                 masuk += k.jumlah
             sisa  += masuk
+            sisa = round(sisa,3)
             
             # Data Keluar
             data['Masuk'] = masuk
@@ -2722,6 +2723,7 @@ def kalkulatorpenyesuaian2(request):
                 tanggalversiterdekat = max(filtered_data)
                 indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalversi).index(tanggalversiterdekat)
                 konversiterdekat = listartikelmaster[indexartikel].listkonversi[indextanggalterdekat]
+                konversiterdekat += konversiterdekat * 0.025
 
                 if listartikelmaster[indexartikel].tanggalpenyesuaian :
                     filtered_data = [d for d in listartikelmaster[indexartikel].tanggalpenyesuaian if d <= i]
@@ -2733,8 +2735,7 @@ def kalkulatorpenyesuaian2(request):
                         indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalpenyesuaian).index(tanggalversiterdekat)
                         konversiterdekat = listartikelmaster[indexartikel].listpenyesuaian[indextanggalterdekat]
 
-                konversiterdekat += konversiterdekat * 0.025
-                konversiterdekat = round(konversiterdekat,4)
+                konversiterdekat = round(konversiterdekat,5)
                 datamodelskonversi.append(konversiterdekat)
                 datamodelskeluar.append(round((konversiterdekat*total['total']),2))
                 datamodelsartikel.append(artikelkeluarobj)
@@ -2773,6 +2774,7 @@ def kalkulatorpenyesuaian2(request):
                 datamodelssisa.append(sisa)
             data['Sisa'] = datamodelssisa
             listdata.append(data)
+        print(f'ini list data \n\n{listdata}\n\n')
 
         # Perhitungan penyesuaian\
         try:

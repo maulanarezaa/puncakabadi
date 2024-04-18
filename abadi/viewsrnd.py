@@ -146,6 +146,7 @@ def views_penyusun(request):
             print(data)
             if data.exists():
                 for item in data:
+                    print(item, item.IDKodePenyusun)
                     konversidataobj = models.KonversiMaster.objects.get(
                         KodePenyusun=item.IDKodePenyusun
                     )
