@@ -86,7 +86,14 @@ def tambahdataartikel(request):
                 keterangan = "-"
             newdataobj = models.Artikel(
                 KodeArtikel=kodebaru, keterangan=keterangan
+            )
+            models.transactionlog(
+                user="RND",
+                waktu=datetime.now(),
+                jenis="Create",
+                pesan=f"Artikel : {newdataobj.KodeArtikel} Keterangan : {newdataobj.keterangan}",
             ).save()
+            newdataobj.save()
             messages.success(request, "Data berhasil disimpan")
             return redirect("views_artikel")
 
@@ -105,15 +112,28 @@ def updatedataartikel(request, id):
             messages.error(request, "Kode Artikel telah terdaftar pada database")
             return redirect("update_artikel", id=id)
         else:
+            transaksilog = models.transactionlog(
+                user="RND",
+                waktu=datetime.now(),
+                jenis="Update",
+                pesan=f"Artikel Lama : {data.KodeArtikel} Keterangan Lama : {data.keterangan} Artikel Baru : {kodeartikel} Keterangan Baru : {keterangan}",
+            )
             data.KodeArtikel = kodeartikel
             data.keterangan = keterangan
             data.save()
+            transaksilog.save()
             messages.success(request, "Data Berhasil diupdate")
         return redirect("views_artikel")
 
 
 def deleteartikel(request, id):
     dataobj = models.Artikel.objects.get(id=id)
+    models.transactionlog(
+        user="RND",
+        waktu=datetime.now(),
+        jenis="Delete",
+        pesan=f"Artikel : {dataobj.kodebaru} Keterangan : {dataobj.keterangan}",
+    ).save()
     dataobj.delete()
     messages.success(request, "Data Berhasil dihapus")
     return redirect("views_artikel")
@@ -133,11 +153,15 @@ def views_penyusun(request):
             data = models.Penyusun.objects.filter(KodeArtikel=get_id_kodeartikel.id)
             dataversi = data.values_list("versi", flat=True).distinct()
             print(dataversi)
-            if request.GET["versi"] == "":
+            try:
+                if request.GET["versi"] == "":
+                    versiterpilih = dataversi.order_by("-versi").first()
+                    print("ini versi terbaru", versiterpilih)
+                else:
+                    versiterpilih = request.GET["versi"]
+            except:
                 versiterpilih = dataversi.order_by("-versi").first()
                 print("ini versi terbaru", versiterpilih)
-            else:
-                versiterpilih = request.GET["versi"]
             data = data.filter(versi=versiterpilih)
             dataversi = [date.strftime("%Y-%m-%d") for date in dataversi]
             print(dataversi)
@@ -310,15 +334,20 @@ def updatepenyusun(request, id):
         return redirect("penyusun_artikel")
 
 
-def tambahdatapenyusun(request, id):
+def tambahdatapenyusun(request, id, versi):
     dataartikelobj = models.Artikel.objects.get(id=id)
+    print(versi)
     if request.method == "GET":
         dataprodukobj = models.Produk.objects.all()
 
         return render(
             request,
             "rnd/tambah_penyusun.html",
-            {"kodeartikel": dataartikelobj, "dataproduk": dataprodukobj},
+            {
+                "kodeartikel": dataartikelobj,
+                "dataproduk": dataprodukobj,
+                "versiterpilih": versi,
+            },
         )
     else:
         kodeproduk = request.POST["kodeproduk"]
@@ -333,23 +362,26 @@ def tambahdatapenyusun(request, id):
         lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
 
         datapenyusunobj = (
-            models.Penyusun.objects.filter(KodeArtikel=id).filter(Status=True).exists()
+            models.Penyusun.objects.filter(KodeArtikel=id)
+            .filter(Status=True, versi=versi)
+            .exists()
         )
         if datapenyusunobj and statusproduk:
             messages.error(
                 request, "Artikel telah memiliki Bahan baku utama sebelumnya"
             )
-            return redirect("tambah_data_penyusun", id=id)
+            return redirect("tambah_data_penyusun", id=id, versi=versi)
         penyusunobj = models.Penyusun(
             Status=statusproduk,
             KodeArtikel=dataartikelobj,
             KodeProduk=newprodukobj,
             Lokasi=lokasiobj,
+            versi=versi,
         )
         penyusunobj.save()
         kuantitas = request.POST["kuantitas"]
         konversimasterobj = models.KonversiMaster(
-            KodePenyusun=penyusunobj, Kuantitas=0
+            KodePenyusun=penyusunobj, Kuantitas=kuantitas, lastedited=datetime.now()
         ).save()
         messages.success(request, "Data penyusun berhasil ditambahkan")
 
@@ -953,17 +985,25 @@ def tambahversi(request, id):
         status = request.POST.getlist("Status")
         lokasi = request.POST.getlist("lokasi")
         kuantitas = request.POST.getlist("kuantitas")
+        if status.count("True") > 1:
+            messages.error(request, "Terdapat Artikel utama lebih dari 1")
+            return redirect("add_versi", id=id)
         dataproduk = list(zip(kodeproduk, status, lokasi, kuantitas))
         print(dataproduk)
         for i in dataproduk:
             newpenyusun = models.Penyusun(
                 KodeProduk=models.Produk.objects.get(KodeProduk=i[0]),
                 KodeArtikel=data,
-                Status=i[3],
+                Status=i[1],
                 Lokasi=models.Lokasi.objects.get(NamaLokasi=i[2]),
                 versi=tanggal,
-            )
+            ).save()
+            datanewpenyusun = models.Penyusun.objects.all().last()
+            konversimasterobj = models.KonversiMaster(
+                KodePenyusun=datanewpenyusun, Kuantitas=i[3]
+            ).save()
             print(newpenyusun)
+            print(konversimasterobj)
         return render(
             request, "rnd/tambah_versi.html", {"data": data, "versi": tanggal}
         )

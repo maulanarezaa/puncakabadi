@@ -50,8 +50,9 @@
                                 </button>
                             </a>
                         </div>
+                        {% if versiterpilih %}
                         <div class="col-lg-3">
-                            <a href="{% url 'tambah_data_penyusun' kodeartikel.id %}">
+                            <a href="{% url 'tambah_data_penyusun' id=kodeartikel.id versi=versiterpilih %}">
 
                                 <button type="button" class="btn btn-success btn-icon-text">
                                     <i class="typcn typcn-plus btn-icon-prepend"></i>
@@ -59,6 +60,7 @@
                                 </button>
                             </a>
                         </div>
+                        {% endif %}
 
                         <div class="col-lg-4">
                             <div class="form-group">

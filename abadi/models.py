@@ -122,6 +122,7 @@ class KonversiMaster(models.Model):
     IDKodeKonversiMaster = models.AutoField(primary_key=True)
     KodePenyusun = models.ForeignKey(Penyusun, on_delete=models.CASCADE)
     Kuantitas = models.FloatField()
+    lastedited = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return str(self.KodePenyusun)
@@ -236,3 +237,13 @@ class PemusnahanBahanBaku(models.Model):
 
     def __str__(self):
         return str(self.KodeBahanBaku) + "-" + str(self.Tanggal)
+
+
+class transactionlog(models.Model):
+    user = models.CharField(max_length=50)
+    waktu = models.DateTimeField()
+    jenis = models.CharField(max_length=50)
+    pesan = models.TextField()
+
+    def __str__(self):
+        return str(f"{self.user} - {self.waktu} - {self.jenis}")

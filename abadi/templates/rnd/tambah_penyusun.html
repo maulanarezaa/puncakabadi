@@ -24,19 +24,27 @@
             <form class="form-sample" action="" method="post">
                 {% csrf_token %}
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Kode Artikel</label>
-                            <div class="col-sm-9">
+                            <label class="col-sm-4 col-form-label">Kode Artikel</label>
+                            <div class="col-sm-8">
                                 <input type="text" class="form-control" value="{{kodeartikel.KodeArtikel}}" disabled />
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">keterangan</label>
-                            <div class="col-sm-9">
+                            <label class="col-sm-4 col-form-label">keterangan</label>
+                            <div class="col-sm-8">
                                 <input type="text" class="form-control" value="{{kodeartikel.keterangan}}" disabled />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">Versi</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{versiterpilih}}" disabled />
                             </div>
                         </div>
                     </div>
