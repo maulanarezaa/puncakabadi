@@ -18,4 +18,8 @@ urlpatterns = [
         viewsppic.laporanpersediaanbarang,
         name="laporanpersediaanbarang",
     ),
+    path(
+        "confirmationorder", viewsppic.viewconfirmationorder, name="confirmationorder"
+    ),
+    path("addco", viewsppic.tambahconfirmationorder, name="addco"),
 ]

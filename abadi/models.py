@@ -247,3 +247,18 @@ class transactionlog(models.Model):
 
     def __str__(self):
         return str(f"{self.user} - {self.waktu} - {self.jenis}")
+
+
+class confirmationorder(models.Model):
+    NoCO = models.CharField(max_length=50)
+    kepada = models.CharField(max_length=100)
+    perihal = models.CharField(max_length=50)
+    tanggal = models.DateField()
+
+
+class detailconfirmationorder(models.Model):
+    confirmationorder = models.ForeignKey(confirmationorder, on_delete=models.CASCADE)
+    Artikel = models.ForeignKey(Artikel, on_delete=models.CASCADE)
+    deskripsi = models.CharField(max_length=200)
+    kuantitas = models.IntegerField()
+    Harga = models.FloatField()

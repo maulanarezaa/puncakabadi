@@ -1005,5 +1005,5 @@ def tambahversi(request, id):
             print(newpenyusun)
             print(konversimasterobj)
         return render(
-            request, "rnd/tambah_versi.html", {"data": data, "versi": tanggal}
+            request, "ppic/views_confirmationorder.html", {"data": data, "versi": tanggal}
         )

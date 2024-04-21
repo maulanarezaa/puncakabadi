@@ -2288,6 +2288,7 @@ def view_ksbb3(request):
             for k in datamasuk:
                 masuk += k.jumlah
             sisa  += masuk
+
             
             # Data Keluar
             data['Masuk'] = masuk
