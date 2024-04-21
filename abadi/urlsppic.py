@@ -22,4 +22,7 @@ urlpatterns = [
         "confirmationorder", viewsppic.viewconfirmationorder, name="confirmationorder"
     ),
     path("addco", viewsppic.tambahconfirmationorder, name="addco"),
+    path("detailco/<str:id>", viewsppic.detailco, name="detaico"),
+    path("updateco/<str:id>", viewsppic.updateco, name="updateco"),
+    # path("delete/<str:id>", viewsppic.updateco, name="updateco"),
 ]

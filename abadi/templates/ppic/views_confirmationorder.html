@@ -63,13 +63,19 @@
                 </td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
-                  <div class="template-demo">
-                    <a href="">
-                      <button type="button" class="btn btn-primary">
-                        <i class="typcn typcn-th-list"></i>
-                      </button>
-                    </a>
-                  </div>
+                  <a href="{% url 'detaico' i.id %}">
+                    <button type="button" class="btn btn-primary">
+                      <i class="typcn typcn-th-list"></i>
+                    </button>
+                  </a>
+
+
+                  <a href="{% url 'updateco' i.id %}">
+                    <button type="button" class="btn btn-warning">
+                      <i class="typcn typcn-th-list"></i>
+                    </button>
+                  </a>
+
                 </td>
               </tr>
               {% endfor %}
