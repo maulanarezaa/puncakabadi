@@ -462,3 +462,41 @@ def tambahconfirmationorder(request):
     dataartikel = models.Artikel.objects.all()
     if request.method == "GET":
         return render(request, "ppic/add_co.html", {"dataartikel": dataartikel})
+    else:
+        print(request.POST)
+        tanggaladd = request.POST["tanggal"]
+        nomorco = request.POST["nomorco"]
+        kepada = request.POST["kepada"]
+        perihal = request.POST["perihal"]
+        artikel = request.POST.getlist("artikel[]")
+        kuantitas = request.POST.getlist("kuantitas[]")
+        harga = request.POST.getlist("harga[]")
+        deskripsi = request.POST.getlist("deskripsi[]")
+        # print(tanggaladd)
+        # print(nomorco)
+        # print(kepada)
+        # print(perihal)
+        # print(artikel)
+        # print(kuantitas)
+        # print(harga)
+        # print(deskripsi)
+
+        confirmationorderobj = models.confirmationorder(
+            NoCO=nomorco, kepada=kepada, perihal=perihal, tanggal=tanggaladd
+        )
+        confirmationorderobj.save()
+        print(confirmationorderobj.id)
+        for artikel, kuantitas, harga, deskripsi in zip(
+            artikel, kuantitas, harga, deskripsi
+        ):
+            # print(artikel, kuantitas, harga, deskripsi)
+            detailconfirmationobj = models.detailconfirmationorder(
+                confirmationorder=confirmationorderobj,
+                Artikel=models.Artikel.objects.get(KodeArtikel=artikel),
+                Harga=harga,
+                kuantitas=kuantitas,
+                deskripsi=deskripsi,
+            )
+            print(dir(detailconfirmationobj))
+            detailconfirmationobj.save()
+        return redirect("confirmationorder")
