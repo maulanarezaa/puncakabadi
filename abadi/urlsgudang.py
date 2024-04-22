@@ -24,4 +24,5 @@ urlpatterns = [
         name="accgudang3",
     ),
     path("cobaform", viewsgudang.cobaform, name="coba"),
+    # path("spk", viewsgudang.spk, name="spk"),
 ]

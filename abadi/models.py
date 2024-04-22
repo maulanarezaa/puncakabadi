@@ -49,7 +49,7 @@ class SuratJalanPembelian(models.Model):
     PO = models.CharField(max_length=255)
 
     def __str__(self):
-        return str(str(self.NoSuratJalan))
+        return f"{self.NoSuratJalan} - {self.Tanggal}"
 
 
 class DetailSuratJalanPembelian(models.Model):

@@ -32,13 +32,14 @@
         </form>
             </div>
     <div class="table-responsive pt-3">
-        <table class="table table-bordered">
+        <table class="table table-bordered" id="barangkeluar">
         <thead>
             <tr>
                 <th>Tanggal</th>
                 <th>Kode Barang</th>
                 <th>Nama Barang</th>
                 <th>Kuantitas</th>
+                <th>Unit</th>
                 <th>Lokasi</th>
                 <th>Keterangan</th>
                 <th>Action</th>
@@ -51,6 +52,7 @@
                 <td>{{i.KodeProduk}}</td>
                 <td>{{i.KodeProduk.NamaProduk}}</td>
                 <td>{{i.jumlah}}</td>
+                <td>{{i.KodeProduk.unit}}</td>
                 <td>{{i.Lokasi}}</td>
                 {% if i.KeteranganACC %}
                 <td>Sudah ACC</td>
@@ -82,5 +84,7 @@
         {% endfor %}
     </ul>
     {% endif %}
+
+
 </body>
 </html>

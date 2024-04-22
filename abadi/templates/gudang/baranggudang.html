@@ -21,6 +21,11 @@
                             Tambah Data
                         </button>
                     </a>
+                    <form action="{% url 'baranggudang' %}" method="GET">
+                        <label for="tanggal">Pilih Tanggal :</label>
+                        <input value="{{date}}" type="date" name="date" class="form-control mb-2 mr-sm-2 ml-2" required>
+                        <button type="submit" class="btn btn-primary btn-sm mb-2 mr-sm-2 ml-2">Submit</button>
+                    </form>
                 </div>
                 <div class="table-responsive pt-3">
                     <table class="table table-bordered table-light" id="baranggudang">
@@ -31,6 +36,7 @@
                                 <th>Kode Barang</th>
                                 <th>Nama Barang</th>
                                 <th>Kuantitas</th>
+                                <th>Unit</th>
                                 <th>Keterangan</th>
                                 <th>Action</th>
                             </tr>
@@ -43,6 +49,7 @@
                                 <td>{{i.KodeProduk}}</td>
                                 <td>{{i.KodeProduk.NamaProduk}}</td>
                                 <td>{{i.Jumlah}}</td>
+                                <td>{{i.KodeProduk.unit}}</td>
                                 {% if i.KeteranganACC %}
                                 <td>Sudah ACC</td>
                                 {% else %}

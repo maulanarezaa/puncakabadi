@@ -20,8 +20,17 @@ def view_gudang(request):
         .order_by("tanggal")
     )
 
-    print(getkeluar)
-    print(getretur)
+    allspk = (
+            models.DetailSPK.objects.all().order_by("NoSPK__Tanggal")
+        )
+
+    tanggal = request.GET.get("Tanggal")
+
+    if tanggal is not None :
+        allspk = (
+            models.DetailSPK.objects.filter(NoSPK__Tanggal = tanggal)
+        )
+
     if len(getretur) == 0:
         messages.info(request, "Tidak ada barang retur yang belum ACC")
     elif len(getkeluar) == 0:
@@ -37,6 +46,7 @@ def view_gudang(request):
         {
             "getkeluar": getkeluar,
             "getretur": getretur,
+            "allspk" : allspk,
         },
     )
 
@@ -45,10 +55,21 @@ def masuk_gudang(request):
     datasjb = models.DetailSuratJalanPembelian.objects.all().order_by(
         "NoSuratJalan__Tanggal"
     )
+    date = request.GET.get("date")
+    if date is not None :
+        datasjb = models.DetailSuratJalanPembelian.objects.filter(NoSuratJalan__Tanggal = date).order_by(
+        "NoSuratJalan__Tanggal"
+    )
+
+    for i in datasjb :
+        i.NoSuratJalan.Tanggal = i.NoSuratJalan.Tanggal.strftime("%d-%m-%Y")
+
     if len(datasjb) == 0:
         messages.info(request, "Tidak ada barang masuk ke gudang")
 
-    return render(request, "gudang/baranggudang.html", {"datasjb": datasjb})
+    return render(request, "gudang/baranggudang.html", {"datasjb": datasjb,
+                                                        "date": date,
+                                                        })
 
 
 def add_gudang(request):
@@ -194,6 +215,20 @@ def rekap_gudang(request):
         .annotate(kuantitas=Sum("Jumlah"))
         .order_by()
     )
+    date = request.GET.get("date")
+    if date is not None:
+        datasjb = (
+            models.DetailSuratJalanPembelian.objects.filter(NoSuratJalan__Tanggal = date)
+            .values(
+            "KodeProduk",
+            "KodeProduk__NamaProduk",
+            "KodeProduk__unit",
+            "KodeProduk__keterangan",
+        )
+        .annotate(kuantitas=Sum("Jumlah"))
+        .order_by()
+        )
+
     if len(datasjb) == 0:
         messages.error(request, "Tidak ada barang masuk ke gudang")
 
@@ -203,7 +238,6 @@ def rekap_gudang(request):
         .order_by()
     )
     print(datasjb)
-    print(datagudang)
     for item in datasjb:
         kode_produk = item["KodeProduk"]
         try:
@@ -221,6 +255,7 @@ def rekap_gudang(request):
         "gudang/rekapgudang.html",
         {
             "datasjb": datasjb,
+            "date" : date,
         },
     )
 
@@ -259,7 +294,7 @@ def detail_barang(request):
             models.DetailSuratJalanPembelian.objects.filter(KodeProduk=input_kode)
             .filter(NoSuratJalan__Tanggal__year=input_tahun)
             .order_by("NoSuratJalan__Tanggal")
-        )
+        )   
         tanggalgudang = list(datagudang2.values_list("tanggal", flat=True).distinct())
         tanggalgudang2 = list(
             datasjp.values_list("NoSuratJalan__Tanggal", flat=True).distinct()
@@ -344,6 +379,7 @@ def detail_barang(request):
                 "kodeproduk": input_kode,
                 "saldoawal": saldo_awal,
                 "input_tahun": input_tahun,
+                "datasjp" : datasjp
             },
         )
 
@@ -439,7 +475,8 @@ def accgudang3(request, id, date, date2, lok):
     return redirect(f"/gudang/barangkeluar/?mulai={date}&akhir={date2}&lokasi={lok}")
 
 
-# asdasd adasd
+# def spk(request) :
+
 
 
 def cobaform(request):

@@ -593,6 +593,7 @@ def newlaporanpersediaan(request):
         tanggalakhir = request.GET["tanggalakhir"]
         tanggal_obj = datetime.strptime(tanggalakhir, "%Y-%m-%d")
         tahun = tanggal_obj.year
+        awaltahun = datetime(tahun, 1, 1)
         tanggal_obj.date()
 
         data = models.SPPB.objects.filter(
@@ -642,7 +643,7 @@ def newlaporanpersediaan(request):
                 j.totalharga = j.Jumlah * j.Harga
                 totalhargabarangmasuk += j.totalharga
                 listdetailsjp.append(j)
-
+        print("total barang masuk SJP : ", totalhargabarangmasuk)
         """
         TOTAL HARGA STOK
         Belum FIx untuk perhitungan Harga.
@@ -663,7 +664,7 @@ def newlaporanpersediaan(request):
                 Lokasi=2, Tanggal__lte=(tanggalakhir)
             )
 
-            print(mutasifilterobj)
+            # print(mutasifilterobj)
             jumlahmasuk = 0
             jumlahkeluar = 0
             for j in saldomutasimasuktanggalakhir:
@@ -692,11 +693,44 @@ def newlaporanpersediaan(request):
         nilaisaldoawal = 0
         # Ambil data barang
         bahanbaku = models.Produk.objects.all()
-        print(bahanbaku)
+        # print(bahanbaku)
         for i in bahanbaku:
-            saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(IDBahanBaku=i, Tanggal__year = tahun)
+            # Ambil data saldoawal tiap bahanbaku
+            try:
+                saldoawalobj = models.SaldoAwalBahanBaku.objects.get(
+                    IDBahanBaku=i, Tanggal__year=tahun
+                )
+                nilaisaldoawal += saldoawalobj.Harga * saldoawalobj.Jumlah
+                i.saldoawal = saldoawalobj
+            except models.SaldoAwalBahanBaku.DoesNotExist:
+                continue
 
             print(saldoawalobj)
+            # print(nilaisaldoawal)
+        """
+        SJP SEBELUM TANGGAL AWAL
+        """
+        totalbiaya = 0
+        for i in bahanbaku:
+            artikelmasuk = models.DetailSuratJalanPembelian.objects.filter(
+                NoSuratJalan__Tanggal__lte=tanggalmulai,
+                KodeProduk=i,
+                NoSuratJalan__Tanggal__gte=awaltahun,
+            )
+            print(artikelmasuk)
+            for j in artikelmasuk:
+                biaya = j.Harga * j.Jumlah
+                totalbiaya += biaya
 
+        print("Total Biaya : ", totalbiaya)
 
+        """
+        TRANSAKSI PRODUKSI SEBELUM TANGGAL AWAL
+        """
+        totalbiayakeluar = 0
+        for i in bahanbaku:
+            artikelkeluar = models.TransaksiGudang.objects.filter(
+                tanggal__lte=tanggalmulai, tanggal__gte=awaltahun, KodeProduk=i
+            )
+            print(artikelkeluar)
         return render(request, "ppic/views_newlaporanpersediaan.html")

@@ -36,6 +36,16 @@
 
             
             <h4 class="card-title">Detail Barang</h4>
+            {% if datasjp %}
+            <h4>Kode Barang : <span style="font-weight: lighter;">
+                {{datasjp.0.KodeProduk}}</span></h4>
+            <h4>Nama Barang : <span style="font-weight: lighter;">
+                {{datasjp.0.KodeProduk.NamaProduk}}</span></h4>
+            <h4>Satuan : <span style="font-weight: lighter;">
+                {{datasjp.0.KodeProduk.unit}}</span></h4>
+            {% else %}
+            <h4>tidak ada</h4>
+            {% endif %}
             <div class="table-responsive pt-3">
       
         <div class="table-responsive pt-3">
@@ -45,7 +55,7 @@
                 <th>Tanggal</th>
                 <th>Masuk</th>
                 <th>Keluar</th>
-                <th>Sisa</th>
+                <th>Saldo</th>
             </tr>
         </thead>
         <tbody>
