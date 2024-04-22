@@ -27,7 +27,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Tanggal</label>
               <div class="col-sm-9">
-                <input type="date" class="form-control" name="tanggal" value="{{dataco.tanggal}}" />
+                <input type="date" class="form-control" name="tanggal" value="{{dataco.tanggal}}" required />
               </div>
             </div>
           </div>
@@ -35,7 +35,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Nomor CO</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="nomorco" value="{{dataco.NoCO}}" />
+                <input type="text" class="form-control" name="nomorco" value="{{dataco.NoCO}}" required />
               </div>
             </div>
           </div>
@@ -45,7 +45,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Kepada</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="kepada" value="{{dataco.kepada}}" />
+                <input type="text" class="form-control" name="kepada" value="{{dataco.kepada}}" required />
               </div>
             </div>
           </div>
@@ -53,7 +53,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Perihal</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="perihal" value="{{dataco.perihal}}" />
+                <input type="text" class="form-control" name="perihal" value="{{dataco.perihal}}" required />
               </div>
             </div>
           </div>
@@ -62,28 +62,29 @@
         <div id="artikels">
           {% for i in dataco.detailcopo %}
           <div class="row" id="artikel_{{forloop.counter}}">
-            <div class="col-md-3">
+            <input type="text" hidden name="id[]" value="{{i.id}}">
+            <div class="col-md-3 tes">
               <div class="form-group">
                 <label for="artikel_{{forloop.counter}}">Artikel {{forloop.counter}}:</label>
-                <input type="text" class="form-control" name="artikel" value="{{i.Artikel}}" />
+                <input type="text" class="form-control" name="artikel[]" value="{{i.Artikel}}" required />
               </div>
             </div>
             <div class="col-md-3">
               <div class="form-group">
-                <label for="quantity_{{forloop.counter}}">Deskripsi</label>
-                <input type="text" class="form-control" name="deskripsi" value="{{i.deskripsi}}" />
+                <label for="deskripsi_{{forloop.counter}}">Deskripsi</label>
+                <input type="text" class="form-control" name="deskripsi[]" value="{{i.deskripsi}}" required />
               </div>
             </div>
             <div class="col-md-2">
               <div class="form-group">
-                <label for="quantity_{{forloop.counter}}">Kuantitas</label>
-                <input type="text" class="form-control" name="kuantitas" value="{{i.kuantitas}}" />
+                <label for="kuantitas_{{forloop.counter}}">Kuantitas</label>
+                <input type="text" class="form-control" name="kuantitas[]" value="{{i.kuantitas}}" required />
               </div>
             </div>
             <div class="col-md-3">
               <div class="form-group">
-                <label for="quantity_{{forloop.counter}}">Harga</label>
-                <input type="text" class="form-control" name="harga" value="{{i.harga}}" />
+                <label for="harga_{{forloop.counter}}">Harga (Rp)</label>
+                <input type="text" class="form-control" name="harga[]" value="{{i.Harga}}" required />
               </div>
             </div>
             <div class="col-md-1">
@@ -111,40 +112,38 @@
 </div>
 
 {% block javascripts %}
+<!-- ... Bagian lain dari template Anda ... -->
+
 <script>
   function addProduct() {
-    let productCounter = document.querySelectorAll('.artikel').length + 1
+    let productCounter = document.querySelectorAll('.tes').length + 1;
     const productRow = document.createElement('div');
     productRow.className = "row";
     productRow.id = `artikel_${productCounter}`;
     productRow.innerHTML = `
-      <div class="col-md-3">
+    <input type='text' name=id[] hidden>
+      <div class="col-md-3 tes">
         <div class="form-group">
           <label for="artikel_${productCounter}">Artikel ${productCounter}:</label>
-          <input required type="text" class="form-control artikel" name="artikel[]" list="listartikel" >
-          <datalist id="listartikel">
-            {% for item in data %}
-            <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
-            {% endfor %}
-          </datalist>
+          <input type="text" class="form-control" name="artikel[]" placeholder="Artikel" required>
         </div>
       </div>
       <div class="col-md-3">
         <div class="form-group">
-          <label for="quantity_${productCounter}">Deskripsi</label>
-          <input type="text" class="form-control quantity" name="deskripsi[]" placeholder="Deskripsi">
+          <label for="deskripsi_${productCounter}">Deskripsi</label>
+          <input type="text" class="form-control" name="deskripsi[]" placeholder="Deskripsi" required>
         </div>
       </div>
       <div class="col-md-2">
         <div class="form-group">
-          <label for="quantity_${productCounter}">Kuantitas</label>
-          <input type="number" class="form-control quantity" min="0" name="kuantitas[]" placeholder="Kuantitas">
+          <label for="kuantitas_${productCounter}">Kuantitas</label>
+          <input type="number" class="form-control" min="0" name="kuantitas[]" placeholder="Kuantitas" required>
         </div>
       </div>
       <div class="col-md-3">
         <div class="form-group">
-          <label for="quantity_${productCounter}">Harga</label>
-          <input type="number" class="form-control quantity" min="0" name="harga[]" placeholder="Harga">
+          <label for="harga_${productCounter}">Harga</label>
+          <input type="number" class="form-control" min="0" name="harga[]" placeholder="Harga" required>
         </div>
       </div>
       <div class="col-md-1">
@@ -156,8 +155,46 @@
   }
 
   function deleteRow(button) {
-    button.closest('.row').remove();
+    let idInput = button.parentElement.parentElement.querySelector('input[name="id[]"]');
+    let id = idInput ? idInput.value : null;
+
+    if (id) {
+      // Tampilkan modal konfirmasi
+      const modal = `
+        <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Penghapusan</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                Apakah Anda yakin ingin menghapus data ini?
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete(${id})">Hapus</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      document.body.insertAdjacentHTML('beforeend', modal);
+      $('#deleteModal').modal('show');
+    } else {
+      // Jika tidak ada id, hapus baris langsung
+      button.closest('.row').remove();
+    }
   }
+
+  function confirmDelete(id) {
+    window.location.href = `/ppic/deletedetailco/${id}`;
+  }
+
 </script>
+
+<!-- ... Bagian lain dari template Anda ... -->
+
 {% endblock javascripts %}
 {% endblock content %}

@@ -7,6 +7,7 @@
 
 <!-- Page content  -->
 {% block content %}
+{% load humanize %}
 <div class="col-12 grid-margin">
   <div class="card">
     <div class="card-body">
@@ -83,7 +84,7 @@
             <div class="col-md-3">
               <div class="form-group">
                 <label for="quantity_1">Harga</label>
-                <input type="text" class="form-control" name="perihal" value="{{i.harga}}" disabled />
+                <input type="text" class="form-control" name="perihal" value="Rp {{i.Harga | intcomma }}" disabled />
               </div>
             </div>
           </div>

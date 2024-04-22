@@ -24,5 +24,12 @@ urlpatterns = [
     path("addco", viewsppic.tambahconfirmationorder, name="addco"),
     path("detailco/<str:id>", viewsppic.detailco, name="detaico"),
     path("updateco/<str:id>", viewsppic.updateco, name="updateco"),
+    path("deleteco/<str:id>", viewsppic.deleteco, name="deleteco"),
+    path("deletedetailco/<str:id>", viewsppic.deletedetailco, name="deletedetailco"),
+    path(
+        "laporanpersediaanbarang2",
+        viewsppic.newlaporanpersediaan,
+        name="laporanperseidaanbarang2",
+    ),
     # path("delete/<str:id>", viewsppic.updateco, name="updateco"),
 ]

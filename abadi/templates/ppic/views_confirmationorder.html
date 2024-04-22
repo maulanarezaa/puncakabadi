@@ -75,7 +75,11 @@
                       <i class="typcn typcn-th-list"></i>
                     </button>
                   </a>
-
+                  <a href="{% url 'deleteco' i.id %}">
+                    <button type="button" class="btn btn-danger">
+                      <i class="typcn typcn-th-list"></i>
+                    </button>
+                  </a>
                 </td>
               </tr>
               {% endfor %}

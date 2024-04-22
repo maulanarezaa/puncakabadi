@@ -197,14 +197,16 @@ def laporanbarangmasuk(request):
 
 
 def gethargafg(penyusunobj):
+    # Mengambil data Konversi master
     konversiobj = models.KonversiMaster.objects.get(
         KodePenyusun=penyusunobj.IDKodePenyusun
     )
+    # Mengambil kuantitas dan ditambahkan 2.5%
     konversialowance = konversiobj.Kuantitas + (konversiobj.Kuantitas * 0.025)
+    # Mengambil data Detail surrat jalan pembelian untuk kode produk sesuai dengan penyusun obj (1 penyusun 1 produk 1 artkel)
     detailsjpembelian = models.DetailSuratJalanPembelian.objects.filter(
         KodeProduk=penyusunobj.KodeProduk
     )
-    print("ini detailsjpembelian", detailsjpembelian)
     hargatotalkodeproduk = 0
     jumlahtotalkodeproduk = 0
     for m in detailsjpembelian:
@@ -442,7 +444,7 @@ def laporanpersediaanbarang(request):
 Revisi 4/21/2024
 1. Co PO
 2. Transaction Log
-3. Perhitungan PPIC
+3. Perhitungan Laporan
 """
 
 
@@ -520,6 +522,7 @@ def updateco(request, id):
     )
     data.detailcopo = detailcopo
     data.tanggal = data.tanggal.strftime("%Y-%m-%d")
+    print(len(data.detailcopo))
     if request.method == "GET":
         return render(request, "ppic/updateco.html", {"dataco": data})
     else:
@@ -532,25 +535,168 @@ def updateco(request, id):
         kuantitas = request.POST.getlist("kuantitas[]")
         harga = request.POST.getlist("harga[]")
         deskripsi = request.POST.getlist("deskripsi[]")
+        listid = request.POST.getlist("id[]")
         data.tanggal = tanggaladd
         data.nomorco = nomorco
         data.kepada = kepada
         data.perihal = perihal
+
         data.save()
 
-        detailcopo.delete()
-
-        for artikel, kuantitas, harga, deskripsi in zip(
-            artikel, kuantitas, harga, deskripsi
+        for listid, artikel, kuantitas, harga, deskripsi in zip(
+            listid, artikel, kuantitas, harga, deskripsi
         ):
             # print(artikel, kuantitas, harga, deskripsi)
-            detailconfirmationobj = models.detailconfirmationorder(
-                confirmationorder=data,
-                Artikel=models.Artikel.objects.get(KodeArtikel=artikel),
-                Harga=harga,
-                kuantitas=kuantitas,
-                deskripsi=deskripsi,
-            )
+            if listid == "":
+                detailconfirmationobj = models.detailconfirmationorder(
+                    confirmationorder=data,
+                    Artikel=models.Artikel.objects.get(KodeArtikel=artikel),
+                    Harga=harga,
+                    kuantitas=kuantitas,
+                    deskripsi=deskripsi,
+                )
+            else:
+                detailconfirmationobj = models.detailconfirmationorder.objects.get(
+                    id=listid
+                )
+                detailconfirmationobj.confirmationorder = data
+                detailconfirmationobj.Artikel = models.Artikel.objects.get(
+                    KodeArtikel=artikel
+                )
+                detailconfirmationobj.Harga = harga
+                detailconfirmationobj.kuantitas = kuantitas
+                detailconfirmationobj.deskripsi = deskripsi
+
             detailconfirmationobj.save()
 
         return redirect("confirmationorder")
+
+
+def deletedetailco(request, id):
+    data = models.detailconfirmationorder.objects.get(id=id)
+    idco = data.confirmationorder.id
+    data.delete()
+    return redirect("updateco", id=idco)
+
+
+def deleteco(request, id):
+    data = models.confirmationorder.objects.get(id=id)
+    data.delete()
+    return redirect("confirmationorder")
+
+
+def newlaporanpersediaan(request):
+    if len(request.GET) == 0:
+        return render(request, "ppic/views_newlaporanpersediaan.html")
+    else:
+        tanggalmulai = request.GET["tanggalawal"]
+        tanggalakhir = request.GET["tanggalakhir"]
+        tanggal_obj = datetime.strptime(tanggalakhir, "%Y-%m-%d")
+        tahun = tanggal_obj.year
+        tanggal_obj.date()
+
+        data = models.SPPB.objects.filter(
+            Tanggal__range=(tanggalmulai, tanggalakhir)
+        ).order_by("Tanggal")
+        if not data.exists():
+            messages.warning(
+                request, "Data SPPB Tidak ditemukan pada rentang tanggal tersebut"
+            )
+        """
+        SECTION SPPB
+        """
+        for i in data:
+            detailsppb = models.DetailSPPB.objects.filter(NoSPPB=i.id)
+            a = detailsppb.values("DetailSPK__KodeArtikel").annotate(
+                total_jumlah=Sum("Jumlah")
+            )
+            print(a)
+            for j in a:
+                penyusunfilterobj = models.Penyusun.objects.filter(
+                    KodeArtikel=j["DetailSPK__KodeArtikel"]
+                )
+                nilaiFG = 0
+                for penyusunobj in penyusunfilterobj:
+                    nilaiFG += gethargafg(penyusunobj)
+                j.update({"HargaFG": nilaiFG})
+                j.update({"TotalNilai": nilaiFG * j["total_jumlah"]})
+                j["DetailSPK__KodeArtikel"] = penyusunobj.KodeArtikel.KodeArtikel
+        # Ini perlu revisi perhitungan harganya mengikuti harga akhir bulan atau harga per transaksi hari tersebut
+        """
+        SECTION SJP
+        sudah clear.
+        SJP Hanya mempertimbangkan transaksi di range tanggal tersebut. Tidak ada cakupan untuk perhitungan yang lain
+        """
+
+        dataspk = models.SuratJalanPembelian.objects.filter(
+            Tanggal__range=(tanggalmulai, tanggalakhir)
+        ).order_by("Tanggal")
+        listdetailsjp = []
+        totalhargabarangmasuk = 0
+        for i in dataspk:
+            detailsjpembelianobj = models.DetailSuratJalanPembelian.objects.filter(
+                NoSuratJalan=i.NoSuratJalan
+            )
+            for j in detailsjpembelianobj:
+                j.supplier = i.supplier
+                j.totalharga = j.Jumlah * j.Harga
+                totalhargabarangmasuk += j.totalharga
+                listdetailsjp.append(j)
+
+        """
+        TOTAL HARGA STOK
+        Belum FIx untuk perhitungan Harga.
+        Bisa di cek dulu menggunakan harga terakhir di bulan tersebut. 
+        apabila ada harganya maka bisa menggunakan harga tersebut. Apabila tidak ada maka menggunakan harga terbesar tanggal terakhir
+        Apabila cek kondisi 0 maka muncul warning dan memilih harga terakhir
+        """
+
+        dataartikel = models.Artikel.objects.all()
+        totalhargabarangjadi = 0
+        for i in dataartikel:
+            mutasifilterobj = models.TransaksiProduksi.objects.filter(KodeArtikel=i.id)
+            transaksikeluarobj = models.DetailSPPB.objects.filter()
+            saldomutasimasuktanggalakhir = mutasifilterobj.filter(
+                Lokasi=1, Tanggal__lte=(tanggalakhir)
+            )
+            saldomutasikeluartanggalakhir = mutasifilterobj.filter(
+                Lokasi=2, Tanggal__lte=(tanggalakhir)
+            )
+
+            print(mutasifilterobj)
+            jumlahmasuk = 0
+            jumlahkeluar = 0
+            for j in saldomutasimasuktanggalakhir:
+                jumlahmasuk += j.Jumlah
+            for k in saldomutasikeluartanggalakhir:
+                jumlahkeluar += k.Jumlah
+
+            i.Jumlahakumulasi = jumlahmasuk - jumlahkeluar
+            penyusunfilterobj = models.Penyusun.objects.filter(KodeArtikel=i.id)
+
+            nilaiFG = 0
+            for penyusunobj in penyusunfilterobj:
+                nilaiFG += gethargafg(penyusunobj)
+            i.Harga = nilaiFG
+            i.NilaiTotal = nilaiFG * i.Jumlahakumulasi
+            totalhargabarangjadi += i.NilaiTotal
+
+        """
+        SALDO AWAL SECTION
+        A. Saldo Awal Produksi
+        1. Saldo awal Januari = data dari Saldo awal (dari so offline)
+        2. Saldo awal Februari = data Saldo Awal (januari) + Jumlah Barang masuk Januari sampai Februari - Jumlah barang keluar Januari sampau Februari
+        3. Saldi awal Maret = data saldo awal (Januari) + Jumlah barang masuk Januari sampai Maret - Jumlah barang keluar Januari sampai Maret
+
+        """
+        nilaisaldoawal = 0
+        # Ambil data barang
+        bahanbaku = models.Produk.objects.all()
+        print(bahanbaku)
+        for i in bahanbaku:
+            saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(IDBahanBaku=i, Tanggal__year = tahun)
+
+            print(saldoawalobj)
+
+
+        return render(request, "ppic/views_newlaporanpersediaan.html")
