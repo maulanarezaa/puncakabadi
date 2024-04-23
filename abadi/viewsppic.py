@@ -652,7 +652,13 @@ def newlaporanpersediaan(request):
         Apabila cek kondisi 0 maka muncul warning dan memilih harga terakhir
         """
 
+
         dataartikel = models.Artikel.objects.all()
+        ''' PERHITUNGAN HARGA BARU '''
+        for i in dataartikel:
+            # Section Masuk
+            masukobj = models.DetailSuratJalanPembelian.objects.filter(KodeProduk = i,)
+        ''' END SECTION PERHITUNGAN HARGA BARU '''
         totalhargabarangjadi = 0
         for i in dataartikel:
             mutasifilterobj = models.TransaksiProduksi.objects.filter(KodeArtikel=i.id)
@@ -682,14 +688,7 @@ def newlaporanpersediaan(request):
             i.NilaiTotal = nilaiFG * i.Jumlahakumulasi
             totalhargabarangjadi += i.NilaiTotal
 
-        """
-        SALDO AWAL SECTION
-        A. Saldo Awal Produksi
-        1. Saldo awal Januari = data dari Saldo awal (dari so offline)
-        2. Saldo awal Februari = data Saldo Awal (januari) + Jumlah Barang masuk Januari sampai Februari - Jumlah barang keluar Januari sampau Februari
-        3. Saldi awal Maret = data saldo awal (Januari) + Jumlah barang masuk Januari sampai Maret - Jumlah barang keluar Januari sampai Maret
-
-        """
+        
         nilaisaldoawal = 0
         # Ambil data barang
         bahanbaku = models.Produk.objects.all()
@@ -697,11 +696,27 @@ def newlaporanpersediaan(request):
         for i in bahanbaku:
             # Ambil data saldoawal tiap bahanbaku
             try:
+                """
+                SALDO AWAL SECTION
+                A. Saldo Awal Produksi
+                1. Saldo awal Januari = data dari Saldo awal (dari so offline)
+                2. Saldo awal Februari = data Saldo Awal (januari) + Jumlah Barang masuk Januari sampai Februari - Jumlah barang keluar Januari sampau Februari
+                3. Saldi awal Maret = data saldo awal (Januari) + Jumlah barang masuk Januari sampai Maret - Jumlah barang keluar Januari sampai Maret
+                """
                 saldoawalobj = models.SaldoAwalBahanBaku.objects.get(
                     IDBahanBaku=i, Tanggal__year=tahun
                 )
                 nilaisaldoawal += saldoawalobj.Harga * saldoawalobj.Jumlah
                 i.saldoawal = saldoawalobj
+                i.harga = saldoawalobj.Harga
+                ''' BARANG MASUK SECTION SJP '''
+                masukobj = models.DetailSuratJalanPembelian.objects.filter(KodeProduk= i,NoSuratJalan__Tanggal__gte=awaltahun,NoSuratJalan__Tanggal__lte = tanggalakhir)
+                tanggalmasuk = masukobj.values_list('NoSuratJalan__Tanggal',flat=True).distinct()
+                ''' BARANG KELUAR SECTION TRANSAKSI PRODUKSI '''
+                keluarobj = models.TransaksiGudang.objects.filter(KodeProduk = i, tanggal__gte = awaltahun, tanggal__lte = tanggalakhir)
+                tanggalkeluar = keluarobj.values_list('Tanggal',flat=True).distinct()
+                
+
             except models.SaldoAwalBahanBaku.DoesNotExist:
                 continue
 
@@ -717,7 +732,7 @@ def newlaporanpersediaan(request):
                 KodeProduk=i,
                 NoSuratJalan__Tanggal__gte=awaltahun,
             )
-            print(artikelmasuk)
+            # print(artikelmasuk)
             for j in artikelmasuk:
                 biaya = j.Harga * j.Jumlah
                 totalbiaya += biaya
@@ -733,4 +748,6 @@ def newlaporanpersediaan(request):
                 tanggal__lte=tanggalmulai, tanggal__gte=awaltahun, KodeProduk=i
             )
             print(artikelkeluar)
+            for j in artikelkeluar :
+                jumlah_keluar = j.
         return render(request, "ppic/views_newlaporanpersediaan.html")
