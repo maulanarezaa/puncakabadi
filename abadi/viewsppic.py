@@ -13,6 +13,68 @@ from datetime import datetime
 # Create your views here.
 
 
+def gethargabahanbaku(
+    listtanggal, hargamasukobj, hargakeluarobj, hargaawal, jumlahawal, totalharga
+):
+    for j in listtanggal:
+        jumlahmasukperhari = 0
+        hargamasuktotalperhari = 0
+        hargamasuksatuanperhari = 0
+        jumlahkeluarperhari = 0
+        hargakeluartotalperhari = 0
+        hargakeluarsatuanperhari = 0
+        jumlahmasukperhari = 0
+
+        sjpobj = hargamasukobj.filter(NoSuratJalan__Tanggal=j)
+        if sjpobj.exists():
+            for k in sjpobj:
+                hargamasuktotalperhari += k.Harga * k.Jumlah
+                jumlahmasukperhari += k.Jumlah
+                hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
+        else:
+            hargamasuktotalperhari = 0
+            jumlahmasukperhari = 0
+            hargamasuksatuanperhari = 0
+        print(j)
+        transaksigudangobj = hargakeluarobj.filter(tanggal=j)
+        if transaksigudangobj.exists():
+            for k in transaksigudangobj:
+                jumlahkeluarperhari += k.jumlah
+                hargakeluartotalperhari += k.jumlah * hargaawal
+            hargakeluarsatuanperhari += hargakeluartotalperhari / jumlahkeluarperhari
+        else:
+            hargakeluartotalperhari = 0
+            hargakeluarsatuanperhari = 0
+            jumlahkeluarperhari = 0
+
+        print(
+            "Tanggal : ",
+        )
+        print("Sisa Stok Hari Sebelumnya : ", jumlahawal)
+        print("harga awal Hari Sebelumnya :", hargaawal)
+        print("harga total Hari Sebelumnya :", totalharga)
+        print("Jumlah Masuk : ", jumlahmasukperhari)
+        print("Harga Satuan Masuk : ", hargamasuksatuanperhari)
+        print("Harga Total Masuk : ", hargamasuktotalperhari)
+        print("Jumlah Keluar : ", jumlahkeluarperhari)
+        print("Harga Keluar : ", hargakeluarsatuanperhari)
+        print(
+            "Harga Total Keluar : ",
+            hargakeluarsatuanperhari * jumlahkeluarperhari,
+        )
+        jumlahawal += jumlahmasukperhari - jumlahkeluarperhari
+        totalharga += hargamasuktotalperhari - hargakeluartotalperhari
+        try:
+            hargaawal = totalharga / jumlahawal
+        except ZeroDivisionError:
+            hargaawal = 0
+
+        print("Sisa Stok Hari Ini : ", jumlahawal)
+        print("harga awal Hari Ini :", hargaawal)
+        print("harga total Hari Ini :", totalharga, "\n")
+    return hargaawal
+
+
 def dashboard(request):
     return render(request, "ppic/dashboard.html")
 
@@ -651,15 +713,86 @@ def newlaporanpersediaan(request):
         apabila ada harganya maka bisa menggunakan harga tersebut. Apabila tidak ada maka menggunakan harga terbesar tanggal terakhir
         Apabila cek kondisi 0 maka muncul warning dan memilih harga terakhir
         """
-
-
-        dataartikel = models.Artikel.objects.all()
-        ''' PERHITUNGAN HARGA BARU '''
-        for i in dataartikel:
+        bahanbaku = models.Produk.objects.all()
+        # bahanbaku = models.Produk.objects.filter(KodeProduk="coba-001")
+        listhargabahanbaku = {}
+        listhargabahanbakusebelum = {}
+        """ PERHITUNGAN HARGA BARU """
+        for i in bahanbaku:
             # Section Masuk
-            masukobj = models.DetailSuratJalanPembelian.objects.filter(KodeProduk = i,)
-        ''' END SECTION PERHITUNGAN HARGA BARU '''
+            hargamasukobj = models.DetailSuratJalanPembelian.objects.filter(
+                KodeProduk=i, NoSuratJalan__Tanggal__gte=awaltahun
+            )
+            hargakeluarobj = models.TransaksiGudang.objects.filter(
+                KodeProduk=i, tanggal__gte=awaltahun
+            )
+            tanggalhargamasukobj = (
+                hargamasukobj.filter(NoSuratJalan__Tanggal__lte=tanggalakhir)
+                .values_list("NoSuratJalan__Tanggal", flat=True)
+                .distinct()
+            )
+            tanggalhargakeluarobj = (
+                hargakeluarobj.filter(tanggal__lte=tanggalakhir)
+                .values_list("tanggal", flat=True)
+                .distinct()
+            )
+            listtanggal = sorted(
+                list(set(tanggalhargamasukobj.union(tanggalhargakeluarobj)))
+            )
+
+            print(listtanggal)
+
+            try:
+                saldoawalobj = models.SaldoAwalBahanBaku.objects.get(
+                    IDBahanBaku=i, Tanggal__gte=awaltahun
+                )
+                hargaawal = saldoawalobj.Harga
+                jumlahawal = saldoawalobj.Jumlah
+                totalharga = hargaawal * jumlahawal
+
+            except models.SaldoAwalBahanBaku.DoesNotExist:
+                hargaawal = 0
+                jumlahawal = 0
+                totalharga = 0
+            data = gethargabahanbaku(
+                listtanggal,
+                hargamasukobj,
+                hargakeluarobj,
+                hargaawal,
+                jumlahawal,
+                totalharga,
+            )
+            listhargabahanbaku[i] = data
+
+            hargakeluarobj = hargakeluarobj.filter(tanggal__lt=tanggalmulai)
+
+            hargamasukobj = hargamasukobj.filter(NoSuratJalan__Tanggal__lt=tanggalmulai)
+            tanggalhargamasukobj = hargamasukobj.values_list(
+                "NoSuratJalan__Tanggal", flat=True
+            ).distinct()
+            tanggalhargakeluarobj = hargakeluarobj.values_list(
+                "tanggal", flat=True
+            ).distinct()
+            listtanggal = sorted(
+                list(set(tanggalhargamasukobj.union(tanggalhargakeluarobj)))
+            )
+            data2 = gethargabahanbaku(
+                listtanggal,
+                hargamasukobj,
+                hargakeluarobj,
+                hargaawal,
+                jumlahawal,
+                totalharga,
+            )
+
+            listhargabahanbakusebelum[i] = data2
+
+            print("\n\nDONES\n\n")
+        print(listhargabahanbaku)
+        print(listhargabahanbakusebelum)
+        """ END SECTION PERHITUNGAN HARGA BARU """
         totalhargabarangjadi = 0
+        dataartikel = models.Artikel.objects.all()
         for i in dataartikel:
             mutasifilterobj = models.TransaksiProduksi.objects.filter(KodeArtikel=i.id)
             transaksikeluarobj = models.DetailSPPB.objects.filter()
@@ -688,10 +821,8 @@ def newlaporanpersediaan(request):
             i.NilaiTotal = nilaiFG * i.Jumlahakumulasi
             totalhargabarangjadi += i.NilaiTotal
 
-        
         nilaisaldoawal = 0
         # Ambil data barang
-        bahanbaku = models.Produk.objects.all()
         # print(bahanbaku)
         for i in bahanbaku:
             # Ambil data saldoawal tiap bahanbaku
@@ -709,13 +840,20 @@ def newlaporanpersediaan(request):
                 nilaisaldoawal += saldoawalobj.Harga * saldoawalobj.Jumlah
                 i.saldoawal = saldoawalobj
                 i.harga = saldoawalobj.Harga
-                ''' BARANG MASUK SECTION SJP '''
-                masukobj = models.DetailSuratJalanPembelian.objects.filter(KodeProduk= i,NoSuratJalan__Tanggal__gte=awaltahun,NoSuratJalan__Tanggal__lte = tanggalakhir)
-                tanggalmasuk = masukobj.values_list('NoSuratJalan__Tanggal',flat=True).distinct()
-                ''' BARANG KELUAR SECTION TRANSAKSI PRODUKSI '''
-                keluarobj = models.TransaksiGudang.objects.filter(KodeProduk = i, tanggal__gte = awaltahun, tanggal__lte = tanggalakhir)
-                tanggalkeluar = keluarobj.values_list('Tanggal',flat=True).distinct()
-                
+                """ BARANG MASUK SECTION SJP """
+                masukobj = models.DetailSuratJalanPembelian.objects.filter(
+                    KodeProduk=i,
+                    NoSuratJalan__Tanggal__gte=awaltahun,
+                    NoSuratJalan__Tanggal__lte=tanggalakhir,
+                )
+                tanggalmasuk = masukobj.values_list(
+                    "NoSuratJalan__Tanggal", flat=True
+                ).distinct()
+                """ BARANG KELUAR SECTION TRANSAKSI PRODUKSI """
+                keluarobj = models.TransaksiGudang.objects.filter(
+                    KodeProduk=i, tanggal__gte=awaltahun, tanggal__lte=tanggalakhir
+                )
+                tanggalkeluar = keluarobj.values_list("tanggal", flat=True).distinct()
 
             except models.SaldoAwalBahanBaku.DoesNotExist:
                 continue
@@ -747,7 +885,8 @@ def newlaporanpersediaan(request):
             artikelkeluar = models.TransaksiGudang.objects.filter(
                 tanggal__lte=tanggalmulai, tanggal__gte=awaltahun, KodeProduk=i
             )
-            print(artikelkeluar)
-            for j in artikelkeluar :
-                jumlah_keluar = j.
+            # print(artikelkeluar)
+            for j in artikelkeluar:
+                jumlah_keluar = j.jumlah
+
         return render(request, "ppic/views_newlaporanpersediaan.html")
