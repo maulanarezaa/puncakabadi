@@ -1,5 +1,6 @@
 {% extends "ppic/base.html" %}
 {% load static %}
+{% load humanize %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -56,12 +57,16 @@
                                 </td>
 
                                 <td>Barang Masuk</td>
+                                <td>Stock FG</td>
+                                <td>Stock Gudang</td>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td>{{data.barangkeluar}}</td>
                                 <td>{{data.barangmasuk}}</td>
+                                <td>{{data.sisafg.total}}</td>
+                                <td>{{data.stockgudang.total}}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -99,6 +104,78 @@
                         </thead>
                     </table>
                     {% endfor %}
+
+                    {% for bulan,data in modeldata.items %}
+                    <h5>Detail Stok FG Bulan : {{bulan}}</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>No</td>
+                                <td>Artikel</td>
+                                <td>Sisa</td>
+                                <td>Harga FG</td>
+                                <td>Total Biaya</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for artikel,detailkeluar in data.sisafg.data.items %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{artikel}}</td>
+                                <td>{{detailkeluar.jumlah}}</td>
+                                <td>{{detailkeluar.hargafg}}</td>
+                                <td>{{detailkeluar.biaya | intcomma}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>Total</td>
+                                <td>{{data.sisafg.total | intcomma}}</td>
+                            </tr>
+                        </thead>
+                    </table>
+                    {% endfor %}
+                    {% for bulan,data in modeldata.items %}
+                    <h5>Detail Stok Gudang Bulan : {{bulan}}</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>No</td>
+                                <td>Kode Stok</td>
+                                <td>Nama Barang</td>
+                                <td>Satuan</td>
+                                <td>Jumlah</td>
+                                <td>Harga Satuan</td>
+                                <td>Total</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for artikel,datastok in data.stockgudang.data.items %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{artikel.KodeProduk}}</td>
+                                <td>{{artikel.NamaProduk}}</td>
+                                <td>{{artikel.unit}}</td>
+                                <td>{{datastok.jumlah}}</td>
+                                <td>{{datastok.hargasatuan}}</td>
+                                <td>{{datastok.totalbiaya | intcomma}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>Total</td>
+                                <td>{{data.stockgudang.total}}</td>
+                            </tr>
+                        </thead>
+                    </table>
+                    {% endfor %}
+
                     {% endif %}
                 </div>
             </div>
