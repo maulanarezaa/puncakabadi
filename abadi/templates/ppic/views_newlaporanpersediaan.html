@@ -44,74 +44,61 @@
                 </form>
 
                 <div class="table-responsive pt-3">
-                    {% if data %}
-                    <table class="table table-bordered">
+                    {% if modeldata %}
+                    {% for bulan,data in modeldata.items %}
+                    <h5>Laporan Persediaan Bulan : {{bulan}}</h5>
+                    <p>{{data}}</p>
+                    <table class="table">
                         <thead>
                             <tr>
-                                <td>Aspek</td>
-                                <td>Nilai</td>
+                                <td>
+                                    Barang Keluar
+                                </td>
+
+                                <td>Barang Masuk</td>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Total Saldo Awal </td>
-                                <td>{{ saldoawal }}</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <a
-                                        href="{% url 'laporanbarangmasuk' %}?tanggalawal={{tanggalawal}}&tanggalakhir={{tanggalakhir}}">
-                                        Total Barang Masuk
-                                    </a>
-                                </td>
-                                <td>{{barangmasuk}}</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <a
-                                        href="{% url 'laporanbarangkeluar' %}?tanggalawal={{tanggalawal}}&tanggalakhir={{tanggalakhir}}">
-
-                                        Total Barang Keluar
-                                    </a>
-                                </td>
-                                <td>{{barangkeluar}}</td>
-                            </tr>
-                            <tr>
-
-                                <td>
-                                    Grand Total
-                                </td>
-                                <td>
-                                    {{saldototal}}
-                                </td>
+                                <td>{{data.barangkeluar}}</td>
+                                <td>{{data.barangmasuk}}</td>
                             </tr>
                         </tbody>
-
                     </table>
-
-                    <table class="table table-bordered mt-5">
+                    {% endfor %}
+                    {% for bulan,data in modeldata.items %}
+                    <h5>Detail Barang Keluar Bulan : {{bulan}}</h5>
+                    <table class="table">
                         <thead>
                             <tr>
-                                <td>Lokasi</td>
-                                <td>Nilai</td>
+                                <td>No</td>
+                                <td>Artikel</td>
+                                <td>Jumlah</td>
+                                <td>Harga FG</td>
+                                <td>Total Biaya</td>
                             </tr>
                         </thead>
                         <tbody>
-
+                            {% for artikel,detailkeluar in data.detailbarangkeluar.items %}
                             <tr>
-                                <td>WIP</td>
-                                <td>{{saldowip}}</td>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{artikel}}</td>
+                                <td>{{detailkeluar.jumlah}}</td>
+                                <td>{{detailkeluar.hargafg}}</td>
+                                <td>{{detailkeluar.biaya}}</td>
                             </tr>
-                            <tr>
-                                <td>FG</td>
-                                <td>{{barangfg}}</td>
-                            </tr>
-                            <tr>
-                                <td>Grand Total</td>
-                                <td>{{saldototal}}</td>
-                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>Total</td>
+                                <td>{{data.barangkeluar}}</td>
+                            </tr>
+                        </thead>
+                    </table>
+                    {% endfor %}
                     {% endif %}
                 </div>
             </div>
