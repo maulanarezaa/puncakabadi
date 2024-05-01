@@ -175,9 +175,34 @@
                         </thead>
                     </table>
                     {% endfor %}
-                    {% for bahanbaku,stok in data.bahanbakumasukakhirwip.items %}
-                    <p>{{bahanbaku}}</p>
-
+                    {% for bulan,data in modeldata.items %}
+                    <h5>Detail Barang Masuk WIP Bulan : {{bulan}}</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>No</td>
+                                <td>Kode Stok</td>
+                                <td>Nama Barang</td>
+                                <td>Satuan</td>
+                                <td>Jumlah</td>
+                                <td>Harga Satuan</td>
+                                <td>Total</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for artikel,datastok in data.stockgudang.data.items %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{artikel.KodeProduk}}</td>
+                                <td>{{artikel.NamaProduk}}</td>
+                                <td>{{artikel.unit}}</td>
+                                <td>{{datastok.jumlah}}</td>
+                                <td>{{datastok.hargasatuan}}</td>
+                                <td>{{datastok.totalbiaya | intcomma}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                     {% endif %}
                 </div>
             </div>

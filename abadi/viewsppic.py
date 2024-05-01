@@ -1292,7 +1292,7 @@ def newlaporanpersediaan(request):
                 dummy[artikelpemusnahan] = jumlahpemusnahan
 
             print("Jumlah Pemusnahan Artikel", jumlahpemusnahanartikel)
-            # print(asdas)
+            
             rekappemusnahanartikelperbulan[index] = dummy
             print(rekapprodukkeluarperbulan)
 
