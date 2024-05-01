@@ -894,6 +894,12 @@ def newlaporanpersediaan(request):
         sisaperbulan = {}
         bahangudangperbulan = {}
         datarekapbarangmasukperbulan = {}
+        penyusunartikelperbulan = {}
+        artikelpenyusunperbulan = {}
+        rekapdatabahanbakumasukkewip = {}
+        rekapprodukkeluarperbulan = {}
+        rekappemusnahanartikelperbulan = {}
+        rekappemusnahanbahanbakuperbulan = {}
 
         for index, hari in enumerate(last_days[: tanggal_obj.month]):
             """Section SJP --> Mencari barnag masu tiap bulan"""
@@ -984,8 +990,12 @@ def newlaporanpersediaan(request):
 
             rekapmutasiperbulan[index] = dummy
             dataartikel = models.Artikel.objects.all()
+            # dataartikel = models.Artikel.objects.all()
             dummy = {}
+
             totalbiayasisafg = 0
+            datapenyusunversiterpilih = {}
+            dummypenyusunartikelperbulan = {}
             for artikel in dataartikel:
                 if index == 0:
                     dummy[artikel] = {"jumlah": 0, "biaya": 0, "hargafg": 0}
@@ -1024,13 +1034,66 @@ def newlaporanpersediaan(request):
                 )
                 # print(dummy)
                 totalbiayasisafg += dummy[artikel]["biaya"]
+
+                """SECTION PENYUSUN"""
+                versiterakhirperbulan = (
+                    models.Penyusun.objects.filter(KodeArtikel=artikel, versi__lte=hari)
+                    .values_list("versi", flat=True)
+                    .distinct()
+                    .order_by("versi")
+                    .last()
+                )
+                penyusunversiterpilih = models.KonversiMaster.objects.filter(
+                    KodePenyusun__KodeArtikel=artikel,
+                    KodePenyusun__versi=versiterakhirperbulan,
+                )
+                """
+                {0 : {A-101:{Artikel1:0.34124,{artikel2:0.12314}}}}
+                
+                """
+
+                # print(penyusunversiterpilih)
+                jumlahpenyusunkuantitasperartikel = penyusunversiterpilih.values(
+                    "KodePenyusun__KodeProduk__KodeProduk"
+                ).annotate(total=Sum("Kuantitas"))
+                print(
+                    "Tes Penyusun terpilih", artikel, jumlahpenyusunkuantitasperartikel
+                )
+                dummypenyusunperartikel = {}
+                for penyusun in jumlahpenyusunkuantitasperartikel:
+                    kodeprodukterpilih = penyusun[
+                        "KodePenyusun__KodeProduk__KodeProduk"
+                    ]
+                    kuantitasterpilih = penyusun["total"] + 0.025 * penyusun["total"]
+                    dummypenyusunperartikel[kodeprodukterpilih] = kuantitasterpilih
+                    if kodeprodukterpilih in datapenyusunversiterpilih:
+                        dummypenyusun = {}
+                        for artikeliterasi, kuantitas in datapenyusunversiterpilih[
+                            kodeprodukterpilih
+                        ].items():
+                            dummypenyusun[artikeliterasi] = kuantitas
+                        dummypenyusun[artikel] = kuantitasterpilih
+                        datapenyusunversiterpilih[kodeprodukterpilih] = dummypenyusun
+                    else:
+                        datapenyusunversiterpilih[kodeprodukterpilih] = {
+                            artikel: kuantitasterpilih
+                        }
+                dummypenyusunartikelperbulan[artikel] = dummypenyusunperartikel
+                print("ini data penyusun terpilih", datapenyusunversiterpilih)
+
+            # print(dummypenyusunartikelperbulan)
+            artikelpenyusunperbulan[index] = dummypenyusunartikelperbulan
+
+            # print(asdasdasd)
             sisaperbulan[index] = {"data": dummy, "total": totalbiayasisafg}
+            penyusunartikelperbulan[index] = datapenyusunversiterpilih
 
             """SECTION Stock Gudang"""
             bahanbaku = models.Produk.objects.all()
-            # bahanbaku = models.Produk.objects.filter(KodeProduk="A-001-06")
+            # bahanbaku = models.Produk.objects.filter(KodeProduk="coba-001")
             dummy = {}
             rekaphargabahanbakugudangperbulan = 0
+            dummybahanbakumasuk = {}
             for produk in bahanbaku:
                 saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(
                     IDBahanBaku=produk, Tanggal__gte=awaltahun
@@ -1130,15 +1193,149 @@ def newlaporanpersediaan(request):
                 }
                 rekaphargabahanbakugudangperbulan += totalbiayaawal
 
+                """ SECTION REKAP WIP """
+
+                # masuk ke wip
+
+                databahanbakumasukkewip = models.TransaksiGudang.objects.filter(
+                    tanggal__gte=awaltahun,
+                    tanggal__lte=hari,
+                    jumlah__gte=0,
+                    KodeProduk=produk,
+                    Lokasi__IDLokasi__in=(1, 2),
+                )
+                jumlahbahanbakumasukkewip = databahanbakumasukkewip.aggregate(
+                    total=Sum("jumlah")
+                )
+                print(produk)
+                print(databahanbakumasukkewip)
+                print(jumlahbahanbakumasukkewip)
+                if jumlahbahanbakumasukkewip["total"] == None:
+                    jumlahbahanbakumasukkewip["total"] = 0
+                # print(asdasd)
+                # Saldo Awal Bahan Baku WIP
+                datasaldoawalbahanbakuwip = models.SaldoAwalBahanBaku.objects.filter(
+                    IDBahanBaku=produk, Tanggal__gte=awaltahun
+                )
+                jumlahsaldoawalbahanbakuwip = datasaldoawalbahanbakuwip.aggregate(
+                    total=Sum("Jumlah")
+                )
+                if jumlahsaldoawalbahanbakuwip["total"] == None:
+                    jumlahsaldoawalbahanbakuwip["total"] = 0
+
+                if index == 0:
+                    dummybahanbakumasuk[produk] = (
+                        jumlahbahanbakumasukkewip["total"]
+                        + jumlahsaldoawalbahanbakuwip["total"]
+                    )
+                    print("di Awal : ", jumlahbahanbakumasukkewip)
+                    # print(asd)
+                else:
+                    dummybahanbakumasuk[produk] = (
+                        jumlahbahanbakumasukkewip["total"]
+                        + rekapdatabahanbakumasukkewip[index - 1][produk]
+                    )
+                    print(jumlahbahanbakumasukkewip)
+                    print(rekapdatabahanbakumasukkewip[index - 1])
+                    print(dummybahanbakumasuk)
+                    # print(asdasd)
+
+                # Keluar dari WIP (iterasi per produk)
+                listkonversikeluar = artikelpenyusunperbulan[index]
+                barangkeluar = rekapkeluarperbulan[index]["data"]
+                print(barangkeluar, "\n")
+                print(listkonversikeluar)
+                dummy3 = {}
+                if barangkeluar == 0:
+                    dummy3 = 0
+                else:
+                    for artikelkeluar, data in barangkeluar.items():
+                        # penyusun artikel terkait
+                        for (
+                            datapenyusunartikel,
+                            kuantitaspenyusunartikel,
+                        ) in listkonversikeluar[artikelkeluar].items():
+                            # print(datapenyusunartikel)
+                            kuantitasbahanbakukeluar = (
+                                kuantitaspenyusunartikel * data["jumlah"]
+                            )
+                            if datapenyusunartikel in dummy3:
+                                dummy3[datapenyusunartikel] += kuantitasbahanbakukeluar
+                            else:
+                                dummy3[datapenyusunartikel] = kuantitasbahanbakukeluar
+
+                rekapprodukkeluarperbulan[index] = dummy3
+            # print(asdas)
+            rekapdatabahanbakumasukkewip[index] = dummybahanbakumasuk
             bahangudangperbulan[index] = {
                 "data": dummy,
                 "total": rekaphargabahanbakugudangperbulan,
             }
+            # Barang Pemusnahan
+            """SECTION PEMUSNAHAN ARTIKEL"""
+            if index == 0:
+                datapemusnahanartikel = models.PemusnahanArtikel.objects.filter(
+                    Tanggal__gte=awaltahun, Tanggal__lte=hari
+                )
+            else:
+                datapemusnahanartikel = models.PemusnahanArtikel.objects.filter(
+                    Tanggal__gt=last_days[index - 1],
+                    Tanggal__lte=hari,
+                )
+            jumlahpemusnahanartikel = datapemusnahanartikel.values(
+                "KodeArtikel__KodeArtikel"
+            ).annotate(total=Sum("Jumlah"))
+            dummy = {}
+            for pemusnahan in jumlahpemusnahanartikel:
+                artikelpemusnahan = pemusnahan["KodeArtikel__KodeArtikel"]
+                jumlahpemusnahan = pemusnahan["total"]
+                dummy[artikelpemusnahan] = jumlahpemusnahan
+
+            print("Jumlah Pemusnahan Artikel", jumlahpemusnahanartikel)
+            # print(asdas)
+            rekappemusnahanartikelperbulan[index] = dummy
+            print(rekapprodukkeluarperbulan)
+
+            """SECTION PEMUSNAHAN BAHAN BAKU"""
+            if index == 0:
+                datapemusnahanbahanbaku = models.PemusnahanBahanBaku.objects.filter(
+                    Tanggal__gte=awaltahun, Tanggal__lte=hari
+                )
+            else:
+                datapemusnahanbahanbaku = models.PemusnahanBahanBaku.objects.filter(
+                    Tanggal__gte=last_days[index - 1], Tanggal__lte=hari
+                )
+            jumlahpemusnahanbahanbaku = datapemusnahanbahanbaku.values(
+                "KodeBahanBaku__KodeProduk"
+            ).annotate(total=Sum("Jumlah"))
+            dummy = {}
+            for pemusnahan in jumlahpemusnahanbahanbaku:
+                bahanbakupemusnahan = pemusnahan["KodeBahanBaku__KodeProduk"]
+                jumlahpemusnahan = pemusnahan["total"]
+                dummy[bahanbakupemusnahan] = jumlahpemusnahan
+
+            print("Jumlah Pemusnahan Artikel", jumlahpemusnahanartikel)
+            rekappemusnahanbahanbakuperbulan[index] = dummy
+
+            """SECTION PERHITUNGAN STOK REAL DI WIP PERBULAN"""
+
+            # print(asdas)
+
+        # print(asdasd)
         print("ini rekap keluar perbulan\n", rekapkeluarperbulan)
         print("ini rekap mutasi perbulan\n", rekapmutasiperbulan)
         print("ini rekap Sisa perbulan\n", sisaperbulan)
         print("ini rekap Bahan Gudang perbulan\n", bahangudangperbulan)
-        # print(adasadaasd)
+        print("ini rekap penyusun per Artikel\n", artikelpenyusunperbulan)
+        print("ini rekap Bahan Baku keluar per Artikel\n", rekapprodukkeluarperbulan)
+        print("ini rekap pemusnahan Artikel Perbulan\n", rekappemusnahanartikelperbulan)
+        print(
+            "ini rekap pemusnahan Bahan Baku Perbulan\n",
+            rekappemusnahanbahanbakuperbulan,
+        )
+        print("ini rekap Bahan Baku Masuk WIP Perbulan\n", rekapdatabahanbakumasukkewip)
+
+        # print(asdasd)
 
         """Rekapitulasi ke Models Akhir
         data models
@@ -1179,6 +1376,11 @@ def newlaporanpersediaan(request):
                 "detailbarangkeluar": rekapkeluarperbulan[month]["data"],
                 "sisafg": sisaperbulan[month],
                 "stockgudang": bahangudangperbulan[month],
+                "penyusun": artikelpenyusunperbulan[month],
+                "bahanbakukeluar": rekapprodukkeluarperbulan[month],
+                'bahanbakumasukakhirwip' : rekapdatabahanbakumasukkewip[month],
+                'rekappemusnahanartikel' : rekappemusnahanartikelperbulan[month],
+                'rekappemusnahanbahanbaku': rekappemusnahanbahanbakuperbulan[month]
             }
         return render(
             request,
