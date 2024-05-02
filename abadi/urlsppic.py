@@ -41,5 +41,15 @@ urlpatterns = [
         viewsppic.detaillaporanbarangmasuk,
         name="detaillaporanbarangmasuk",
     ),
+    path(
+        "detaillaporanbaranstokgudang",
+        viewsppic.getsaldoawalgudang,
+        name="detaillaporanbaranstokgudang",
+    ),
+    path(
+        "detaillaporanstokfg",
+        viewsppic.detaillaporanstokfg,
+        name="detaillaporanstokfg",
+    ),
     # path("delete/<str:id>", viewsppic.updateco, name="updateco"),
 ]

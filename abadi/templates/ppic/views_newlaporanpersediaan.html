@@ -40,6 +40,15 @@
                             {% endif %}
                         </div>
                     </div>
+                    <div class="form-group">
+
+                        <label for="bulan">Bulan</label>
+                        <div class="input-group mb-2 mr-sm-2 ml-2">
+                            <input type="month" class="form-control" id="bulan" placeholder="Bulan" required
+                                name="bulan" min="2024-01">
+                        </div>
+                    </div>
+
 
                     <button type="submit" class="btn btn-primary mb-2">Submit</button>
                 </form>
@@ -67,8 +76,21 @@
                                         Barang Masuk
                                     </a>
                                 </td>
-                                <td>Stock FG</td>
-                                <td>Stock Gudang</td>
+                                <td>
+                                    <a
+                                        href=" {% url 'detaillaporanstokfg' %}?tanggalawal={{tanggalawal}}&tanggalakhir={{tanggalakhir}}&bulan={{bulan}} ">
+
+                                        Stock FG
+                                    </a>
+
+
+                                </td>
+                                <td>
+                                    <a
+                                        href="{% url 'detaillaporanbaranstokgudang'%}?tahun={{tanggalawal.year}}&bulan={{bulantahun}}">
+                                        Stock Gudang
+                                    </a>
+                                </td>
                             </tr>
                         </thead>
                         <tbody>

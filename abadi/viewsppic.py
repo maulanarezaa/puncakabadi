@@ -656,6 +656,7 @@ def newlaporanpersediaan(request):
         """Initiation"""
         tanggalmulai = request.GET["tanggalawal"]
         tanggalakhir = request.GET["tanggalakhir"]
+        bulantahun = request.GET["bulan"]
         tanggal_obj = datetime.strptime(tanggalakhir, "%Y-%m-%d")
         tahun = tanggal_obj.year
         awaltahun = datetime(tahun, 1, 1)
@@ -1391,6 +1392,7 @@ def newlaporanpersediaan(request):
                 "modeldata": modelakhir,
                 "tanggalawal": tanggalmulai,
                 "tanggalakhir": tanggalakhir,
+                "bulantahun": bulantahun,
             },
         )
 
@@ -1478,6 +1480,18 @@ def gethargapurchasingperbulan(last_days, stopindex, awaltahun):
     bahanbaku = models.Produk.objects.all()
     hargaakhirbulanperproduk = {}
     for i in bahanbaku:
+        saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(
+            IDBahanBaku=i, Tanggal__gte=awaltahun
+        )
+        if saldoawalobj.exists():
+            saldoawalobj = saldoawalobj.first()
+            totalbiayaawal = saldoawalobj.Harga * saldoawalobj.Jumlah
+            hargaawal = saldoawalobj.Harga
+            jumlahawal = saldoawalobj.Jumlah
+        else:
+            totalbiayaawal = 0
+            hargaawal = 0
+            jumlahawal = 0
         hargamasukobj = models.DetailSuratJalanPembelian.objects.filter(
             KodeProduk=i, NoSuratJalan__Tanggal__gte=awaltahun
         )
@@ -1500,16 +1514,6 @@ def gethargapurchasingperbulan(last_days, stopindex, awaltahun):
             listtanggal = sorted(
                 list(set(tanggalhargamasukobj.union(tanggalhargakeluarobj)))
             )
-            try:
-                saldoawalobj = models.SaldoAwalBahanBaku.objects.get(
-                    IDBahanBaku=i, Tanggal__gte=awaltahun
-                )
-                hargaawal = saldoawalobj.Harga
-                jumlahawal = saldoawalobj.Jumlah
-
-            except models.SaldoAwalBahanBaku.DoesNotExist:
-                hargaawal = 0
-                jumlahawal = 0
 
             suratjalanpembelianakhirbulanobj = hargamasukobj.filter(
                 NoSuratJalan__Tanggal__lte=k
@@ -1611,6 +1615,20 @@ def gethargafgperbulan(last_days, stopindex, awaltahun):
     # print(asdasd)
     return datahargafgartikel
 
+
+def getbarangmasuk(tanggalawal, tanggalakhir):
+    databahanbakumasuk = models.DetailSuratJalanPembelian.objects.filter(
+        NoSuratJalan__Tanggal__lte=tanggalakhir, NoSuratJalan__Tanggal__gte=tanggalawal
+    )
+    nilaibahanbakumasuk = 0
+    for item in databahanbakumasuk:
+        biaya = item.Harga * item.Jumlah
+        nilaibahanbakumasuk += biaya
+        item.totalbiaya = biaya
+
+    return databahanbakumasuk, nilaibahanbakumasuk
+
+
 def detaillaporanbarangmasuk(request):
     if len(request.GET) > 0:
         print(request.GET)
@@ -1643,13 +1661,324 @@ def detaillaporanbarangmasuk(request):
             last_days.append(date(tahun, month, last_day))
         # print(last_days)
         # print(last_days[:index+1])
-        databahanbakumasuk = models.DetailSuratJalanPembelian.objects.filter(NoSuratJalan__Tanggal__lte=last_days[index],NoSuratJalan__Tanggal__gte=last_days[index-1])
-        nilaibahanbakumasuk = 0
-        for item in databahanbakumasuk:
-            biaya = item.Harga *item.Jumlah
-            nilaibahanbakumasuk +=biaya
-            item.totalbiaya = biaya
+        (databahanbakumasuk, nilaibahanbakumasuk) = getbarangmasuk(
+            last_days[index - 1], last_days[index]
+        )
+
         return render(
             request,
-            "ppic/detaillaporanbarangmasuk.html",{'sjp':databahanbakumasuk,'totalbiayamasuk':nilaibahanbakumasuk},
+            "ppic/detaillaporanbarangmasuk.html",
+            {
+                "sjp": databahanbakumasuk,
+                "totalbiayamasuk": nilaibahanbakumasuk,
+                "bulan": bulan,
+            },
         )
+
+
+def getstokgudang(awaltahun, last_days, stopindex):
+    bahanbaku = models.Produk.objects.all()
+    bahangudangperbulan = {}
+    rekaphargabahanbakugudangperbulan = 0
+    for index, hari in enumerate(last_days[:stopindex]):
+        dummy = {}
+        for produk in bahanbaku:
+
+            barangmasukobj = models.DetailSuratJalanPembelian.objects.filter(
+                KodeProduk=produk,
+                NoSuratJalan__Tanggal__gte=awaltahun,
+                NoSuratJalan__Tanggal__lte=hari,
+            )
+            barangkeluarobj = models.TransaksiGudang.objects.filter(
+                KodeProduk=produk, tanggal__gte=awaltahun, tanggal__lte=hari
+            )
+
+            tanggalbarangmasukobj = barangmasukobj.values_list(
+                "NoSuratJalan__Tanggal", flat=True
+            ).distinct()
+            tanggalbarangkeluar = barangkeluarobj.values_list(
+                "tanggal", flat=True
+            ).distinct()
+            listtanggal = sorted(
+                list(set(tanggalbarangmasukobj.union(tanggalbarangkeluar)))
+            )
+            print(index, produk, listtanggal)
+            jumlahawal = 0
+            totalbiayaawal = 0
+            for tanggal in listtanggal:
+                jumlahmasukperhari = 0
+                hargamasuktotalperhari = 0
+                hargamasuksatuanperhari = 0
+                jumlahkeluarperhari = 0
+                hargakeluartotalperhari = 0
+                hargakeluarsatuanperhari = 0
+                jumlahmasukperhari = 0
+
+                sjpobj = barangmasukobj.filter(NoSuratJalan__Tanggal=tanggal)
+                if sjpobj.exists():
+                    for k in sjpobj:
+                        hargamasuktotalperhari += k.Harga * k.Jumlah
+                        jumlahmasukperhari += k.Jumlah
+                        hargamasuksatuanperhari += (
+                            hargamasuktotalperhari / jumlahmasukperhari
+                        )
+                else:
+                    hargamasuktotalperhari = 0
+                    jumlahmasukperhari = 0
+                    hargamasuksatuanperhari = 0
+
+                transaksigudangobj = barangkeluarobj.filter(tanggal=tanggal)
+                if transaksigudangobj.exists():
+                    for k in transaksigudangobj:
+                        jumlahkeluarperhari += k.jumlah
+                        hargakeluartotalperhari += k.jumlah * hargasatuanawal
+                    hargakeluarsatuanperhari += (
+                        hargakeluartotalperhari / jumlahkeluarperhari
+                    )
+                else:
+                    hargakeluartotalperhari = 0
+                    hargakeluarsatuanperhari = 0
+                    jumlahkeluarperhari = 0
+
+                # print(produk)
+                # print("Tanggal : ", tanggal)
+                # print("Sisa Stok Hari Sebelumnya : ", jumlahawal)
+                # print("harga awal Hari Sebelumnya :", hargasatuanawal)
+                # print("harga total Hari Sebelumnya :", totalbiayaawal)
+                # print("Jumlah Masuk : ", jumlahmasukperhari)
+                # print("Harga Satuan Masuk : ", hargamasuksatuanperhari)
+                # print("Harga Total Masuk : ", hargamasuktotalperhari)
+                # print("Jumlah Keluar : ", jumlahkeluarperhari)
+                # print("Harga Keluar : ", hargakeluarsatuanperhari)
+                # print(
+                #     "Harga Total Keluar : ",
+                #     hargakeluarsatuanperhari * jumlahkeluarperhari,
+                # )
+                jumlahawal += jumlahmasukperhari - jumlahkeluarperhari
+                totalbiayaawal += hargamasuktotalperhari - hargakeluartotalperhari
+                try:
+                    hargasatuanawal = totalbiayaawal / jumlahawal
+                except ZeroDivisionError:
+                    hargasatuanawal = 0
+
+                # print("Sisa Stok Hari Ini : ", jumlahawal)
+                # print("harga awal Hari Ini :", hargasatuanawal)
+                # print("harga total Hari Ini :", totalbiayaawal, "\n")
+            dummy[produk] = {
+                "hargasatuan": hargasatuanawal,
+                "jumlah": jumlahawal,
+                "totalbiaya": totalbiayaawal,
+            }
+            rekaphargabahanbakugudangperbulan += totalbiayaawal
+        bahangudangperbulan[index] = {
+            "data": dummy,
+            "total": rekaphargabahanbakugudangperbulan,
+        }
+    return bahangudangperbulan
+
+
+def detaillaporanbaranstokgudang(request):
+    if len(request.GET) > 0:
+        print(request.GET)
+        tanggalmulai = request.GET["tanggalawal"]
+        tanggalakhir = request.GET["tanggalakhir"]
+        bulan = request.GET["bulan"]
+        tanggal_obj = datetime.strptime(tanggalakhir, "%Y-%m-%d")
+        tahun = tanggal_obj.year
+        awaltahun = datetime(tahun, 1, 1)
+        tanggal_obj.date()
+        listbulan = [
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "Novermber",
+            "Desember",
+        ]
+        index = listbulan.index(request.GET["bulan"])
+        # print(index)
+        last_days = []
+        for month in range(1, 13):
+            last_day = calendar.monthrange(tahun, month)[1]
+            last_days.append(date(tahun, month, last_day))
+        # print(last_days)
+        # print(last_days[:index+1])
+        bahanbakuperbulan = getstokgudang(awaltahun, last_days, index + 1)
+        print(bahanbakuperbulan)
+        return render(
+            request,
+            "ppic/detaillaporanstokgudang.html",
+            {"stokgudang": bahanbakuperbulan, "bulan": bulan},
+        )
+
+
+def detaillaporanstokfg(request):
+    if len(request.GET) > 0:
+        print(request.GET)
+        tanggalmulai = request.GET["tanggalawal"]
+        tanggalakhir = request.GET["tanggalakhir"]
+        bulan = request.GET["bulan"]
+        tanggal_obj = datetime.strptime(tanggalakhir, "%Y-%m-%d")
+        tahun = tanggal_obj.year
+        awaltahun = datetime(tahun, 1, 1)
+        tanggal_obj.date()
+        listbulan = [
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "Novermber",
+            "Desember",
+        ]
+        index = listbulan.index(request.GET["bulan"])
+        # print(index)
+        last_days = []
+        for month in range(1, 13):
+            last_day = calendar.monthrange(tahun, month)[1]
+            last_days.append(date(tahun, month, last_day))
+        # print(last_days)
+        # print(last_days[:index+1])
+        datastokgudang = getstokartikelfg(last_days, index + 1, awaltahun)
+        return render(
+            request,
+            "ppic/detaillaporanstokfg.html",
+            {"stokfg": datastokgudang, "bulan": bulan},
+        )
+
+
+def getstokartikelfg(last_days, stopindex, awaltahun):
+    datastokfgperbulan = {}
+    datahargafgartikel = gethargafgperbulan(last_days, stopindex, awaltahun)
+    for index, hari in enumerate(last_days[:stopindex]):
+        if index == 0:
+            datatransaksiproduksi = models.TransaksiProduksi.objects.filter(
+                Tanggal__lte=hari, Tanggal__gt=awaltahun, Jenis="Mutasi"
+            )
+        else:
+            datatransaksiproduksi = models.TransaksiProduksi.objects.filter(
+                Tanggal__lte=hari, Tanggal__gt=last_days[index - 1], Jenis="Mutasi"
+            )
+        jumlahkumulatifbiayaperbulan = 0
+        dummy = {}
+        if datatransaksiproduksi.exists():
+            jumlahartikelmutasiperbulan = datatransaksiproduksi.values(
+                "KodeArtikel"
+            ).annotate(total=Sum("Jumlah"))
+            for artikel in jumlahartikelmutasiperbulan:
+                dataartikel = models.Artikel.objects.get(id=artikel["KodeArtikel"])
+                jumlah = artikel["total"]
+                totalbiaya = jumlah * datahargafgartikel[dataartikel][index]["hargafg"]
+                jumlahkumulatifbiayaperbulan += totalbiaya
+                dummy[dataartikel] = {
+                    "jumlah": jumlah,
+                    "hargafg": datahargafgartikel[dataartikel][index]["hargafg"],
+                    "biaya": totalbiaya,
+                }
+        else:
+            dummy = 0
+        datastokfgperbulan[index] = {
+            "data": dummy,
+            "total": jumlahkumulatifbiayaperbulan,
+        }
+    print(datastokfgperbulan)
+    return datastokfgperbulan
+
+
+def getsaldoawalgudang(request):
+    if len(request.GET) > 0:
+        print(request.GET)
+
+        bulan = request.GET["bulan"]
+        waktuobj = datetime.strptime(bulan, "%Y-%m")
+        print(waktuobj.month)
+        awaltahun = datetime(waktuobj.year, 1, 1)
+        listbulan = [
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "Novermber",
+            "Desember",
+        ]
+        index = waktuobj.month
+        last_days = []
+        for month in range(1, 13):
+            last_day = calendar.monthrange(waktuobj.year, month)[1]
+            last_days.append(date(waktuobj.year, month, last_day))
+        data = saldogudang(last_days, index, awaltahun)
+        return render(
+            request,
+            "ppic/detailsaldoawalgudang.html",{'data':data},
+        )
+
+
+def saldogudang(last_days, stopindex, awaltahun):
+    saldoawal = {}
+    saldoakhirgudang = {}
+    totalbiayasaldoawal = 0
+    bahanbaku = models.Produk.objects.all()
+    for produk in bahanbaku:
+        saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(
+            IDBahanBaku=produk, Tanggal__gte=awaltahun
+        )
+        if saldoawalobj.exists():
+            saldoawalobj = saldoawalobj.first()
+            totalbiayaawal = saldoawalobj.Harga * saldoawalobj.Jumlah
+            hargasatuanawal = saldoawalobj.Harga
+            jumlahawal = saldoawalobj.Jumlah
+
+        else:
+            totalbiayaawal = 0
+            hargasatuanawal = 0
+            jumlahawal = 0
+
+        totalbiayasaldoawal += totalbiayaawal
+        produk.hargasatuanawal = hargasatuanawal
+        produk.totalbiayaawal = totalbiayaawal
+        produk.jumlahawal = jumlahawal
+
+    hargaakhirbulanperproduk = gethargapurchasingperbulan(
+        last_days, stopindex, awaltahun
+    )
+    dataproduk = models.Produk.objects.all()
+    for index, hari in enumerate(last_days[:stopindex]):
+        totalbiayasaldoakhirperbulan = 0
+        for produk in dataproduk:
+            hargaproduk = hargaakhirbulanperproduk[produk]["data"][index]["hargatotal"]
+            totalbiayasaldoakhirperbulan += hargaproduk
+        saldoakhirgudang[index] = totalbiayasaldoakhirperbulan
+        if index == 0:
+            saldoawal[index] = totalbiayasaldoawal
+        else:
+            saldoawal[index] = saldoakhirgudang[index - 1]
+
+    print(saldoawal)
+    print(saldoakhirgudang)
+
+    # print(asdasd)
+
+    # print(hargaakhirbulanperproduk)
+    data = {'saldoawal': saldoawal,'saldoakhir':saldoakhirgudang}
+    return data
+
+'''
+Perhitungan Saldo Gudang perlu di pecah antara saldo awal dan saldo akhir di laporan besar
+'''

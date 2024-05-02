@@ -1,0 +1,78 @@
+{% extends "ppic/base.html" %}
+{% load static %}
+{% load humanize %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+
+
+<!-- Page content  -->
+{% block content %}
+<div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Detail Stok Gudang Periode : {{bulan}} </h4>
+
+
+
+                <div class="table-responsive pt-3">
+                    {% if stokgudang %}
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>No</td>
+                                <td>Kode Produk</td>
+                                <td>Nama Produk</td>
+                                <td>Satuan</td>
+                                <td>Harga Satuan</td>
+                                <td>Jumlah</td>
+                                <td>Harga Total</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bulan,data in stokgudang.items %}
+                            {% for item,values in data.data.items %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{item.KodeProduk}}</td>
+                                <td>{{item.NamaProduk}}</td>
+                                <td>{{item.unit}}</td>
+                                <td>{{values.hargasatuan}}</td>
+                                <td>{{values.jumlah}}</td>
+                                <td>{{values.totalbiaya}}</td>
+
+                            </tr>
+                            {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>Total</td>
+                                {% for bulan,data in stokgudang.items %}
+
+                                <td>{{data.total}}</td>
+
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                    </table>
+
+
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% block javascripts %}
+
+{% endblock javascripts %}
+{% endblock content %}
