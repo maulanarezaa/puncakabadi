@@ -53,10 +53,20 @@
                         <thead>
                             <tr>
                                 <td>
-                                    Barang Keluar
+                                    <a
+                                        href="{% url 'detaillaporanbarangkeluar'%}?tanggalawal={{tanggalawal}}&tanggalakhir={{tanggalakhir}}&bulan={{bulan}} ">
+
+                                        Barang Keluar
+                                    </a>
                                 </td>
 
-                                <td>Barang Masuk</td>
+                                <td>
+                                    <a
+                                        href="{% url 'detaillaporanbarangmasuk'%}?tanggalawal={{tanggalawal}}&tanggalakhir={{tanggalakhir}}&bulan={{bulan}} ">
+
+                                        Barang Masuk
+                                    </a>
+                                </td>
                                 <td>Stock FG</td>
                                 <td>Stock Gudang</td>
                             </tr>
@@ -185,24 +195,25 @@
                                 <td>Nama Barang</td>
                                 <td>Satuan</td>
                                 <td>Jumlah</td>
-                                <td>Harga Satuan</td>
-                                <td>Total</td>
+
                             </tr>
                         </thead>
                         <tbody>
-                            {% for artikel,datastok in data.stockgudang.data.items %}
+                            {% for artikel,datastok in data.bahanbakumasukwip.items %}
                             <tr>
                                 <td>{{forloop.counter}}</td>
                                 <td>{{artikel.KodeProduk}}</td>
                                 <td>{{artikel.NamaProduk}}</td>
                                 <td>{{artikel.unit}}</td>
-                                <td>{{datastok.jumlah}}</td>
-                                <td>{{datastok.hargasatuan}}</td>
-                                <td>{{datastok.totalbiaya | intcomma}}</td>
+                                <td>{{datastok}}</td>
+
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
+                    {% endfor %}
+
+
                     {% endif %}
                 </div>
             </div>
