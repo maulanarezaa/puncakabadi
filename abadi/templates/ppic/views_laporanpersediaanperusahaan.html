@@ -1,0 +1,260 @@
+{% extends "ppic/base.html" %}
+{% load static %}
+{% load humanize %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+
+
+<!-- Page content  -->
+{% block content %}
+<div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Laporan Nilai Persediaan Barang </h4>
+
+                <form class="form-inline" method="get">
+
+                    <div class="form-group">
+
+                        <label for="bulan">Periode</label>
+                        <div class="input-group mb-2 mr-sm-2 ml-2">
+                            <input type="month" class="form-control" id="bulan" placeholder="Bulan" required
+                                name="bulan" min="2024-01">
+                        </div>
+                    </div>
+
+
+                    <button type="submit" class="btn btn-primary mb-2">Submit</button>
+                </form>
+
+                <div class="table-responsive pt-3">
+                    {% if modeldata %}
+                    {% for bulan,data in modeldata.items %}
+                    <h5>Laporan Persediaan Bulan : {{bulan}}</h5>
+                    <p>{{data}}</p>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>
+                                    <a
+                                        href="{% url 'detaillaporanbarangkeluar'%}?tanggalawal={{tanggalawal}}&tanggalakhir={{tanggalakhir}}&bulan={{bulan}} ">
+
+                                        Barang Keluar
+                                    </a>
+                                </td>
+
+                                <td>
+                                    <a href="{% url 'detaillaporanbarangmasuk'%}?bulan={{bulan}} ">
+
+                                        Barang Masuk
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="">
+                                        Saldo Awal Stock Gudang
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="">
+                                        Saldo Awal Bahan Produksi
+                                    </a>
+                                </td>
+                                <td>
+                                    Total
+
+
+                                </td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{data.barangkeluar}}</td>
+                                <td>{{data.barangmasuk}}</td>
+                                <td>{{data.saldoawalgudang}}</td>
+                                <td>{{data.sisafg.total}}</td>
+                                <td>{{data.stockgudang.total}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h5>Stok Akhir Perbagian</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>
+                                    <a href="{% url 'detaillaporanbaranstokgudang'%}?bulan={{waktu}}">
+                                        Gudang
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{% url 'detaillaporanbaranstokwip'%}?bulan={{waktu}}">
+                                        WIP
+
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href=" {% url 'detaillaporanstokfg' %}?&bulan={{bulan}} ">
+                                        FG
+                                    </a>
+                                </td>
+                                <td>Total</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{data.saldoakhirgudang}}</td>
+                                <td>p</td>
+                                <td>{{data.stokfg}}</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    {% endfor %}
+                    {% for bulan,data in modeldata.items %}
+                    <h5>Detail Barang Keluar Bulan : {{bulan}}</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>No</td>
+                                <td>Artikel</td>
+                                <td>Jumlah</td>
+                                <td>Harga FG</td>
+                                <td>Total Biaya</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for artikel,detailkeluar in data.detailbarangkeluar.items %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{artikel}}</td>
+                                <td>{{detailkeluar.jumlah}}</td>
+                                <td>{{detailkeluar.hargafg}}</td>
+                                <td>{{detailkeluar.biaya}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>Total</td>
+                                <td>{{data.barangkeluar}}</td>
+                            </tr>
+                        </thead>
+                    </table>
+                    {% endfor %}
+
+                    {% for bulan,data in modeldata.items %}
+                    <h5>Detail Stok FG Bulan : {{bulan}}</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>No</td>
+                                <td>Artikel</td>
+                                <td>Sisa</td>
+                                <td>Harga FG</td>
+                                <td>Total Biaya</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for artikel,detailkeluar in data.sisafg.data.items %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{artikel}}</td>
+                                <td>{{detailkeluar.jumlah}}</td>
+                                <td>{{detailkeluar.hargafg}}</td>
+                                <td>{{detailkeluar.biaya | intcomma}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>Total</td>
+                                <td>{{data.sisafg.total | intcomma}}</td>
+                            </tr>
+                        </thead>
+                    </table>
+                    {% endfor %}
+                    {% for bulan,data in modeldata.items %}
+                    <h5>Detail Stok Gudang Bulan : {{bulan}}</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>No</td>
+                                <td>Kode Stok</td>
+                                <td>Nama Barang</td>
+                                <td>Satuan</td>
+                                <td>Jumlah</td>
+                                <td>Harga Satuan</td>
+                                <td>Total</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for artikel,datastok in data.stockgudang.data.items %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{artikel.KodeProduk}}</td>
+                                <td>{{artikel.NamaProduk}}</td>
+                                <td>{{artikel.unit}}</td>
+                                <td>{{datastok.jumlah}}</td>
+                                <td>{{datastok.hargasatuan}}</td>
+                                <td>{{datastok.totalbiaya | intcomma}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>Total</td>
+                                <td>{{data.stockgudang.total}}</td>
+                            </tr>
+                        </thead>
+                    </table>
+                    {% endfor %}
+                    {% for bulan,data in modeldata.items %}
+                    <h5>Detail Barang Masuk WIP Bulan : {{bulan}}</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>No</td>
+                                <td>Kode Stok</td>
+                                <td>Nama Barang</td>
+                                <td>Satuan</td>
+                                <td>Jumlah</td>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for artikel,datastok in data.bahanbakumasukwip.items %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{artikel.KodeProduk}}</td>
+                                <td>{{artikel.NamaProduk}}</td>
+                                <td>{{artikel.unit}}</td>
+                                <td>{{datastok}}</td>
+
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endfor %}
+
+
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% block javascripts %}
+
+{% endblock javascripts %}
+{% endblock content %}
