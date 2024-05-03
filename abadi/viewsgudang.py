@@ -20,16 +20,16 @@ def view_gudang(request):
         .order_by("tanggal")
     )
 
-    allspk = (
-            models.DetailSPK.objects.all().order_by("NoSPK__Tanggal")
-        )
+    allspk = models.DetailSPK.objects.all().order_by("NoSPK__Tanggal")
 
     tanggal = request.GET.get("Tanggal")
 
-    if tanggal is not None :
-        allspk = (
-            models.DetailSPK.objects.filter(NoSPK__Tanggal = tanggal)
-        )
+    print(tanggal)
+    if tanggal is not None:
+        if tanggal == "":
+            allspk = models.DetailSPK.objects.all().order_by("NoSPK__Tanggal")
+        else:
+            allspk = models.DetailSPK.objects.filter(NoSPK__Tanggal=tanggal)
 
     if len(getretur) == 0:
         messages.info(request, "Tidak ada barang retur yang belum ACC")
@@ -46,7 +46,8 @@ def view_gudang(request):
         {
             "getkeluar": getkeluar,
             "getretur": getretur,
-            "allspk" : allspk,
+            "allspk": allspk,
+            "tanggal": tanggal,
         },
     )
 
@@ -56,20 +57,25 @@ def masuk_gudang(request):
         "NoSuratJalan__Tanggal"
     )
     date = request.GET.get("date")
-    if date is not None :
-        datasjb = models.DetailSuratJalanPembelian.objects.filter(NoSuratJalan__Tanggal = date).order_by(
-        "NoSuratJalan__Tanggal"
-    )
+    if date is not None:
+        datasjb = models.DetailSuratJalanPembelian.objects.filter(
+            NoSuratJalan__Tanggal=date
+        ).order_by("NoSuratJalan__Tanggal")
 
-    for i in datasjb :
+    for i in datasjb:
         i.NoSuratJalan.Tanggal = i.NoSuratJalan.Tanggal.strftime("%d-%m-%Y")
 
     if len(datasjb) == 0:
         messages.info(request, "Tidak ada barang masuk ke gudang")
 
-    return render(request, "gudang/baranggudang.html", {"datasjb": datasjb,
-                                                        "date": date,
-                                                        })
+    return render(
+        request,
+        "gudang/baranggudang.html",
+        {
+            "datasjb": datasjb,
+            "date": date,
+        },
+    )
 
 
 def add_gudang(request):
@@ -215,18 +221,23 @@ def rekap_gudang(request):
         .annotate(kuantitas=Sum("Jumlah"))
         .order_by()
     )
+    datenow = datetime.now()
+    tahun = datenow.year
+    mulai = datetime(year=tahun, month=1, day=1)
     date = request.GET.get("date")
     if date is not None:
         datasjb = (
-            models.DetailSuratJalanPembelian.objects.filter(NoSuratJalan__Tanggal = date)
+            models.DetailSuratJalanPembelian.objects.filter(
+                NoSuratJalan__Tanggal__range=(mulai, date)
+            )
             .values(
-            "KodeProduk",
-            "KodeProduk__NamaProduk",
-            "KodeProduk__unit",
-            "KodeProduk__keterangan",
-        )
-        .annotate(kuantitas=Sum("Jumlah"))
-        .order_by()
+                "KodeProduk",
+                "KodeProduk__NamaProduk",
+                "KodeProduk__unit",
+                "KodeProduk__keterangan",
+            )
+            .annotate(kuantitas=Sum("Jumlah"))
+            .order_by()
         )
 
     if len(datasjb) == 0:
@@ -255,7 +266,7 @@ def rekap_gudang(request):
         "gudang/rekapgudang.html",
         {
             "datasjb": datasjb,
-            "date" : date,
+            "date": date,
         },
     )
 
@@ -294,7 +305,7 @@ def detail_barang(request):
             models.DetailSuratJalanPembelian.objects.filter(KodeProduk=input_kode)
             .filter(NoSuratJalan__Tanggal__year=input_tahun)
             .order_by("NoSuratJalan__Tanggal")
-        )   
+        )
         tanggalgudang = list(datagudang2.values_list("tanggal", flat=True).distinct())
         tanggalgudang2 = list(
             datasjp.values_list("NoSuratJalan__Tanggal", flat=True).distinct()
@@ -379,7 +390,7 @@ def detail_barang(request):
                 "kodeproduk": input_kode,
                 "saldoawal": saldo_awal,
                 "input_tahun": input_tahun,
-                "datasjp" : datasjp
+                "datasjp": datasjp,
             },
         )
 
@@ -475,8 +486,14 @@ def accgudang3(request, id, date, date2, lok):
     return redirect(f"/gudang/barangkeluar/?mulai={date}&akhir={date2}&lokasi={lok}")
 
 
-# def spk(request) :
+def spk(request):
+    dataspk = models.SPK.objects.all()
+    for spk in dataspk:
+        detailspk = models.DetailSPK.objects.filter(NoSPK=spk.id)
+        spk.detailspk = detailspk
+        spk.Tanggal = spk.Tanggal.strftime("%d-%m-%Y")
 
+    return render(request, "gudang/spkgudang.html", {"dataspk": dataspk})
 
 
 def cobaform(request):
@@ -489,3 +506,36 @@ def cobaform(request):
         print(produk_list)
 
     return render(request, "gudang/cobaform.html", {"data": databahanbaku})
+
+
+def addgudang3(request):
+    if request.method == "GET":
+        detailspk = models.DetailSPK.objects.all()
+        getproduk = models.Produk.objects.all()
+        getlokasi = models.Lokasi.objects.all()
+        return render(
+            request,
+            "gudang/addgudang3.html",
+            {"detailspk": detailspk, "getproduk": getproduk, "getlokasi": getlokasi},
+        )
+    if request.method == "POST":
+        kode = request.POST["kodeproduk"]
+        tanggal = request.POST["tanggal"]
+        keterangan = request.POST["keterangan"]
+        jumlah = request.POST["jumlah"]
+        acc = True
+        lokasi = request.POST["lokasi"]
+
+        savetrans = models.TransaksiGudang(
+            KodeProduk=models.Produk.objects.get(KodeProduk=kode),
+            keterangan=keterangan,
+            jumlah=jumlah,
+            tanggal=tanggal,
+            KeteranganACC=acc,
+            Lokasi=models.Lokasi.objects.get(NamaLokasi=lokasi),
+            DetailSPK=None,
+        )
+
+        savetrans.save()
+
+        return redirect("barangkeluar")

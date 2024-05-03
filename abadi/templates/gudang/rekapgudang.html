@@ -23,8 +23,9 @@
             <button type="submit" class="btn btn-primary btn-sm mb-2 mr-sm-2 ml-2">Submit</button>
         </form>
             </div>
-          <div class="table-responsive pt-3">
-        <table class="table table-bordered" id="ajg">
+        <div class="table-responsive pt-3">
+        {% if datasjb %}
+        <table class="table table-bordered" id="rekapgudang">
         <thead>
             <tr>
                 <th>No</th>
@@ -53,6 +54,7 @@
             {% endfor %}
         </tbody>
     </table>
+    {% endif %}
 </div>
 </div>
 </div>

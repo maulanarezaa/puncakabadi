@@ -47,7 +47,26 @@
                 {% endif %}
                 <div class="table-responsive pt-3">
                     {% if data %}
-                    <table class="table table-bordered">
+                    <table class="table table-bordered" style="margin-bottom: 30px;">
+                        <thead>
+                            <tr>
+                                <td></td>
+                                <td>Kuantitas <br>Sisa</td>
+                                <td>Harga <br>Satuan Sisa</td>
+                                <td>Harga <br>Total Sisa</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Saldo Awal</td>
+                                <td>{{Saldoawal.saldoawal}}</td>
+                                <td>{{Saldoawal.hargasatuanawal}}</td>
+                                <td>{{Saldoawal.hargatotalawal}}</td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                   ; <table class="table table-bordered" id="data_ksbb" name="data_ksbb">
                         <thead>
                             <tr>
                                 <td>Tanggal</td>
@@ -63,13 +82,6 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td colspan="7">Saldo Awal</td>
-                                <td>{{Saldoawal.saldoawal}}</td>
-                                <td>{{Saldoawal.hargasatuanawal}}</td>
-                                <td>{{Saldoawal.hargatotalawal}}</td>
-
-                            </tr>
                             {% for i in data %}
                             <tr>
                                 <td>{{i.Tanggal}}</td>
@@ -87,8 +99,8 @@
                             {% endfor %}
 
                         </tbody>
-                    </table>
-
+                    </table >
+          
                     {% endif %}
                 </div>
             </div>

@@ -14,16 +14,18 @@
       <div class="card">
         <div class="card-body">
           <h4 class="card-title">Rekap Barang</h4>
-          <div class="template-demo">
-            <a href="/purchasing/rekap_purchasing">
-              <button type="button" class="btn btn-light btn-icon-text">
-                <i class="typcn typcn-chevron-left btn-icon-prepend"></i>
-                Kembali
-              </button>
-            </a>
-          </div>
-          <div class="table-responsive pt-3">
-            <table class="table table-bordered table-light">
+          <form class="form-inline" method="get">
+            <div class="form-group">    
+
+        <form action="{% url 'rekapgudang2' %}" method="GET">
+            <label for="tanggal">Pilih Tanggal :</label>
+            <input value="{{date}}" type="date" name="date" class="form-control mb-2 mr-sm-2 ml-2">
+            <button type="submit" class="btn btn-primary btn-sm mb-2 mr-sm-2 ml-2">Submit</button>
+        </form>
+            </div>
+        <div class="table-responsive pt-3">
+        {% if datasjb %}
+        <table class="table table-bordered" id="rekapgudang">
         <thead>
             <tr>
                 <th>No</th>
@@ -39,13 +41,33 @@
             <tr>
                 <td>{{i.KodeProduk}}</td>
                 <td>{{i.KodeProduk__NamaProduk}}</td>
+                {% if i.kuantitas < 0 %}
+                <td style="background-color: red;">{{i.kuantitas}}</td>
+                {% elif i.kuantitas == 0 %}
+                <td style="background-color: yellow;">{{i.kuantitas}}</td>
+                {% else %}
                 <td>{{i.kuantitas}}</td>
+                {% endif %}
                 <td>{{i.KodeProduk__unit}}</td>
                 <td>{{i.KodeProduk__keterangan}}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    {% endif %}
+</div>
+</div>
+</div>
+</div>
+</div>
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% block javascripts %}
     <script>
         // Mendapatkan elemen tbody
         var tableBody = document.getElementById("tableBody");
@@ -59,18 +81,6 @@
             cell.textContent = i + 1;
         }
     </script>
-</div>
-</div>
-</div>
-</div>
-</div>
+{% endblock javascripts %}
 {% endblock content %}
-{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
-</body>
-</html>
+

@@ -103,14 +103,19 @@
         <div class="card-body">
           <h4 class="card-title">Notifikasi SPK</h4>
           <form action="{% url 'viewgudang' %}" method="GET">
-            <label for="Tanggal">Masukkan Tanggal :</label>
-            {% if Tanggal == None %}
-            <input type="date" name="kodebb" class="form-control mb-2 mr-sm-2 ml-2">
-            {% else %}
-            <input value="{{Tanggal}}" type="date" name="kodebb" class="form-control mb-2 mr-sm-2 ml-2">
-            {% endif %}
-            <button type="submit" class="btn btn-primary btn-sm mb-2 mr-sm-2 ml-2">Submit</button>
-        </form>
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <input type="date" class="form-control" placeholder="Pilih Tanggal :"
+                                aria-label="Pilih Tanggal :" name="Tanggal" value="{{tanggal}}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-sm btn-primary" type="submit">Filter</button>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
           <div class="table-responsive pt-3">
             <table class="table table-bordered table-light">
                 <thead>

@@ -68,7 +68,7 @@
                 </div>
                 <div id="firstTable" style="display: block;">
                   <h4>Tabel Artikel</h4>
-                  <table class="table table-bordered">
+                  <table class="table table-bordered" id="datapengadaan">
                     <thead>
                       <tr>
                         <th>No</th>
@@ -102,37 +102,56 @@
                     Rekap Pengadaan             
                   </button>
                 </div>
-                <form class="form-sample" action="" method="post">
+                <form action="" class="form-sample" method="post">
                   {% csrf_token %}
-                  <div id="tambahBarang" style="display:none;margin-top: 20px;" class="input-group">
-                      <div class="form-group row">
-                          <label class="col-sm-3 col-form-label">Nama Artikel</label>
-                          <div class="col-sm-9">
-                              <input type="text" class="form-control" placeholder="Masukkan nama artikel" aria-label="Masukkan nama artikel" name="input_nama_art" id="input_nama_art" list="list_art" required>
-                              <datalist id="list_art">
-                                  {% for i in artall %}
-                                  <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
-                                  {% endfor %}
-                              </datalist>
-                          </div>
+                  <div id="tambahBarang2" style="display: none;margin-top: 20px;">
+                    
+                    <div id="tambahBarang" >
+                      <div id="artikels">
+                        <div class="row" id="artikel_1">
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label for="artikel_{{forloop.counter}}">Artikel 1 :</label>
+                                    <input required type="text" class="form-control artikel" name="artikel[]" list="listartikel" placeholder="Artikel">
+                                    <datalist  id="listartikel">
+                                        {% for i in artall %}
+                                        <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
+                                        {% endfor %}
+                                    </datalist>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label for="quantity_1">Jumlah</label>
+                                    <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity">
+                                </div>
+                            </div>
+                            <div class="col-md-1">
+                              <br>
+                              <label for="hapus1"></label>
+                              <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
+                            </div>
+                        </div>
                       </div>
-                      <div class="form-group row">
-                          <label class="col-sm-3 col-form-label">Jumlah Artikel</label>
-                          <div class="col-sm-9">
-                              <input type="number" class="form-control" name="input_jumlah_art" id="input_jumlah_art" placeholder="Masukkan jumlah artikel" required/>
-                          </div>
+      
+                    </div>
+                    <div class="row">
+                      <div class="col-auto mr-auto">
+                        <button type="button" class="btn btn-success" onclick="addProduct()">
+                          <i class="typcn typcn-plus btn-icon-prepend"></i>
+                          Tambahkan Artikel
+                        </button>
                       </div>
-                      
-                      <button class="btn btn-sm btn-primary" type="submit">Submit</button>
-                       
+                      <div class="col-auto"><button type="submit" class="btn btn-primary mr-2">Submit</button></div>            
+                    </div>
                   </div>
-              </form>
-              
+                </form>
+               
              
                 <div id="secondTable" style="display: none;" class="col-lg-12">
 
                   <h4 style="margin-top: 10px;">Tabel Kebutuhan Bahan</h4>
-                  <table class="table table-bordered" style="table-layout: fixed;" >
+                  <table class="table table-bordered" style="table-layout: fixed;" id="datapengadaan2">
                     <thead>
                       <tr>
                         <th>No</th>
@@ -164,7 +183,7 @@
                 </div>
                 
                 <div id="secondTable2" style="display: none;">
-                  <table  class="table table-bordered" style="table-layout: fixed;"  >
+                  <table  class="table table-bordered" style="table-layout: fixed;" id="datapengadaan3" >
                 
                   <thead> 
                     <tr>
@@ -200,6 +219,45 @@
   </div>
 </div>
 {% block javascripts %}
+<script>
+  function addProduct() {
+    let productCounter = document.querySelectorAll('.artikel').length+1;
+    const productRow = document.createElement('div');
+    productRow.className = "row" ;
+    productRow.id = `artikel_${productCounter}`;
+    productRow.innerHTML = `
+                       <div class="col-md-5">
+                              <div class="form-group">
+                                  <label for="artikel_${productCounter}">Artikel ${productCounter}:</label>
+                                  <input required type="text" class="form-control artikel" name="artikel[]"list="listartikel" placeholder = "Artikel">
+                                  <datalist  id="listartikel">
+                                      {% for i in artall %}
+                                      <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
+                                      {% endfor %}
+                                  </datalist>
+                              </div>
+                          </div>
+                          <div class="col-md-5">
+                              <div class="form-group">
+                                  <label for="quantity_1">Jumlah</label>
+                                  <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity">
+                              </div>
+                          </div>
+                          <div class="col-md-1">
+                            <br>
+                            <label for="hapus1"></label>
+                            <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
+                          </div>
+                      </div>
+                    </div>
+                    `;
+    document.getElementById('tambahBarang').appendChild(productRow)
+    
+  }
+  function deleteRow(button) {
+      button.closest('.row').remove();
+  }
+</script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
   document.getElementById('hideTable').addEventListener('click', function() {
@@ -242,11 +300,11 @@
 
 <script>
   document.getElementById('showTambahBarang').addEventListener('click', function() {
-      var tambahBarang = document.getElementById('tambahBarang');
-      if (tambahBarang.style.display === 'none') {
-          tambahBarang.style.display = 'table';
+      var tambahBarang2 = document.getElementById('tambahBarang2');
+      if (tambahBarang2.style.display === 'none') {
+          tambahBarang2.style.display = 'table';
       } else {
-          tambahBarang.style.display = 'none';
+          tambahBarang2.style.display = 'none';
       }
   });
 </script>
@@ -270,5 +328,7 @@
       }
   });
   </script>
+
+
 {% endblock javascripts %}
 {% endblock content %}

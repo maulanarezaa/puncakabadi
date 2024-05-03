@@ -13,11 +13,11 @@ urlpatterns = [
         viewspurchasing.verifikasi_data,
         name="update_verif_purchasing",
     ),
-    path("acc_spk/<str:id>",viewspurchasing.acc_notif_spk,name="acc_spk"),
+    path("acc_spk/<str:id>", viewspurchasing.acc_notif_spk, name="acc_spk"),
     # R penyusun
-    path("penyusun",viewspurchasing.views_penyusun,name="penyusun"),
+    path("penyusun", viewspurchasing.views_penyusun, name="penyusun"),
     # CR kebutuhan barang
-    path("kebutuhan_barang",viewspurchasing.kebutuhan_barang,name="kebutuhan_barang"),
+    path("kebutuhan_barang", viewspurchasing.kebutuhan_barang, name="kebutuhan_barang"),
     # path("kebutuhan_barang/",viewspurchasing.kebutuhan_barang,name="kebutuhan_barang"),
     # barang_masuk
     path("barang_masuk", viewspurchasing.barang_masuk, name="barang_masuk"),
@@ -28,8 +28,10 @@ urlpatterns = [
     ),
     # rekap purchasing(gudang+produksi)
     path("rekap_purchasing", viewspurchasing.rekap_purchasing, name="rekap_purchasing"),
-    path("rekapgudang2", viewspurchasing.rekap_gudang, name='rekapgudang2'),
-    path('viewrekapbarang2',viewspurchasing.view_rekapbarang,name='view_rekapbarang2'),
+    path("rekapgudang2", viewspurchasing.rekap_gudang, name="rekapgudang2"),
+    path(
+        "viewrekapbarang2", viewspurchasing.view_rekapbarang, name="view_rekapbarang2"
+    ),
     # CRUD PRODUK
     path("read_produk", viewspurchasing.read_produk, name="read_produk"),
     path("create_produk", viewspurchasing.create_produk, name="create_produk"),
@@ -40,7 +42,11 @@ urlpatterns = [
     path("addsppb2", viewspurchasing.add_sppb, name="add_sppb2"),
     path("detailsppb2/<str:id>", viewspurchasing.detail_sppb, name="detail_sppb2"),
     path("delete_sppb2/<str:id>", viewspurchasing.delete_sppb, name="delete_sppb2"),
-    path("delete_detailsppb2/<str:id>", viewspurchasing.delete_detailsppb, name="delete_detailsppb2"),
+    path(
+        "delete_detailsppb2/<str:id>",
+        viewspurchasing.delete_detailsppb,
+        name="delete_detailsppb2",
+    ),
     # R PO
     path("read_po", viewspurchasing.read_po, name="read_po"),
     # R SPK

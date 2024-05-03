@@ -18,11 +18,12 @@ urlpatterns = [
         viewsgudang.accgudang2,
         name="accgudang2",
     ),
+    path("addgudang3", viewsgudang.addgudang3, name="addgudang3"),
     path(
         "accgudang3/<str:id>/<str:date>/<str:date2>/<str:lok>",
         viewsgudang.accgudang3,
         name="accgudang3",
     ),
     path("cobaform", viewsgudang.cobaform, name="coba"),
-    # path("spk", viewsgudang.spk, name="spk"),
+    path("spkgudang", viewsgudang.spk, name="spkgudang"),
 ]

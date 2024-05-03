@@ -15,6 +15,7 @@
   <!-- plugin css for this page -->
   <!-- End plugin css for this page -->
   <!-- inject:css -->
+  <link rel="stylesheet" href="{% static 'assets/vendors/datatables.net-bs4/dataTables.bootstrap4.css' %}">
   <link rel="stylesheet" href="{% static 'assets/css/vertical-layout-light/style.css' %}">
   <!-- endinject -->
   <link rel="shortcut icon" href="{% static 'assets/images/favicon.png' %}" />
@@ -89,6 +90,77 @@
   <!-- Custom js for this page-->
   <script src="{% static 'assets/js/dashboard.js' %}"></script>
   <!-- End custom js for this page-->
+  
+  <!-- <script src=" {% static 'assets/js/jquery-1.10.2.js' %}"></script> -->
+  <script src=" {% static 'assets/vendors/datatables.net/jquery.dataTables.js' %}"></script>
+  <script src=" {% static 'assets/vendors/datatables.net-bs4/dataTables.bootstrap4.js' %}"></script>
+
+  <script>
+    $(document).ready(function () {
+      $('#dataspk').dataTable();
+    });
+
+    $(document).ready(function () {
+      $('#datapo').dataTable();
+    });
+ 
+    $(document).ready(function () {
+      $('#datapenyusun').dataTable();
+    });
+
+    $(document).ready(function () {
+      $('#datapengadaan_notif').dataTable();
+    });
+  
+    $(document).ready(function () {
+      $('#databarang_notif').dataTable();
+    });
+ 
+    $(document).ready(function () {
+      $('#dataspk_notif').dataTable();
+    });
+    
+    $(document).ready(function () {
+      $('#datasppb').dataTable();
+    });
+
+    $(document).ready(function () {
+      $('#dataproduk').dataTable();
+    });
+
+    $(document).ready(function () {
+      $('#datapengadaan').dataTable();
+    });
+
+    $(document).ready(function () {
+      $('#datapengadaan2').dataTable();
+    });
+
+    $(document).ready(function () {
+      $('#datapengadaan3').dataTable();
+    });
+
+    $(document).ready(function () {
+      $('#datarekapgudang').dataTable();
+    });
+
+    $(document).ready(function () {
+      $('#datarekapproduksi').dataTable();
+    });
+
+    $(document).ready(function() {
+      $('#databarangmasuk').dataTable();
+    });
+
+    
+  
+  </script>
+  <script>
+      $(document).ready(function () {
+      $('#data_ksbb').dataTable();
+    });
+
+  </script>
 </body>
 
 </html>

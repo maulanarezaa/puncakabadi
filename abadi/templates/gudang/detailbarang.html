@@ -16,16 +16,15 @@
                 <form class="form-inline" action="" method="get">
                 <div class="form-group">
                         <label  for="input_kode">Kode Produk :</label>
-                        <div class="input-group mb-2 mr-sm-2 ml-2">
-                            <select class="form-control mr-2 ml-2" name="input_kode" id="input_kode">
-                                {% for i in dataproduk %}
-                                {% if i.KodeProduk == kodeproduk %}
-                                <option value="{{i.KodeProduk}}" selected>{{i.KodeProduk}}</option>
-                                {% else %}
-                                <option value="{{i.KodeProduk}}">{{i.KodeProduk}}</option>
-                                {% endif %}
-                                {% endfor %}
-                            </select> 
+                        <div class="input-group mb- mr-sm-2 ml-2">
+                            <input type="text" class="form-control" placeholder="Masukkan Kode Produk"
+                                    aria-label="Masukkan Nama Produk" name="input_kode" list="listkode">
+                                <datalist id="listkode">
+                                    {% for i in dataproduk %}
+                                    <option value="{{i.KodeProduk}}">{{i.KodeProduk}}- {{i.NamaProduk}}</option>
+                                    {% endfor %}
+                                </datalist>
+                                <input type="text" hidden name="versi">
                             <label for="input_tahun">Tahun :</label>
                             <input value="{{input_tahun}}" type="text" name="input_tahun" class="form-control mr-2 ml-2" required>
                             <button type="submit" class="btn btn-primary btn-sm">Submit</button>
