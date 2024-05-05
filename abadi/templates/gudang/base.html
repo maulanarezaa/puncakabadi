@@ -97,7 +97,7 @@
   <script>
     $(document).ready(function () {
       $('#baranggudang').dataTable(
-        {
+        {'order' : [],
           'columnDefs': [{
             'searchable': false,
             'targets': [2,3,4,5,6,7]
@@ -124,15 +124,44 @@
 
   <script>  
     $(document).ready(function () {
-      $('#barangkeluar').dataTable();
+      $('#barangkeluar').dataTable(
+        {'order' : [],
+          'columnDefs': [{
+            'orderable': false,
+            'targets': [0]
+          },
+          ]
+        }
+      );
     });
   </script>
 
-  <script> 
-    $(document).ready(function () {
-      $('#barangretur').dataTable();
-    });
-    </script>
+<script>  
+  $(document).ready(function () {
+    $('#barangretur').dataTable(
+      {'order' : [],
+        'columnDefs': [{
+          'orderable': false,
+          'targets': [0]
+        },
+        ]
+      }
+    );
+  });
+</script>
+<script>  
+  $(document).ready(function () {
+    $('#spkgudang').dataTable(
+      {'order' : [],
+        'columnDefs': [{
+          'orderable': false,
+          'targets': [0]
+        },
+        ]
+      }
+    );
+  });
+</script>
 
 </body>
 </html>

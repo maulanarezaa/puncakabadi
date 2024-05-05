@@ -5,6 +5,7 @@ from django.urls import reverse
 from . import models
 from django.db.models import Sum
 from datetime import datetime
+from datetime import timedelta
 from django.db.models.functions import ExtractYear
 
 
@@ -14,31 +15,41 @@ def view_gudang(request):
         .filter(jumlah__lt=0)
         .order_by("tanggal")
     )
+
     getkeluar = (
         models.TransaksiGudang.objects.filter(KeteranganACC=False)
         .filter(jumlah__gt=0)
         .order_by("tanggal")
     )
 
-    allspk = models.DetailSPK.objects.all().order_by("NoSPK__Tanggal")
+    akhir = datetime.now()
 
-    tanggal = request.GET.get("Tanggal")
+    mulai = akhir - timedelta(days = 30)
+    print(mulai)
+    allspk = models.DetailSPK.objects.filter(NoSPK__Tanggal__range = (mulai,akhir)).order_by("NoSPK__Tanggal")
 
-    print(tanggal)
-    if tanggal is not None:
-        if tanggal == "":
-            allspk = models.DetailSPK.objects.all().order_by("NoSPK__Tanggal")
-        else:
-            allspk = models.DetailSPK.objects.filter(NoSPK__Tanggal=tanggal)
+
+    for a in getretur:
+        a.jumlah = a.jumlah * -1
+
+    for i in getretur:
+        i.tanggal = i.tanggal.strftime("%d-%m-%Y")
+
+    for i in getkeluar:
+        i.tanggal = i.tanggal.strftime("%d-%m-%Y")
+
+   
+    for i in allspk:
+        i.NoSPK.Tanggal = i.NoSPK.Tanggal.strftime("%d-%m-%Y")
 
     if len(getretur) == 0:
         messages.info(request, "Tidak ada barang retur yang belum ACC")
-    elif len(getkeluar) == 0:
+    
+    if len(getkeluar) == 0:
         messages.info(request, "Tidak ada barang keluar yang belum ACC")
-
-    else:
-        for a in getretur:
-            a.jumlah = a.jumlah * -1
+   
+    if len(allspk) == 0:
+        messages.warning(request, "Tidak ada SPK selama 30 hari terakhir")
 
     return render(
         request,
@@ -47,7 +58,6 @@ def view_gudang(request):
             "getkeluar": getkeluar,
             "getretur": getretur,
             "allspk": allspk,
-            "tanggal": tanggal,
         },
     )
 
@@ -181,6 +191,8 @@ def update_gudang(request, id):
             {
                 "datasjp": datasjp_getobj,
                 "detailsjp": detailsjp_filtered,
+                "datasj" : datasj,
+                "detailsj" : datasjp2,
                 "tanggal": datetime.strftime(datasjp_getobj.Tanggal, "%Y-%m-%d"),
             },
         )
@@ -314,6 +326,7 @@ def detail_barang(request):
 
         tanggaltotal = tanggalgudang + tanggalgudang2
         tanggaltotal = sorted(list(set(tanggaltotal)))
+        
         if len(tanggaltotal) == 0:
             messages.error(
                 request, "Tidak ada barang masuk ke gudang, keluar, dan retur"
@@ -366,10 +379,14 @@ def detail_barang(request):
             list_keluar.append(keluar)
             list_masuk.append(masuk)
             list_sisa.append(saldo_dummy)
+            
+
+
 
         for tanggal, masuk, keluar, sisa in zip(
             tanggaltotal, list_masuk, list_keluar, list_sisa
         ):
+            tanggal = tanggal.strftime("%d-%m-%Y")
             dict_semua.append(
                 {
                     "tanggaltotal": tanggal,
@@ -397,32 +414,40 @@ def detail_barang(request):
 
 def barang_keluar(request):
     datalokasi = models.Lokasi.objects.all()
-    datagudang = models.TransaksiGudang.objects.all()
+    data = models.TransaksiGudang.objects.filter(jumlah__gt=0).order_by('tanggal')
+    for i in data :
+        i.tanggal = i.tanggal.strftime("%d-%m-%Y")
+    print(data)
     if len(request.GET) == 0:
         return render(
             request,
             "gudang/barangkeluar.html",
             {
                 "datalokasi": datalokasi,
-                "datagudang": datagudang,
+                "data": data,
             },
         )
     else:
         date = request.GET.get("mulai")
         date2 = request.GET.get("akhir")
         lok = request.GET.get("lokasi")
-        data = datagudang.filter(
-            tanggal__range=(date, date2), Lokasi__NamaLokasi=lok, jumlah__gt=0
-        )
+        if date is not None :
+            data = data.filter(
+                tanggal__range=(date, date2), Lokasi__NamaLokasi=lok, jumlah__gt=0
+            ).order_by('tanggal')
+        
+        for i in data :
+            i.tanggal = i.tanggal.strftime("%d-%m-%Y")
+        
+        
         if len(data) == 0:
-            messages.error(request, "Tidak ada barang masuk ke gudang")
+            messages.error(request, "Tidak ada barang keluar dari gudang")
 
         return render(
             request,
             "gudang/barangkeluar.html",
             {
                 "datalokasi": datalokasi,
-                "datagudang": datagudang,
                 "data": data,
                 "date": date,
                 "date2": date2,
@@ -433,35 +458,41 @@ def barang_keluar(request):
 
 def barang_retur(request):
     datalokasi = models.Lokasi.objects.all()
-    datagudang = models.TransaksiGudang.objects.all()
-
+    data = models.TransaksiGudang.objects.filter(jumlah__lt=0).order_by('tanggal')
+    for i in data :
+        i.tanggal = i.tanggal.strftime("%d-%m-%Y")
+    print(data)
     if len(request.GET) == 0:
         return render(
             request,
             "gudang/barangretur.html",
             {
                 "datalokasi": datalokasi,
-                "datagudang": datagudang,
+                "data": data,
             },
         )
     else:
         date = request.GET.get("mulai")
         date2 = request.GET.get("akhir")
         lok = request.GET.get("lokasi")
-        data = datagudang.filter(
-            tanggal__range=(date, date2), Lokasi__NamaLokasi=lok, jumlah__lt=0
-        )
-        if len(data) == 0:
-            messages.error(request, "Tidak ada barang masuk ke gudang")
-
-        for i in data:
+        if date is not None :
+            data = data.filter(
+                tanggal__range=(date, date2), Lokasi__NamaLokasi=lok, jumlah__lt=0
+            ).order_by('tanggal')
+        
+        for i in data :
             i.jumlah = i.jumlah * -1
+            i.tanggal = i.tanggal.strftime("%d-%m-%Y")
+        
+        
+        if len(data) == 0:
+            messages.error(request, "Tidak ada barang keluar dari gudang")
+
         return render(
             request,
             "gudang/barangretur.html",
             {
                 "datalokasi": datalokasi,
-                "datagudang": datagudang,
                 "data": data,
                 "date": date,
                 "date2": date2,
@@ -487,12 +518,9 @@ def accgudang3(request, id, date, date2, lok):
 
 
 def spk(request):
-    dataspk = models.SPK.objects.all()
-    for spk in dataspk:
-        detailspk = models.DetailSPK.objects.filter(NoSPK=spk.id)
-        spk.detailspk = detailspk
-        spk.Tanggal = spk.Tanggal.strftime("%d-%m-%Y")
-
+    dataspk = models.SPK.objects.all().order_by("-Tanggal")
+    for i in dataspk :
+        i.Tanggal = i.Tanggal.strftime("%d-%m-%Y")
     return render(request, "gudang/spkgudang.html", {"dataspk": dataspk})
 
 
@@ -525,6 +553,7 @@ def addgudang3(request):
         jumlah = request.POST["jumlah"]
         acc = True
         lokasi = request.POST["lokasi"]
+        print(lokasi)
 
         savetrans = models.TransaksiGudang(
             KodeProduk=models.Produk.objects.get(KodeProduk=kode),
@@ -539,3 +568,5 @@ def addgudang3(request):
         savetrans.save()
 
         return redirect("barangkeluar")
+    
+

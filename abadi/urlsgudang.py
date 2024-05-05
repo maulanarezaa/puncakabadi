@@ -20,7 +20,7 @@ urlpatterns = [
     ),
     path("addgudang3", viewsgudang.addgudang3, name="addgudang3"),
     path(
-        "accgudang3/<str:id>/<str:date>/<str:date2>/<str:lok>",
+        "accgudang3/",
         viewsgudang.accgudang3,
         name="accgudang3",
     ),

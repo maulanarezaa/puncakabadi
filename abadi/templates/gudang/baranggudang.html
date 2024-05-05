@@ -14,31 +14,30 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Barang Masuk</h4>
+                    <form action="{% url 'baranggudang' %}" method="GET">
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <input type="date" class="form-control" placeholder="dd/mm/yyyy"
+                                            aria-label="Pilih Tanggal :" name="date" value="{{date}}">
+                                            <div class="input-group-append">
+                                                <button class="btn btn-sm btn-primary" type="submit">Filter</button>
+                                            </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 <div class="template-demo">
                     <a href="{% url 'addgudang' %}">
-                        <button type="button" class="btn btn-success btn-icon-text">
+                        <button type="button" class="btn btn-success btn-icon-text btn-sm">
                             <i class="typcn typcn-plus btn-icon-prepend"></i>
                             Tambah Data
                         </button>
                     </a>
                 </div>
                 <br>
-                <form action="{% url 'baranggudang' %}" method="GET">
-                    <div class="row">
-                        <div class="col-lg-4">
-                            <div class="form-group">
-                                <div class="input-group">
-                                    <input type="date" class="form-control" placeholder="Pilih Tanggal :"
-                                        aria-label="Pilih Tanggal :" name="date" value="{{date}}">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-sm btn-primary" type="submit">Filter</button>
-                                        </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                </form>
                 <div class="table-responsive pt-3">
                     <table class="table table-bordered table-light" id="baranggudang">
                         <thead>
