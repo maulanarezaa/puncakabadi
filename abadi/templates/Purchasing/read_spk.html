@@ -13,33 +13,47 @@
                     <table class="table table-bordered" id="dataspk" name="dataspk">
                         <thead>
                             <tr>
-                                <th>No</th>
+
                                 <th>Tanggal</th>
                                 <th>No SPK</th>
                                 <th>Kode Artikel</th>
                                 <th>Jumlah</th>
                                 <th>Keterangan</th>
-                                <th>Keterangan ACC</th>
                                 <th>Detail</th>
                             </tr>
                         </thead>
                         <tbody id="">
                             {% for i in dataspk %}
                             <tr>
-                                <td>{{forloop.counter}}</td>
-                                <td>{{i.NoSPK.Tanggal}}</td>
+                                <td>{{i.Tanggal}}</td>
                                 <td>{{i.NoSPK}}</td>
-                                <td>{{i.KodeArtikel}}</td>
-                                <td>{{i.Jumlah}}</td>
-                                <td>{{i.NoSPK.Keterangan}}</td>
-                                {% if i.NoSPK.KeteranganACC %}
-                                <td>Sudah ACC</td>
-                                {% else %}
-                                <td>Belum ACC</td>
-                                {% endif %}
+
+                                {% if i.detailspk.exists %}
+
                                 <td>
+                                    {% for j in i.detailspk %}
+                                    <li>
+                                        {{j.KodeArtikel}}
+                                    </li>
+                                    {% endfor %}
+
+                                </td>
+                                <td>
+                                    {% for j in i.detailspk %}
+                                    <li>
+                                        {{j.Jumlah}}
+                                    </li>
+                                    {% endfor %}
+                                </td>
+                                {% else %}
+                                <p> Belum ada Record Detail SPPB</p>
+                                {% endif %}
+
+                                <td>{{i.Keterangan}}</td>
+                                <td>
+                                    <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                                     <div class="template-demo">
-                                        <a href="{% url 'trackspk' i.NoSPK.id %}">
+                                        <a href="{% url 'tracking_spk' i.id %}">
                                             <button type="button" class="btn btn-primary">
                                                 <i class="typcn typcn-th-list"></i>
                                             </button>

@@ -686,10 +686,11 @@ def read_po(request):
 
 
 def read_spk(request):
-    dataspk = models.DetailSPK.objects.all()
-    # if len(dataspk) == 0 :
-    #     return render(request,'',{"dataspk":dataspk})
-    # else :
+    dataspk = models.SPK.objects.all()
+    for spk in dataspk:
+        detailspk = models.DetailSPK.objects.filter(NoSPK=spk.id)
+        spk.detailspk = detailspk
+        spk.Tanggal = spk.Tanggal.strftime("%d-%m-%Y")
     return render(request, "Purchasing/read_spk.html", {"dataspk": dataspk})
 
 
@@ -1400,7 +1401,7 @@ def views_rekapharga(request):
         tahun = request.GET["tahun"]
 
         if tahun == "":
-            tahun = 2024
+            tahun = "2024"
 
         tahun = datetime.strptime(tahun, format("%Y"))
         awaltahun = datetime(tahun.year, 1, 1)
@@ -1535,6 +1536,11 @@ def views_rekapharga(request):
             dumy["Sisahariini"] = saldoawal
             dumy["Hargasatuansisa"] = round(hargasatuanawal, 2)
             dumy["Hargatotalsisa"] = round(hargatotalawal, 2)
+            
+            if dumy['Hargakeluarsatuan'] != 0:
+                dumy['Hargakeluarsatuan'] = dumy['Hargasatuansisa']
+                dumy['Hargakeluartotal'] = dumy['Hargakeluarsatuan'] * dumy['Jumlahkeluar']
+                
 
             listdata.append(dumy)
 
