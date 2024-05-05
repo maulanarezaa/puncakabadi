@@ -15,7 +15,7 @@ urlpatterns = [
     ),
     path(
         "laporanpersediaanbarang",
-        viewsppic.laporanpersediaanbarang,
+        viewsppic.laporanpersediaan,
         name="laporanpersediaanbarang",
     ),
     path(
@@ -55,6 +55,16 @@ urlpatterns = [
         "detaillaporanbaranstokwip",
         viewsppic.detaillaporanbaranstokwip,
         name="detaillaporanbaranstokwip",
+    ),
+    path(
+        "detaillaporanbaranstokawalproduksi",
+        viewsppic.detaillaporanbaranstokawalproduksi,
+        name="detaillaporanbaranstokawalproduksi",
+    ),
+    path(
+        "detaillaporanbaranstokawalgudang",
+        viewsppic.detaillaporanbaranstokawalgudang,
+        name="detaillaporanbaranstokawalgudang",
     ),
     # path("delete/<str:id>", viewsppic.updateco, name="updateco"),
 ]

@@ -1399,14 +1399,10 @@ def newlaporanpersediaan(request):
 
 def detaillaporanbarangkeluar(request):
     if len(request.GET) > 0:
-        print(request.GET)
-        tanggalmulai = request.GET["tanggalawal"]
-        tanggalakhir = request.GET["tanggalakhir"]
         bulan = request.GET["bulan"]
-        tanggal_obj = datetime.strptime(tanggalakhir, "%Y-%m-%d")
-        tahun = tanggal_obj.year
-        awaltahun = datetime(tahun, 1, 1)
-        tanggal_obj.date()
+        waktu = request.GET["waktu"]
+        waktuobj = datetime.strptime(waktu, "%Y-%m")
+        awaltahun = datetime(waktuobj.year, 1, 1)
         listbulan = [
             "Januari",
             "Februari",
@@ -1421,12 +1417,12 @@ def detaillaporanbarangkeluar(request):
             "Novermber",
             "Desember",
         ]
-        index = listbulan.index(request.GET["bulan"])
+        index = listbulan.index(request.GET["bulan"]) + 1
         # print(index)
         last_days = []
         for month in range(1, 13):
-            last_day = calendar.monthrange(tahun, month)[1]
-            last_days.append(date(tahun, month, last_day))
+            last_day = calendar.monthrange(waktuobj.year, month)[1]
+            last_days.append(date(waktuobj.year, month, last_day))
         # print(last_days)
         # print(last_days[:index+1])
 
@@ -1439,7 +1435,7 @@ def detaillaporanbarangkeluar(request):
             "ppic/detaillaporanbarangkeluar.html",
             {
                 "sppb": datadetailsppb,
-                "totalbiayakeluar": totalbiayakeluar,
+                "totalbiayakeluar": totalbiayakeluar[index - 1],
                 "bulan": bulan,
                 "penyusun": datapenyusun,
             },
@@ -1448,7 +1444,9 @@ def detaillaporanbarangkeluar(request):
 
 def getbarangkeluar(last_days, stopindex, awaltahun):
     biayafgperartikel = gethargafgperbulan(last_days, stopindex, awaltahun)
-    print(biayafgperartikel)
+    # print(biayafgperartikel)
+    print(stopindex, awaltahun)
+    # print(asda)
     datapenyusun = {}
     biayakeluar = {}
     for index, hari in enumerate(last_days[:stopindex]):
@@ -1619,7 +1617,7 @@ def gethargafgperbulan(last_days, stopindex, awaltahun):
 
             dataperbulan[index] = dummy2
         datahargafgartikel[artikel] = dataperbulan
-    print(datahargafgartikel)
+    # print(datahargafgartikel)
     # print(asdasd)
     return datahargafgartikel
 
@@ -1653,13 +1651,10 @@ def getbarangmasuk(last_days, stopindex, awaltahun):
 def detaillaporanbarangmasuk(request):
     if len(request.GET) > 0:
         print(request.GET)
-        tanggalmulai = request.GET["tanggalawal"]
-        tanggalakhir = request.GET["tanggalakhir"]
         bulan = request.GET["bulan"]
-        tanggal_obj = datetime.strptime(tanggalakhir, "%Y-%m-%d")
-        tahun = tanggal_obj.year
-        awaltahun = datetime(tahun, 1, 1)
-        tanggal_obj.date()
+        waktu = request.GET["waktu"]
+        waktuobj = datetime.strptime(waktu, "%Y-%m")
+        awaltahun = datetime(waktuobj.year, 1, 1)
         listbulan = [
             "Januari",
             "Februari",
@@ -1674,24 +1669,23 @@ def detaillaporanbarangmasuk(request):
             "Novermber",
             "Desember",
         ]
-        index = listbulan.index(request.GET["bulan"])
+        index = listbulan.index(request.GET["bulan"]) + 1
         # print(index)
         last_days = []
         for month in range(1, 13):
-            last_day = calendar.monthrange(tahun, month)[1]
-            last_days.append(date(tahun, month, last_day))
+            last_day = calendar.monthrange(waktuobj.year, month)[1]
+            last_days.append(date(waktuobj.year, month, last_day))
         # print(last_days)
         # print(last_days[:index+1])
-        (databahanbakumasuk, nilaibahanbakumasuk) = getbarangmasuk(
-            last_days[index - 1], last_days[index]
-        )
+        bahanbakumasuk = getbarangmasuk(last_days, index, awaltahun)
+        print(bahanbakumasuk)
 
         return render(
             request,
             "ppic/detaillaporanbarangmasuk.html",
             {
-                "sjp": databahanbakumasuk,
-                "totalbiayamasuk": nilaibahanbakumasuk,
+                "sjp": bahanbakumasuk[index - 1]["data"],
+                "totalbiayamasuk": bahanbakumasuk[index - 1]["total"],
                 "bulan": bulan,
             },
         )
@@ -1800,14 +1794,11 @@ def getstokgudang(awaltahun, last_days, stopindex):
 
 def detaillaporanbaranstokgudang(request):
     if len(request.GET) > 0:
-        print(request.GET)
-        tanggalmulai = request.GET["tanggalawal"]
-        tanggalakhir = request.GET["tanggalakhir"]
         bulan = request.GET["bulan"]
-        tanggal_obj = datetime.strptime(tanggalakhir, "%Y-%m-%d")
-        tahun = tanggal_obj.year
-        awaltahun = datetime(tahun, 1, 1)
-        tanggal_obj.date()
+        waktu = request.GET["waktu"]
+        waktuobj = datetime.strptime(waktu, "%Y-%m")
+        awaltahun = datetime(waktuobj.year, 1, 1)
+
         listbulan = [
             "Januari",
             "Februari",
@@ -1826,8 +1817,8 @@ def detaillaporanbaranstokgudang(request):
         # print(index)
         last_days = []
         for month in range(1, 13):
-            last_day = calendar.monthrange(tahun, month)[1]
-            last_days.append(date(tahun, month, last_day))
+            last_day = calendar.monthrange(waktuobj.year, month)[1]
+            last_days.append(date(waktuobj.year, month, last_day))
         # print(last_days)
         # print(last_days[:index+1])
         bahanbakuperbulan = getstokgudang(awaltahun, last_days, index + 1)
@@ -1842,13 +1833,10 @@ def detaillaporanbaranstokgudang(request):
 def detaillaporanstokfg(request):
     if len(request.GET) > 0:
         print(request.GET)
-        tanggalmulai = request.GET["tanggalawal"]
-        tanggalakhir = request.GET["tanggalakhir"]
         bulan = request.GET["bulan"]
-        tanggal_obj = datetime.strptime(tanggalakhir, "%Y-%m-%d")
-        tahun = tanggal_obj.year
-        awaltahun = datetime(tahun, 1, 1)
-        tanggal_obj.date()
+        waktu = request.GET["waktu"]
+        waktuobj = datetime.strptime(waktu, "%Y-%m")
+        awaltahun = datetime(waktuobj.year, 1, 1)
         listbulan = [
             "Januari",
             "Februari",
@@ -1863,19 +1851,19 @@ def detaillaporanstokfg(request):
             "Novermber",
             "Desember",
         ]
-        index = listbulan.index(request.GET["bulan"])
+        index = listbulan.index(request.GET["bulan"]) + 1
         # print(index)
         last_days = []
         for month in range(1, 13):
-            last_day = calendar.monthrange(tahun, month)[1]
-            last_days.append(date(tahun, month, last_day))
+            last_day = calendar.monthrange(waktuobj.year, month)[1]
+            last_days.append(date(waktuobj.year, month, last_day))
         # print(last_days)
         # print(last_days[:index+1])
-        datastokgudang = getstokartikelfg(last_days, index + 1, awaltahun)
+        datastokgudang = getstokartikelfg(last_days, index, awaltahun)
         return render(
             request,
             "ppic/detaillaporanstokfg.html",
-            {"stokfg": datastokgudang, "bulan": bulan},
+            {"stokfg": datastokgudang[index - 1], "bulan": bulan},
         )
 
 
@@ -1919,11 +1907,9 @@ def getstokartikelfg(last_days, stopindex, awaltahun):
 
 def getsaldoawalgudang(request):
     if len(request.GET) > 0:
-        print(request.GET)
-
         bulan = request.GET["bulan"]
-        waktuobj = datetime.strptime(bulan, "%Y-%m")
-        print(waktuobj.month)
+        waktu = request.GET["waktu"]
+        waktuobj = datetime.strptime(waktu, "%Y-%m")
         awaltahun = datetime(waktuobj.year, 1, 1)
         listbulan = [
             "Januari",
@@ -1939,16 +1925,20 @@ def getsaldoawalgudang(request):
             "Novermber",
             "Desember",
         ]
-        index = waktuobj.month
+        index = listbulan.index(request.GET["bulan"]) + 1
         last_days = []
         for month in range(1, 13):
             last_day = calendar.monthrange(waktuobj.year, month)[1]
             last_days.append(date(waktuobj.year, month, last_day))
         data = saldogudang(last_days, index, awaltahun)
+        # print(data)
+        # print(adas)
         return render(
             request,
-            "ppic/detailsaldoawalgudang.html",
-            {"data": data},
+            "ppic/detailstockgudang.html",
+            {
+                "data": data,
+            },
         )
 
 
@@ -1980,6 +1970,8 @@ def saldogudang(last_days, stopindex, awaltahun):
     hargaakhirbulanperproduk = gethargapurchasingperbulan(
         last_days, stopindex, awaltahun
     )
+    print(hargaakhirbulanperproduk)
+    # print(asd)
     dataproduk = models.Produk.objects.all()
     for index, hari in enumerate(last_days[:stopindex]):
         totalbiayasaldoakhirperbulan = 0
@@ -1996,9 +1988,23 @@ def saldogudang(last_days, stopindex, awaltahun):
     print(saldoakhirgudang)
 
     # print(asdasd)
-
+    hargaakhirperbulan = {}
     # print(hargaakhirbulanperproduk)
-    data = {"saldoawal": saldoawal, "saldoakhir": saldoakhirgudang}
+
+    """SAVE ERROR"""
+    nilaiakhir = 0
+    for artikel, data in hargaakhirbulanperproduk.items():
+        hargaakhirperbulan[artikel] = data["data"][index]
+        nilaiakhir += data["data"][index]["hargatotal"]
+
+    # print(hargaakhirperbulan)
+
+    data = {
+        "saldoawal": saldoawal,
+        "saldoakhir": saldoakhirgudang,
+        "datasaldoawal": bahanbaku,
+        "hargaakhirbulanperproduk": {"data": hargaakhirperbulan, "total": nilaiakhir},
+    }
     return data
 
 
@@ -2011,7 +2017,7 @@ def getstokbahanproduksi(last_days, stopindex, awaltahun):
     stokawalbahanproduksi = {}
     totalbiayasaldoawal = 0
     hargafgperartikel = gethargafgperbulan(last_days, stopindex, awaltahun)
-    print("\n", hargafgperartikel)
+    # print("\n", hargafgperartikel)
     dataartikel = models.Artikel.objects.all()
     for artikel in dataartikel:
         """LOKASI BELUM DI SETTING"""
@@ -2035,6 +2041,8 @@ def getstokbahanproduksi(last_days, stopindex, awaltahun):
         artikel.hargasatuanawal = hargasatuanawal
         artikel.totalbiayaawal = totalbiayaawal
         artikel.jumlahawal = jumlahawal
+
+    """DATA SALDO AWAL BAHAN BAKU BELUM DIMASUKKAN"""
 
     # print(hargaakhirbulanperproduk)
     # print(adsasd)
@@ -2073,11 +2081,29 @@ def detaillaporanbaranstokwip(request):
         return render(request, "ppic/detaillaporanstokwip.html")
 
 
-def bahanproduksi(
+def perhitunganpersediaan(
     last_days, stopindex, awaltahun, stockgudang, bahanbakumasuk, barangkeluar, barangfg
 ):
+    listbulan = [
+        "Januari",
+        "Februari",
+        "Maret",
+        "April",
+        "Mei",
+        "Juni",
+        "Juli",
+        "Agustus",
+        "September",
+        "Oktober",
+        "Novermber",
+        "Desember",
+    ]
     datakirim = {}
+    datasaldoawalbahanproduksi = {}
     datastokwipawal = getstokbahanproduksi(last_days, stopindex, awaltahun)
+    # print(barangfg)
+    # {0: {'data': {<Artikel: 1>: {'jumlah': 2640, 'hargafg': 410000.0, 'biaya': 1082400000.0}, <Artikel: 5171/AC>: {'jumlah': 13571, 'hargafg': 390.31990242, 'biaya': 5297031.39574182}, <Artikel: 5115/AC#1>: {'jumlah': 2130, 'hargafg': 803.5997990999999, 'biaya': 1711667.5720829999}, <Artikel: 9010/ACC>: {'jumlah': 19837, 'hargafg': 1071.739732065, 'biaya': 21260101.064973406}}, 'total': 1110668800.0327983}}
+
     # print(datastokwipawal)
     # {0: {'data': <QuerySet [<Artikel: 9010/AC>, <Artikel: 5111/EXP>, <Artikel: 1>, <Artikel: 2>, <Artikel: 5111#/AC>, <Artikel: 5171/AC>, <Artikel: 5115/AC#1>, <Artikel: 9010/ACC>, <Artikel: coba1>, <Artikel: coba2>, <Artikel: coba3>, <Artikel: coba4>, <Artikel: coba5>, <Artikel: coba6>]>, 'total': 12951899.692499999}}
 
@@ -2090,33 +2116,65 @@ def bahanproduksi(
 
     # print(barangkeluar)
     # {0: 255036.39385, 1: 0, 2: 41113622.22968718}
-    for index in (0, 1):
-        jumlahbarangkeluar = barangkeluar[index]
-        jumlahbarangmasuk = bahanbakumasuk[index]["total"]
-        jumlahsaldoawalgudang = stockgudang["saldoawal"][index]
-        jumlahsaldoakhirgudang = stockgudang["saldoawal"][index]
-        jumlahstokfg = barangfg
+    print(datastokwipawal)
+    datasaldoawalbahanproduksi[0] = datastokwipawal[0]["total"]
+
+    # print(asd)
+    for index in range(0, stopindex):
+        # print(barangkeluar[index])
+        # print(index)
+        if index > 0:
+            datasaldoawalbahanproduksi[index] = saldowip
+        try:
+            jumlahbarangkeluar = barangkeluar[index]
+        except KeyError:
+            jumlahbarangkeluar = 0
+        try:
+            jumlahbarangmasuk = bahanbakumasuk[index]["total"]
+        except KeyError:
+            jumlahbarangmasuk = 0
+        try:
+            jumlahsaldoawalgudang = stockgudang["saldoawal"][index]
+        except KeyError:
+            jumlahsaldoawalgudang = 0
+        try:
+            jumlahsaldoakhirgudang = stockgudang["saldoakhir"][index]
+        except KeyError:
+            jumlahsaldoakhirgudang = 0
+        try:
+            jumlahstokfg = barangfg[index]["total"]
+        except KeyError:
+            jumlahstokfg = 0
+        try:
+            jumlahsaldoawalproduksi = datasaldoawalbahanproduksi[index]
+        except KeyError:
+            jumlahsaldoawalproduksi = 0
         total = (
-            stockgudang["saldoawal"][index]
-            + bahanbakumasuk[index]["total"]
-            - barangkeluar[index]
+            jumlahsaldoawalgudang
+            + jumlahsaldoawalproduksi
+            + jumlahbarangmasuk
+            - jumlahbarangkeluar
         )
-        if index == 0:
-            total += datastokwipawal[0]["total"]
-        print(total)
+
+        print("ini total : ", total)
+        saldowip = total - jumlahstokfg - jumlahsaldoakhirgudang
 
         """BELUM MASUKIN DATA TOTAL"""
-        print(asda)
+        # print(asda)
         dummy = {
-            "barangkeluar": barangkeluar[index],
-            "barangmasuk": bahanbakumasuk[index]["total"],
-            "saldoawalgudang": stockgudang["saldoawal"][index],
-            "saldoakhirgudang": stockgudang["saldoawal"][index],
-            "stokfg": barangfg[index]["total"],
+            "barangkeluar": jumlahbarangkeluar,
+            "barangmasuk": jumlahbarangmasuk,
+            "saldoawalgudang": jumlahsaldoawalgudang,
+            "saldoakhirgudang": jumlahsaldoakhirgudang,
+            "stokfg": jumlahstokfg,
+            "stokawalproduksi": datasaldoawalbahanproduksi[index],
+            "totalsaldo": total,
+            "saldowip": saldowip,
         }
 
-    print(barangfg)
-    print(asd)
+        datakirim[listbulan[index]] = dummy
+    print(datakirim)
+    return datakirim
 
 
 def laporanpersediaan(request):
@@ -2158,7 +2216,7 @@ def laporanpersediaan(request):
         """SECTION FG"""
         barangfg = getstokartikelfg(last_days, index, awaltahun)
         """SECTION WIP (Skip dulu)"""
-        datastokwipawal = bahanproduksi(
+        dataperhitunganpersediaan = perhitunganpersediaan(
             last_days,
             index,
             awaltahun,
@@ -2169,18 +2227,88 @@ def laporanpersediaan(request):
         )
 
         print("\n")
-
-        modelakhir = {}
-        for month in range(0, waktuobj.month):
-            modelakhir[listbulan[month]] = {
-                "barangkeluar": totalbiayakeluar[month],
-                "barangmasuk": barangmasuk[month]["total"],
-                "saldoawalgudang": baranggudang["saldoawal"][month],
-                "saldoakhirgudang": baranggudang["saldoakhir"][month],
-                "stokfg": barangfg[month]["total"],
-            }
+        print(dataperhitunganpersediaan)
         return render(
             request,
             "ppic/views_laporanpersediaanperusahaan.html",
-            {"modeldata": modelakhir, "waktu": bulan},
+            {"modeldata": dataperhitunganpersediaan, "waktu": bulan},
+        )
+
+
+def detaillaporanbaranstokawalproduksi(request):
+    if len(request.GET) > 0:
+        bulan = request.GET["bulan"]
+        waktu = request.GET["waktu"]
+        waktuobj = datetime.strptime(waktu, "%Y-%m")
+        awaltahun = datetime(waktuobj.year, 1, 1)
+        listbulan = [
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "Novermber",
+            "Desember",
+        ]
+        index = listbulan.index(request.GET["bulan"]) + 1
+        # print(index)
+        last_days = []
+        for month in range(1, 13):
+            last_day = calendar.monthrange(waktuobj.year, month)[1]
+            last_days.append(date(waktuobj.year, month, last_day))
+        # print(last_days)
+        # print(last_days[:index+1])
+        datawip = getstokbahanproduksi(last_days, index, awaltahun)
+        print(dir(datawip[0]["data"][0]))
+        return render(
+            request,
+            "ppic/detailstockawalproduksi.html",
+            {
+                "stokawal": datawip[0],
+            },
+        )
+
+
+def detaillaporanbaranstokawalgudang(request):
+    if len(request.GET) > 0:
+        bulan = request.GET["bulan"]
+        waktu = request.GET["waktu"]
+        waktuobj = datetime.strptime(waktu, "%Y-%m")
+        awaltahun = datetime(waktuobj.year, 1, 1)
+        listbulan = [
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "Novermber",
+            "Desember",
+        ]
+        index = listbulan.index(request.GET["bulan"]) + 1
+        # print(index)
+        last_days = []
+        for month in range(1, 13):
+            last_day = calendar.monthrange(waktuobj.year, month)[1]
+            last_days.append(date(waktuobj.year, month, last_day))
+        # print(last_days)
+        # print(last_days[:index+1])
+        datasaldoawalgudang = saldogudang(last_days, index, awaltahun)
+        print(datasaldoawalgudang)
+        return render(
+            request,
+            "ppic/detailstockawalgudang.html",
+            {
+                "stokawal": datasaldoawalgudang["datasaldoawal"],
+                "saldoawal": datasaldoawalgudang["saldoawal"][0],
+            },
         )

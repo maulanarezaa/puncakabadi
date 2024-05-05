@@ -15,39 +15,27 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Detail Stok Gudang Periode : {{bulan}} </h4>
-
-
-
                 <div class="table-responsive pt-3">
-                    {% if stokgudang %}
-
+                    {% if data %}
                     <table class="table">
                         <thead>
                             <tr>
                                 <td>No</td>
-                                <td>Kode Produk</td>
-                                <td>Nama Produk</td>
-                                <td>Satuan</td>
-                                <td>Harga Satuan</td>
+                                <td>Kode Artikel</td>
                                 <td>Jumlah</td>
-                                <td>Harga Total</td>
+                                <td>Harga FG</td>
+                                <td>Biaya</td>
                             </tr>
                         </thead>
                         <tbody>
-
-                            {% for bulan,data in stokgudang.items %}
-                            {% for item,values in data.data.items %}
+                            {% for artikel,item in data.hargaakhirbulanperproduk.data.items %}
                             <tr>
                                 <td>{{forloop.counter}}</td>
-                                <td>{{item.KodeProduk}}</td>
-                                <td>{{item.NamaProduk}}</td>
-                                <td>{{item.unit}}</td>
-                                <td>{{values.hargasatuan}}</td>
-                                <td>{{values.jumlah}}</td>
-                                <td>{{values.totalbiaya}}</td>
-
+                                <td>{{artikel}}</td>
+                                <td>{{item.hargasatuan}}</td>
+                                <td>{{item.jumlah}}</td>
+                                <td>{{item.hargatotal}}</td>
                             </tr>
-                            {% endfor %}
                             {% endfor %}
                         </tbody>
                     </table>
@@ -55,16 +43,11 @@
                         <thead>
                             <tr>
                                 <td>Total</td>
-                                {% for bulan,data in stokgudang.items %}
-
-                                <td>{{data.total}}</td>
-
-                                {% endfor %}
+                                <td>{{data.hargaakhirbulanperproduk.total}}</td>
                             </tr>
                         </thead>
                     </table>
-
-
+                    </table>
                     {% endif %}
                 </div>
             </div>

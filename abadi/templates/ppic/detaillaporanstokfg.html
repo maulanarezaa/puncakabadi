@@ -33,8 +33,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for bulan,data in stokfg.items %}
-                            {% for item,values in data.data.items %}
+                            <p>{{stokfg}}</p>
+                            {% for item,values in stokfg.data.items %}
                             <tr>
                                 <td>{{forloop.counter}}</td>
                                 <td>{{item}}</td>
@@ -43,19 +43,13 @@
                                 <td>{{values.biaya}}</td>
                             </tr>
                             {% endfor %}
-                            {% endfor %}
                         </tbody>
                     </table>
                     <table class="table">
                         <thead>
                             <tr>
                                 <td>Total</td>
-                                {% for data in stokfg.values %}
-
-                                <td>{{data.total}}</td>
-
-                                {% endfor %}
-                            </tr>
+                                <td>{{stokfg.total}}</td>
                         </thead>
                     </table>
 
