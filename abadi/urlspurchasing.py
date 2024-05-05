@@ -22,7 +22,7 @@ urlpatterns = [
     # barang_masuk
     path("barang_masuk", viewspurchasing.barang_masuk, name="barang_masuk"),
     path(
-        "update_barang_masuk/<str:id>/<str:input_awal>/<str:input_terakhir>",
+        "update_barang_masuk/<str:id>",
         viewspurchasing.update_barang_masuk,
         name="update_barang_masuk",
     ),
@@ -51,6 +51,7 @@ urlpatterns = [
     path("read_po", viewspurchasing.read_po, name="read_po"),
     # R SPK
     path("read_spk", viewspurchasing.read_spk, name="read_spk"),
+    path("trackspk/<str:id>", viewspurchasing.track_spk, name="trackspk"),
     # R REKAP HARGA
     path("rekap_harga", viewspurchasing.views_rekapharga, name="rekapharga"),
 ]
