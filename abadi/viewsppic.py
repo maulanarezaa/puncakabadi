@@ -2124,7 +2124,7 @@ def perhitunganpersediaan(
         # print(barangkeluar[index])
         # print(index)
         if index > 0:
-            datasaldoawalbahanproduksi[index] = saldowip
+            datasaldoawalbahanproduksi[index] = saldowip + jumlahstokfg
         try:
             jumlahbarangkeluar = barangkeluar[index]
         except KeyError:
@@ -2312,3 +2312,7 @@ def detaillaporanbaranstokawalgudang(request):
                 "saldoawal": datasaldoawalgudang["saldoawal"][0],
             },
         )
+
+def read_transactionlog (request):
+    dataobj = models.transactionlog.objects.all()
+    return render(request,'ppic/transactionlog.html',{'data':dataobj})

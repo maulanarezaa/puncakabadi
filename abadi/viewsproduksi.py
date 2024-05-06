@@ -2374,14 +2374,10 @@ def addpenyesuaian(request):
             TanggalMulai=tanggalmulai,
             TanggalAkhir=tanggalakhir,
             KodePenyusun=penyusunobj,
+            konversi = kuantitas
+
         )
         penyesuaianobj.save()
-        # Add detail konversi produksi
-        print(penyesuaianobj.IDPenyesuaian)
-        detailkonversiproduk = models.DetailKonversiProduksi(
-            KodePenyesuaian=penyesuaianobj, kuantitas=kuantitas
-        )
-        detailkonversiproduk.save()
 
         return redirect("view_penyesuaian")
 
@@ -3948,3 +3944,22 @@ def view_ksbjsubkon(request):
             listdata.append(data)
 
         return render(request, "produksi/view_ksbjsubkon.html",{"data":listdata,'saldo':saldoawal,"nama": nama,"satuan": satuan,"artikel":artikel})
+
+
+def read_bahanbaku(request):
+    produkobj = models.Produk.objects.all()
+    return render(request, "produksi/read_produk.html", {"produkobj": produkobj})
+
+
+def update_produk_produksi(request, id):
+    produkobj = models.Produk.objects.get(pk=id)
+    if request.method == "GET":
+        return render(request, "produksi/update_produk.html", {"produkobj": produkobj})
+    else:
+        print(request.POST)
+        keterangan_produk = request.POST["keterangan_produk"]
+        jumlah_minimal = request.POST["jumlah_minimal"]
+        produkobj.keterangan = keterangan_produk
+        produkobj.Jumlahminimal = jumlah_minimal
+        produkobj.save()
+        return redirect("read_produk_produksi")

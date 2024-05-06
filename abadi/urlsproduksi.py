@@ -202,4 +202,10 @@ urlpatterns = [
         viewsproduksi.delete_saldosubkon,
         name="delete_saldosubkon",
     ),
+    path("readbahanbaku", viewsproduksi.read_bahanbaku, name="read_produk_produksi"),
+    path(
+        "updatebahanbaku/<str:id>",
+        viewsproduksi.update_produk_produksi,
+        name="update_produk_produksi",
+    ),
 ]
