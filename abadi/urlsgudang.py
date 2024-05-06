@@ -26,4 +26,11 @@ urlpatterns = [
     ),
     path("cobaform", viewsgudang.cobaform, name="coba"),
     path("spkgudang", viewsgudang.spk, name="spkgudang"),
+    path("trackingspk/<str:id>", viewsgudang.tracking_spk, name="trackingspkgudang"),
+    path("bahanbaku", viewsgudang.read_produk, name="readprodukgudang"),
+    path(
+        "updatebahanbaku/<str:id>",
+        viewsgudang.update_produk_gudang,
+        name="update_produk_gudang",
+    ),
 ]

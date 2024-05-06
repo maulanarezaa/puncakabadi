@@ -21,7 +21,7 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Masukkan Nama Artikel"
+                                    <input required type="text" class="form-control" placeholder="Masukkan Nama Artikel"
                                         aria-label="Masukkan Nama Artikel" name="kodeartikel" value="{{kodeartikel}}">
                                 </div>
                             </div>
@@ -59,7 +59,7 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Masukkan Nama Artikel"
+                                    <input required type="text" class="form-control" placeholder="Masukkan Nama Artikel"
                                         aria-label="Masukkan Nama Artikel" name="kodeartikel" list="listartikel">
                                     <datalist id="listartikel">
                                         {% for i in dataartikel %}
@@ -102,11 +102,26 @@
                             {% for i in listdata %}
                             <tr>
                                 <td>{{i.Tanggal}}</td>
-                                <td>{{i.1}}</td>
-                                <td>{{i.Bahanbakuutama}}</td>
-                                <td>{{i.Jumlahmasuk}}</td>
-                                <td>{{i.Masukpcs}}</td>
-                                <td>{{i.Jumlahhasil}}</td>
+                                <td>
+                                    <ul>
+
+                                        {% for item in i.SPK %}
+                                        {% if item.DetailSPK == None %}
+                                        <p>
+                                            Detail SPK Belum di Set
+                                        </p>
+
+                                        {% else %}
+                                        <li>{{item.DetailSPK}}</li>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </ul>
+
+                                </td>
+                                <td>{{i.Kodeproduk.KodeProduk.KodeProduk}}</td>
+                                <td>{{i.Masuklembar}}</td>
+                                <td>{{i.Masukkonversi}}</td>
+                                <td>{{i.Hasil}}</td>
                                 <td>{{i.Sisa}}</td>
                             </tr>
 
@@ -149,24 +164,24 @@
                             {% for i in listdata %}
                             <tr>
                                 <td>{{i.Tanggal}}</td>
-                                <td>{{i.JumlahPenyerahan}}</td>
-                                {% if i.SPK %}
+                                <td>{{i.Penyerahanwip}}</td>
+                                {% if i.DetailSPPB %}
                                 <td>
-                                    {% for j in i.SPK %}
+                                    {% for j in i.DetailSPPB %}
 
-                                    <li>{{j}}</li>
+                                    <li>{{j.DetailSPK.NoSPK}}</li>
 
                                     {% endfor %}
                                 </td>
                                 <td>
-                                    {% for j in i.SPPB %}
-                                    <li>{{j}}</li>
+                                    {% for j in i.DetailSPPB %}
+                                    <li>{{j.NoSPPB.NoSPPB}}</li>
                                     {% endfor %}
                                 </td>
                                 <td>
-                                    {% for j in i.Jumlahkirim %}
+                                    {% for j in i.DetailSPPB %}
                                     <li>
-                                        {{j}}
+                                        {{j.Jumlah}}
                                     </li>
                                     {% endfor %}
 

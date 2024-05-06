@@ -262,3 +262,25 @@ class detailconfirmationorder(models.Model):
     deskripsi = models.CharField(max_length=200)
     kuantitas = models.IntegerField()
     Harga = models.FloatField()
+
+
+class SubkonKirim(models.Model):
+    IDSubkonKirim = models.CharField(max_length=255, primary_key=True)
+    Tanggal = models.DateField()
+    supplier = models.CharField(max_length=255)
+    PO = models.CharField(max_length=255)
+
+    def __str__(self):
+        return str(str(self.IDSubkonKirim))
+
+
+class DetailSubkonKirim(models.Model):
+    IDDetailSubkonKirim = models.AutoField(primary_key=True)
+    IDSubkonKirim = models.ForeignKey(SubkonKirim, on_delete=models.CASCADE)
+    KodeProduk = models.ForeignKey(Produk, on_delete=models.CASCADE)
+    Jumlah = models.IntegerField()
+    KeteranganACC = models.BooleanField()
+    Harga = models.FloatField()
+
+    def __str__(self):
+        return str(self.IDSubkonKirim) + " " + str(self.KodeProduk)

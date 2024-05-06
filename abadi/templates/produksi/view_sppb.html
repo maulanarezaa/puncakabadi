@@ -21,6 +21,16 @@
             </a>
             </div>
           <div class="table-responsive pt-3">
+            <div class="dropdown" style="margin-bottom: 10px;">
+              <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+                  aria-haspopup="true" aria-expanded="false">
+                  Urutkan Tanggal
+              </button>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" href="#" onclick="sortTable('desc')">Terbaru</a>
+                  <a class="dropdown-item" href="#" onclick="sortTable('asc')">Terlama</a>
+              </div>
+            </div>
             <table class="table table-bordered" id="myTable">
               <thead>
                 <tr>
@@ -41,7 +51,7 @@
                         <div class="template-demo">
                             <a href="{% url 'detail_sppb' i.id %}">
                                 <button type="button" class="btn btn-warning">
-                                    <i class="typcn typcn-th-list"></i>                                                    
+                                    <i class="typcn typcn-edit"></i>                                                    
                                 </button>
                             </a>
                             <a >
@@ -92,6 +102,37 @@
       var deleteForm = document.getElementById('deleteForm');
       deleteForm.action = "deletesppb/" + id;
       $('#confirmDeleteModal').modal('show');
+  }
+</script>
+<script>
+  function sortTable(order) {
+      var table, rows, switching, i, x, y, shouldSwitch;
+      table = document.getElementById("myTable");
+      switching = true;
+      while (switching) {
+          switching = false;
+          rows = table.rows;
+          for (i = 1; i < (rows.length - 1); i++) {
+              shouldSwitch = false;
+              x = rows[i].getElementsByTagName("TD")[0];
+              y = rows[i + 1].getElementsByTagName("TD")[0];
+              if (order === 'asc') {
+                  if (new Date(x.innerHTML) > new Date(y.innerHTML)) {
+                      shouldSwitch = true;
+                      break;
+                  }
+              } else {
+                  if (new Date(x.innerHTML) < new Date(y.innerHTML)) {
+                      shouldSwitch = true;
+                      break;
+                  }
+              }
+          }
+          if (shouldSwitch) {
+              rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+              switching = true;
+          }
+      }
   }
 </script>
 {% endblock javascripts %}

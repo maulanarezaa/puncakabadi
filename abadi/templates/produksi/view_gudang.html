@@ -41,7 +41,11 @@
                     <td>{{i.tanggal}}</td>
                     <td>{{i.DetailSPK.NoSPK}}</td>
                     <td>{{i.DetailSPK.KodeArtikel}}</td>
-                    <td>{{i.Lokasi.NamaLokasi}}</td>
+                    {% if i.Lokasi.NamaLokasi == "WIP" %}
+                      <td>Gudang - WIP</td>
+                    {% else %}
+                      <td>Gudang - FG</td>
+                    {% endif %}
                     <td>{{i.KodeProduk}}</td>
                     <td>{{i.jumlah}}</td>
                     <td>{{i.keterangan}}</td>

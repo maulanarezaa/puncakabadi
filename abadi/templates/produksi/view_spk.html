@@ -21,6 +21,7 @@
           </a>
         </div>
         <div class="table-responsive pt-3">
+
           <table class="table table-bordered" id="myTable">
             <thead>
               <tr>
@@ -53,7 +54,7 @@
                   <div class="template-demo">
                     <a href="{% url 'detail_spk' i.id %}">
                       <button type="button" class="btn btn-warning">
-                        <i class="typcn typcn-th-list"></i>
+                        <i class="typcn typcn-edit"></i>
                       </button>
                     </a>
                     <a href="{% url 'tracking_spk' i.id %}">
@@ -111,5 +112,53 @@
     $('#confirmDeleteModal').modal('show');
   }
 </script>
+<script>
+  function sortTable(order) {
+    var table, rows, switching, i, x, y, shouldSwitch;
+    table = document.getElementById("myTable");
+    switching = true;
+    while (switching) {
+      switching = false;
+      rows = table.rows;
+      for (i = 1; i < (rows.length - 1); i++) {
+        shouldSwitch = false;
+        x = rows[i].getElementsByTagName("TD")[0];
+        y = rows[i + 1].getElementsByTagName("TD")[0];
+        if (order === 'asc') {
+          if (new Date(x.innerHTML) > new Date(y.innerHTML)) {
+            shouldSwitch = true;
+            break;
+          }
+        } else {
+          if (new Date(x.innerHTML) < new Date(y.innerHTML)) {
+            shouldSwitch = true;
+            break;
+          }
+        }
+      }
+      if (shouldSwitch) {
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        switching = true;
+      }
+    }
+  }
+</script>
+<script>
+  function filterStatus(status) {
+    var table, rows, i, x;
+    table = document.getElementById("myTable");
+    rows = table.rows;
+    for (i = 1; i < rows.length; i++) {
+      x = rows[i].getElementsByTagName("TD")[2]; // Index 2 untuk kolom Keterangan
+      if (status === '' || x.innerHTML.toLowerCase().trim() === status) {
+        rows[i].style.display = "";
+      } else {
+        rows[i].style.display = "none";
+      }
+    }
+  }
+</script>
+
+
 {% endblock javascripts %}
 {% endblock content %}

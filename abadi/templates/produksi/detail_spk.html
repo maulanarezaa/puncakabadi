@@ -74,8 +74,10 @@
                 <div class="col-md-1">
                   <br>
                   <label for=""></label>
-                  <a href="{% url 'delete_detailspk' i.IDDetailSPK %}">
-                    <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn-trash"></i></button>
+                  <a >
+                    <button type="button" onclick="confirmDelete('{{ i.IDDetailSPK }}')" class="btn btn-danger">
+                      <i class="typcn typcn typcn-trash"></i>                                                    
+                    </button>
                   </a>
                 </div>
               </div>
@@ -95,6 +97,31 @@
       </div>
     </div>
 </div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Konfirmasi Penghapusan</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Apakah Anda yakin ingin menghapus data ini?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                <form id="deleteForm" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Hapus</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 {% block javascripts %}
 <script>
@@ -126,9 +153,12 @@
         document.getElementById('artikels').appendChild(productRow);
     }
 
-    function deleteRow(button) {
-        button.closest('.row').remove();
-    }
+    function confirmDelete(id) {
+      console.log(id)
+      var deleteForm = document.getElementById('deleteForm');
+      deleteForm.action = "deletedetailspk/" + id;
+      $('#confirmDeleteModal').modal('show');
+  }
 </script>
 {% endblock javascripts %}
 

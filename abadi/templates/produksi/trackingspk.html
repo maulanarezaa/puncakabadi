@@ -10,7 +10,7 @@
 <div class="col-12 grid-margin">
   <div class="card">
     <div class="card-body">
-      <h4 class="card-title">Form Input SPK</h4>
+      <h4 class="card-title">Form SPK</h4>
       <div class="template-demo">
         <a href="/produksi/viewspk">
           <button type="button" class="btn btn-light btn-icon-text">
@@ -101,6 +101,8 @@
               <th>Tanggal</th>
               <th>Nomor SPK</th>
               <th>Bahan Baku</th>
+              <th>Nama Produk</th>
+              <th>Unit</th>
               <th>Artikel Peruntukan</th>
               <th>Jumlah</th>
               <th>Lokasi</th>
@@ -113,6 +115,10 @@
               <td>{{i.tanggal}}</td>
               <td>{{i.DetailSPK.NoSPK}}</td>
               <td>{{i.KodeProduk}}</td>
+              <td>{{i.KodeProduk.NamaProduk}}</td>
+              <td>{{i.KodeProduk.unit}}</td>
+
+
               <td>{{i.DetailSPK.KodeArtikel.KodeArtikel}}</td>
               <td>{{i.jumlah}}</td>
               <td>{{i.Lokasi}}</td>

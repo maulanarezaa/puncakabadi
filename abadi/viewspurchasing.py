@@ -1526,6 +1526,10 @@ def views_rekapharga(request):
             Harga keluar = harga satuan hari sebelumnya
 
             """
+            dummysaldoawal = saldoawal
+            dummyhargatotalawal = hargatotalawal
+            dummyhargasatuanawal = hargasatuanawal
+
             saldoawal += jumlahmasukperhari - jumlahkeluarperhari
             hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
             hargasatuanawal = hargatotalawal / saldoawal
@@ -1536,11 +1540,19 @@ def views_rekapharga(request):
             dumy["Sisahariini"] = saldoawal
             dumy["Hargasatuansisa"] = round(hargasatuanawal, 2)
             dumy["Hargatotalsisa"] = round(hargatotalawal, 2)
-            
-            if dumy['Hargakeluarsatuan'] != 0:
-                dumy['Hargakeluarsatuan'] = dumy['Hargasatuansisa']
-                dumy['Hargakeluartotal'] = dumy['Hargakeluarsatuan'] * dumy['Jumlahkeluar']
-                
+
+            if dumy["Hargakeluarsatuan"] != 0:
+                dumy["Hargakeluarsatuan"] = dumy["Hargasatuansisa"]
+                dumy["Hargakeluartotal"] = (
+                    dumy["Hargakeluarsatuan"] * dumy["Jumlahkeluar"]
+                )
+
+                dumy["Sisahariini"] = saldoawal
+                hargatotalawal = dummyhargatotalawal
+                hargatotalawal += hargamasuktotalperhari - (
+                    dumy["Hargakeluarsatuan"] * dumy["Jumlahkeluar"]
+                )
+                dumy["Hargatotalsisa"] = round(hargatotalawal, 2)
 
             listdata.append(dumy)
 

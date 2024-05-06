@@ -23,7 +23,7 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Masukkan Kode Barang"
+                                    <input required type="text" class="form-control" placeholder="Masukkan Kode Barang"
                                         aria-label="Masukkan Kode Barang" name="kodebarang" value="{{kodebarang}}">
                                 </div>
                             </div>
@@ -48,7 +48,7 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Masukkan Kode Barang"
+                                    <input required type="text" class="form-control" placeholder="Masukkan Kode Barang"
                                         aria-label="Masukkan Kode Barang" name="kodebarang" list="kodebarang">
                                     <datalist id="kodebarang">
                                         {% for i in kodeprodukobj %}
@@ -79,7 +79,7 @@
                                 <td>Konversi</td>
                                 <td>Masuk</td>
                                 <td>Keluar</td>
-                                <td style="text-align:center;">Sisa</td>
+                                <td style="text-align:center;">Saldo</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -102,9 +102,9 @@
                             {% for i in data %}
                             <tr>
                                 <td>
+
                                     <a href="{% url 'detail_ksbb'  id=kodebarang tanggal=i.Tanggal %}"
                                         style="color: black;">
-
                                         {{i.Tanggal}}
                                 </td>
                                 </a>
@@ -112,21 +112,21 @@
                                     <ul>
 
                                         {% for artikel in i.Artikel %}
-                                        <li>{{artikel.KodeArtikel}}</li>
+                                        <li>{{artikel}}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>
                                 <td>
                                     <ul>
-                                        {% for jumlah in i.Artikel %}
-                                        <li>{{jumlah.totalkeluar}}</li>
+                                        {% for jumlah in i.Perkotak %}
+                                        <li>{{jumlah}}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>
                                 <td>
                                     <ul>
-                                        {% for konversi in i.Artikel %}
-                                        <li>{{konversi.konversi}}</li>
+                                        {% for konversi in i.Konversi %}
+                                        <li>{{konversi}}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>
@@ -135,15 +135,23 @@
                                 </td>
                                 <td>
                                     <ul>
-                                        {% for keluar in i.Artikel %}
+                                        {% for keluar in i.Keluar %}
                                         <li>
-                                            {{keluar.konversikeluar}}
+                                            {{keluar}}
                                         </li>
                                         {% endfor %}
                                     </ul>
                                 </td>
                                 <td>
-                                    {{i.Sisa}}
+                                    <ul>
+
+                                        {% for sisa in i.Sisa %}
+                                        <li>
+                                            {{sisa}}
+                                        </li>
+
+                                        {% endfor %}
+                                    </ul>
                                 </td>
                             </tr>
                             {% endfor %}

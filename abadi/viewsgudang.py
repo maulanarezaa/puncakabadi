@@ -24,10 +24,11 @@ def view_gudang(request):
 
     akhir = datetime.now()
 
-    mulai = akhir - timedelta(days = 30)
+    mulai = akhir - timedelta(days=30)
     print(mulai)
-    allspk = models.DetailSPK.objects.filter(NoSPK__Tanggal__range = (mulai,akhir)).order_by("NoSPK__Tanggal")
-
+    allspk = models.DetailSPK.objects.filter(
+        NoSPK__Tanggal__range=(mulai, akhir)
+    ).order_by("NoSPK__Tanggal")
 
     for a in getretur:
         a.jumlah = a.jumlah * -1
@@ -38,16 +39,15 @@ def view_gudang(request):
     for i in getkeluar:
         i.tanggal = i.tanggal.strftime("%d-%m-%Y")
 
-   
     for i in allspk:
         i.NoSPK.Tanggal = i.NoSPK.Tanggal.strftime("%d-%m-%Y")
 
     if len(getretur) == 0:
         messages.info(request, "Tidak ada barang retur yang belum ACC")
-    
+
     if len(getkeluar) == 0:
         messages.info(request, "Tidak ada barang keluar yang belum ACC")
-   
+
     if len(allspk) == 0:
         messages.warning(request, "Tidak ada SPK selama 30 hari terakhir")
 
@@ -190,9 +190,9 @@ def update_gudang(request, id):
             "gudang/updategudang2.html",
             {
                 "datasjp": datasjp_getobj,
-                "detailsjp": detailsjp_filtered,
-                "datasj" : datasj,
-                "detailsj" : datasjp2,
+                "detailsjp": datasjp,
+                "datasj": datasj,
+                "detailsj": datasjp2,
                 "tanggal": datetime.strftime(datasjp_getobj.Tanggal, "%Y-%m-%d"),
             },
         )
@@ -326,7 +326,7 @@ def detail_barang(request):
 
         tanggaltotal = tanggalgudang + tanggalgudang2
         tanggaltotal = sorted(list(set(tanggaltotal)))
-        
+
         if len(tanggaltotal) == 0:
             messages.error(
                 request, "Tidak ada barang masuk ke gudang, keluar, dan retur"
@@ -379,9 +379,6 @@ def detail_barang(request):
             list_keluar.append(keluar)
             list_masuk.append(masuk)
             list_sisa.append(saldo_dummy)
-            
-
-
 
         for tanggal, masuk, keluar, sisa in zip(
             tanggaltotal, list_masuk, list_keluar, list_sisa
@@ -414,8 +411,8 @@ def detail_barang(request):
 
 def barang_keluar(request):
     datalokasi = models.Lokasi.objects.all()
-    data = models.TransaksiGudang.objects.filter(jumlah__gt=0).order_by('tanggal')
-    for i in data :
+    data = models.TransaksiGudang.objects.filter(jumlah__gt=0).order_by("tanggal")
+    for i in data:
         i.tanggal = i.tanggal.strftime("%d-%m-%Y")
     print(data)
     if len(request.GET) == 0:
@@ -431,15 +428,14 @@ def barang_keluar(request):
         date = request.GET.get("mulai")
         date2 = request.GET.get("akhir")
         lok = request.GET.get("lokasi")
-        if date is not None :
+        if date is not None:
             data = data.filter(
                 tanggal__range=(date, date2), Lokasi__NamaLokasi=lok, jumlah__gt=0
-            ).order_by('tanggal')
-        
-        for i in data :
+            ).order_by("tanggal")
+
+        for i in data:
             i.tanggal = i.tanggal.strftime("%d-%m-%Y")
-        
-        
+
         if len(data) == 0:
             messages.error(request, "Tidak ada barang keluar dari gudang")
 
@@ -458,8 +454,8 @@ def barang_keluar(request):
 
 def barang_retur(request):
     datalokasi = models.Lokasi.objects.all()
-    data = models.TransaksiGudang.objects.filter(jumlah__lt=0).order_by('tanggal')
-    for i in data :
+    data = models.TransaksiGudang.objects.filter(jumlah__lt=0).order_by("tanggal")
+    for i in data:
         i.tanggal = i.tanggal.strftime("%d-%m-%Y")
     print(data)
     if len(request.GET) == 0:
@@ -475,16 +471,15 @@ def barang_retur(request):
         date = request.GET.get("mulai")
         date2 = request.GET.get("akhir")
         lok = request.GET.get("lokasi")
-        if date is not None :
+        if date is not None:
             data = data.filter(
                 tanggal__range=(date, date2), Lokasi__NamaLokasi=lok, jumlah__lt=0
-            ).order_by('tanggal')
-        
-        for i in data :
+            ).order_by("tanggal")
+
+        for i in data:
             i.jumlah = i.jumlah * -1
             i.tanggal = i.tanggal.strftime("%d-%m-%Y")
-        
-        
+
         if len(data) == 0:
             messages.error(request, "Tidak ada barang keluar dari gudang")
 
@@ -519,9 +514,45 @@ def accgudang3(request, id, date, date2, lok):
 
 def spk(request):
     dataspk = models.SPK.objects.all().order_by("-Tanggal")
-    for i in dataspk :
+    for i in dataspk:
         i.Tanggal = i.Tanggal.strftime("%d-%m-%Y")
     return render(request, "gudang/spkgudang.html", {"dataspk": dataspk})
+
+
+def tracking_spk(request, id):
+    dataartikel = models.Artikel.objects.all()
+    dataspk = models.SPK.objects.get(id=id)
+    datadetail = models.DetailSPK.objects.filter(NoSPK=dataspk.id)
+
+    # Data SPK terkait yang telah di request ke Gudang
+    transaksigudangobj = models.TransaksiGudang.objects.filter(
+        DetailSPK__NoSPK=dataspk.id, jumlah__gte=0
+    )
+
+    # Data SPK Terkait yang telah jadi di FG
+    transaksiproduksiobj = models.TransaksiProduksi.objects.filter(
+        DetailSPK__NoSPK=dataspk.id, Jenis="Mutasi"
+    )
+
+    # Data SPK Terkait yang telah dikirim
+    sppbobj = models.DetailSPPB.objects.filter(DetailSPK__NoSPK=dataspk.id)
+
+    if request.method == "GET":
+        tanggal = datetime.strftime(dataspk.Tanggal, "%Y-%m-%d")
+
+        return render(
+            request,
+            "gudang/trackingspk.html",
+            {
+                "data": dataartikel,
+                "dataspk": dataspk,
+                "datadetail": datadetail,
+                "tanggal": tanggal,
+                "transaksigudang": transaksigudangobj,
+                "transaksiproduksi": transaksiproduksiobj,
+                "transaksikeluar": sppbobj,
+            },
+        )
 
 
 def cobaform(request):
@@ -568,5 +599,22 @@ def addgudang3(request):
         savetrans.save()
 
         return redirect("barangkeluar")
-    
 
+
+def read_produk(request):
+    produkobj = models.Produk.objects.all()
+    return render(request, "gudang/read_produk.html", {"produkobj": produkobj})
+
+
+def update_produk_gudang(request, id):
+    produkobj = models.Produk.objects.get(pk=id)
+    if request.method == "GET":
+        return render(request, "gudang/update_produk.html", {"produkobj": produkobj})
+    else:
+        print(request.POST)
+        keterangan_produk = request.POST["keterangan_produk"]
+        jumlah_minimal = request.POST["jumlah_minimal"]
+        produkobj.keterangan = keterangan_produk
+        produkobj.Jumlahminimal = jumlah_minimal
+        produkobj.save()
+        return redirect("readprodukgudang")

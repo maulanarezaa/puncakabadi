@@ -20,7 +20,7 @@
               <div class="col-lg-4">
                   <div class="form-group">
                       <div class="input-group">
-                          <input type="number" class="form-control"  value="tahun_bulan_sekarang" placeholder="Masukkan Periode" min="2024" max="2200"
+                          <input required type="number" class="form-control"  value="tahun_bulan_sekarang" placeholder="Masukkan Periode" min="2024" max="2200"
                               aria-label="Masukkan Periode" name="periode">
                           <div class="input-group-append">
                               <button class="btn btn-sm btn-primary"  type="submit">Filter</button>
@@ -31,7 +31,7 @@
             </div>
           </form>
           <div class="table-responsive pt-3">
-            <table class="table table-bordered">
+            <table class="table table-bordered" id="artikel">
               <thead>
                 <tr>
                   <th>Kode Produk</th>
@@ -42,7 +42,7 @@
                 </tr>
               </thead>
               <tbody>
-                {% for i in databarang %}
+                {% for i in data %}
                 <tr>
                   <td>{{i.KodeProduk}}</td>
                   <td>{{i.NamaProduk}}</td>

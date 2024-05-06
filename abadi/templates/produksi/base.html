@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="{% static 'assets/css/vertical-layout-light/style.css' %}">
     <!-- endinject -->
     <link rel="shortcut icon" href="{% static 'assets/images/favicon.png' %}" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" href="{% static 'assets/vendors/datatables.net-bs4/dataTables.bootstrap4.css' %}">
   </head>
   <body>
     <div class="container-scroller">
@@ -61,16 +61,18 @@
     <!-- Custom js for this page-->
     <script src="{% static 'assets/js/dashboard.js' %}"></script>
     <!-- End custom js for this page-->
+    <script src=" {% static 'assets/vendors/datatables.net/jquery.dataTables.js' %}"></script>
+    <script src=" {% static 'assets/vendors/datatables.net-bs4/dataTables.bootstrap4.js' %}"></script>
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.6.0"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
 
     <script>
-      let table = new DataTable('#myTable',{
-        order: false
-      });
+          $(document).ready(function() {
+        $('#myTable').dataTable();
+        $('#artikel').DataTable();
+        $('#barang').DataTable();
+    });
+
     </script>
   </body>
 </html>
