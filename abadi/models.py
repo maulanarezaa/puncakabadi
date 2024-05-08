@@ -7,9 +7,12 @@ class Produk(models.Model):
     KodeProduk = models.CharField(max_length=20, primary_key=True)
     NamaProduk = models.CharField(max_length=20)
     unit = models.CharField(max_length=20)
-    keterangan = models.CharField(max_length=255)
     TanggalPembuatan = models.DateField(auto_now_add=True)
     Jumlahminimal = models.IntegerField(default=0)
+    keteranganPurchasing = models.CharField(max_length=255, null=True, blank=True)
+    keteranganProduksi = models.CharField(max_length=255, null=True, blank=True)
+    keteranganGudang = models.CharField(max_length=255, null=True, blank=True)
+    keteranganRND = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return str(self.KodeProduk)
@@ -69,6 +72,8 @@ class SPK(models.Model):
     Tanggal = models.DateField()
     Keterangan = models.CharField(max_length=255)
     KeteranganACC = models.BooleanField()
+    StatusAktif = models.BooleanField(default=True,null=True, blank=True)
+    StatusDisplay = models.BooleanField(default=False,null=True, blank=True)
 
     def __str__(self):
         return str(self.NoSPK)
@@ -254,6 +259,7 @@ class confirmationorder(models.Model):
     kepada = models.CharField(max_length=100)
     perihal = models.CharField(max_length=50)
     tanggal = models.DateField()
+    StatusAktif = models.BooleanField(default=True)
 
 
 class detailconfirmationorder(models.Model):
@@ -284,3 +290,11 @@ class DetailSubkonKirim(models.Model):
 
     def __str__(self):
         return str(self.IDSubkonKirim) + " " + str(self.KodeProduk)
+
+class BahanBakuSubkon (models.Model):
+    KodeProduk = models.CharField(max_length=20)
+    NamaProduk = models.CharField(max_length=20)
+    unit = models.CharField(max_length=20)
+
+    def __str__(self):
+        return f'{self.KodeProduk} - {self.NamaProduk}'
