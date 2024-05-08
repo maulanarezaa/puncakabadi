@@ -72,8 +72,8 @@ class SPK(models.Model):
     Tanggal = models.DateField()
     Keterangan = models.CharField(max_length=255)
     KeteranganACC = models.BooleanField()
-    StatusAktif = models.BooleanField(default=True,null=True, blank=True)
-    StatusDisplay = models.BooleanField(default=False,null=True, blank=True)
+    StatusAktif = models.BooleanField(default=True, null=True, blank=True)
+    StatusDisplay = models.BooleanField(default=False, null=True, blank=True)
 
     def __str__(self):
         return str(self.NoSPK)
@@ -160,6 +160,14 @@ class TransaksiProduksi(models.Model):
         return f"{self.Jenis} - {self.KodeArtikel.KodeArtikel} - {self.Lokasi} - {self.Tanggal} - {self.Jumlah}"
 
 
+class confirmationorder(models.Model):
+    NoCO = models.CharField(max_length=50)
+    kepada = models.CharField(max_length=100)
+    perihal = models.CharField(max_length=50)
+    tanggal = models.DateField()
+    StatusAktif = models.BooleanField(default=True)
+
+
 class SPPB(models.Model):
     NoSPPB = models.CharField(max_length=255)
     Tanggal = models.DateField()
@@ -174,6 +182,9 @@ class DetailSPPB(models.Model):
     NoSPPB = models.ForeignKey(SPPB, on_delete=models.CASCADE)
     DetailSPK = models.ForeignKey(DetailSPK, on_delete=models.CASCADE, null=True)
     Jumlah = models.IntegerField()
+    IDCO = models.ForeignKey(
+        confirmationorder, on_delete=models.CASCADE, null=True, blank=True
+    )
 
     def __str__(self):
         return f"{self.IDDetailSPPB} - {self.NoSPPB} - {self.DetailSPK} - {self.Jumlah}"
@@ -254,14 +265,6 @@ class transactionlog(models.Model):
         return str(f"{self.user} - {self.waktu} - {self.jenis}")
 
 
-class confirmationorder(models.Model):
-    NoCO = models.CharField(max_length=50)
-    kepada = models.CharField(max_length=100)
-    perihal = models.CharField(max_length=50)
-    tanggal = models.DateField()
-    StatusAktif = models.BooleanField(default=True)
-
-
 class detailconfirmationorder(models.Model):
     confirmationorder = models.ForeignKey(confirmationorder, on_delete=models.CASCADE)
     Artikel = models.ForeignKey(Artikel, on_delete=models.CASCADE)
@@ -291,10 +294,11 @@ class DetailSubkonKirim(models.Model):
     def __str__(self):
         return str(self.IDSubkonKirim) + " " + str(self.KodeProduk)
 
-class BahanBakuSubkon (models.Model):
+
+class BahanBakuSubkon(models.Model):
     KodeProduk = models.CharField(max_length=20)
     NamaProduk = models.CharField(max_length=20)
     unit = models.CharField(max_length=20)
 
     def __str__(self):
-        return f'{self.KodeProduk} - {self.NamaProduk}'
+        return f"{self.KodeProduk} - {self.NamaProduk}"
