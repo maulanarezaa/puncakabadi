@@ -78,7 +78,18 @@ def gethargabahanbaku(
 
 
 def dashboard(request):
-    return render(request, "ppic/dashboard.html")
+    data = models.confirmationorder.objects.filter(StatusAktif=True)
+    for i in data:
+        detailco = models.detailconfirmationorder.objects.filter(confirmationorder=i.id)
+        i.detailco = detailco
+    print(data)
+    for i in data:
+        detailcopo = models.detailconfirmationorder.objects.filter(
+            confirmationorder=i.id
+        )
+        i.detailcopo = detailcopo
+        i.tanggal = i.tanggal.strftime("%Y-%m-%d")
+    return render(request, "ppic/dashboard.html", {"data": data})
 
 
 def laporanbarangjadi(request):
@@ -513,7 +524,9 @@ Revisi 4/21/2024
 
 
 def viewconfirmationorder(request):
-    data = models.confirmationorder.objects.all()
+    data = models.confirmationorder.objects.filter(StatusAktif=True)
+
+    print(data)
     for i in data:
         detailcopo = models.detailconfirmationorder.objects.filter(
             confirmationorder=i.id
@@ -575,8 +588,14 @@ def detailco(request, id):
     )
     data.detailcopo = detailcopo
     data.tanggal = data.tanggal.strftime("%Y-%m-%d")
+    detailsppb = models.DetailSPPB.objects.filter(IDCO=data)
+    data.detailsppb = detailsppb
+    print(detailsppb)
+    datajumlah = detailsppb.values("DetailSPK__KodeArtikel__KodeArtikel").annotate(total=Sum("Jumlah"))
+    print(datajumlah)
+    
 
-    return render(request, "ppic/detailco.html", {"dataco": data})
+    return render(request, "ppic/detailco.html", {"dataco": data,"jumlah":datajumlah})
 
 
 def updateco(request, id):
@@ -2313,6 +2332,7 @@ def detaillaporanbaranstokawalgudang(request):
             },
         )
 
-def read_transactionlog (request):
+
+def read_transactionlog(request):
     dataobj = models.transactionlog.objects.all()
-    return render(request,'ppic/transactionlog.html',{'data':dataobj})
+    return render(request, "ppic/transactionlog.html", {"data": dataobj})

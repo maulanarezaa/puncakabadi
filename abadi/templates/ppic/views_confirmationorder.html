@@ -33,6 +33,7 @@
                 <th>Nomor CO</th>
                 <th>Artikel</th>
                 <th>Kuantitas</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -60,6 +61,15 @@
                     </li>
                     {% endfor %}
                   </ul>
+                </td>
+                <td>
+
+                  {% if i.StatusAktif == True %}
+                  Aktif
+                  {% else %}
+                  Non-Aktif
+                  {% endif %}
+
                 </td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->

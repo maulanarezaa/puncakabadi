@@ -19,79 +19,132 @@
             Kembali
           </button>
         </a>
+        <form class="form-sample" action="" method="post">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Tanggal</label>
+                <div class="col-sm-9">
+                  <input type="date" class="form-control" name="tanggal" value="{{dataco.tanggal}}" disabled />
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Nomor CO</label>
+                <div class="col-sm-9">
+                  <input type="text" class="form-control" name="nomorco" value="{{dataco.NoCO}}" disabled />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Kepada</label>
+                <div class="col-sm-9">
+                  <input type="text" class="form-control" name="kepada" value="{{dataco.kepada}}" disabled />
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Perihal</label>
+                <div class="col-sm-9">
+                  <input type="text" class="form-control" name="perihal" value="{{dataco.perihal}}" disabled />
+                </div>
+              </div>
+            </div>
+          </div>
+          <h4 class="card-title">Detail Artikel</h4>
+          <div id="artikels">
+            {% for i in dataco.detailcopo %}
+            <div class="row" id="artikel_1">
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label for="artikel_1">Artikel 1:</label>
+                  <input type="text" class="form-control" name="perihal" value="{{i.Artikel}}" disabled />
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label for="quantity_1">Deskripsi</label>
+                  <input type="text" class="form-control" name="perihal" value="{{i.deskripsi}}" disabled />
+                </div>
+              </div>
+              <div class="col-md-2">
+                <div class="form-group">
+                  <label for="quantity_1">Kuantitas</label>
+                  <input type="text" class="form-control" name="perihal" value="{{i.kuantitas}}" disabled />
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label for="quantity_1">Harga</label>
+                  <input type="text" class="form-control" name="perihal" value="Rp {{i.Harga | intcomma }}" disabled />
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <br><br>
+        </form>
       </div>
       <br>
-      <form class="form-sample" action="" method="post">
-        {% csrf_token %}
-        <div class="row">
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Tanggal</label>
-              <div class="col-sm-9">
-                <input type="date" class="form-control" name="tanggal" value="{{dataco.tanggal}}" disabled />
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Nomor CO</label>
-              <div class="col-sm-9">
-                <input type="text" class="form-control" name="nomorco" value="{{dataco.NoCO}}" disabled />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Kepada</label>
-              <div class="col-sm-9">
-                <input type="text" class="form-control" name="kepada" value="{{dataco.kepada}}" disabled />
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Perihal</label>
-              <div class="col-sm-9">
-                <input type="text" class="form-control" name="perihal" value="{{dataco.perihal}}" disabled />
-              </div>
-            </div>
-          </div>
-        </div>
-        <h4 class="card-title">Detail Artikel</h4>
-        <div id="artikels">
-          {% for i in dataco.detailcopo %}
-          <div class="row" id="artikel_1">
-            <div class="col-md-3">
-              <div class="form-group">
-                <label for="artikel_1">Artikel 1:</label>
-                <input type="text" class="form-control" name="perihal" value="{{i.Artikel}}" disabled />
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="form-group">
-                <label for="quantity_1">Deskripsi</label>
-                <input type="text" class="form-control" name="perihal" value="{{i.deskripsi}}" disabled />
-              </div>
-            </div>
-            <div class="col-md-2">
-              <div class="form-group">
-                <label for="quantity_1">Kuantitas</label>
-                <input type="text" class="form-control" name="perihal" value="{{i.kuantitas}}" disabled />
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="form-group">
-                <label for="quantity_1">Harga</label>
-                <input type="text" class="form-control" name="perihal" value="Rp {{i.Harga | intcomma }}" disabled />
-              </div>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        <br><br>
-      </form>
+    </div>
+  </div>
+  <div class="card mt-5 ">
+    <div class="card-body">
+      <div class="table-responsive pt-3">
+        <h5>SPPB</h5>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <td>Tanggal</td>
+              <td>No SPPB</td>
+              <td>No SPK</td>
+              <td>Artikel Keluar</td>
+              <td>Jumlah</td>
+            </tr>
+          </thead>
+          <tbody>
+            {% for i in dataco.detailsppb %}
+            <tr>
+              <td>{{i.NoSPPB.Tanggal}}</td>
+              <td>{{i.NoSPPB.NoSPPB}}</td>
+              <td>{{i.DetailSPK.NoSPK}}</td>
+              <td>{{i.DetailSPK.KodeArtikel}}</td>
+              <td>{{i.Jumlah}}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="card mt-5 ">
+    <div class="card-body">
+      <div class="table-responsive pt-3">
+        <h5>Rekap Barang</h5>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <td>Artikel</td>
+              <td>Jumlah</td>
+            </tr>
+          </thead>
+          <tbody>
+            {% for i in jumlah %}
+            <tr>
+              <td>{{i.DetailSPK__KodeArtikel__KodeArtikel}}</td>
+              <td>{{i.total}}</td>
+
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

@@ -167,6 +167,9 @@ class confirmationorder(models.Model):
     tanggal = models.DateField()
     StatusAktif = models.BooleanField(default=True)
 
+    def __str__(self):
+        return f"{self.NoCO} - {self.tanggal} - {self.StatusAktif}"
+
 
 class SPPB(models.Model):
     NoSPPB = models.CharField(max_length=255)
@@ -183,7 +186,7 @@ class DetailSPPB(models.Model):
     DetailSPK = models.ForeignKey(DetailSPK, on_delete=models.CASCADE, null=True)
     Jumlah = models.IntegerField()
     IDCO = models.ForeignKey(
-        confirmationorder, on_delete=models.CASCADE, null=True, blank=True
+        confirmationorder, on_delete=models.SET_NULL, null=True, blank=True
     )
 
     def __str__(self):

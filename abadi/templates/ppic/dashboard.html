@@ -23,12 +23,38 @@
                         <thead>
                             <tr>
                                 <td>No CO/No PO</td>
+                                <td>Tanggal Terbit</td>
                                 <td>Artikel</td>
                                 <td>Sisa Order</td>
                             </tr>
                         </thead>
                         <tbody>
-                            
+                            {% for i in data %}
+                            <tr>
+                                <td>{{i.NoCO}}</td>
+                                <td>{{i.tanggal}}</td>
+                                <td>
+                                    <ul>
+
+                                        {% for j in i.detailco %}
+                                        <li>
+                                            {{j.Artikel}}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        {% for j in i.detailco %}
+                                        <li>
+                                            {{j.kuantitas}}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+
+                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
 
