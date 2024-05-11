@@ -84,9 +84,7 @@ def tambahdataartikel(request):
         else:
             if keterangan == "":
                 keterangan = "-"
-            newdataobj = models.Artikel(
-                KodeArtikel=kodebaru, keterangan=keterangan
-            )
+            newdataobj = models.Artikel(KodeArtikel=kodebaru, keterangan=keterangan)
             models.transactionlog(
                 user="RND",
                 waktu=datetime.now(),
@@ -144,6 +142,7 @@ def views_penyusun(request):
     data = request.GET
     if len(request.GET) == 0:
         data = models.Artikel.objects.all()
+
         return render(request, "rnd/views_penyusun.html", {"dataartikel": data})
     else:
         kodeartikel = request.GET["kodeartikel"]
@@ -157,11 +156,14 @@ def views_penyusun(request):
                 if request.GET["versi"] == "":
                     versiterpilih = dataversi.order_by("-versi").first()
                     print("ini versi terbaru", versiterpilih)
+                    versiterpilih = versiterpilih.strftime("%Y-%m-%d")
                 else:
                     versiterpilih = request.GET["versi"]
             except:
                 versiterpilih = dataversi.order_by("-versi").first()
                 print("ini versi terbaru", versiterpilih)
+                versiterpilih.strftime("%Y-%m-%d")
+
             data = data.filter(versi=versiterpilih)
             dataversi = [date.strftime("%Y-%m-%d") for date in dataversi]
             print(dataversi)
@@ -268,7 +270,9 @@ def views_penyusun(request):
                     )
 
                 # print(data)
-                # print(datakonversi)
+                print(versiterpilih)
+                # print(dasdatakonversi)
+
                 return render(
                     request,
                     "rnd/views_penyusun.html",
@@ -318,6 +322,7 @@ def updatepenyusun(request, id):
             },
         )
     else:
+        print(request.POST)
         kodeproduk = request.POST["kodeproduk"]
         lokasi = request.POST["lokasi"]
         status = request.POST["status"]
@@ -331,6 +336,13 @@ def updatepenyusun(request, id):
         data.save()
         konversiobj.Kuantitas = kuantitas
         konversiobj.save()
+        transaksilog = models.transactionlog(
+                user="RND",
+                waktu=datetime.now(),
+                jenis="Update",
+            pesan=f"Penyusun Baru. Kode Artikel : {data.KodeArtikel}, Kode produk : {data.KodeProduk}-{data.NamaProduk}, Status Utama : {data} versi : {data.versi}, Kuantitas Konversi : {  konversiobj.Kuantitas}",
+            )
+        transaksilog.save()
         return redirect("penyusun_artikel")
 
 
@@ -384,7 +396,12 @@ def tambahdatapenyusun(request, id, versi):
             KodePenyusun=penyusunobj, Kuantitas=kuantitas, lastedited=datetime.now()
         ).save()
         messages.success(request, "Data penyusun berhasil ditambahkan")
-
+        models.transactionlog(
+            user="RND",
+            waktu=datetime.now(),
+            jenis="Create",
+            pesan=f"Penyusun. Kode Artikel : {dataartikelobj.KodeArtikel}, Kode produk : {newprodukobj.KodeProduk}-{newprodukobj.NamaProduk}, Status Utama : {statusproduk} versi : {versi}, Kuantitas Konversi : {kuantitas}",
+        ).save()
         return redirect(
             f"/rnd/penyusun?kodeartikel={quote(dataartikelobj.KodeArtikel)}"
         )
@@ -1004,5 +1021,10 @@ def tambahversi(request, id):
             ).save()
             print(newpenyusun)
             print(konversimasterobj)
-        return redirect('penyusun_artikel')
-        
+        return redirect("penyusun_artikel")
+
+
+def read_produk(request):
+    produkobj = models.Produk.objects.all()
+    print(produkobj[1].keteranganRND)
+    return render(request, "rnd/read_produk.html", {"produkobj": produkobj})

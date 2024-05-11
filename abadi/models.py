@@ -9,10 +9,16 @@ class Produk(models.Model):
     unit = models.CharField(max_length=20)
     TanggalPembuatan = models.DateField(auto_now_add=True)
     Jumlahminimal = models.IntegerField(default=0)
-    keteranganPurchasing = models.CharField(max_length=255, null=True, blank=True)
-    keteranganProduksi = models.CharField(max_length=255, null=True, blank=True)
-    keteranganGudang = models.CharField(max_length=255, null=True, blank=True)
-    keteranganRND = models.CharField(max_length=255, null=True, blank=True)
+    keteranganPurchasing = models.CharField(
+        max_length=255, null=True, blank=True, default=""
+    )
+    keteranganProduksi = models.CharField(
+        max_length=255, null=True, blank=True, default=""
+    )
+    keteranganGudang = models.CharField(
+        max_length=255, null=True, blank=True, default=""
+    )
+    keteranganRND = models.CharField(max_length=255, null=True, blank=True, default="")
 
     def __str__(self):
         return str(self.KodeProduk)
@@ -24,6 +30,14 @@ class Artikel(models.Model):
 
     def __str__(self):
         return str(self.KodeArtikel)
+
+
+class Display(models.Model):
+    KodeDisplay = models.CharField(max_length=20)
+    keterangan = models.CharField(max_length=255)
+
+    def __str__(self):
+        return str(self.KodeDisplay)
 
 
 class ProdukSubkon(models.Model):
@@ -89,6 +103,16 @@ class DetailSPK(models.Model):
         return str(self.NoSPK) + " " + str(self.KodeArtikel)
 
 
+class DetailSPKDisplay(models.Model):
+    IDDetailSPK = models.AutoField(primary_key=True)
+    NoSPK = models.ForeignKey(SPK, on_delete=models.CASCADE)
+    KodeDisplay = models.ForeignKey(Display, on_delete=models.CASCADE)
+    Jumlah = models.IntegerField()
+
+    def __str__(self):
+        return str(self.NoSPK) + " " + str(self.KodeDisplay)
+
+
 class TransaksiGudang(models.Model):
     IDDetailTransaksiGudang = models.AutoField(primary_key=True)
     KodeProduk = models.ForeignKey(Produk, on_delete=models.CASCADE)
@@ -112,6 +136,7 @@ class Penyusun(models.Model):
     Status = models.BooleanField()
     Lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
     versi = models.DateField(null=True, blank=True)
+    keterangan = models.CharField(max_length=255, default="")
 
     def __str__(self):
         return (
@@ -191,16 +216,6 @@ class DetailSPPB(models.Model):
 
     def __str__(self):
         return f"{self.IDDetailSPPB} - {self.NoSPPB} - {self.DetailSPK} - {self.Jumlah}"
-
-
-class TransaksiSubkon(models.Model):
-    IDTransaksiSubkon = models.AutoField(primary_key=True)
-    IDProdukSubkon = models.ForeignKey(ProdukSubkon, on_delete=models.CASCADE)
-    Tanggal = models.DateField()
-    Jumlah = models.IntegerField()
-
-    def __str__(self):
-        return str(self.IDProdukSubkon.NamaProduk) + "-" + str(self.Tanggal)
 
 
 class SaldoAwalBahanBaku(models.Model):
@@ -305,3 +320,72 @@ class BahanBakuSubkon(models.Model):
 
     def __str__(self):
         return f"{self.KodeProduk} - {self.NamaProduk}"
+
+
+""" SECTION SUBKON """
+
+
+# Untuk Masuk Transaksi Bahan Baku Subkon
+class TransaksiBahanBakuSubkon(models.Model):
+    IDTransaksiBahanBakuSubkon = models.AutoField(primary_key=True)
+    IDKodeBahanBaku = models.ForeignKey(BahanBakuSubkon, on_delete=models.CASCADE)
+    Tanggal = models.DateField()
+    Keterangan = models.CharField(max_length=225)
+
+    def __str__(self):
+        return f"{self.tanggal} - {self.KodeBahanBaku}"
+
+
+# Untuk Surat Jalan Pengriman dari Perusahaan ke vendor Subkon
+class SuratJalanPengirimanBahanBakuSubkon(models.Model):
+    NoSuratJalan = models.CharField(max_length=255)
+    Tanggal = models.DateField()
+
+    def __str__(self):
+        return f"{self.NoSuratJalan} - {self.Tanggal}"
+
+
+class DetailSuratJalanPengirimanBahanBakuSubkon(models.Model):
+    IDDetailSJPengirimanSubkon = models.AutoField(primary_key=True)
+    NoSuratJalan = models.ForeignKey(
+        SuratJalanPengirimanBahanBakuSubkon, on_delete=models.CASCADE
+    )
+    KodeDisplay = models.ForeignKey(Display, on_delete=models.CASCADE)
+    Jumlah = models.IntegerField()
+    Keterangan = models.CharField(max_length=255, null=True, blank=True, default="")
+
+    def __str__(self):
+        return f"{self.NoSuratJalan} - {self.KodeDisplay} - {self.Jumlah}"
+
+
+# Untuk Surat Jalan Penerimaan Produk Subkon
+class SuratJalanPenerimaanProdukSubkon(models.Model):
+    NoSuratJalan = models.CharField(max_length=255)
+    Tanggal = models.DateField()
+
+    def __str__(self):
+        return f"{self.NoSuratJalan} - {self.Tanggal}"
+
+
+class DetailSuratJalanPenerimaanProdukSubkon(models.Model):
+    IDDetailSJPengirimanSubkon = models.AutoField(primary_key=True)
+    NoSuratJalan = models.ForeignKey(
+        SuratJalanPengirimanBahanBakuSubkon, on_delete=models.CASCADE
+    )
+    KodeDisplay = models.ForeignKey(Display, on_delete=models.CASCADE)
+    Jumlah = models.IntegerField()
+    Keterangan = models.CharField(max_length=255, null=True, blank=True, default="")
+
+    def __str__(self):
+        return f"{self.NoSuratJalan} - {self.KodeDisplay} - {self.Jumlah}"
+
+
+# Untuk Transaksi Keluar Produk SUBKON ke area Produksi
+class TransaksiSubkon(models.Model):
+    IDTransaksiProdukSubkon = models.AutoField(primary_key=True)
+    IDProdukSubkon = models.ForeignKey(ProdukSubkon, on_delete=models.CASCADE)
+    Tanggal = models.DateField()
+    Jumlah = models.IntegerField()
+
+    def __str__(self):
+        return str(self.IDProdukSubkon.NamaProduk) + "-" + str(self.Tanggal)

@@ -18,6 +18,8 @@
   <link rel="stylesheet" href="{% static 'assets/css/vertical-layout-light/style.css' %}">
   <!-- endinject -->
   <link rel="shortcut icon" href="{% static 'assets/images/favicon.png' %}" />
+  <link rel="stylesheet" href="{% static 'assets/vendors/datatables.net-bs4/dataTables.bootstrap4.css' %}">
+
 </head>
 
 <body>
@@ -89,6 +91,21 @@
   <!-- Custom js for this page-->
   <script src="{% static 'assets/js/dashboard.js' %}"></script>
   <!-- End custom js for this page-->
+  <!-- DATATABLES -->
+  <script src=" {% static 'assets/vendors/datatables.net/jquery.dataTables.js' %}"></script>
+  <script src=" {% static 'assets/vendors/datatables.net-bs4/dataTables.bootstrap4.js' %}"></script>
+
+  <script>
+    $(document).ready(function () {
+      $('#viewtransactionlog').dataTable(
+
+      );
+    });
+    $(document).ready(function () {
+      $('#viewconfirmationorder').dataTable(
+      );
+    });
+  </script>
 </body>
 
 </html>

@@ -92,11 +92,11 @@
                             <div class="col-sm-9">
                                 <select name="status" id="" class="form-control">
                                     {% if data.Status == 1 %}
-                                    <option value="{{data.Status}}" selected>Bahan Baku Utama</option>
-                                    <option value="{{data.Status}}">Bahan Baku nonutama</option>
+                                    <option value="True" selected>Bahan Baku Utama</option>
+                                    <option value="False">Bahan Baku nonutama</option>
                                     {% else %}
-                                    <option value="{{data.Status}}">Bahan Baku Utama</option>
-                                    <option value="{{data.Status}}" selected>Bahan Baku nonutama</option>
+                                    <option value="True">Bahan Baku Utama</option>
+                                    <option value="False" selected>Bahan Baku nonutama</option>
                                     {% endif %}
                                 </select>
                             </div>

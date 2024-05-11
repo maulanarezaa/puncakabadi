@@ -1,4 +1,4 @@
-{% extends "ppic/base.html" %}
+{% extends "rnd/base.html" %}
 {% load static %}
 
 <!-- Page content  -->
@@ -11,26 +11,58 @@
                 <h4 class="card-title">Produk</h4>
 
                 <div class="table-responsive pt-3">
-                    <table class="table table-bordered" id="viewtransactionlog">
+                    <table class="table table-bordered" id="dataproduk">
                         <thead>
                             <tr>
                                 <th>No</th>
-                                <th>User</th>
-                                <th>Waktu</th>
-                                <th>Jenis</th>
-                                <th>Pesan</th>
-
+                                <th>Kode Produk</th>
+                                <th>Nama Produk</th>
+                                <th>Unit</th>
+                                <th>Jumlah Minimal</th>
+                                <th>Keterangan RND</th>
+                                <th>Keterangan Gudang</th>
+                                <th>Keterangan Produksi</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            {% for i in data %}
+                            {% for i in produkobj %}
                             <tr>
                                 <td>{{forloop.counter}}</td>
-                                <td>{{i.user}}</td>
-                                <td>{{i.waktu}}</td>
-                                <td>{{i.jenis}}</td>
-                                <td>{{i.pesan}}</td>
+                                <td>{{i.KodeProduk}}</td>
+                                <td>{{i.NamaProduk}}</td>
+                                <td>{{i.unit}}</td>
+                                <td>{{i.Jumlahminimal}}</td>
+                                <td>
+                                    {{i.keteranganRND}}
 
+                                </td>
+                                <td>
+
+                                    {{i.keteranganGudang}}
+
+                                </td>
+                                <td>
+
+                                    {{i.keteranganProduksi}}
+
+                                </td>
+                                <td>
+
+                                    {{i.keteranganPurchasing}}
+
+                                </td>
+                                <td>
+                                    <div class="template-demo">
+                                        <a href="{% url 'update_produk_gudang' i.KodeProduk %}">
+                                            <button type="button" class="btn btn-warning">
+                                                <i class="typcn typcn-edit"></i>
+                                            </button>
+                                        </a>
+
+                                    </div>
+
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>

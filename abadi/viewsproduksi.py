@@ -130,6 +130,7 @@ def load_detailspk(request):
     return render(request, "produksi/opsi_spk.html", {"detailspk": detailspk})
 
 
+
 def load_htmx(request):
     no_spk = request.GET.get("nomor_spk")
     id_spk = models.SPK.objects.get(NoSPK=no_spk)
@@ -3963,3 +3964,61 @@ def update_produk_produksi(request, id):
         produkobj.Jumlahminimal = jumlah_minimal
         produkobj.save()
         return redirect("read_produk_produksi")
+
+'''
+REVISI 5/11/2024
+1. Tambah Transaksi Display pada SPPB
+'''
+
+def add_sppb(request):
+    dataartikel = models.Artikel.objects.all()
+    datadisplay = models.Display.objects.all()
+    if request.method == "GET":
+        return render(
+            request,
+            "produksi/add_sppb.html",
+            {
+                "data": dataartikel,
+                'spkdisplay': datadisplay
+            },
+        )
+
+    if request.method == "POST":
+        nomor_sppb = request.POST["nomor_sppb"]
+        tanggal = request.POST["tanggal"]
+        keterangan = request.POST["keterangan"]
+        print(request.POST)
+        print(asdasd)
+        datasppb = models.SPPB.objects.filter(NoSPPB=nomor_sppb).exists()
+        if datasppb:
+            messages.error(request, "Nomor SPPB sudah ada")
+            return redirect("add_sppb")
+        else:
+            messages.success(request, "Data berhasil disimpan")
+            data_sppb = models.SPPB(
+                NoSPPB=nomor_sppb, Tanggal=tanggal, Keterangan=keterangan
+            ).save()
+
+            artikel_list = request.POST.getlist("detail_spk[]")
+            jumlah_list = request.POST.getlist("quantity[]")
+            no_sppb = models.SPPB.objects.get(NoSPPB=nomor_sppb)
+
+            for artikel, jumlah in zip(artikel_list, jumlah_list):
+                # Pisahkan KodeArtikel dari jumlah dengan delimiter '/'
+                kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel)
+                jumlah_produk = jumlah
+
+                # Simpan data ke dalam model DetailSPK
+                datadetailspk = models.DetailSPPB(
+                    NoSPPB=no_sppb, DetailSPK=kode_artikel, Jumlah=jumlah_produk
+                )
+                datadetailspk.save()
+
+            return redirect("view_sppb")
+
+def load_display(request):
+    kode_display = request.GET.get("kode_artikel")
+    displayobj = models.Artikel.objects.get(KodeArtikel=kode_display)
+    detailspk = models.DetailSPKDisplay.objects.filter(KodeArtikel=displayobj)
+
+    return render(request, "produksi/opsi_spkdisplay.html", {"detailspk": detailspk})
