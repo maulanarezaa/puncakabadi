@@ -328,7 +328,7 @@ class BahanBakuSubkon(models.Model):
 # Untuk Masuk Transaksi Bahan Baku Subkon
 class TransaksiBahanBakuSubkon(models.Model):
     IDTransaksiBahanBakuSubkon = models.AutoField(primary_key=True)
-    IDKodeBahanBaku = models.ForeignKey(BahanBakuSubkon, on_delete=models.CASCADE)
+    KodeBahanBaku = models.ForeignKey(BahanBakuSubkon, on_delete=models.CASCADE)
     Tanggal = models.DateField()
     Keterangan = models.CharField(max_length=225)
 
@@ -350,7 +350,9 @@ class DetailSuratJalanPengirimanBahanBakuSubkon(models.Model):
     NoSuratJalan = models.ForeignKey(
         SuratJalanPengirimanBahanBakuSubkon, on_delete=models.CASCADE
     )
-    KodeDisplay = models.ForeignKey(Display, on_delete=models.CASCADE)
+    KodeBahanBaku = models.ForeignKey(
+        BahanBakuSubkon, on_delete=models.CASCADE, null=True
+    )
     Jumlah = models.IntegerField()
     Keterangan = models.CharField(max_length=255, null=True, blank=True, default="")
 
@@ -372,7 +374,7 @@ class DetailSuratJalanPenerimaanProdukSubkon(models.Model):
     NoSuratJalan = models.ForeignKey(
         SuratJalanPengirimanBahanBakuSubkon, on_delete=models.CASCADE
     )
-    KodeDisplay = models.ForeignKey(Display, on_delete=models.CASCADE)
+    KodeProduk = models.ForeignKey(ProdukSubkon, on_delete=models.CASCADE, null=True)
     Jumlah = models.IntegerField()
     Keterangan = models.CharField(max_length=255, null=True, blank=True, default="")
 
@@ -383,7 +385,7 @@ class DetailSuratJalanPenerimaanProdukSubkon(models.Model):
 # Untuk Transaksi Keluar Produk SUBKON ke area Produksi
 class TransaksiSubkon(models.Model):
     IDTransaksiProdukSubkon = models.AutoField(primary_key=True)
-    IDProdukSubkon = models.ForeignKey(ProdukSubkon, on_delete=models.CASCADE)
+    KodeProduk = models.ForeignKey(ProdukSubkon, on_delete=models.CASCADE)
     Tanggal = models.DateField()
     Jumlah = models.IntegerField()
 
