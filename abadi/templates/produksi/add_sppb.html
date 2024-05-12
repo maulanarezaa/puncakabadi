@@ -27,7 +27,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Tanggal</label>
               <div class="col-sm-9">
-                <input type="date" class="form-control" name="tanggal" />
+                <input type="date" class="form-control" name="tanggal" required />
               </div>
             </div>
           </div>
@@ -35,7 +35,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Nomor SPPB</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="nomor_sppb" />
+                <input type="text" class="form-control" name="nomor_sppb" required />
               </div>
             </div>
           </div>
@@ -73,10 +73,21 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <div class="form-group">
                 <label for="quantity_1">Jumlah</label>
                 <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label>Purchase Order</label>
+                <select name="purchaseorderartikel" id="" class="form-control">
+                  <option value="">Masukkan Kode Purchase Order</option>
+                  {% for i in purchaseorder %}
+                  <option value="{{i.id}}">{{i.NoCO}}</option>
+                  {% endfor %}
+                </select>
               </div>
             </div>
           </div>
@@ -90,17 +101,36 @@
                 <label for="display_1">Display 1:</label>
                 <select class="form-control display" name="kode_display_1" id="kode_display-1"
                   onchange="loadDisplayOptions(this)">
-                  <option value="">Masukkan SPK Display</option>
+                  <option value="">Masukkan Display</option>
                   {% for item in display %}
                   <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }} - {{item.Keterangan}}</option>
                   {% endfor %}
                 </select>
               </div>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="display_1">Nomor SPK</label>
+                <div id="detail_spkdisplay_1">
+                  {% include 'produksi/opsi_spkdisplay.html' %}
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2">
               <div class="form-group">
                 <label for="quantity_1">Jumlah</label>
                 <input type="number" class="form-control quantity" name="quantitydisplay[]" placeholder="Quantity">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label>Purchase Order</label>
+                <select name="purchaseorderdisplay" id="" class="form-control">
+                  <option value="">Masukkan Kode Purchase Order</option>
+                  {% for i in purchaseorder %}
+                  <option value="{{i.id}}">{{i.NoCO}}</option>
+                  {% endfor %}
+                </select>
               </div>
             </div>
 
@@ -152,12 +182,23 @@
                                       </div>
                                   </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                   <div class="form-group">
                                       <label for="quantity_${productCounter}">Jumlah</label>
                                       <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity">
                                   </div>
                                 </div>
+                                <div class="col-md-3">
+              <div class="form-group">
+                <label>Purchase Order</label>
+                <select name="purchaseorderartikel" id="" class="form-control">
+                  <option value="">Masukkan Kode Purchase Order</option>
+                  {% for i in purchaseorder %}
+                  <option value="{{i.id}}">{{i.NoCO}}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
                                 <div class="col-md-1">
                                     <label for="hapus1"></label>
                                     <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
@@ -193,8 +234,9 @@
   function loadDisplayOptions(selectElement) {
     var spkNumber = selectElement.value;
     var productCounter = selectElement.id.split('-')[1];
-    var detailSpkDiv = document.getElementById('detail_spk_' + productCounter);
-    var url = "{% url 'load_artikel' %}";
+    var detailSpkDiv = document.getElementById('detail_spkdisplay_' + productCounter);
+    console.log(selectElement)
+    var url = "{% url 'load_display' %}";
 
     // Menghapus opsi sebelumnya jika ada
     detailSpkDiv.innerHTML = '';
@@ -219,21 +261,42 @@
     displayRow.innerHTML = `<div class="col-md-3">
                                 <div class="form-group">
                                     <label for="SPK_Display-${displayCounter}">Display ${displayCounter}</label>
-                                    <select class="form-control display" name="spk_display[]" id = SPK_Display-${displayCounter}">
+                                    <select class="form-control display" name="spk_display[]" id = "SPK_Display-${displayCounter}" onchange="loadDisplayOptions(this)">
                                     <option value="">Masukkan SPK Display</option>
-                                    {% for item in spkdisplay %}
-                                    <option value="{{ item.NoSPK }}">{{ item.NoSPK }} - {{item.Keterangan}}</option>
-                                    {% endfor %}
+                                    
+                                    {% for item in display %}
+                  <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }} - {{item.Keterangan}}</option>
+                  {% endfor %}
                                         </select>
                                 </div>
                             </div>
-                            <div class="col-md-5">
+                            <div class="col-md-3">
+                                  <div class="form-group">
+                                    <label for="artikel_1">Nomor SPK</label>
+                                    <div id="detail_spkdisplay_${displayCounter}">
+                                      {% include 'produksi/opsi_spkdisplay.html' %}
+                                    </div>
+                                  </div>
+                                </div>
+                            <div class="col-md-2">
                                 <div class="form-group">
                                     <label for="jumlah_${displayCounter}">Jumlah</label>
                                     <input type="number" class="form-control" name="quantitydisplay[]" id="jumlah_${displayCounter}" placeholder="Jumlah">
                                 </div>
+                              </div>
+                              <div class="col-md-3">
+              <div class="form-group">
+                <label>Purchase Order</label>
+                <select name="purchaseorderdisplay" id="" class="form-control">
+                  <option value="">Masukkan Kode Purchase Order</option>
+                  {% for i in purchaseorder %}
+                  <option value="{{i.id}}">{{i.NoCO}}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
                                
-                            </div>
+                            
                             <div class="col-md-1">
                                     <label for="hapus1"></label>
                                     <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>

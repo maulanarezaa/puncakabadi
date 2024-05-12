@@ -2336,3 +2336,6 @@ def detaillaporanbaranstokawalgudang(request):
 def read_transactionlog(request):
     dataobj = models.transactionlog.objects.all()
     return render(request, "ppic/transactionlog.html", {"data": dataobj})
+
+# Export EXCEL BELUM 
+# Cek Perhitungan Laporan

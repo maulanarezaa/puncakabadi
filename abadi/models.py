@@ -169,20 +169,13 @@ class Penyesuaian(models.Model):
         return str(self.KodePenyusun)
 
 
-class TransaksiProduksi(models.Model):
-    idTransaksiProduksi = models.AutoField(primary_key=True)
-    KodeArtikel = models.ForeignKey(Artikel, on_delete=models.CASCADE)
-    Lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
+class SPPB(models.Model):
+    NoSPPB = models.CharField(max_length=255)
     Tanggal = models.DateField()
-    Jumlah = models.IntegerField()
     Keterangan = models.CharField(max_length=255)
-    Jenis = models.CharField(max_length=20)
-    DetailSPK = models.ForeignKey(
-        DetailSPK, on_delete=models.CASCADE, null=True, blank=True
-    )
 
     def __str__(self):
-        return f"{self.Jenis} - {self.KodeArtikel.KodeArtikel} - {self.Lokasi} - {self.Tanggal} - {self.Jumlah}"
+        return str(self.NoSPPB)
 
 
 class confirmationorder(models.Model):
@@ -196,19 +189,15 @@ class confirmationorder(models.Model):
         return f"{self.NoCO} - {self.tanggal} - {self.StatusAktif}"
 
 
-class SPPB(models.Model):
-    NoSPPB = models.CharField(max_length=255)
-    Tanggal = models.DateField()
-    Keterangan = models.CharField(max_length=255)
-
-    def __str__(self):
-        return str(self.NoSPPB)
-
-
 class DetailSPPB(models.Model):
     IDDetailSPPB = models.AutoField(primary_key=True)
     NoSPPB = models.ForeignKey(SPPB, on_delete=models.CASCADE)
-    DetailSPK = models.ForeignKey(DetailSPK, on_delete=models.CASCADE, null=True)
+    DetailSPK = models.ForeignKey(
+        DetailSPK, on_delete=models.CASCADE, null=True, blank=True
+    )
+    DetailSPKDisplay = models.ForeignKey(
+        DetailSPKDisplay, on_delete=models.CASCADE, null=True, blank=True
+    )
     Jumlah = models.IntegerField()
     IDCO = models.ForeignKey(
         confirmationorder, on_delete=models.SET_NULL, null=True, blank=True
@@ -216,6 +205,28 @@ class DetailSPPB(models.Model):
 
     def __str__(self):
         return f"{self.IDDetailSPPB} - {self.NoSPPB} - {self.DetailSPK} - {self.Jumlah}"
+
+
+class TransaksiProduksi(models.Model):
+    idTransaksiProduksi = models.AutoField(primary_key=True)
+    KodeArtikel = models.ForeignKey(Artikel, on_delete=models.CASCADE, null=True)
+    Lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
+    Tanggal = models.DateField()
+    Jumlah = models.IntegerField()
+    Keterangan = models.CharField(max_length=255)
+    Jenis = models.CharField(max_length=20)
+    DetailSPK = models.ForeignKey(
+        DetailSPK, on_delete=models.CASCADE, null=True, blank=True
+    )
+    DetailSPPBDisplay = models.ForeignKey(
+        DetailSPPB, on_delete=models.CASCADE, null=True, blank=True
+    )
+
+    def __str__(self):
+        if self.KodeArtikel is not None:
+            return f"{self.Jenis} - {self.KodeArtikel.KodeArtikel} - {self.Lokasi} - {self.Tanggal} - {self.Jumlah}"
+        else:
+            return f"{self.Jenis} - {self.DetailSPPBDisplay.DetailSPKDisplay.KodeDisplay} - {self.Lokasi} - {self.Tanggal} - {self.Jumlah}"
 
 
 class SaldoAwalBahanBaku(models.Model):

@@ -8,100 +8,196 @@
 <!-- Page content  -->
 {% block content %}
 <div class="col-12 grid-margin">
-    <div class="card">
-      <div class="card-body">
-        <h4 class="card-title">Form Input SPPB</h4>
-        <div class="template-demo">
-            <a href="/produksi/viewsppb">
-                <button type="button" class="btn btn-light btn-icon-text">
-                    <i class="typcn typcn-chevron-left btn-icon-prepend"></i>                                                    
-                    Kembali
-                </button>
-            </a>
-        </div>
-        <br>
-        <form class="form-sample" action="" method="post">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Form Input SPPB</h4>
+      <div class="template-demo">
+        <a href="/produksi/viewsppb">
+          <button type="button" class="btn btn-light btn-icon-text">
+            <i class="typcn typcn-chevron-left btn-icon-prepend"></i>
+            Kembali
+          </button>
+        </a>
+      </div>
+      <br>
+      <form class="form-sample" action="" method="post">
         {% csrf_token %}
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group row">
-                <label class="col-sm-3 col-form-label">Tanggal</label>
-                <div class="col-sm-9">
-                  <input type="date" class="form-control" name="tanggal" value="{{tanggal}}"/>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="form-group row">
-                <label class="col-sm-3 col-form-label">Nomor SPPB</label>
-                <div class="col-sm-9">
-                    <input type="text" class="form-control" name="nomor_sppb" value="{{datasppb.NoSPPB}}"/>
-                </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Tanggal</label>
+              <div class="col-sm-9">
+                <input type="date" class="form-control" name="tanggal" value="{{tanggal}}" />
               </div>
             </div>
           </div>
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group row">
-                <label class="col-sm-3 col-form-label">Keterangan</label>
-                <div class="col-sm-9">
-                    <textarea class="form-control" name="keterangan"  rows="3">{{datasppb.Keterangan}}</textarea>
-                </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Nomor SPPB</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" name="nomor_sppb" value="{{datasppb.NoSPPB}}" />
               </div>
             </div>
           </div>
-          <h4 class="card-title">Detail SPPB</h4>
-          <div id="artikels">
-            {% for i in datadetail %}
-            <div class="row" id="artikel_1">
-                <div class="col-md-3">
-                  <div class="form-group">
-                      <label for="artikel_{{ forloop.counter }}">Artikel {{ forloop.counter }}:</label>
-                      <select class="form-control artikel" name="kode_artikel-{{ forloop.counter }}:" id="kode_artikel-{{ forloop.counter }}:" onchange="loadArtikelOptions(this)">
-                        <option value="">Masukkan Kode Artikel</option>
-                          {% for item in dataartikel %}
-                            {% if item.KodeArtikel == i.DetailSPK.KodeArtikel.KodeArtikel %}
-                              <option selected value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
-                            {% else %}
-                              <option value="{{ item.KodeArtikel }}"> {{ item.KodeArtikel }}</option>
-                            {% endif %}
-                          {% endfor %}
-                      </select>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="artikel_1">Nomor SPK</label>
-                        <select class="form-control" name="detail_spk[]">
-                          <option value="">Masukkan Nomor SPK</option>
-                          {% for item in data %}
-                            {% if item.IDDetailSPK == i.DetailSPK.IDDetailSPK %}
-                              <option selected value="{{ item.IDDetailSPK }}">{{ item.NoSPK }}</option>
-                            {% else %}
-                              <option value="{{ item.IDDetailSPK }}"> {{ item.NoSPK }}</option>
-                            {% endif %}>
-                          {% endfor %}
-                        </select>
-                        <div id="detail_spk_1">
-                        </div>
-                    </div>
-                  </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="quantity_1">Jumlah</label>
-                        <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity" value="{{i.Jumlah}}">
-                    </div>
-                </div>
-                <div class="col-md-1">
-                    <label for="hapus1"></label>
-                    <a >
-                      <button type="button" onclick="confirmDelete('{{ i.IDDetailSPPB }}')" class="btn btn-danger">
-                        <i class="typcn typcn typcn-trash"></i>                                                    
-                      </button>
-                    </a>
-                </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Keterangan</label>
+              <div class="col-sm-9">
+                <textarea class="form-control" name="keterangan" rows="3">{{datasppb.Keterangan}}</textarea>
+              </div>
             </div>
-            {% endfor %}
+          </div>
+        </div>
+        <h4 class="card-title">Detail SPPB</h4>
+        <h5>Artikel</h5>
+        <div id="artikels">
+          {% if datadetail %}
+
+          {% for i in datadetail %}
+          <div class="row" id="artikel_1">
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="artikel_{{ forloop.counter }}">Artikel {{ forloop.counter }}:</label>
+                <select class="form-control artikel" name="kode_artikel-{{ forloop.counter }}:"
+                  id="kode_artikel-{{ forloop.counter }}:" onchange="loadArtikelOptions(this)">
+                  <option value="">Masukkan Kode Artikel</option>
+                  {% for item in dataartikel %}
+                  {% if item.KodeArtikel == i.DetailSPK.KodeArtikel.KodeArtikel %}
+                  <option selected value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
+                  {% else %}
+                  <option value="{{ item.KodeArtikel }}"> {{ item.KodeArtikel }}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="artikel_1">Nomor SPK</label>
+                <select class="form-control" name="detail_spkawal[]">
+                  <option value="">Masukkan Nomor SPK</option>
+                  {% for item in data %}
+
+                  {% if item.IDDetailSPK == i.DetailSPK.IDDetailSPK %}
+                  <option selected value="{{ item.IDDetailSPK }}">{{ item.NoSPK }}</option>
+                  {% else %}
+                  <option value="{{ item.IDDetailSPK }}"> {{ item.NoSPK }}</option>
+                  {% endif %}>
+                  {% endfor %}
+                </select>
+
+              </div>
+            </div>
+            <div class="col-md-2">
+              <div class="form-group">
+                <label for="quantity_1">Jumlah</label>
+                <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity"
+                  value="{{i.Jumlah}}">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label>Purchase Order</label>
+                <select name="purchaseorderartikel" id="" class="form-control">
+                  <option value="">Masukkan Kode Purchase Order</option>
+                  {% for item in purchaseorder %}
+                  {% if item.id == i.IDCO.id %}
+                  <option value="{{item.id}}" selected>{{item.NoCO}}</option>
+                  {% else %}
+                  <option value="{{item.id}}">{{item.NoCO}}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="col-md-1">
+              <label for="hapus1"></label>
+              <a>
+                <button type="button" onclick="confirmDelete('{{ i.IDDetailSPPB }}')" class="btn btn-danger">
+                  <i class="typcn typcn typcn-trash"></i>
+                </button>
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+          {% else %}
+          <h5>Tidak ada Data Artikel</h5>
+          {% endif %}
+        </div>
+
+        <h5>Display</h5>
+        <div id="displays">
+          {% if datadetaildisplay %}
+          {% for i in datadetaildisplay %}
+          <div class="row" id="display_1">
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="display_{{ forloop.counter }}">Display {{ forloop.counter }}:</label>
+                <select class="form-control display" name="kode_display-{{ forloop.counter }}:"
+                  id="kode_display-{{ forloop.counter }}: " onchange="loadDisplayOptions(this)">
+                  <option value="">Masukkan Kode Display</option>
+                  {% for item in datadisplay %}
+                  {% if item.KodeDisplay == i.DetailSPKDisplay.KodeDisplay.KodeDisplay %}
+                  <option selected value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }}</option>
+                  {% else %}
+                  <option value="{{ item.KodeDisplay }}"> {{ item.KodeDisplay }}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="display_1">Nomor SPK</label>
+                <select class="form-control" name="detail_spkdisplayawal[]">
+                  <option value="">Masukkan Nomor SPK</option>
+                  {% for item in dataspkdisplay %}
+                  {% if item.IDDetailSPK == i.DetailSPKDisplay.IDDetailSPK %}
+                  <option selected value="{{ item.IDDetailSPK }}">{{ item.NoSPK }}</option>
+                  {% else %}
+                  <option value="{{ item.IDDetailSPK }}"> {{ item.NoSPK }}</option>
+                  {% endif %}>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="col-md-2">
+              <div class="form-group">
+                <label for="quantity_1">Jumlah</label>
+                <input type="number" class="form-control quantitydisplay" name="quantitydisplay[]"
+                  placeholder="Quantity" value="{{i.Jumlah}}">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label>Purchase Order</label>
+                <select name="purchaseorderdisplay" id="" class="form-control">
+                  <option value="">Masukkan Kode Purchase Order</option>
+                  {% for item in purchaseorder %}
+                  {% if item.id == i.IDCO.id %}
+                  <option value="{{item.id}}" selected>{{item.NoCO}}</option>
+                  {% else %}
+                  <option value="{{item.id}}">{{item.NoCO}}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="col-md-1">
+              <label for="hapus1"></label>
+              <a>
+                <button type="button" onclick="confirmDelete('{{ i.IDDetailSPPB }}')" class="btn btn-danger">
+                  <i class="typcn typcn typcn-trash"></i>
+                </button>
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+          {% else %}
+          <h5>Tidak ada Data Display</h5>
+          {% endif %}
         </div>
         <br><br>
         <div class="row">
@@ -111,46 +207,53 @@
               Tambahkan Produk
             </button>
           </div>
-          <div class="col-auto"><button type="submit" class="btn btn-primary mr-2">Submit</button></div>            
+          <div class="col-auto mr-auto">
+            <button type="button" class="btn btn-success" onclick="addDisplay()">
+              <i class="typcn typcn-plus btn-icon-prepend"></i>
+              Tambahkan Display
+            </button>
+          </div>
+          <div class="col-auto"><button type="submit" class="btn btn-primary mr-2">Submit</button></div>
         </div>
-        </form>
-      </div>
+      </form>
     </div>
+  </div>
 </div>
 
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Konfirmasi Penghapusan</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                Apakah Anda yakin ingin menghapus data ini?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                <form id="deleteForm" method="post" action="">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Hapus</button>
-                </form>
-            </div>
-        </div>
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Konfirmasi Penghapusan</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Apakah Anda yakin ingin menghapus data ini?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+        <form id="deleteForm" method="post" action="">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Hapus</button>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
 
 
 {% block javascripts %}
 <script>
-    function addProduct() {
-        let productCounter = document.querySelectorAll('.artikel').length + 1;
-        const productRow = document.createElement('div');
-        productRow.className = "row";
-        productRow.id = `artikel_${productCounter}`;
-        productRow.innerHTML = `<div class="col-md-3">
+
+  function addProduct() {
+    let productCounter = document.querySelectorAll('.artikel').length + 1;
+    const productRow = document.createElement('div');
+    productRow.className = "row";
+    productRow.id = `artikel_${productCounter}`;
+    productRow.innerHTML = `<div class="col-md-3">
                                   <div class="form-group">
                                       <label for="artikel_1">Artikel ${productCounter}:</label>
                                       <select class="form-control artikel" name="kode_artikel-${productCounter}" id="kode_artikel-${productCounter}" onchange="loadArtikelOptions(this)">
@@ -169,48 +272,137 @@
                                     </div>
                                   </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                   <div class="form-group">
                                       <label for="quantity_${productCounter}">Jumlah</label>
-                                      <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity">
+                                      <input type="number" class="form-control quantity" name="quantitybaru[]" placeholder="Quantity">
                                   </div>
                                 </div>
+                                <div class="col-md-3">
+              <div class="form-group">
+                <label>Purchase Order</label>
+                <select name="purchaseorderartikelbaru" id="" class="form-control">
+                  <option value="">Masukkan Kode Purchase Order</option>
+                  {% for i in purchaseorder %}
+                  <option value="{{i.id}}">{{i.NoCO}}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
                                 <div class="col-md-1">
                                     <label for="hapus1"></label>
                                     <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
                                 </div>`;
 
-        document.getElementById('artikels').appendChild(productRow);
-    }
-
-    function confirmDelete(id) {
-      console.log(id)
-      var deleteForm = document.getElementById('deleteForm');
-      deleteForm.action = "deletedetailsppb/" + id;
-      $('#confirmDeleteModal').modal('show');
+    document.getElementById('artikels').appendChild(productRow);
   }
 
-    function loadArtikelOptions(selectElement) {
-      var spkNumber = selectElement.value;
-      var productCounter = selectElement.id.split('-')[1];
-      var detailSpkDiv = document.getElementById('detail_spk_' + productCounter);
-      var url = "{% url 'load_artikel' %}";
-
-      // Menghapus opsi sebelumnya jika ada
-      detailSpkDiv.innerHTML = '';
-
-      // Memuat opsi baru berdasarkan nomor SPK yang dipilih
-      $.ajax({
-          url: url,
-          data: {
-              'kode_artikel': spkNumber
-          },
-          dataType: 'html',
-          success: function(data){
-              detailSpkDiv.innerHTML = data;
-          }
-      });
+  function confirmDelete(id) {
+    console.log(id)
+    var deleteForm = document.getElementById('deleteForm');
+    deleteForm.action = "deletedetailsppb/" + id;
+    $('#confirmDeleteModal').modal('show');
   }
+  function loadDisplayOptions(selectElement) {
+    var spkNumber = selectElement.value;
+    var productCounter = selectElement.id.split('-')[1];
+    console.log(selectElement)
+    var detailSpkDiv = document.getElementById('detail_spkdisplay_' + productCounter);
+    var url = "{% url 'load_display' %}";
+
+    // Menghapus opsi sebelumnya jika ada
+    detailSpkDiv.innerHTML = '';
+
+    // Memuat opsi baru berdasarkan nomor SPK yang dipilih
+    $.ajax({
+      url: url,
+      data: {
+        'kode_artikel': spkNumber
+      },
+      dataType: 'html',
+      success: function (data) {
+        detailSpkDiv.innerHTML = data;
+      }
+    });
+  }
+  function loadArtikelOptions(selectElement) {
+    var spkNumber = selectElement.value;
+    var productCounter = selectElement.id.split('-')[1];
+    console.log(selectElement)
+    var detailSpkDiv = document.getElementById('detail_spk_' + productCounter);
+    var url = "{% url 'load_artikel' %}";
+
+    // Menghapus opsi sebelumnya jika ada
+    detailSpkDiv.innerHTML = '';
+
+    // Memuat opsi baru berdasarkan nomor SPK yang dipilih
+    $.ajax({
+      url: url,
+      data: {
+        'kode_artikel': spkNumber
+      },
+      dataType: 'html',
+      success: function (data) {
+        detailSpkDiv.innerHTML = data;
+      }
+    });
+  }
+  function addDisplay() {
+    let displayCounter = document.querySelectorAll('.display').length + 1;
+    const displayRow = document.createElement('div');
+    displayRow.className = "row display-row";
+    displayRow.id = `display_row_${displayCounter}`;
+    displayRow.innerHTML = `<div class="col-md-3">
+      <div class="form-group">
+                <label for="display_${displayCounter}">Display ${displayCounter}:</label>
+                <select class="form-control display" name="kode_display-${displayCounter}"
+                  id="kode_display-${displayCounter}" onchange="loadDisplayOptions(this)">
+                  <option value="">Masukkan Kode Display</option>
+                  {% for item in datadisplay %}
+                  {
+                  <option value="{{ item.KodeDisplay }}"> {{ item.KodeDisplay }}</option>
+                  
+                  {% endfor %}
+                </select>
+              </div>
+                            </div>
+                            <div class="col-md-3">
+                                  <div class="form-group">
+                                    <label for="artikel_1">Nomor SPK</label>
+                                    <div id="detail_spkdisplay_${displayCounter}">
+                                      {% include 'produksi/opsi_spkdisplay.html' %}
+                                    </div>
+                                  </div>
+                                </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="jumlah_${displayCounter}">Jumlah</label>
+                                    <input type="number" class="form-control" name="quantitydisplaybaru[]" id="jumlah_${displayCounter}" placeholder="Jumlah">
+                                </div>
+                               
+                            </div>
+                            <div class="col-md-3">
+              <div class="form-group">
+                <label>Purchase Order</label>
+                <select name="purchaseorderdisplaybaru" id="" class="form-control">
+                  <option value="">Masukkan Kode Purchase Order</option>
+                  {% for i in purchaseorder %}
+                  <option value="{{i.id}}">{{i.NoCO}}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+                            <div class="col-md-1">
+                                    <label for="hapus1"></label>
+                                    <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
+                                </div>
+                            `;
+    document.getElementById('displays').appendChild(displayRow);
+  }
+  function deleteRow(button) {
+    button.closest('.row').remove();
+  }
+
 </script>
 {% endblock javascripts %}
 {% endblock content %}

@@ -208,4 +208,5 @@ urlpatterns = [
         viewsproduksi.update_produk_produksi,
         name="update_produk_produksi",
     ),
+    path("load_display", viewsproduksi.load_display, name="load_display"),
 ]

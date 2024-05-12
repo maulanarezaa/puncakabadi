@@ -142,7 +142,7 @@ def load_htmx(request):
 def load_artikel(request):
     kode_artikel = request.GET.get("kode_artikel")
     artikelobj = models.Artikel.objects.get(KodeArtikel=kode_artikel)
-    detailspk = models.DetailSPK.objects.filter(KodeArtikel=artikelobj)
+    detailspk = models.DetailSPK.objects.filter(KodeArtikel=artikelobj,)
 
     return render(request, "produksi/opsi_artikel.html", {"detailspk": detailspk})
 
@@ -333,7 +333,7 @@ def track_spk(request, id):
 def view_sppb(request):
     datasppb = models.SPPB.objects.all().order_by("-Tanggal")
     for i in datasppb:
-        i.Tanggal = i.Tanggal.strftime("%d-%m-%Y")
+        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
 
     return render(request, "produksi/view_sppb.html", {"datasppb": datasppb})
 
@@ -383,65 +383,6 @@ def add_sppb(request):
             return redirect("view_sppb")
 
 
-def detail_sppb(request, id):
-    dataartikel = models.Artikel.objects.all()
-    datadetailspk = models.DetailSPK.objects.all()
-    datasppb = models.SPPB.objects.get(id=id)
-    datadetailsppb = models.DetailSPPB.objects.filter(NoSPPB=datasppb.id)
-
-    if request.method == "GET":
-        tanggal = datetime.strftime(datasppb.Tanggal, "%Y-%m-%d")
-
-        return render(
-            request,
-            "produksi/detail_sppb.html",
-            {
-                "dataartikel": dataartikel,
-                "data": datadetailspk,
-                "datasppb": datasppb,
-                "datadetail": datadetailsppb,
-                "tanggal": tanggal,
-            },
-        )
-
-    elif request.method == "POST":
-        nomor_sppb = request.POST["nomor_sppb"]
-        tanggall = request.POST["tanggal"]
-        keterangan = request.POST["keterangan"]
-        artikel_list = request.POST.getlist("detail_spk[]")
-        jumlah_list = request.POST.getlist("quantity[]")
-
-        datasppb.NoSPPB = nomor_sppb
-        datasppb.Tanggal = tanggall
-        datasppb.Keterangan = keterangan
-        datasppb.save()
-
-        for detail, artikel_id, jumlah in zip(
-            datadetailsppb, artikel_list, jumlah_list
-        ):
-            kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel_id)
-            detail.DetailSPK = kode_artikel
-            detail.Jumlah = jumlah
-            detail.save()
-
-        no_sppb = models.SPPB.objects.get(NoSPPB=nomor_sppb)
-
-        for artikel_id, jumlah in zip(
-            artikel_list[len(datadetailsppb) :], jumlah_list[len(datadetailsppb) :]
-        ):
-            kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel_id)
-            new_detail = models.DetailSPPB.objects.create(
-                NoSPPB=no_sppb,  # Assuming NoSPK is the ForeignKey field to SPK in DetailSPK model
-                DetailSPK=kode_artikel,
-                Jumlah=jumlah,
-            )
-            try:
-                new_detail.save()
-            except IntegrityError:
-                # Handle if there's any IntegrityError, such as violating unique constraint
-                pass
-
-        return redirect("detail_sppb", id=id)
 
 
 def delete_sppb(request, id):
@@ -3973,13 +3914,16 @@ REVISI 5/11/2024
 def add_sppb(request):
     dataartikel = models.Artikel.objects.all()
     datadisplay = models.Display.objects.all()
+    purchaseorder = models.confirmationorder.objects.filter(StatusAktif = True)
+
     if request.method == "GET":
         return render(
             request,
             "produksi/add_sppb.html",
             {
                 "data": dataartikel,
-                'spkdisplay': datadisplay
+                'display': datadisplay,
+                "purchaseorder":purchaseorder
             },
         )
 
@@ -3987,8 +3931,12 @@ def add_sppb(request):
         nomor_sppb = request.POST["nomor_sppb"]
         tanggal = request.POST["tanggal"]
         keterangan = request.POST["keterangan"]
+        
         print(request.POST)
-        print(asdasd)
+        displaylist = request.POST.getlist("detail_spkdisplay[]")
+        jumlahdisplay = request.POST.getlist('quantitydisplay[]')
+        confirmationorderdisplay = request.POST.getlist("purchaseorderdisplay")
+
         datasppb = models.SPPB.objects.filter(NoSPPB=nomor_sppb).exists()
         if datasppb:
             messages.error(request, "Nomor SPPB sudah ada")
@@ -4001,9 +3949,13 @@ def add_sppb(request):
 
             artikel_list = request.POST.getlist("detail_spk[]")
             jumlah_list = request.POST.getlist("quantity[]")
+            confirmationorderartikel = request.POST.getlist("purchaseorderartikel")
             no_sppb = models.SPPB.objects.get(NoSPPB=nomor_sppb)
 
-            for artikel, jumlah in zip(artikel_list, jumlah_list):
+            for artikel, jumlah, confirmationorder in zip(artikel_list, jumlah_list,confirmationorderartikel):
+                if artikel == '' or jumlah == '':
+                    print('tidak ada data artikel')
+                    continue
                 # Pisahkan KodeArtikel dari jumlah dengan delimiter '/'
                 kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel)
                 jumlah_produk = jumlah
@@ -4012,13 +3964,150 @@ def add_sppb(request):
                 datadetailspk = models.DetailSPPB(
                     NoSPPB=no_sppb, DetailSPK=kode_artikel, Jumlah=jumlah_produk
                 )
+                if not confirmationorder == "":
+
+                    datadetailspk.IDCO = models.confirmationorder.objects.get(pk=confirmationorder)
                 datadetailspk.save()
+
+            for display,jumlah,confirmationorder in zip(displaylist,jumlahdisplay,confirmationorderdisplay):
+                print('ini : ',display, jumlah)
+                if display == "" or jumlah == "":
+                    print('tidak ada Display')
+                    continue
+                detailspkdisplayobj = models.DetailSPKDisplay.objects.get(IDDetailSPK = display)
+                datadetailspkdisplay = models.DetailSPPB(
+                NoSPPB=no_sppb, DetailSPKDisplay=detailspkdisplayobj, Jumlah=jumlah
+                )
+                if not confirmationorder == "":
+                    datadetailspkdisplay.IDCO = models.confirmationorder.objects.get(pk = confirmationorder)
+                datadetailspkdisplay.save()
+
+                # Buat Transaksi Mutasi 
+                transaksiproduksiobj = models.TransaksiProduksi(
+                    Tanggal = tanggal, Jumlah = jumlah, Jenis = "Mutasi", Keterangan = "Mutasi Display", Lokasi = models.Lokasi.objects.get(pk = 1), DetailSPPBDisplay = datadetailspkdisplay
+                
+                )
+                
+                transaksiproduksiobj.save()
+                print(transaksiproduksiobj)
 
             return redirect("view_sppb")
 
 def load_display(request):
+    print(request.GET)
     kode_display = request.GET.get("kode_artikel")
-    displayobj = models.Artikel.objects.get(KodeArtikel=kode_display)
-    detailspk = models.DetailSPKDisplay.objects.filter(KodeArtikel=displayobj)
+    displayobj = models.Display.objects.get(KodeDisplay=kode_display)
+    detailspk = models.DetailSPKDisplay.objects.filter(KodeDisplay=displayobj.id,NoSPK__StatusDisplay = 1, NoSPK__StatusAktif=1)
+    print(detailspk)
 
     return render(request, "produksi/opsi_spkdisplay.html", {"detailspk": detailspk})
+
+def detail_sppb(request, id):
+    dataartikel = models.Artikel.objects.all()
+    datadisplay = models.Display.objects.all()
+    datadetailspk = models.DetailSPK.objects.all()
+    datadetailspkdisplay = models.DetailSPKDisplay.objects.all()
+    datasppb = models.SPPB.objects.get(id=id)
+    datadetailsppbArtikel = models.DetailSPPB.objects.filter(NoSPPB=datasppb.id,DetailSPKDisplay = None)
+    datadetailsppbdisplay = models.DetailSPPB.objects.filter(NoSPPB=datasppb.id,DetailSPK = None)
+    purchaseorderdata = models.confirmationorder.objects.filter(StatusAktif =True)
+    print(datadetailsppbdisplay)
+    if request.method == "GET":
+        tanggal = datetime.strftime(datasppb.Tanggal, "%Y-%m-%d")
+
+        return render(
+            request,
+            "produksi/detail_sppb.html",
+            {
+                "dataartikel": dataartikel,
+                "datadisplay": datadisplay,
+                "data": datadetailspk,
+                "dataspkdisplay": datadetailspkdisplay,
+                "datasppb": datasppb,
+                "datadetail": datadetailsppbArtikel,
+                "datadetaildisplay": datadetailsppbdisplay,
+                "tanggal": tanggal,
+                'purchaseorder':purchaseorderdata
+            },
+        )
+
+    elif request.method == "POST":
+        nomor_sppb = request.POST["nomor_sppb"]
+        tanggall = request.POST["tanggal"]
+        keterangan = request.POST["keterangan"]
+        artikel_list = request.POST.getlist("detail_spkawal[]")
+        jumlah_list = request.POST.getlist("quantity[]")
+        display_list = request.POST.getlist("detail_spkdisplayawal[]")
+        jumlahdisplay_list = request.POST.getlist('quantitydisplay[]')
+
+        artikel_baru = request.POST.getlist('detail_spk[]')
+        jumlah_baru = request.POST.getlist('quantitybaru[]')
+        purchaseorder_artikelbaru = request.POST.getlist('purchaseorderartikelbaru')
+
+        display_baru = request.POST.getlist('detail_spkdisplay[]')
+        jumlahdisplay_baru = request.POST.getlist('quantitydisplaybaru[]')
+        purchaseorder_displaybaru = request.POST.getlist('purchaseorderdisplay')
+
+        print(request.POST)
+        # print(datadetailsppbArtikel)
+        # print(asdasd)
+        datasppb.NoSPPB = nomor_sppb
+        datasppb.Tanggal = tanggall
+        datasppb.Keterangan = keterangan
+        datasppb.save()
+        if datadetailsppbArtikel:
+            print('Masuk Artikel')
+            for detail, artikel_id, jumlah in zip(
+                datadetailsppbArtikel, artikel_list, jumlah_list
+            ):
+                kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel_id)
+                detail.DetailSPK = kode_artikel
+                detail.Jumlah = jumlah
+                detail.save()
+        if datadetailsppbdisplay:
+            print('Masuk Display')
+            for detail, artikel_id, jumlah in zip(
+                datadetailsppbdisplay, display_list, jumlahdisplay_list
+            ):
+                kode_display = models.DetailSPKDisplay.objects.get(IDDetailSPK=artikel_id)
+                detail.DetailSPKDisplay = kode_display
+                detail.Jumlah = jumlah
+                detail.save()
+
+
+        no_sppb = models.SPPB.objects.get(NoSPPB=nomor_sppb)
+
+        if artikel_baru:
+            print("Artikel Baru")
+            print(artikel_baru,jumlah_baru)
+            for artikel_id, jumlah,confirmationorder in zip(
+                artikel_baru,jumlah_baru,purchaseorder_artikelbaru
+            ):
+                kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel_id)
+                new_detail = models.DetailSPPB(
+                    NoSPPB=no_sppb,  # Assuming NoSPK is the ForeignKey field to SPK in DetailSPK model
+                    DetailSPK=kode_artikel,
+                    Jumlah=jumlah,
+                )
+                if not confirmationorder == "":
+                    new_detail.IDCO = models.confirmationorder.objects.get(pk=confirmationorder)
+                new_detail.save()
+
+        if display_baru:
+            print('Display Baru')
+            print(display_baru,jumlahdisplay_baru)
+            for display_id, jumlah, confirmationorder in zip(display_baru,jumlahdisplay_baru,purchaseorder_displaybaru):
+                kode_display = models.DetailSPKDisplay.objects.get(IDDetailSPK = display_id)
+                new_detail = models.DetailSPPB(
+                    NoSPPB=no_sppb,  # Assuming NoSPK is the ForeignKey field to SPK in DetailSPK model
+                    DetailSPKDisplay=kode_display,
+                    Jumlah=jumlah)
+                if not confirmationorder == "":
+                    new_detail.IDCO = models.confirmationorder.objects.get(pk=confirmationorder)
+                new_detail.save()
+        
+        return redirect("detail_sppb", id=id)
+
+# KSBB
+# KSBJ
+# Kalkulator Penyesuaian Belum bisa 2 kali Penyesuaian
