@@ -152,138 +152,145 @@ def views_penyusun(request):
             data = models.Penyusun.objects.filter(KodeArtikel=get_id_kodeartikel.id)
             dataversi = data.values_list("versi", flat=True).distinct()
             print(dataversi)
-            try:
-                if request.GET["versi"] == "":
+            if dataversi.exists():
+                try:
+                    if request.GET["versi"] == "":
+                        versiterpilih = dataversi.order_by("-versi").first()
+                        print("ini versi terbaru", versiterpilih)
+                        versiterpilih = versiterpilih.strftime("%Y-%m-%d")
+                    else:
+                        versiterpilih = request.GET["versi"]
+                except:
                     versiterpilih = dataversi.order_by("-versi").first()
                     print("ini versi terbaru", versiterpilih)
-                    versiterpilih = versiterpilih.strftime("%Y-%m-%d")
-                else:
-                    versiterpilih = request.GET["versi"]
-            except:
-                versiterpilih = dataversi.order_by("-versi").first()
-                print("ini versi terbaru", versiterpilih)
-                versiterpilih.strftime("%Y-%m-%d")
+                    versiterpilih.strftime("%Y-%m-%d")
 
-            data = data.filter(versi=versiterpilih)
-            dataversi = [date.strftime("%Y-%m-%d") for date in dataversi]
-            print(dataversi)
-            datakonversi = []
-            nilaifg = 0
-            print(data)
-            if data.exists():
-                for item in data:
-                    print(item, item.IDKodePenyusun)
-                    konversidataobj = models.KonversiMaster.objects.get(
-                        KodePenyusun=item.IDKodePenyusun
-                    )
-                    # print(konversidataobj.Kuantitas)
-                    masukobj = models.DetailSuratJalanPembelian.objects.filter(
-                        KodeProduk=item.KodeProduk
-                    )
-                    # print("ini detail sjp", masukobj)
-                    tanggalmasuk = masukobj.values_list(
-                        "NoSuratJalan__Tanggal", flat=True
-                    )
-                    keluarobj = models.TransaksiGudang.objects.filter(
-                        jumlah__gte=0, KodeProduk=item.KodeProduk
-                    )
-                    tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
-                    # print(item)
-                    saldoawalobj = (
-                        models.SaldoAwalBahanBaku.objects.filter(
-                            IDBahanBaku=item.KodeProduk.KodeProduk
+                data = data.filter(versi=versiterpilih)
+                dataversi = [date.strftime("%Y-%m-%d") for date in dataversi]
+                print(dataversi)
+                datakonversi = []
+                nilaifg = 0
+                print(data)
+                if data.exists():
+                    for item in data:
+                        print(item, item.IDKodePenyusun)
+                        konversidataobj = models.KonversiMaster.objects.get(
+                            KodePenyusun=item.IDKodePenyusun
                         )
-                        .order_by("-Tanggal")
-                        .first()
-                    )
-                    if saldoawalobj:
-                        # print(saldoawalobj)
-                        saldoawal = saldoawalobj.Jumlah
-                        hargasatuanawal = saldoawalobj.Harga
-                        hargatotalawal = saldoawal * hargasatuanawal
-                    else:
-                        saldoawal = 0
-                        hargasatuanawal = 0
-                        hargatotalawal = saldoawal * hargasatuanawal
-
-                    hargaterakhir = 0
-                    listdata = []
-                    listtanggal = sorted(list(set(tanggalmasuk.union(tanggalkeluar))))
-                    # print("inii", listtanggal)
-                    for i in listtanggal:
-                        jumlahmasukperhari = 0
-                        hargamasuktotalperhari = 0
-                        hargamasuksatuanperhari = 0
-                        jumlahkeluarperhari = 0
-                        hargakeluartotalperhari = 0
-                        hargakeluarsatuanperhari = 0
-                        sjpobj = masukobj.filter(NoSuratJalan__Tanggal=i)
-                        if sjpobj.exists():
-                            for j in sjpobj:
-                                hargamasuktotalperhari += j.Harga * j.Jumlah
-                                jumlahmasukperhari += j.Jumlah
-                            hargamasuksatuanperhari += (
-                                hargamasuktotalperhari / jumlahmasukperhari
+                        # print(konversidataobj.Kuantitas)
+                        masukobj = models.DetailSuratJalanPembelian.objects.filter(
+                            KodeProduk=item.KodeProduk
+                        )
+                        # print("ini detail sjp", masukobj)
+                        tanggalmasuk = masukobj.values_list(
+                            "NoSuratJalan__Tanggal", flat=True
+                        )
+                        keluarobj = models.TransaksiGudang.objects.filter(
+                            jumlah__gte=0, KodeProduk=item.KodeProduk
+                        )
+                        tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
+                        # print(item)
+                        saldoawalobj = (
+                            models.SaldoAwalBahanBaku.objects.filter(
+                                IDBahanBaku=item.KodeProduk.KodeProduk
                             )
+                            .order_by("-Tanggal")
+                            .first()
+                        )
+                        if saldoawalobj:
+                            # print(saldoawalobj)
+                            saldoawal = saldoawalobj.Jumlah
+                            hargasatuanawal = saldoawalobj.Harga
+                            hargatotalawal = saldoawal * hargasatuanawal
                         else:
-                            hargamasuktotalperhari = 0
+                            saldoawal = 0
+                            hargasatuanawal = 0
+                            hargatotalawal = saldoawal * hargasatuanawal
+
+                        hargaterakhir = 0
+                        listdata = []
+                        listtanggal = sorted(
+                            list(set(tanggalmasuk.union(tanggalkeluar)))
+                        )
+                        # print("inii", listtanggal)
+                        for i in listtanggal:
                             jumlahmasukperhari = 0
+                            hargamasuktotalperhari = 0
                             hargamasuksatuanperhari = 0
-
-                        transaksigudangobj = keluarobj.filter(tanggal=i)
-                        # print(transaksigudangobj)
-                        if transaksigudangobj.exists():
-                            for j in transaksigudangobj:
-                                jumlahkeluarperhari += j.jumlah
-                                hargakeluartotalperhari += j.jumlah * hargasatuanawal
-                            hargakeluarsatuanperhari += (
-                                hargakeluartotalperhari / jumlahkeluarperhari
-                            )
-                        else:
+                            jumlahkeluarperhari = 0
                             hargakeluartotalperhari = 0
                             hargakeluarsatuanperhari = 0
-                            jumlahkeluarperhari = 0
+                            sjpobj = masukobj.filter(NoSuratJalan__Tanggal=i)
+                            if sjpobj.exists():
+                                for j in sjpobj:
+                                    hargamasuktotalperhari += j.Harga * j.Jumlah
+                                    jumlahmasukperhari += j.Jumlah
+                                hargamasuksatuanperhari += (
+                                    hargamasuktotalperhari / jumlahmasukperhari
+                                )
+                            else:
+                                hargamasuktotalperhari = 0
+                                jumlahmasukperhari = 0
+                                hargamasuksatuanperhari = 0
 
-                        saldoawal += jumlahmasukperhari - jumlahkeluarperhari
-                        hargatotalawal += (
-                            hargamasuktotalperhari - hargakeluartotalperhari
+                            transaksigudangobj = keluarobj.filter(tanggal=i)
+                            # print(transaksigudangobj)
+                            if transaksigudangobj.exists():
+                                for j in transaksigudangobj:
+                                    jumlahkeluarperhari += j.jumlah
+                                    hargakeluartotalperhari += (
+                                        j.jumlah * hargasatuanawal
+                                    )
+                                hargakeluarsatuanperhari += (
+                                    hargakeluartotalperhari / jumlahkeluarperhari
+                                )
+                            else:
+                                hargakeluartotalperhari = 0
+                                hargakeluarsatuanperhari = 0
+                                jumlahkeluarperhari = 0
+
+                            saldoawal += jumlahmasukperhari - jumlahkeluarperhari
+                            hargatotalawal += (
+                                hargamasuktotalperhari - hargakeluartotalperhari
+                            )
+                            hargasatuanawal = hargatotalawal / saldoawal
+
+                            # print("ini hargasatuan awal : ", hargasatuanawal)
+
+                        hargaterakhir += hargasatuanawal
+                        kuantitaskonversi = konversidataobj.Kuantitas
+                        kuantitasallowance = (
+                            kuantitaskonversi + kuantitaskonversi * 0.025
                         )
-                        hargasatuanawal = hargatotalawal / saldoawal
+                        hargaperkotak = hargaterakhir * kuantitasallowance
+                        # print("\n", hargaterakhir, "\n")
+                        nilaifg += hargaperkotak
 
-                        # print("ini hargasatuan awal : ", hargasatuanawal)
+                        datakonversi.append(
+                            {
+                                "HargaSatuan": round(hargaterakhir, 2),
+                                "Penyusunobj": item,
+                                "Konversi": round(kuantitaskonversi, 5),
+                                "Allowance": round(kuantitasallowance, 5),
+                                "Hargakotak": round(hargaperkotak, 2),
+                            }
+                        )
 
-                    hargaterakhir += hargasatuanawal
-                    kuantitaskonversi = konversidataobj.Kuantitas
-                    kuantitasallowance = kuantitaskonversi + kuantitaskonversi * 0.025
-                    hargaperkotak = hargaterakhir * kuantitasallowance
-                    # print("\n", hargaterakhir, "\n")
-                    nilaifg += hargaperkotak
+                    # print(data)
+                    print(versiterpilih)
+                    # print(dasdatakonversi)
 
-                    datakonversi.append(
+                    return render(
+                        request,
+                        "rnd/views_penyusun.html",
                         {
-                            "HargaSatuan": round(hargaterakhir, 2),
-                            "Penyusunobj": item,
-                            "Konversi": round(kuantitaskonversi, 5),
-                            "Allowance": round(kuantitasallowance, 5),
-                            "Hargakotak": round(hargaperkotak, 2),
-                        }
+                            "data": datakonversi,
+                            "kodeartikel": get_id_kodeartikel,
+                            "nilaifg": nilaifg,
+                            "versiterpilih": versiterpilih,
+                            "dataversi": dataversi,
+                        },
                     )
-
-                # print(data)
-                print(versiterpilih)
-                # print(dasdatakonversi)
-
-                return render(
-                    request,
-                    "rnd/views_penyusun.html",
-                    {
-                        "data": datakonversi,
-                        "kodeartikel": get_id_kodeartikel,
-                        "nilaifg": nilaifg,
-                        "versiterpilih": versiterpilih,
-                        "dataversi": dataversi,
-                    },
-                )
             else:
                 messages.error(request, "Kode Artikel Belum memiliki penyusun")
                 return render(
@@ -337,11 +344,11 @@ def updatepenyusun(request, id):
         konversiobj.Kuantitas = kuantitas
         konversiobj.save()
         transaksilog = models.transactionlog(
-                user="RND",
-                waktu=datetime.now(),
-                jenis="Update",
+            user="RND",
+            waktu=datetime.now(),
+            jenis="Update",
             pesan=f"Penyusun Baru. Kode Artikel : {data.KodeArtikel}, Kode produk : {data.KodeProduk}-{data.NamaProduk}, Status Utama : {data} versi : {data.versi}, Kuantitas Konversi : {  konversiobj.Kuantitas}",
-            )
+        )
         transaksilog.save()
         return redirect("penyusun_artikel")
 
@@ -1024,7 +1031,340 @@ def tambahversi(request, id):
         return redirect("penyusun_artikel")
 
 
+"""
+REVISI 
+5/13/2024
+1. Revisi views Penyusun Konversi
+2. Add datalist ke KodeProduk pada Add Versi
+3. Revisi Perhitungan Bahan Baku
+4. Revisi Keterangan Produk
+"""
+
+
 def read_produk(request):
     produkobj = models.Produk.objects.all()
     print(produkobj[1].keteranganRND)
     return render(request, "rnd/read_produk.html", {"produkobj": produkobj})
+
+
+def views_penyusun(request):
+    print(request.GET)
+    data = request.GET
+    if len(request.GET) == 0:
+        data = models.Artikel.objects.all()
+
+        return render(request, "rnd/views_penyusun.html", {"dataartikel": data})
+    else:
+        kodeartikel = request.GET["kodeartikel"]
+
+        try:
+            get_id_kodeartikel = models.Artikel.objects.get(KodeArtikel=kodeartikel)
+            data = models.Penyusun.objects.filter(KodeArtikel=get_id_kodeartikel.id)
+            dataversi = data.values_list("versi", flat=True).distinct()
+            print(dataversi)
+            if dataversi.exists():
+                try:
+                    if request.GET["versi"] == "":
+                        versiterpilih = dataversi.order_by("-versi").first()
+                        print("ini versi terbaru", versiterpilih)
+                        versiterpilih = versiterpilih.strftime("%Y-%m-%d")
+                    else:
+                        versiterpilih = request.GET["versi"]
+                except:
+                    versiterpilih = dataversi.order_by("-versi").first()
+                    print("ini versi terbaru", versiterpilih)
+                    versiterpilih.strftime("%Y-%m-%d")
+
+                data = data.filter(versi=versiterpilih)
+                dataversi = [date.strftime("%Y-%m-%d") for date in dataversi]
+                print(dataversi)
+                datakonversi = []
+                nilaifg = 0
+                print(data)
+                if data.exists():
+                    for item in data:
+                        print(item, item.IDKodePenyusun)
+                        konversidataobj = models.KonversiMaster.objects.get(
+                            KodePenyusun=item.IDKodePenyusun
+                        )
+                        # print(konversidataobj.Kuantitas)
+                        masukobj = models.DetailSuratJalanPembelian.objects.filter(
+                            KodeProduk=item.KodeProduk
+                        )
+                        # print("ini detail sjp", masukobj)
+                        tanggalmasuk = masukobj.values_list(
+                            "NoSuratJalan__Tanggal", flat=True
+                        )
+                        keluarobj = models.TransaksiGudang.objects.filter(
+                            jumlah__gte=0, KodeProduk=item.KodeProduk
+                        )
+                        tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
+                        # print(item)
+                        saldoawalobj = (
+                            models.SaldoAwalBahanBaku.objects.filter(
+                                IDBahanBaku=item.KodeProduk.KodeProduk
+                            )
+                            .order_by("-Tanggal")
+                            .first()
+                        )
+                        if saldoawalobj:
+                            # print(saldoawalobj)
+                            saldoawal = saldoawalobj.Jumlah
+                            hargasatuanawal = saldoawalobj.Harga
+                            hargatotalawal = saldoawal * hargasatuanawal
+                        else:
+                            saldoawal = 0
+                            hargasatuanawal = 0
+                            hargatotalawal = saldoawal * hargasatuanawal
+
+                        hargaterakhir = 0
+                        listdata = []
+                        listtanggal = sorted(
+                            list(set(tanggalmasuk.union(tanggalkeluar)))
+                        )
+                        # print("inii", listtanggal)
+                        for i in listtanggal:
+                            jumlahmasukperhari = 0
+                            hargamasuktotalperhari = 0
+                            hargamasuksatuanperhari = 0
+                            jumlahkeluarperhari = 0
+                            hargakeluartotalperhari = 0
+                            hargakeluarsatuanperhari = 0
+                            sjpobj = masukobj.filter(NoSuratJalan__Tanggal=i)
+                            if sjpobj.exists():
+                                for j in sjpobj:
+                                    hargamasuktotalperhari += j.Harga * j.Jumlah
+                                    jumlahmasukperhari += j.Jumlah
+                                hargamasuksatuanperhari += (
+                                    hargamasuktotalperhari / jumlahmasukperhari
+                                )
+                            else:
+                                hargamasuktotalperhari = 0
+                                jumlahmasukperhari = 0
+                                hargamasuksatuanperhari = 0
+
+                            transaksigudangobj = keluarobj.filter(tanggal=i)
+                            # print(transaksigudangobj)
+                            if transaksigudangobj.exists():
+                                for j in transaksigudangobj:
+                                    jumlahkeluarperhari += j.jumlah
+                                    hargakeluartotalperhari += (
+                                        j.jumlah * hargasatuanawal
+                                    )
+                                hargakeluarsatuanperhari += (
+                                    hargakeluartotalperhari / jumlahkeluarperhari
+                                )
+                            else:
+                                hargakeluartotalperhari = 0
+                                hargakeluarsatuanperhari = 0
+                                jumlahkeluarperhari = 0
+
+                            saldoawal += jumlahmasukperhari - jumlahkeluarperhari
+                            hargatotalawal += (
+                                hargamasuktotalperhari - hargakeluartotalperhari
+                            )
+                            hargasatuanawal = hargatotalawal / saldoawal
+
+                            # print("ini hargasatuan awal : ", hargasatuanawal)
+
+                        hargaterakhir += hargasatuanawal
+                        kuantitaskonversi = konversidataobj.Kuantitas
+                        kuantitasallowance = (
+                            kuantitaskonversi + kuantitaskonversi * 0.025
+                        )
+                        hargaperkotak = hargaterakhir * kuantitasallowance
+                        # print("\n", hargaterakhir, "\n")
+                        nilaifg += hargaperkotak
+
+                        datakonversi.append(
+                            {
+                                "HargaSatuan": round(hargaterakhir, 2),
+                                "Penyusunobj": item,
+                                "Konversi": round(kuantitaskonversi, 5),
+                                "Allowance": round(kuantitasallowance, 5),
+                                "Hargakotak": round(hargaperkotak, 2),
+                            }
+                        )
+
+                    # print(data)
+                    print(versiterpilih)
+                    # print(dasdatakonversi)
+
+                    return render(
+                        request,
+                        "rnd/views_penyusun.html",
+                        {
+                            "data": datakonversi,
+                            "kodeartikel": get_id_kodeartikel,
+                            "nilaifg": nilaifg,
+                            "versiterpilih": versiterpilih,
+                            "dataversi": dataversi,
+                        },
+                    )
+            else:
+                messages.error(request, "Kode Artikel Belum memiliki penyusun")
+                return render(
+                    request,
+                    "rnd/views_penyusun.html",
+                    {"kodeartikel": get_id_kodeartikel},
+                )
+        except models.Artikel.DoesNotExist:
+            messages.error(request, "Kode Artikel Tidak ditemukan")
+            return render(
+                request,
+                "rnd/views_penyusun.html",
+                {"dataartikel": models.Artikel.objects.all()},
+            )
+
+
+def tambahversi(request, id):
+    data = models.Artikel.objects.get(id=id)
+    bahanbaku = models.Produk.objects.all()
+    tanggal = date.today().strftime("%Y-%m-%d")
+    print(tanggal)
+    if request.method == "GET":
+        return render(
+            request,
+            "rnd/tambah_versi.html",
+            {"data": data, "versi": tanggal, "dataproduk": bahanbaku},
+        )
+    else:
+        print(request.POST)
+        kodeproduk = request.POST.getlist("kodeproduk")
+        status = request.POST.getlist("Status")
+        lokasi = request.POST.getlist("lokasi")
+        kuantitas = request.POST.getlist("kuantitas")
+        tanggal = request.POST["versi"]
+        print(request.POST)
+        # print(asdas)
+        if status.count("True") > 1:
+            messages.error(request, "Terdapat Artikel utama lebih dari 1")
+            return redirect("add_versi", id=id)
+        dataproduk = list(zip(kodeproduk, status, lokasi, kuantitas))
+        print(dataproduk)
+        for i in dataproduk:
+            newpenyusun = models.Penyusun(
+                KodeProduk=models.Produk.objects.get(KodeProduk=i[0]),
+                KodeArtikel=data,
+                Status=i[1],
+                Lokasi=models.Lokasi.objects.get(NamaLokasi=i[2]),
+                versi=tanggal,
+            ).save()
+            datanewpenyusun = models.Penyusun.objects.all().last()
+            konversimasterobj = models.KonversiMaster(
+                KodePenyusun=datanewpenyusun, Kuantitas=i[3]
+            ).save()
+            print(newpenyusun)
+            print(konversimasterobj)
+        return redirect("penyusun_artikel")
+
+
+def tambahdatapenyusun(request, id, versi):
+    dataartikelobj = models.Artikel.objects.get(id=id)
+    print(versi, "asdas")
+    if request.method == "GET":
+        dataprodukobj = models.Produk.objects.all()
+
+        return render(
+            request,
+            "rnd/tambah_penyusun.html",
+            {
+                "kodeartikel": dataartikelobj,
+                "dataproduk": dataprodukobj,
+                "versiterpilih": versi,
+            },
+        )
+    else:
+        print(request.POST)
+        kodeproduk = request.POST.getlist("kodeproduk")
+        statusproduk = request.POST.getlist("status")
+        listlokasi = request.POST.getlist("lokasi")
+        listkuantitas = request.POST.getlist("kuantitas")
+
+        datapenyusunobj = (
+            models.Penyusun.objects.filter(KodeArtikel=id)
+            .filter(Status=True, versi=versi)
+            .exists()
+        )
+        if datapenyusunobj and "True" in statusproduk:
+            messages.error(
+                request, "Artikel telah memiliki Bahan baku utama sebelumnya"
+            )
+            return redirect("tambah_data_penyusun", id=id, versi=versi)
+        for kodeproduk, status, lokasi, kuantitas in zip(
+            kodeproduk, statusproduk, listlokasi, listkuantitas
+        ):
+            print(kodeproduk, status, lokasi, kuantitas)
+
+            newprodukobj = models.Produk.objects.get(KodeProduk=kodeproduk)
+            lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
+            penyusunobj = models.Penyusun(
+                Status=status,
+                KodeArtikel=dataartikelobj,
+                KodeProduk=newprodukobj,
+                Lokasi=lokasiobj,
+                versi=versi,
+            )
+            penyusunobj.save()
+            konversimasterobj = models.KonversiMaster(
+                KodePenyusun=penyusunobj, Kuantitas=kuantitas, lastedited=datetime.now()
+            ).save()
+            messages.success(request, "Data penyusun berhasil ditambahkan")
+            models.transactionlog(
+                user="RND",
+                waktu=datetime.now(),
+                jenis="Create",
+                pesan=f"Penyusun. Kode Artikel : {dataartikelobj.KodeArtikel}, Kode produk : {newprodukobj.KodeProduk}-{newprodukobj.NamaProduk}, Status Utama : {statusproduk} versi : {versi}, Kuantitas Konversi : {kuantitas}",
+            ).save()
+        return redirect(
+            f"/rnd/penyusun?kodeartikel={quote(dataartikelobj.KodeArtikel)}"
+        )
+
+
+def updatepenyusun(request, id):
+    data = models.Penyusun.objects.get(IDKodePenyusun=id)
+    if request.method == "GET":
+        datakonversi = models.KonversiMaster.objects.get(
+            KodePenyusun=data.IDKodePenyusun
+        )
+        datakonversi.allowance = datakonversi.Kuantitas + (
+            datakonversi.Kuantitas * 0.025
+        )
+        kodebahanbaku = models.Produk.objects.all()
+        lokasiobj = models.Lokasi.objects.all()
+        data.versi = data.versi.strftime("%Y-%m-%d")
+        return render(
+            request,
+            "rnd/update_penyusun.html",
+            {
+                "kodestok": kodebahanbaku,
+                "data": data,
+                "lokasi": lokasiobj,
+                "konversi": datakonversi,
+            },
+        )
+    else:
+        print(request.POST)
+        kodeproduk = request.POST["kodeproduk"]
+        lokasi = request.POST["lokasi"]
+        status = request.POST["status"]
+        kuantitas = request.POST["kuantitas"]
+        versi = request.POST["versi"]
+        produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
+        lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
+        konversiobj = models.KonversiMaster.objects.get(KodePenyusun=id)
+        data.KodeProduk = produkobj
+        data.Lokasi = lokasiobj
+        data.Status = status
+        data.versi = versi
+        data.save()
+        konversiobj.Kuantitas = kuantitas
+        konversiobj.save()
+        transaksilog = models.transactionlog(
+            user="RND",
+            waktu=datetime.now(),
+            jenis="Update",
+            pesan=f"Penyusun Baru. Kode Artikel : {data.KodeArtikel}, Kode produk : {data.KodeProduk}-{data.KodeProduk.NamaProduk}, Status Utama : {data} versi : {data.versi}, Kuantitas Konversi : {  konversiobj.Kuantitas}",
+        )
+        transaksilog.save()
+        return redirect("penyusun_artikel")

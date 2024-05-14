@@ -124,6 +124,9 @@ class TransaksiGudang(models.Model):
     DetailSPK = models.ForeignKey(
         DetailSPK, on_delete=models.CASCADE, null=True, blank=True
     )
+    DetailSPKDisplay = models.ForeignKey(
+        DetailSPKDisplay, on_delete=models.CASCADE, null=True, blank=True
+    )
 
     def __str__(self):
         return f"{self.tanggal} - {self.KodeProduk}"
@@ -238,7 +241,7 @@ class SaldoAwalBahanBaku(models.Model):
     Tanggal = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.IDLokasi} - {self.IDBahanBaku}- {self.Tanggal.year}"
+        return f"{self.IDLokasi} - {self.IDBahanBaku}- {self.Tanggal}"
 
 
 class SaldoAwalArtikel(models.Model):

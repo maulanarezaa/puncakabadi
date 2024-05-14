@@ -34,23 +34,30 @@
                                 <td>{{i.unit}}</td>
                                 <td>{{i.Jumlahminimal}}</td>
                                 <td>
+                                    {% if i.keteranganRND == None %}
+
+                                    {% else %}
+
                                     {{i.keteranganRND}}
+                                    {% endif %}
 
                                 </td>
                                 <td>
+                                    {% if i.keteranganGudang == None %}
+
+                                    {% else %}
 
                                     {{i.keteranganGudang}}
-
+                                    {% endif %}
                                 </td>
+
                                 <td>
+                                    {% if i.keteranganProduksi == None %}
+                                    -
+                                    {% else %}
 
                                     {{i.keteranganProduksi}}
-
-                                </td>
-                                <td>
-
-                                    {{i.keteranganPurchasing}}
-
+                                    {% endif %}
                                 </td>
                                 <td>
                                     <div class="template-demo">

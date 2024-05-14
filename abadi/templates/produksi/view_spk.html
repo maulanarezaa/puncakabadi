@@ -27,8 +27,10 @@
               <tr>
                 <th>Tanggal</th>
                 <th>Nomor SPK</th>
+                <th>Jenis SPK</th>
                 <th>Keterangan</th>
-                <th>Status</th>
+                <th>Status Aktif </th>
+                <th>Status ACC</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -37,7 +39,26 @@
               <tr>
                 <td>{{i.Tanggal}}</td>
                 <td>{{i.NoSPK}}</td>
+                <td>
+                  {% if i.StatusDisplay == True %}
+                  Display
+                  {% else %}
+                  Artikel
+                  {% endif %}
+
+                </td>
                 <td>{{i.Keterangan}}</td>
+                <td>
+                  {% if i.StatusAktif == True %}
+                  <button class="btn btn-success">
+                    <i class="typcn typcn typcn-tick"></i>
+                  </button>
+                  {% else %}
+                  <button class="btn btn-danger">
+                    <i class="typcn typcn typcn-times"></i>
+                  </button>
+                  {% endif %}
+                </td>
                 <td>
                   {% if i.KeteranganACC == True %}
                   <button class="btn btn-success">

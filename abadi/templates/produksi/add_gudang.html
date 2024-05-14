@@ -23,29 +23,29 @@
       <br>
       <form class="form-sample" action="" method="post">
         {% csrf_token %}
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group row">
-                <label class="col-sm-3 col-form-label">Tanggal</label>
-                <div class="col-sm-9">
-                  <input required type="date" class="form-control" name="tanggal" />
-                </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Tanggal</label>
+              <div class="col-sm-9">
+                <input required type="date" class="form-control" name="tanggal" required />
               </div>
             </div>
           </div>
-          <h4 class="card-title">Detail Transaksi Barang Masuk</h4>
-          <div id="artikels">
-            <div class="artikel" id="produk_1">
-              <div class="row"> <!-- Added class artikel -->
+        </div>
+        <h4 class="card-title">Detail Transaksi Barang Masuk</h4>
+        <div id="artikels">
+          <div class="artikel" id="produk_1">
+            <div class="row"> <!-- Added class artikel -->
               <div class="col-md-6">
                 <div class="form-group row">
                   <label class="col-sm-3 col-form-label" for="produk_1">Produk 1:</label>
                   <div class="col-sm-9">
-                    <input required type="text" class="form-control" name="kode_produk[]" list="listproduk" >
-                    <datalist  id="listproduk">
-                        {% for i in kode_produk %}
-                        <option value="{{i.KodeProduk}}">{{i.KodeProduk}} / {{i.NamaProduk}}</option>
-                        {% endfor %}
+                    <input required type="text" class="form-control" name="kode_produk[]" list="listproduk" required>
+                    <datalist id="listproduk">
+                      {% for i in kode_produk %}
+                      <option value="{{i.KodeProduk}}">{{i.KodeProduk}} / {{i.NamaProduk}}</option>
+                      {% endfor %}
                     </datalist>
                   </div>
                 </div>
@@ -54,7 +54,7 @@
                 <div class="form-group row">
                   <label class="col-sm-3 col-form-label">Jumlah</label>
                   <div class="col-sm-9">
-                    <input required type="number" class="form-control" name="jumlah[]"/>
+                    <input required type="number" class="form-control" name="jumlah[]" />
                   </div>
                 </div>
               </div>
@@ -64,20 +64,21 @@
                 <div class="form-group row">
                   <label class="col-sm-3 col-form-label">Nomor SPK</label>
                   <div class="col-sm-9">
-                    <select name="nomor_spk-1" id="nomor_spk-1" class="form-control" onchange="loadArtikelOptions(this)">
+                    <select name="nomor_spk-1" id="nomor_spk-1" class="form-control"
+                      onchange="loadArtikelOptions(this)">
                       <option value="">Masukkan Nomor SPK</option>
-                        {% for i in data_spk %}
-                          <option value="{{i.NoSPK}}">{{i.NoSPK}}</option>
-                        {% endfor %}
+                      {% for i in data_spk %}
+                      <option value="{{i.NoSPK}}">{{i.NoSPK}}</option>
+                      {% endfor %}
                     </select>
-                  </div>              
+                  </div>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="form-group row">
                   <label class="col-sm-3 col-form-label">Kode Artikel</label>
                   <div class="col-sm-9" id="detail_spk_1">
-                    {% include 'produksi/opsi_spk.html' %} 
+                    {% include 'produksi/opsi_spk.html' %}
                   </div>
                 </div>
               </div>
@@ -87,11 +88,11 @@
                 <div class="form-group row">
                   <label class="col-sm-3 col-form-label">Lokasi</label>
                   <div class="col-sm-9">
-                      <select required class="form-control" id="exampleSelectGender" name="nama_lokasi[]">
-                          {% for i in nama_lokasi %}
-                          <option value="{{i.IDLokasi}}">{{i.NamaLokasi}}</option>
-                          {% endfor %}
-                      </select>
+                    <select required class="form-control" id="exampleSelectGender" name="nama_lokasi[]">
+                      {% for i in nama_lokasi %}
+                      <option value="{{i.IDLokasi}}">{{i.NamaLokasi}}</option>
+                      {% endfor %}
+                    </select>
                   </div>
                 </div>
               </div>
@@ -104,18 +105,18 @@
                 </div>
               </div>
             </div>
-            </div>
-            <br><br>
           </div>
-          <div class="row">
-            <div class="col-auto mr-auto">
-              <button type="button" class="btn btn-success" onclick="addProduct()">
-                <i class="typcn typcn-plus btn-icon-prepend"></i>
-                Tambahkan Produk
-              </button>
-            </div>
-            <div class="col-auto"><button type="submit" class="btn btn-primary mr-2">Submit</button></div>            
+          <br><br>
+        </div>
+        <div class="row">
+          <div class="col-auto mr-auto">
+            <button type="button" class="btn btn-success" onclick="addProduct()">
+              <i class="typcn typcn-plus btn-icon-prepend"></i>
+              Tambahkan Produk
+            </button>
           </div>
+          <div class="col-auto"><button type="submit" class="btn btn-primary mr-2">Submit</button></div>
+        </div>
       </form>
     </div>
   </div>
@@ -124,16 +125,16 @@
 {% block javascripts %}
 <script>
   function addProduct() {
-      var productCounter = document.querySelectorAll('.artikel').length + 1;
-      var productRow = document.createElement('div');
-      productRow.className = "artikel"; // Added class artikel
-      productRow.id = `produk_${productCounter}`;
-      productRow.innerHTML = `<div class="row">
+    var productCounter = document.querySelectorAll('.artikel').length + 1;
+    var productRow = document.createElement('div');
+    productRow.className = "artikel"; // Added class artikel
+    productRow.id = `produk_${productCounter}`;
+    productRow.innerHTML = `<div class="row">
                                 <div class="col-md-6">
                                   <div class="form-group row">
                                     <label class="col-sm-3 col-form-label" for="produk_${productCounter}">Produk ${productCounter}:</label>
                                     <div class="col-sm-9">
-                                      <input type="text" class="form-control" name="kode_produk[]" list="listproduk_${productCounter}" >
+                                      <input required type="text" class="form-control" name="kode_produk[]" list="listproduk_${productCounter}" >
                                       <datalist  id="listproduk_${productCounter}">
                                         {% for i in kode_produk %}
                                           <option value="{{i.KodeProduk}}">{{i.KodeProduk}} / {{i.NamaProduk}}</option>
@@ -146,7 +147,7 @@
                                   <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Jumlah</label>
                                     <div class="col-sm-9">
-                                      <input type="number" class="form-control" name="jumlah[]"/>
+                                      <input required type="number" class="form-control" name="jumlah[]"/>
                                     </div>
                                   </div>
                                 </div>
@@ -202,33 +203,33 @@
                               </div>
                               <br><br>`;
 
-      document.getElementById('artikels').appendChild(productRow);
+    document.getElementById('artikels').appendChild(productRow);
   }
 
   function deleteRow(button) {
-      button.closest('.artikel').remove(); // Changed .col to .artikel
+    button.closest('.artikel').remove(); // Changed .col to .artikel
   }
-  
+
   function loadArtikelOptions(selectElement) {
-      var spkNumber = selectElement.value;
-      var productCounter = selectElement.id.split('-')[1];
-      var detailSpkDiv = document.getElementById('detail_spk_' + productCounter);
-      var url = "{% url 'load_detailspk' %}";
+    var spkNumber = selectElement.value;
+    var productCounter = selectElement.id.split('-')[1];
+    var detailSpkDiv = document.getElementById('detail_spk_' + productCounter);
+    var url = "{% url 'load_detailspk' %}";
 
-      // Menghapus opsi sebelumnya jika ada
-      detailSpkDiv.innerHTML = '';
+    // Menghapus opsi sebelumnya jika ada
+    detailSpkDiv.innerHTML = '';
 
-      // Memuat opsi baru berdasarkan nomor SPK yang dipilih
-      $.ajax({
-          url: url,
-          data: {
-              'nomor_spk': spkNumber
-          },
-          dataType: 'html',
-          success: function(data){
-              detailSpkDiv.innerHTML = data;
-          }
-      });
+    // Memuat opsi baru berdasarkan nomor SPK yang dipilih
+    $.ajax({
+      url: url,
+      data: {
+        'nomor_spk': spkNumber
+      },
+      dataType: 'html',
+      success: function (data) {
+        detailSpkDiv.innerHTML = data;
+      }
+    });
   }
 </script>
 {% endblock javascripts %}

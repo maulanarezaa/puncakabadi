@@ -34,8 +34,13 @@
             {% for i in datagudang %}
             <tr>
               <td>{{i.tanggal}}</td>
+              {% if i.DetailSPK == None %}
+              <td>{{i.DetailSPKDisplay.NoSPK}}</td>
+              <td>{{i.DetailSPKDisplay.KodeDisplay.KodeDisplay}}</td>
+              {% else %}
               <td>{{i.DetailSPK.NoSPK}}</td>
               <td>{{i.DetailSPK.KodeArtikel.KodeArtikel}}</td>
+              {% endif %}
               <td>{{i.jumlah}}</td>
               <td>{{i.Lokasi}}</td>
               <td>{{i.keterangan}}</td>

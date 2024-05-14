@@ -23,6 +23,7 @@
             <br>
             <form class="form-sample" action="" method="post">
                 {% csrf_token %}
+
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group row">
@@ -49,65 +50,123 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Kode Produk</label>
-                            <div class="col-sm-9">
-                                <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
-                                    aria-label="Masukkan Nama bahanbaku" name="kodeproduk" list="listproduk" required>
-                                <datalist id="listproduk">
-                                    {% for i in dataproduk %}
-                                    <option value="{{i.KodeProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
-                                    {% endfor %}
-                                </datalist>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Status</label>
-                            <div class="col-sm-9">
-                                <select name="Status" class="form-control" id="">
-                                    <option value="False">Bahan Baku Non Utama</option>
-                                    <option value="True">Bahan Utama</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Lokasi</label>
-                            <div class="col-sm-9">
-                                <select name="lokasi" class="form-control" id="">
-                                    <option value="WIP">WIP</option>
-                                    <option value="FG">FG</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Konversi</label>
-                            <div class="col-sm-9">
-                                <input min="0" value="0" step="any" type="number" class="form-control" name="kuantitas"
-                                    required>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div id="artikels">
 
 
+                    <div class="row" id="artikel_1">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="">Kode Produk</label>
+                                <div class="">
+                                    <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
+                                        aria-label="Masukkan Nama bahanbaku" name="kodeproduk" list="listproduk"
+                                        required>
+                                    <datalist id="listproduk">
+                                        {% for i in dataproduk %}
+                                        <option value="{{i.KodeProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
+                                        {% endfor %}
+                                    </datalist>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="">Status</label>
+                                <div class="">
+                                    <select name="status" class="form-control" id="">
+                                        <option value="False">Bahan Baku Non Utama</option>
+                                        <option value="True">Bahan Utama</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="">Lokasi</label>
+                                <div class="">
+                                    <select name="lokasi" class="form-control" id="">
+                                        <option value="WIP">WIP</option>
+                                        <option value="FG">FG</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group row">
+                                <label class="">Konversi</label>
+                                <div class="">
+                                    <input min="0" value="0" step="any" type="number" class="form-control"
+                                        name="kuantitas" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-success" onclick="addPenyusun()">
+                    <i class="typcn typcn-plus btn-icon-prepend"></i>
+                    Tambahkan Artikel
+                </button>
                 <button type="submit" class="btn btn-primary mr-2">Submit</button>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+    function addPenyusun() {
+        let productCounter = document.querySelectorAll('.artikel').length + 1;
+        console.log(productCounter)
+        const productRow = document.createElement('div');
+        console.log(productRow)
+        productRow.className = "row";
+        productRow.id = `artikel_${productCounter}`;
+        productRow.innerHTML = `
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="kodeproduk_${productCounter}">Kode Produk</label>
+                <input type="text" list="listproduk" class="form-control" id="kodeproduk_${productCounter}" name="kodeproduk" placeholder="Masukkan Kode Produk" required>
+                <datalist id="listproduk">
+                                        {% for i in dataproduk %}
+                                        <option value="{{i.KodeProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
+                                        {% endfor %}
+                                    </datalist>
+                </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="status_${productCounter}">Status</label>
+                        <select class="form-control" id="status_${productCounter}" name="status">
+                            <option value="False">Bahan Baku Non Utama</option>
+                    <option value="True">Bahan Utama</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label for="lokasi_${productCounter}">Lokasi</label>
+                <select class="form-control" id="lokasi_${productCounter}" name="lokasi">
+                    <option value="WIP">WIP</option>
+                    <option value="FG">FG</option>
+                    </select>
+                    </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="kuantitas_${productCounter}">Konversi</label>
+                            <input type="number" class="form-control" id="kuantitas_${productCounter}" name="kuantitas" min="0" value="0" step="any" required>
+                            </div>
+                            </div>
+                            <div class="col-md-1">
+                                    <label for="hapus1"></label>
+                                    <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
+                                </div>
+                                    `;
+        console.log(productRow)
+        document.getElementById('artikels').appendChild(productRow);
+    }
+    function deleteRow(button) {
+        button.closest('.row').remove();
+    }
+</script>
 {% endblock content %}

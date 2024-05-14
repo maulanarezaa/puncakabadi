@@ -1,6 +1,11 @@
 <select class="form-control" name="detail_spk[]">
     <option value="">Masukkan Kode Artikel</option>
+
     {% for i in detailspk %}
-        <option value="{{i.IDDetailSPK}}">{{i.KodeArtikel}}</option>
+    {% if i.NoSPK.StatusDisplay == True %}
+    <option value="{{i.IDDetailSPK}}">{{i.KodeDisplay}} - {{i.IDDetailSPK}}</option>
+    {% else %}
+    <option value="{{i.IDDetailSPK}}">{{i.KodeArtikel}}</option>
+    {% endif %}
     {% endfor %}
 </select>

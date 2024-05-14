@@ -2335,6 +2335,8 @@ def detaillaporanbaranstokawalgudang(request):
 
 def read_transactionlog(request):
     dataobj = models.transactionlog.objects.all()
+    for i in dataobj:
+        i.waktu = i.waktu.strftime("%Y-%m-%d %H:%M:%S")
     return render(request, "ppic/transactionlog.html", {"data": dataobj})
 
 # Export EXCEL BELUM 

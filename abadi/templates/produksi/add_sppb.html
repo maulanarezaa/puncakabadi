@@ -160,6 +160,7 @@
 <script>
   function addProduct() {
     let productCounter = document.querySelectorAll('.artikel').length + 1;
+    console.log(document.querySelectorAll('.artikel'))
     const productRow = document.createElement('div');
     productRow.className = "row";
     productRow.id = `artikel_${productCounter}`;
