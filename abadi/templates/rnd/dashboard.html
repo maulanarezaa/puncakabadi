@@ -13,7 +13,7 @@
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Notifikasi Produk Baru hari ini </h4>
+                <h4 class="card-title">Notifikasi Produk Baru </h4>
                 <div class="template-demo">
 
                 </div>
@@ -46,7 +46,7 @@
                         </tbody>
                     </table>
                     {% else %}
-                    <h5>Tidak ada data SPK hari ini</h5>
+                    <h5>Tidak ada data SPK </h5>
                     {% endif %}
                 </div>
             </div>
@@ -57,7 +57,7 @@
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Notifikasi SPK Baru Hari Ini </h4>
+                <h4 class="card-title">Notifikasi SPK Baru </h4>
                 <div class="template-demo">
 
                 </div>
@@ -68,43 +68,72 @@
                             <tr>
                                 <th>No SPK</th>
                                 <th>Tanggal</th>
-                                <th>Keterangan</th>
-                                <th>Artikel</th>
+                                <th>Jenis SPK</th>
+                                <th>Produk</th>
                                 <th>Jumlah</th>
+                                <th>Status</th>
+                                <th>Keterangan</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for i in dataspk %}
                             <tr>
                                 <td>{{i}}</td>
-
                                 <td>{{i.Tanggal}}</td>
+                                <td>
+                                    {% if i.StatusDisplay == True %}
+                                    Display
+                                    {% else %}
+                                    Artikel
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if i.StatusDisplay == True %}
+                                    {% for item in i.detailspk%}
+                                    <p>
+
+                                        {{item.KodeDisplay}}
+                                    </p>
+                                    {% endfor %}
+                                    {% else %}
+                                    {% for item in i.detailspk %}
+                                    <p>
+                                        {{item.KodeArtikel}}
+                                    </p>
+                                    {% endfor %}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if i.StatusDisplay == True %}
+                                    {% for item in i.detailspk%}
+                                    <p>
+
+                                        {{item.Jumlah}}
+                                    </p>
+                                    {% endfor %}
+                                    {% else %}
+                                    {% for item in i.detailspk %}
+                                    <p>
+                                        {{item.Jumlah}}
+                                    </p>
+                                    {% endfor %}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if i.StatusAktif == True %}
+                                    Aktif - Belum Lunas
+                                    {% else %}
+                                    Non-Aktif - Sudah Lunas
+                                    {% endif %}
+                                </td>
                                 <td>{{i.Keterangan}}</td>
-                                {% if i.detailspk %}
-                                <td>
-                                    {% for j in i.detailspk %}
-                                    <li>{{j.KodeArtikel}}</li>
-                                    {% endfor %}
-                                </td>
-                                <td>
-                                    {% for j in i.detailspk %}
-                                    <li>{{j.Jumlah}}</li>
-                                    {% endfor %}
-                                </td>
-                                {% else %}
-                                <td>
-                                    Tidak ditemukan data detail SPK
-                                </td>
-                                <td>
-                                    Tidak ditemukan data detail SPK
-                                </td>
-                                {% endif %}
+                                <td>{{i.Jumlah}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                     {% else %}
-                    <h5>Tidak ada data SPK hari ini</h5>
+                    <h5>Tidak ada data SPK </h5>
                     {% endif %}
                 </div>
             </div>
@@ -116,7 +145,7 @@
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Notifikasi SPPB Baru Hari Ini </h4>
+                <h4 class="card-title">Notifikasi SPPB Baru </h4>
                 <div class="template-demo">
 
                 </div>
@@ -137,42 +166,56 @@
                             {% for i in datasppb %}
                             <tr>
                                 <td>{{i}}</td>
-
                                 <td>{{i.Tanggal}}</td>
                                 <td>{{i.Keterangan}}</td>
-                                {% if i.detailsppb %}
                                 <td>
                                     {% for j in i.detailsppb %}
-                                    <li>{{j.DetailSPK.NoSPK}}</li>
+                                    {% if j.DetailSPKDisplay == None %}
+                                    <p>
+                                        {{j.DetailSPK.NoSPK}}
+                                    </p>
+                                    {% else %}
+
+                                    <p>
+
+                                        {{j.DetailSPKDisplay.NoSPK}}
+                                    </p>
+                                    {% endif %}
+
                                     {% endfor %}
                                 </td>
                                 <td>
                                     {% for j in i.detailsppb %}
-                                    <li>{{j.DetailSPK.KodeArtikel}}</li>
+                                    {% if j.DetailSPKDisplay == None %}
+                                    <p>
+                                        {{j.DetailSPK.KodeArtikel}}
+                                    </p>
+                                    {% else %}
+
+                                    <p>
+
+                                        {{j.DetailSPKDisplay.KodeDisplay}}
+                                    </p>
+                                    {% endif %}
+
                                     {% endfor %}
                                 </td>
+
                                 <td>
                                     {% for j in i.detailsppb %}
-                                    <li>{{j.Jumlah}}</li>
+                                    <p>
+
+                                        {{j.Jumlah}}
+                                    </p>
                                     {% endfor %}
                                 </td>
-                                {% else %}
-                                <td>
-                                    Tidak ditemukan data detail SPPB
-                                </td>
-                                <td>
-                                    Tidak ditemukan data detail SPPB
-                                </td>
-                                <td>
-                                    Tidak ditemukan data detail SPPB
-                                </td>
-                                {% endif %}
+
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                     {% else %}
-                    <h5>Tidak ada data SPK hari ini</h5>
+                    <h5>Tidak ada data SPK </h5>
                     {% endif %}
                 </div>
             </div>

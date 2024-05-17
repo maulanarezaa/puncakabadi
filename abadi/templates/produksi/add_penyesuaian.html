@@ -30,45 +30,55 @@
                     </div>
                     <div class="col-md-6">
                         <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Artikel</label>
+                            <label class="col-sm-3 col-form-label">Tanggal Minus</label>
                             <div class="col-sm-9">
-                                <input type="date" class="form-control" name="tanggalakhir" />
+                                <input type="date" class="form-control" name="tanggalminus" required />
                             </div>
                         </div>
+                    </div>
 
-                    </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Artikel</label>
-                            <div class="col-sm-9">
-                                <input type="text" name="artikel" class="form-control"
-                                    hx-get="{% url 'load_penyusun' %}" hx-trigger="change" list="Artikel"
-                                    hx-target="#produk">
-                                <datalist id="Artikel">
-                                    {% for i in Artikel %}
-                                    <option value="{{i.id}}">{{i.KodeArtikel}}</option>
-                                    {% endfor %}
-                                </datalist>
+                <div id="listartikels">
+
+
+                    <div class="row" id="artikel_1">
+                        <div class="col-md-3">
+                            <div class="form-group ">
+                                <label class="">Artikel</label>
+                                <div class="">
+                                    <input type="text" name="artikel" class="form-control artikel"
+                                        hx-get="{% url 'load_versi' %}" hx-trigger="change" list="Artikel"
+                                        hx-target="#versi" required placeholder="Pilih Artikel">
+                                    <datalist id="Artikel">
+                                        {% for i in Artikel %}
+                                        <option value="{{i.id}}">{{i.KodeArtikel}}</option>
+                                        {% endfor %}
+                                    </datalist>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Produk</label>
-                            <div class="col-sm-9" id="produk">
-                                {% include 'produksi/opsi_penyusun.html' %}
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="">Versi</label>
+                                <div class="" id="versi">
+                                    {% include 'produksi/opsi_versi.html' %}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Kuantitas</label>
-                            <div class="col-sm-9">
-                                <input type="number" step="any" class="form-control" name="kuantitas" required />
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="">Penyusun</label>
+                                <div class="" id="produk">
+                                    {% include 'produksi/opsi_penyusun.html' %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group ">
+                                <label class="">Kuantitas</label>
+                                <div class="">
+                                    <input type="number" step="any" class="form-control" name="kuantitas" required />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -88,30 +98,50 @@
     function addProduct() {
         let productCounter = document.querySelectorAll('.artikel').length + 1;
         const productRow = document.createElement('div');
+        console.log(productCounter)
         productRow.className = "row";
         productRow.id = `artikel_${productCounter}`;
-        productRow.innerHTML = `<div class="col-md-5">
-                                    <div class="form-group">
-                                        <label for="artikel_${productCounter}">Artikel ${productCounter}:</label>
-                                        <select class="form-control artikel" name="artikel[]">
-                                            {% for item in data %}
-                                            <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
+        productRow.innerHTML = ` <div class="col-md-3">
+                            <div class="form-group ">
+                                <label class="">Artikel</label>
+                                <div class="">
+                                    <input type="text" name="artikel" class="form-control artikel"
+                                        hx-get="{% url 'load_versi' %}" hx-trigger="change" list="Artikel"
+                                        hx-target="#versi_${productCounter}" required>
+                                    <datalist id="Artikel">
+                                        {% for i in Artikel %}
+                                        <option value="{{i.id}}">{{i.KodeArtikel}}</option>
+                                        {% endfor %}
+                                    </datalist>
                                 </div>
-                                <div class="col-md-5">
-                                    <div class="form-group">
-                                        <label for="quantity_${productCounter}">Jumlah</label>
-                                        <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity">
-                                    </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="">Versi</label>
+                                <div class="" id="versi_${productCounter}">
+                                    {% include 'produksi/opsi_versi.html' %}
                                 </div>
-                                <div class="col-md-1">
-                                    <label for="hapus1"></label>
-                                    <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
-                                </div>`;
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="">Penyusun</label>
+                                <div class="" id="produk">
+                                    {% include 'produksi/opsi_penyusun.html' %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group ">
+                                <label class="">Kuantitas</label>
+                                <div class="">
+                                    <input type="number" step="any" class="form-control" name="kuantitas" required />
+                                </div>
+                            </div>
+                        </div>`;
 
-        document.getElementById('artikels').appendChild(productRow);
+        document.getElementById('listartikels').appendChild(productRow);
     }
 
     function deleteRow(button) {

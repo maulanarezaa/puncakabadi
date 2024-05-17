@@ -163,7 +163,7 @@ urlpatterns = [
     ),
     path(
         "kalkulatorpenyesuaian2",
-        viewsproduksi.kalkulatorpenyesuaian2,
+        viewsproduksi.kalkulatorpenyesuaianv1,
         name="kalkulatorpenyesuaian2",
     ),
     path("viewsaldobahan", viewsproduksi.view_saldobahan, name="view_saldobahan"),
@@ -209,4 +209,5 @@ urlpatterns = [
         name="update_produk_produksi",
     ),
     path("load_display", viewsproduksi.load_display, name="load_display"),
+    path("load_versi", viewsproduksi.load_versi, name="load_versi"),
 ]

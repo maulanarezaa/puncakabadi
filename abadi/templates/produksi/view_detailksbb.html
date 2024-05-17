@@ -123,6 +123,38 @@
         </table>
 
       </div>
+      <div class="table-responsive pt-3 mt-3">
+
+        <h5>Data Pemusnahan Bahan Baku</h5>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Kode Barang</th>
+              <th>Lokasi Pemusnahan</th>
+              <th>Jumlah</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if datapemusnahanbahanbaku %}
+            {% for i in datapemusnahanbahanbaku %}
+            <tr>
+              <td>{{i.Tanggal}}</td>
+              <td>{{i.KodeBahanBaku}}</td>
+              <td>{{i.lokasi}}</td>
+              <td>{{i.Jumlah}}</td>
+
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="5">Tidak ada data</td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+
+      </div>
     </div>
   </div>
 </div>

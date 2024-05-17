@@ -165,7 +165,8 @@ class Penyesuaian(models.Model):
     IDPenyesuaian = models.AutoField(primary_key=True)
     KodePenyusun = models.ForeignKey(Penyusun, on_delete=models.CASCADE)
     TanggalMulai = models.DateField()
-    TanggalAkhir = models.DateField()
+    TanggalMinus = models.DateField(null=True, blank=True)
+
     konversi = models.FloatField(blank=True, null=True)
 
     def __str__(self):

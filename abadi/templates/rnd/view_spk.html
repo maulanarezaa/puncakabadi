@@ -1,0 +1,172 @@
+{% extends "rnd/base.html" %}
+{% load static %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+<!-- Page content  -->
+{% block content %}
+<div class="row">
+  <div class="col-lg-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Surat Perintah Kerja</h4>
+        <div class="template-demo">
+
+        </div>
+        <div class="table-responsive pt-3">
+
+          <table class="table table-bordered" id="myTable">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Nomor SPK</th>
+                <th>Jenis SPK</th>
+                <th>Keterangan</th>
+                <th>Status Aktif </th>
+                <th>Status ACC</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for i in dataspk %}
+              <tr>
+                <td>{{i.Tanggal}}</td>
+                <td>{{i.NoSPK}}</td>
+                <td>
+                  {% if i.StatusDisplay == True %}
+                  Display
+                  {% else %}
+                  Artikel
+                  {% endif %}
+
+                </td>
+                <td>{{i.Keterangan}}</td>
+                <td>
+                  {% if i.StatusAktif == True %}
+                  <button class="btn btn-success">
+                    <i class="typcn typcn typcn-tick"></i>
+                  </button>
+                  {% else %}
+                  <button class="btn btn-danger">
+                    <i class="typcn typcn typcn-times"></i>
+                  </button>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if i.KeteranganACC == True %}
+                  <button class="btn btn-success">
+                    <i class="typcn typcn typcn-tick"></i>
+                  </button>
+                  {% else %}
+                  <button class="btn btn-danger">
+                    <i class="typcn typcn typcn-times"></i>
+                  </button>
+                  {% endif %}
+                </td>
+                <td>
+                  <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
+                  <div class="template-demo">
+
+                    <a href="{% url 'tracking_spk' i.id %}">
+                      <button type="button" class="btn btn-primary">
+                        <i class="typcn typcn-th-list"></i>
+                      </button>
+                    </a>
+
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Konfirmasi Penghapusan</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Apakah Anda yakin ingin menghapus data ini?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+        <form id="deleteForm" method="post" action="">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Hapus</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block javascripts %}
+<script>
+  function confirmDelete(id) {
+    console.log(id)
+    var deleteForm = document.getElementById('deleteForm');
+    deleteForm.action = "deletespk/" + id;
+    $('#confirmDeleteModal').modal('show');
+  }
+</script>
+<script>
+  function sortTable(order) {
+    var table, rows, switching, i, x, y, shouldSwitch;
+    table = document.getElementById("myTable");
+    switching = true;
+    while (switching) {
+      switching = false;
+      rows = table.rows;
+      for (i = 1; i < (rows.length - 1); i++) {
+        shouldSwitch = false;
+        x = rows[i].getElementsByTagName("TD")[0];
+        y = rows[i + 1].getElementsByTagName("TD")[0];
+        if (order === 'asc') {
+          if (new Date(x.innerHTML) > new Date(y.innerHTML)) {
+            shouldSwitch = true;
+            break;
+          }
+        } else {
+          if (new Date(x.innerHTML) < new Date(y.innerHTML)) {
+            shouldSwitch = true;
+            break;
+          }
+        }
+      }
+      if (shouldSwitch) {
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        switching = true;
+      }
+    }
+  }
+</script>
+<script>
+  function filterStatus(status) {
+    var table, rows, i, x;
+    table = document.getElementById("myTable");
+    rows = table.rows;
+    for (i = 1; i < rows.length; i++) {
+      x = rows[i].getElementsByTagName("TD")[2]; // Index 2 untuk kolom Keterangan
+      if (status === '' || x.innerHTML.toLowerCase().trim() === status) {
+        rows[i].style.display = "";
+      } else {
+        rows[i].style.display = "none";
+      }
+    }
+  }
+</script>
+
+
+{% endblock javascripts %}
+{% endblock content %}

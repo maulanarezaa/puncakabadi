@@ -25,19 +25,11 @@
                             <label class="col-sm-3 col-form-label">Tanggal Mulai</label>
                             <div class="col-sm-9">
                                 <input type="date" class="form-control" name="tanggalmulai" required
-                                    value="{{dataobj.KodePenyesuaian.TanggalMulai}}" />
+                                    value="{{dataobj.TanggalMulai}}" />
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Tanggal Akhir</label>
-                            <div class="col-sm-9">
-                                <input type="date" class="form-control" name="tanggalakhir" />
-                            </div>
-                        </div>
 
-                    </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6">
@@ -46,7 +38,7 @@
                             <div class="col-sm-9">
                                 <input type="text" class="form-control" hx-get="{% url 'load_penyusun' %}"
                                     hx-trigger="change" list="Artikel" hx-target="#produk"
-                                    value="{{dataobj.KodePenyesuaian.KodePenyusun.KodeArtikel.id}}" disabled>
+                                    value="{{dataobj.KodePenyesuaian.KodePenyusun.KodeArtikel.id}}">
                                 <datalist id="Artikel">
                                     {% for i in Artikel %}
                                     <option value="{{i.id}}">{{i.KodeArtikel}}</option>

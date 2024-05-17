@@ -328,7 +328,6 @@
   function loadArtikelOptions(selectElement) {
     var spkNumber = selectElement.value;
     var productCounter = selectElement.id.split('-')[1];
-    console.log(selectElement)
     var detailSpkDiv = document.getElementById('detail_spk_' + productCounter);
     var url = "{% url 'load_artikel' %}";
 

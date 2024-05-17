@@ -31,8 +31,13 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
+                                    {% if dataaktual %}
+                                    <input type="number" class="form-control" placeholder="Jumlah Kotak Aktual" min="0"
+                                        name="jumlah" value="{{dataaktual}}">
+                                    {% else %}
                                     <input type="number" class="form-control" placeholder="Jumlah Kotak Aktual" min="0"
                                         name="jumlah">
+                                    {% endif%}
                                     <div class="input-group-append">
                                         <button class="btn btn-sm btn-primary" type="submit">Hitung</button>
                                     </div>
@@ -51,10 +56,13 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-lg-4">
+                        <div class="col-lg-6">
                             <table class="table">
                                 <thead>
                                     <tr>
+                                        <th>
+                                            Tanggal minus
+                                        </th>
                                         <th>
 
                                             Saldo Data
@@ -69,6 +77,9 @@
                                 </thead>
                                 <tbody>
                                     <tr>
+                                        <td>
+                                            {{datakuantitas.Tanggalminus}}
+                                        </td>
                                         <td>{{datakuantitas.saldodata}}</td>
                                         <td>{{datakuantitas.saldofisik}}</td>
                                         <td>{{datakuantitas.datakeluar}}</td>
@@ -76,38 +87,41 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="col-lg-8">
+                        <div class="col-lg-6">
                             <table class="table">
                                 <thead>
                                     <tr>
                                         <th>
-
                                             Kode Artikel
                                         </th>
                                         <th>
                                             Jumlah
                                         </th>
-                                        <th>
-                                            Konversi Awal
-                                        </th>
                                         <th>Konversi Baru</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for key,value in dataperhitungan.items %}
+                                    {% for key,value in konversiakhirfix.items %}
                                     <tr>
                                         <td>
-                                            {{value.artikelobj}}
+                                            {{key}}
                                         </td>
                                         <td>
                                             {{value.jumlah}}
                                         </td>
-                                        <td>{{value.konversi}}</td>
-                                        <td>{{value.konversibaru}}</td>
+                                        <td>{{value.konversiakhir}}</td>
+
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
+                            <form action="{% url 'view_ksbb' %}" method='post'>
+                                {% for key,value in konversiakhirfix.items %}
+                                <input type="text" hidden name="konversi" value="{{value.konversiakhir}}">
+                                <input type="text" hidden name="artikel" id="" value="{{key}}">
+                                {% endfor %}
+                                <button class="btn btn-sm btn-success" type="submit">Simulasi</button>
+                            </form>
                         </div>
                         <div class="col-lg-4">
                             <div class="form-group">
@@ -115,6 +129,7 @@
                                     <input type="number" class="form-control" value="tahun_bulan_sekarang" hidden
                                         placeholder="Masukkan Periode" min="2024" max="2200"
                                         aria-label="Masukkan Periode" name="periode">
+
 
                                 </div>
                             </div>
