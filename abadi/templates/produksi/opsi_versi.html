@@ -1,5 +1,4 @@
-<select class="form-control" name="versi" hx-get="{% url 'load_penyusun' %}" hx-trigger="change" hx-target="#produk"
-    hx-include="[name='artikel']" required>
+<select class="form-control" name="versi" required onchange="loadPenyusunOptions(this)" id="kodeversiartikel_1">
     <option disabled selected>Pilih Versi</option>
     {% for i in penyusun %}
     <option value="{{i}}">{{i}}</option>

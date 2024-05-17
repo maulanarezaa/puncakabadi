@@ -146,11 +146,11 @@ def load_artikel(request):
     return render(request, "produksi/opsi_artikel.html", {"detailspk": detailspk})
 
 
-# def load_penyusun(request):
-#     kodeartikel = request.GET.get("artikel")
-#     penyusun = models.Penyusun.objects.filter(KodeArtikel=kodeartikel)
+def load_penyusun(request):
+    kodeartikel = request.GET.get("artikel")
+    penyusun = models.Penyusun.objects.filter(KodeArtikel=kodeartikel)
 
-#     return render(request, "produksi/opsi_penyusun.html", {"penyusun": penyusun})
+    return render(request, "produksi/opsi_penyusun.html", {"penyusun": penyusun})
 
 
 # SPK
@@ -4913,7 +4913,7 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
     return listdata,saldoawal
 
 # Kalkulator Penyesuaian Belum bisa 2 kali Penyesuaian (Done)
-# Kurang Setting Tanggal Awal Perhitungan berdasarkan cek kondisi dari 
+# Kurang Setting Tanggal Awal Perhitungan berdasarkan cek kondisi dari (DONE) 
 
 def kalkulatorpenyesuaian2(request):
     kodeproduk = models.Produk.objects.all()
@@ -5146,40 +5146,42 @@ def addpenyesuaian(request):
         tanggalmulai = request.POST["tanggalmulai"]
         tanggalminus = request.POST['tanggalminus']
         
-        kodepenyusun = request.POST["penyusun"]
-        kuantitas = request.POST["kuantitas"]
-        penyusunobj = models.Penyusun.objects.get(IDKodePenyusun=kodepenyusun)
-        print(penyusunobj)
-        penyesuaianobj = models.Penyesuaian(
-            TanggalMulai=tanggalmulai,
-            TanggalMinus = tanggalminus,
+        listkodepenyusun = request.POST.getlist("penyusun")
+        listkuantitas = request.POST.getlist("kuantitas")
 
-            KodePenyusun=penyusunobj,
-            konversi = kuantitas
+        for penyusun,kuantitas in zip(listkodepenyusun,listkuantitas):
 
-        )
-        penyesuaianobj.save()
+            penyusunobj = models.Penyusun.objects.get(IDKodePenyusun=penyusun)
+            print(penyusunobj)
+            penyesuaianobj = models.Penyesuaian(
+                TanggalMulai=tanggalmulai,
+                TanggalMinus = tanggalminus,
+
+                KodePenyusun=penyusunobj,
+                konversi = kuantitas
+
+            )
+            penyesuaianobj.save()
 
         return redirect("view_penyesuaian")
 
 def load_versi(request):
     kodeartikel = request.GET.get("artikel")
-    print(kodeartikel)
+    print(request.GET)
     penyusun = models.Penyusun.objects.filter(KodeArtikel__id = kodeartikel).values_list('versi',flat=True).distinct()
     print(penyusun)
 
     return render(request, "produksi/opsi_versi.html", {"penyusun": penyusun,'kodeartikel':kodeartikel})
 
-def load_penyusun(request):
+def load_penyusun2(request):
+    print(request.GET)
     kodeartikel = request.GET.get("artikel")
     versi = request.GET.get("versi")
     tanggalversi = datetime.strptime(versi, '%b. %d, %Y')
     versi = tanggalversi.strftime('%Y-%m-%d')
 
-    print(request.GET)
     penyusun = models.Penyusun.objects.filter(KodeArtikel=kodeartikel,versi = versi)
     print(penyusun)
-    # print(asdas)
 
     return render(request, "produksi/opsi_penyusun.html", {"penyusun": penyusun})
 

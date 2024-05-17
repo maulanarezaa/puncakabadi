@@ -46,9 +46,9 @@
                             <div class="form-group ">
                                 <label class="">Artikel</label>
                                 <div class="">
-                                    <input type="text" name="artikel" class="form-control artikel"
-                                        hx-get="{% url 'load_versi' %}" hx-trigger="change" list="Artikel"
-                                        hx-target="#versi" required placeholder="Pilih Artikel">
+                                    <input type="text" name="artikel" class="form-control artikel" list="Artikel"
+                                        required placeholder="Pilih Artikel" onchange="loadVersiOptions(this)"
+                                        id="kodeartikel_1">
                                     <datalist id="Artikel">
                                         {% for i in Artikel %}
                                         <option value="{{i.id}}">{{i.KodeArtikel}}</option>
@@ -60,7 +60,7 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label class="">Versi</label>
-                                <div class="" id="versi">
+                                <div class="" id="versi_1">
                                     {% include 'produksi/opsi_versi.html' %}
                                 </div>
                             </div>
@@ -68,7 +68,7 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label class="">Penyusun</label>
-                                <div class="" id="produk">
+                                <div class="" id="penyusun_1">
                                     {% include 'produksi/opsi_penyusun.html' %}
                                 </div>
                             </div>
@@ -86,7 +86,10 @@
 
 
 
-
+                <button type="button" class="btn btn-success" onclick="addProduct()">
+                    <i class="typcn typcn-plus btn-icon-prepend"></i>
+                    Tambahkan Data
+                </button>
                 <button type="submit" class="btn btn-primary mr-2">Submit</button>
             </form>
         </div>
@@ -98,7 +101,6 @@
     function addProduct() {
         let productCounter = document.querySelectorAll('.artikel').length + 1;
         const productRow = document.createElement('div');
-        console.log(productCounter)
         productRow.className = "row";
         productRow.id = `artikel_${productCounter}`;
         productRow.innerHTML = ` <div class="col-md-3">
@@ -106,8 +108,8 @@
                                 <label class="">Artikel</label>
                                 <div class="">
                                     <input type="text" name="artikel" class="form-control artikel"
-                                        hx-get="{% url 'load_versi' %}" hx-trigger="change" list="Artikel"
-                                        hx-target="#versi_${productCounter}" required>
+                                        list="Artikel" placeholder="Pilih Artikel" onchange="loadVersiOptions(this)"
+                                        required id="kodeartikel_${productCounter}">
                                     <datalist id="Artikel">
                                         {% for i in Artikel %}
                                         <option value="{{i.id}}">{{i.KodeArtikel}}</option>
@@ -127,7 +129,7 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label class="">Penyusun</label>
-                                <div class="" id="produk">
+                                <div class="" id="penyusun_${productCounter}">
                                     {% include 'produksi/opsi_penyusun.html' %}
                                 </div>
                             </div>
@@ -146,6 +148,55 @@
 
     function deleteRow(button) {
         button.closest('.row').remove();
+    }
+    function loadVersiOptions(selectElement) {
+        var artikel = selectElement.value;
+        var productCounter = selectElement.id.split('_')[1];
+        var detailSpkDiv = document.getElementById('versi_' + productCounter);
+        console.log(selectElement.id)
+        var url = "{% url 'load_versi' %}";
+
+        // Menghapus opsi sebelumnya jika ada
+        detailSpkDiv.innerHTML = '';
+
+        // Memuat opsi baru berdasarkan nomor SPK yang dipilih
+        $.ajax({
+            url: url,
+            data: {
+                'artikel': artikel
+            },
+            dataType: 'html',
+            success: function (data) {
+                detailSpkDiv.innerHTML = data;
+            }
+        });
+    }
+    function loadPenyusunOptions(selectElement) {
+        var versi = selectElement.value;
+
+        var productCounter = selectElement.parentNode.id.split('_')[1]
+        var detailSpkDiv = document.getElementById('penyusun_' + productCounter);
+        var artikel = document.getElementById('kodeartikel_' + productCounter)
+        console.log(selectElement.parentNode)
+        console.log(versi)
+        console.log(artikel.value)
+        var url = "{% url 'loadpenyusun' %}";
+
+        // Menghapus opsi sebelumnya jika ada
+        detailSpkDiv.innerHTML = '';
+
+        // Memuat opsi baru berdasarkan nomor SPK yang dipilih
+        $.ajax({
+            url: url,
+            data: {
+                'versi': versi,
+                'artikel': artikel.value
+            },
+            dataType: 'html',
+            success: function (data) {
+                detailSpkDiv.innerHTML = data;
+            }
+        });
     }
 </script>
 {% endblock javascripts %}

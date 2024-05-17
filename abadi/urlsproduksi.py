@@ -210,4 +210,5 @@ urlpatterns = [
     ),
     path("load_display", viewsproduksi.load_display, name="load_display"),
     path("load_versi", viewsproduksi.load_versi, name="load_versi"),
+    path("loadpenyusun", viewsproduksi.load_penyusun2, name="loadpenyusun"),
 ]
