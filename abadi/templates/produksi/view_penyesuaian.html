@@ -35,7 +35,7 @@
             <thead>
               <tr>
                 <th>Artikel</th>
-                <th>Kode Produk</th>
+                <th>Kode Bahan Baku</th>
                 <th>Tanggal Mulai</th>
                 <th>Tanggal Akhir</th>
                 <th>Kuantitas</th>
@@ -45,7 +45,7 @@
             <tbody>
               {% for i in datapenyesuaian %}
               <tr>
-                <td>{{i.KodePenyusun}}</td>
+                <td>{{i.KodePenyusun.KodeArtikel.KodeArtikel}}</td>
                 <td>{{i.KodePenyusun.KodeProduk.KodeProduk}}</td>
                 <td>{{i.TanggalMulai}}</td>
                 <td>{{i.TanggalAkhir}}</td>

@@ -4562,7 +4562,7 @@ def view_ksbj2(request):
                 }
             print('ini saldoawalobj',saldoawalobj)
 
-            tanggalmutasi = data.filter(Jenis = 'Produksi',Tanggal__range=(tanggal_mulai,tanggal_akhir)).values_list('Tanggal',flat=True).distinct()
+            tanggalmutasi = data.filter(Jenis = 'Mutasi',Tanggal__range=(tanggal_mulai,tanggal_akhir)).values_list('Tanggal',flat=True).distinct()
             sppb = models.DetailSPPB.objects.filter(DetailSPK__KodeArtikel__KodeArtikel = kodeartikel, NoSPPB__Tanggal__range = (tanggal_mulai,tanggal_akhir))
             tanggalsppb = sppb.values_list('NoSPPB__Tanggal',flat=True).distinct()
             tanggallist = sorted(list(set(tanggalmutasi.union(tanggalsppb))))
@@ -4599,7 +4599,7 @@ def view_ksbj2(request):
                         ),
                     )
 
-                datamodels ['Tanggal'] = i
+                datamodels ['Tanggal'] = i.strftime('%Y-%m-%d')
                 datamodels ['Penyerahanwip'] = totalpenyerahanwip
                 datamodels['DetailSPPB'] = detailsppbjobj
                 datamodels['Sisa'] = saldoawal
@@ -4644,7 +4644,7 @@ def view_ksbb3(request):
 
         listdata,saldoawal = calculate_KSBB(produk,tanggal_mulai,tanggal_akhir)
 
-        return render(request, "produksi/view_ksbb.html",{'data':listdata,'saldo':saldoawal,'kodebarang':request.GET["kodebarang"],"nama": nama,"satuan": satuan,})
+        return render(request, "produksi/view_ksbb.html",{'data':listdata,'saldo':saldoawal,'kodebarang':request.GET["kodebarang"],"nama": nama,"satuan": satuan,'kodeprodukobj':kodeproduk})
 
 def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
     
@@ -5016,8 +5016,8 @@ def kalkulatorpenyesuaian2(request):
         sumproduct = 0
         jumlahkeluar = 0
         jumlahxkonversidictionary = {}
-        datapenyesuaian = models.Penyesuaian.objects.filter(KodePenyusun__KodeProduk = produk).values_list('TanggalMinus',flat=True).distinct().order_by("-TanggalMinus")
-        print(datapenyesuaian[0])
+        datapenyesuaian = models.Penyesuaian.objects.filter(KodePenyusun__KodeProduk = produk).values_list('TanggalMinus',flat=True).distinct()
+        print(datapenyesuaian)
 
         for item in listdata:
             tanggal = item['Tanggal']
@@ -5200,17 +5200,13 @@ def update_penyesuaian(request, id):
         )
     else:
         print(request.POST)
-        print(asdas)
+        idpenyesuaian = request.POST['idpenyesuaian']
+        kuantitas = request.POST['kuantitas']
+
         penyesuaianobj = models.Penyesuaian.objects.get(
-            IDPenyesuaian=detailkonversiobj.IDDetailKonversiProduksi
+            IDPenyesuaian=idpenyesuaian
         )
         print(penyesuaianobj)
-        penyesuaianobj.TanggalMulai = request.POST["tanggalmulai"]
-        tanggalakhir = request.POST["tanggalakhir"]
-        if tanggalakhir == "":
-            tanggalakhir = datetime.max
-        penyesuaianobj.TanggalAkhir = tanggalakhir
-        detailkonversiobj.kuantitas = request.POST["kuantitas"]
-        detailkonversiobj.save()
-        penyesuaianobj.save()
+        penyesuaianobj.kuantitas = kuantitas
+        # penyesuaianobj.save()
         return redirect("view_penyesuaian")

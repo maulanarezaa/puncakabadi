@@ -25,52 +25,61 @@
                             <label class="col-sm-3 col-form-label">Tanggal Mulai</label>
                             <div class="col-sm-9">
                                 <input type="date" class="form-control" name="tanggalmulai" required
-                                    value="{{dataobj.TanggalMulai}}" />
+                                    value="{{dataobj.TanggalMulai}}" disabled />
                             </div>
                         </div>
                     </div>
 
                 </div>
                 <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Artikel</label>
-                            <div class="col-sm-9">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="">Artikel</label>
+                            <div class="">
                                 <input type="text" class="form-control" hx-get="{% url 'load_penyusun' %}"
                                     hx-trigger="change" list="Artikel" hx-target="#produk"
-                                    value="{{dataobj.KodePenyesuaian.KodePenyusun.KodeArtikel.id}}">
-                                <datalist id="Artikel">
-                                    {% for i in Artikel %}
-                                    <option value="{{i.id}}">{{i.KodeArtikel}}</option>
-                                    {% endfor %}
-                                </datalist>
+                                    value="{{dataobj.KodePenyusun.KodeArtikel.KodeArtikel}}" disabled name="artikel">
+
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Produk</label>
-                            <div class="col-sm-9" id="produk">
-                                <select class="form-control" disabled>
+                    <div class="col-md-3">
+                        <div class="form-group ">
+                            <label class="">Versi</label>
+                            <div class="" id="produk">
+                                <select class="form-control" disabled name="versi">
                                     <option value="{{dataobj.KodePenyesuaian.KodePenyusun.KodeProduk.KodeProduk}}"
-                                        selected> {{dataobj.KodePenyesuaian.KodePenyusun.KodeProduk.KodeProduk}}
+                                        selected> {{dataobj.KodePenyusun.versi}}
                                     </option>
                                 </select>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Kuantitas</label>
-                            <div class="col-sm-9">
-                                <input type="number" step="any" class="form-control" name="kuantitas" required
-                                    value="{{dataobj.kuantitas}}" />
+                    <div class="col-md-3">
+                        <div class="form-group ">
+                            <label class="">Bahan Baku</label>
+                            <div class="" id="produk">
+                                <select class="form-control" disabled>
+                                    <option value="{{dataobj.KodePenyesuaian.KodePenyusun.KodeProduk.KodeProduk}}"
+                                        selected> {{dataobj.KodePenyusun.KodeProduk.KodeProduk}}
+                                    </option>
+                                </select>
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-3">
+                        <div class="form-group ">
+                            <label class="">Kuantitas</label>
+                            <div class="" id="produk">
+                                <input type="text" class="form-control" name="kuantitas" value="{{dataobj.konversi}}">
+
+
+                            </div>
+                        </div>
+                    </div>
+                    <input type="text" hidden name="idpenyesuaian" value="{{dataobj.IDPenyesuaian}}">
                 </div>
+
                 <input type="text" value="{{dataobj.IDDetailKonversiProduksi}}" hidden name="id">
 
 

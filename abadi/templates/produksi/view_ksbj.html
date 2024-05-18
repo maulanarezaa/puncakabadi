@@ -80,7 +80,7 @@
 
                 <div class="table-responsive pt-3">
                     {% if data.count > 0 and kodeartikel and lokasi == 'WIP'%}
-                    <table class="table table-bordered">
+                    <table class="table table-bordered" id="tabelksbjwip">
                         <thead>
                             <tr>
                                 <td>Tanggal</td>
@@ -95,8 +95,12 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="6">Saldo awal ({{saldoawal.Tanggal}}) </td>
-
+                                <td>{{saldoawal.Tanggal}} Saldo awal </td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
                                 <td>{{saldoawal.Jumlah}}</td>
                             </tr>
                             {% for i in listdata %}
@@ -140,7 +144,7 @@
                     </table>
 
                     {% elif data.count > 0 and kodeartikel and lokasi == 'FG'%}
-                    <table class="table table-bordered">
+                    <table class="table table-bordered" id="tabelksbjfg">
                         <thead>
                             <tr>
                                 <td>Tanggal</td>
@@ -154,7 +158,7 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Saldo awal ({{saldoawal.Tanggal}} )</td>
+                                <td>{{saldoawal.Tanggal}} Saldo awal </td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
