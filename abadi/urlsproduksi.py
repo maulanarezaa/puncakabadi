@@ -303,4 +303,6 @@ urlpatterns = [
         viewsproduksi.delete_bahansubkon,
         name="delete_bahansubkon",
     ),
+    path("load_versi", viewsproduksi.load_versi, name="load_versi"),
+    path("load_penyusun", viewsproduksi.load_penyusun, name="loadpenyusun"),
 ]

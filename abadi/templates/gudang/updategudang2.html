@@ -65,12 +65,12 @@
         <div id="products"><!-- Div ini ditambahkan untuk menampung produk yang ditambahkan dinamis -->
           <div class="row">
             <div class="col-md-3">
-              <div class="form-group row">
-                <label class="col-sm-6 col-form-label">Kode Produk</label>
-                <div class="col-sm-6">
+              <div class="form-group ">
+                <label class="">Kode Produk</label>
+                <div class="">
                   <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
                     aria-label="Masukkan Nama bahanbaku" name="kodeproduk" list="listproduk" required
-                    value="{{detailsjp.KodeProduk.KodeProduk}}">
+                    value="{{detailsjp.KodeProduk.KodeProduk}}" onchange="loadproduk(this)" id="artikel">
                   <datalist id="listproduk">
                     {% for i in getproduk %}
                     <option value="{{i.KodeProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
@@ -79,27 +79,31 @@
                 </div>
               </div>
             </div>
+
             <div class="col-md-4">
-              <div class="form-group row">
-                <label class="col-sm-5 col-form-label">Nama Produk</label>
-                <div class="col-sm-7">
-                  <input type="text" value="{{detailsjp.KodeProduk.NamaProduk}}" class="form-control" name="jumlah"
-                    required>
+              <div class="form-group ">
+                <label>Nama Produk</label>
+                <div>
+                  <input id="namabahanbaku" type="text" value="{{detailsjp.KodeProduk.NamaProduk}}" class="form-control"
+                    required disabled>
                 </div>
               </div>
             </div>
+
             <div class="col-md-2">
-              <div class="form-group row">
-                <label class="col-sm-5 col-form-label">Unit</label>
-                <div class="col-sm-7">
-                  <input type="text" value="{{detailsjp.KodeProduk.unit}}" class="form-control" name="jumlah" required>
+              <div class="form-group ">
+                <label>Unit</label>
+                <div>
+                  <input id="unitbahanbaku" type="text" value="{{detailsjp.KodeProduk.unit}}" class="form-control"
+                    required disabled>
                 </div>
               </div>
+
             </div>
             <div class="col-md-3">
-              <div class="form-group row">
-                <label class="col-sm-5 col-form-label">Jumlah</label>
-                <div class="col-sm-7">
+              <div class="form-group ">
+                <label>Jumlah</label>
+                <div>
                   <input min="0" step="any" type="number" value="{{detailsjp.Jumlah}}" class="form-control"
                     name="jumlah" required>
                 </div>
@@ -114,5 +118,35 @@
     </div>
   </div>
 </div>
+<script>
+  function loadproduk(selectElement) {
+    var artikel = selectElement.value;
+    var productCounter = selectElement.id.split('_')[1];
+    var namabahanbaku = document.getElementById('namabahanbaku');
+    var unitbahanbaku = document.getElementById('unitbahanbaku');
+    var dataproduk = document.getElementById('artikel');
+
+    var url = "{% url 'load_produk' %}";
+
+    // Menghapus opsi sebelumnya jika ada
+
+    // Memuat opsi baru berdasarkan nomor SPK yang dipilih
+    $.ajax({
+      url: url,
+      data: {
+        'artikel': artikel
+      },
+      dataType: 'html',
+      success: function (data) {
+        var jsonData = JSON.parse(data);
+
+        console.log(typeof jsonData)
+        namabahanbaku.value = jsonData.NamaProduk
+        unitbahanbaku.value = jsonData.unit
+
+      }
+    });
+  }
+</script>
 
 {% endblock content %}

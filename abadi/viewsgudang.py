@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.urls import reverse
 from . import models
 from django.db.models import Sum
@@ -170,20 +170,6 @@ def update_gudang(request, id):
         NoSuratJalan=datasjp_getobj.NoSuratJalan
     )
     if request.method == "GET":
-        # tanggal = datetime.strftime(datasjp.NoSuratJalan.Tanggal, '%Y-%m-%d')
-        # jumlah = datasjp.Jumlah
-        # kodeproduk = datasjp.KodeProduk
-        # print(kodeproduk)
-        # print(getproduk)
-        # return render(request, 'gudang/updategudang.html', {
-        #     'datasjp' : datasjp,
-        #     'datasjp2' : datasjp2,
-        #     'datasj' : datasj,
-        #     'getproduk' : getproduk,
-        #     'kodeproduk' : kodeproduk,
-        #     'tanggal' : tanggal,
-        #     'jumlah' : jumlah,
-        # })
 
         return render(
             request,
@@ -193,7 +179,11 @@ def update_gudang(request, id):
                 "detailsjp": datasjp,
                 "datasj": datasj,
                 "detailsj": datasjp2,
-                "tanggal": datetime.strftime(datasjp_getobj.Tanggal, "%Y-%m-%d"),
+                "tanggal": datetime.strftime(
+                    datasjp_getobj.Tanggal,
+                    "%Y-%m-%d",
+                ),
+                "getproduk": getproduk,
             },
         )
 
@@ -214,6 +204,18 @@ def update_gudang(request, id):
         datasjp.NoSuratJalan.save()
 
         return redirect("baranggudang")
+
+
+def load_produk(request):
+    if request.is_ajax():
+        produkobj = models.Produk.objects.all().values(
+            "KodeProduk", "NamaProduk", "unit"
+        )
+        produk_list = list(produkobj)
+        return JsonResponse(produk_list, safe=False)
+    else:
+        produkobj = Produk.objects.all()
+        return render(request, "gudang/read_produk.html", {"produkobj": produkobj})
 
 
 def delete_gudang(request, id):
@@ -618,3 +620,66 @@ def update_produk_gudang(request, id):
         produkobj.Jumlahminimal = jumlah_minimal
         produkobj.save()
         return redirect("readprodukgudang")
+
+
+"""REVISI 5/18/2024"""
+
+
+def update_gudang(request, id):
+    datasjp = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
+    datasjp2 = models.DetailSuratJalanPembelian.objects.all()
+    datasj = models.SuratJalanPembelian.objects.all()
+    getproduk = models.Produk.objects.all()
+    datasjp_getobj = models.SuratJalanPembelian.objects.get(
+        NoSuratJalan=datasjp.NoSuratJalan.NoSuratJalan
+    )
+    detailsjp_filtered = models.DetailSuratJalanPembelian.objects.filter(
+        NoSuratJalan=datasjp_getobj.NoSuratJalan
+    )
+    if request.method == "GET":
+
+        return render(
+            request,
+            "gudang/updategudang2.html",
+            {
+                "datasjp": datasjp_getobj,
+                "detailsjp": datasjp,
+                "datasj": datasj,
+                "detailsj": datasjp2,
+                "tanggal": datetime.strftime(
+                    datasjp_getobj.Tanggal,
+                    "%Y-%m-%d",
+                ),
+                "getproduk": getproduk,
+            },
+        )
+
+    else:
+        tanggal = request.POST["tanggal"]
+        print(request.POST)
+        kode_produk = request.POST.get("kodeproduk")
+        kode_produkobj = models.Produk.objects.get(KodeProduk=kode_produk)
+        jumlah = request.POST["jumlah"]
+
+        datasjp.KodeProduk = kode_produkobj
+        datasjp.Jumlah = jumlah
+        datasjp.KeteranganACC = datasjp.KeteranganACC
+        datasjp.Harga = datasjp.Harga
+        datasjp.NoSuratJalan = datasjp.NoSuratJalan
+        datasjp.NoSuratJalan.Tanggal = tanggal
+        datasjp.save()
+        datasjp.NoSuratJalan.save()
+
+        return redirect("baranggudang")
+
+
+def load_produk(request):
+    print(request.GET)
+    artikel = request.GET.get("artikel")
+    produkobj = models.Produk.objects.get(KodeProduk=artikel)
+    data = {
+        "KodeProduk": artikel,
+        "NamaProduk": produkobj.NamaProduk,
+        "unit": produkobj.unit,
+    }
+    return JsonResponse(data, safe=False)

@@ -33,4 +33,5 @@ urlpatterns = [
         viewsgudang.update_produk_gudang,
         name="update_produk_gudang",
     ),
+    path("load_produk", viewsgudang.load_produk, name="load_produk"),
 ]
