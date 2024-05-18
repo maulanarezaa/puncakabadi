@@ -23,11 +23,11 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <input type="text" class="form-control" placeholder="Masukkan Kode Barangg"
-                                    name="kodebarang2" list="kodebarang2" value="{{kodebarang}}" required>
+                                    name="kodebarang" list="kodebarang" value="{{kodebarang}}" required>
 
-                                <datalist id="kodebarang2">
+                                <datalist id="kodebarang">
                                     {% for i in kodeprodukobj %}
-                                    <option value="{{i.id}}">{{i.KodeArtikel}}</option>
+                                    <option value="{{i.KodeProduk}}">{{i.NamaProduk}} - {{i.unit}}</option>
                                     {% endfor %}
                                 </datalist>
 
@@ -46,9 +46,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row">
 
-                    </div>
                     {% else %}
                     <div class="row">
                         <div class="col-lg-4">
