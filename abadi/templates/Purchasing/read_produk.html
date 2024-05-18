@@ -8,7 +8,7 @@
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Produk</h4>
+                <h4 class="card-title">Barang</h4>
                 <div class="template-demo" style="margin-top: 30px;">
                     <a href="{% url 'create_produk' %}">
                         <button type="button" class="btn btn-success">
@@ -22,9 +22,9 @@
                         <thead>
                             <tr>
                                 <th>No</th>
-                                <th>Kode Produk</th>
-                                <th>Nama Produk</th>
-                                <th>Unit</th>
+                                <th>Kode Barang</th>
+                                <th>Nama Barang</th>
+                                <th>Satuan</th>
                                 <th>Jumlah Minimal</th>
                                 <th>Keterangan</th>
                                 <th>Action</th>
@@ -38,7 +38,7 @@
                                 <td>{{i.NamaProduk}}</td>
                                 <td>{{i.unit}}</td>
                                 <td>{{i.Jumlahminimal}}</td>
-                                <td>{{i.keterangan}}</td>
+                                <td>{{i.keteranganPurchasing}}</td>
                                 <td>
                                     <div class="template-demo">
                                         <a href="{% url 'update_produk' i.KodeProduk %}">

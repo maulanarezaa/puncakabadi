@@ -27,9 +27,6 @@
                             <tr>
                                 <td>{{i.Tanggal}}</td>
                                 <td>{{i.NoSPK}}</td>
-
-                                {% if i.detailspk.exists %}
-
                                 <td>
                                     {% for j in i.detailspk %}
                                     <li>
@@ -45,15 +42,13 @@
                                     </li>
                                     {% endfor %}
                                 </td>
-                                {% else %}
-                                <p> Belum ada Record Detail SPPB</p>
-                                {% endif %}
+
 
                                 <td>{{i.Keterangan}}</td>
                                 <td>
                                     <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                                     <div class="template-demo">
-                                        <a href="{% url 'tracking_spk' i.id %}">
+                                        <a href="{% url 'trackspk' i.id %}">
                                             <button type="button" class="btn btn-primary">
                                                 <i class="typcn typcn-th-list"></i>
                                             </button>

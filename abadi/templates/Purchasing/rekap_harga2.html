@@ -11,7 +11,7 @@
     <h1>Rekap Harga Barang</h1>
     <form action="" method="get">
 
-        <label for="">Kode Produk</label>
+        <label for="">Kode Barang</label>
         <select name="kode_produk" id="kode_produk">
             {% for item in kodeprodukobj %}
             {% if item.KodeProduk == request.POST.kode_produk %}

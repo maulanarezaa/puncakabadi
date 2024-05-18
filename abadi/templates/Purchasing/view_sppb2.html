@@ -23,6 +23,9 @@
                                 <th>No</th>
                                 <th>Tanggal</th>
                                 <th>Nomor SPPB</th>
+                                <th>Nomor SPK</th>
+                                <th>Kode Artikel</th>
+                                <th>Jumlah </th>
                                 <th>Keterangan</th>
                             </tr>
                         </thead>
@@ -30,9 +33,12 @@
                             {% for i in datasppb %}
                             <tr>
                                 <td>{{forloop.counter}}</td>
-                                <td>{{i.Tanggal}}</td>
+                                <td>{{i.NoSPPB.Tanggal}}</td>
                                 <td>{{i.NoSPPB}}</td>
-                                <td>{{i.Keterangan}}</td>
+                                <td>{{i.DetailSPK.NoSPK}}</td>
+                                <td>{{i.DetailSPK.KodeArtikel}}</td>
+                                <td>{{i.Jumlah}}</td>
+                                <td>{{i.NoSPPB.Keterangan}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
