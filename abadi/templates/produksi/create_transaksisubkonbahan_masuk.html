@@ -11,9 +11,9 @@
 <div class="col-12 grid-margin">
   <div class="card">
     <div class="card-body">
-      <h4 class="card-title">Form Input Transaksi Produk Subkon Keluar</h4>
+      <h4 class="card-title">Form Input Transaksi Bahan Baku Subkon Masuk</h4>
       <div class="template-demo">
-        <a href="/produksi/subkonterima">
+        <a href="/produksi/subkonbahanmasuk">
           <button type="button" class="btn btn-light btn-icon-text">
             <i class="typcn typcn-chevron-left btn-icon-prepend"></i>
             Kembali
@@ -33,28 +33,36 @@
             </div>
           </div>
         </div>
-        <h4 class="card-title">Detail Transaksi Produk Subkon Keluar</h4>
+        <h4 class="card-title">Detail Transaksi Bahan Baku Subkon Masuk</h4>
         <div id="artikels">
           <div class="artikel" id="produk_1">
             <div class="row">
-              <div class="col-md-5">
+              <div class="col-md-4">
                 <div class="form-group row">
-                  <label class="col-sm-3 col-form-label">Produk 1:</label>
+                  <label class="col-sm-3 col-form-label">Bahan 1:</label>
                   <div class="col-sm-9">
                     <input type="text" class="form-control" name="nama_produk[]" required list="produksubkon" />
                     <datalist id="produksubkon">
                       {% for i in produksubkon %}
-                      <option value="{{ i.NamaProduk }} Art. {{i.KodeArtikel}}">{{ i.NamaProduk }} Art. {{i.KodeArtikel}}</option>
+                      <option value="{{i.KodeProduk}}">{{ i.NamaProduk }}</option>
                       {%endfor %}
                     </datalist>
                   </div>
                 </div>
               </div>
-              <div class="col-md-5">
+              <div class="col-md-4">
                 <div class="form-group row">
                   <label class="col-sm-3 col-form-label">Jumlah</label>
                   <div class="col-sm-9">
                     <input type="number" min="0" class="form-control" name="jumlah[]" id="jumlah" required />
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group row">
+                  <label class="col-sm-3 col-form-label">Ket.</label>
+                  <div class="col-sm-9">
+                    <input type="text" class="form-control" name="keterangan[]" id="ket" required />
                   </div>
                 </div>
               </div>
@@ -83,24 +91,32 @@
       productRow.className = "artikel"; // Added class artikel
       productRow.id = `produk_${productCounter}`;
       productRow.innerHTML = `<div class="row">
-                                <div class="col-md-5">
+                                <div class="col-md-4">
                                   <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Produk ${productCounter}:</label>
                                     <div class="col-sm-9">
                                       <input type="text" class="form-control" name="nama_produk[]" required list="produksubkon" />
                                       <datalist id="produksubkon">
                                         {% for i in produksubkon %}
-                                        <option value="{{ i.NamaProduk }} Art. {{i.KodeArtikel}}">{{ i.NamaProduk }} Art. {{i.KodeArtikel}}</option>
+                                        <option value="{{i.KodeProduk}}">{{ i.NamaProduk }}</option>
                                         {%endfor %}
                                       </datalist>
                                     </div>
                                   </div>
                                 </div>
-                                <div class="col-md-5">
+                                <div class="col-md-4">
                                   <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Jumlah</label>
                                     <div class="col-sm-9">
                                       <input type="number" min="0" class="form-control" name="jumlah[]" id="jumlah" required />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-md-3">
+                                  <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Ket.</label>
+                                    <div class="col-sm-9">
+                                      <input type="text" class="form-control" name="keterangan[]" id="ket" required />
                                     </div>
                                   </div>
                                 </div>

@@ -346,6 +346,7 @@ class TransaksiBahanBakuSubkon(models.Model):
     KodeBahanBaku = models.ForeignKey(BahanBakuSubkon, on_delete=models.CASCADE)
     Tanggal = models.DateField()
     Keterangan = models.CharField(max_length=225)
+    Jumlah = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.tanggal} - {self.KodeBahanBaku}"
@@ -387,7 +388,7 @@ class SuratJalanPenerimaanProdukSubkon(models.Model):
 class DetailSuratJalanPenerimaanProdukSubkon(models.Model):
     IDDetailSJPengirimanSubkon = models.AutoField(primary_key=True)
     NoSuratJalan = models.ForeignKey(
-        SuratJalanPengirimanBahanBakuSubkon, on_delete=models.CASCADE
+        SuratJalanPenerimaanProdukSubkon, on_delete=models.CASCADE
     )
     KodeProduk = models.ForeignKey(ProdukSubkon, on_delete=models.CASCADE, null=True)
     Jumlah = models.IntegerField()
@@ -406,3 +407,13 @@ class TransaksiSubkon(models.Model):
 
     def __str__(self):
         return str(self.IDProdukSubkon.NamaProduk) + "-" + str(self.Tanggal)
+    
+
+class SaldoAwalBahanBakuSubkon(models.Model):
+    IDSaldoAwalBahanBakuSubkon = models.AutoField(primary_key=True)
+    IDBahanBakuSubkon = models.ForeignKey(BahanBakuSubkon, on_delete=models.CASCADE)
+    Jumlah = models.IntegerField()
+    Tanggal = models.DateField()
+
+    def __str__(self):
+        return str(self.IDBahanBakuSubkon.NamaProduk)

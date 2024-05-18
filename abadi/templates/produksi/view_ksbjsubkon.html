@@ -29,7 +29,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-lg-4">
                             <div class="form-group">
@@ -50,12 +50,17 @@
                             <div class="form-group">
                                 <div class="input-group">
                                     <input type="text" class="form-control" placeholder="Masukkan Nama Produk Subkon"
-                                        aria-label="Masukkan Nama Produk Subkon" name="kodebarang" list="kodebarang">
+                                        aria-label="Masukkan Nama Produk Subkon" name="kodebarang" list="kodebarang"
+                                        id="kodebarangInput">
+
                                     <datalist id="kodebarang">
                                         {% for i in kodeprodukobj %}
-                                        <option value="{{i.NamaProduk}}">{{i.NamaProduk}}</option>
+                                        <option value="{{i.IDProdukSubkon}}">
+                                            {{i.NamaProduk}}</option>
+                                        <input type="text" hidden value="{{i.IDProdukSubkon}}">
                                         {% endfor %}
                                     </datalist>
+                                    <input type="text" hidden value="{{i.IDProdukSubkon}}" name="idporudk">
                                     <input type="month" name="periode" value="tahun_bulan_sekarang"
                                         style="display: none;">
                                     <div class="input-group-append">
@@ -114,7 +119,10 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const kodebaranginput = document.getElementById('kodebarangInput')
+        console.log(kodebaranginput)
+    });
+</script>
 {% endblock content %}
-
-{% block javascripts %}
-{% endblock javascripts %}

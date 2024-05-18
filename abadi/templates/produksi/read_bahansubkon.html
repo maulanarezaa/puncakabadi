@@ -8,9 +8,9 @@
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Produk Subkon Keluar</h4>
+                <h4 class="card-title">Bahan Baku Subkon</h4>
                 <div class="template-demo" style="margin-top: 30px;">
-                    <a href="{% url 'create_transaksi_subkon_terima' %}">
+                    <a href="{% url 'create_bahansubkon' %}">
                         <button type="button" class="btn btn-success btn-icon-text">
                             <i class="typcn typcn-plus btn-icon-prepend"></i>
                             Tambah Data
@@ -21,36 +21,29 @@
                     <table class="table table-bordered" id="myTable">
                         <thead>
                             <tr>
-                                <th>Tanggal</th>
-                                <th>Produk Subkon</th>
-                                <th>Artikel Peruntukan</th>
-                                <th>Jumlah</th>
-                                <th>Keterangan</th>
+                                <th>No</th>
+                                <th>Kode Produk</th>
+                                <th>Nama Produk</th>
+                                <th>Unit</th>
                                 <th>Action</th>
-
                             </tr>
                         </thead>
                         <tbody id="tableBody">
                             {% for i in produkobj %}
                             <tr>
-                                <td>{{i.Tanggal}}</td>
-                                <td>{{i.KodeProduk.NamaProduk}}</td>
-                                <td>{{i.KodeProduk.KodeArtikel}}</td>
-                                <td>{{i.Jumlah}}</td>
-                                {% if i.Jumlah >= 0 %}
-                                <td>Barang masuk dari Subkon ke Pabrik</td>
-                                {% else %}
-                                <td>Barang bermutasi ke WIP</td>
-                                {% endif %}
+                                <td>{{forloop.counter}}</td>
+                                <td>{{i.KodeProduk}}</td>
+                                <td>{{i.NamaProduk}}</td>
+                                <td>{{i.unit}}</td>
                                 <td>
                                     <div class="template-demo">
-                                        <a href="{% url 'update_transaksi_subkon_terima' i.IDTransaksiProdukSubkon %}">
+                                        <a href="{% url 'update_bahansubkon' i.id %}">
                                             <button type="button" class="btn btn-warning">
                                                 <i class="typcn typcn-edit"></i>
                                             </button>
                                         </a>
                                         <a>
-                                            <button onclick="confirmDelete('{{ i.IDTransaksiProdukSubkon }}')" type="button"
+                                            <button onclick="confirmDelete('{{ i.id }}')" type="button"
                                                 class="btn btn-danger">
                                                 <i class="typcn typcn typcn-trash"></i>
                                             </button>
@@ -98,7 +91,7 @@
     function confirmDelete(id) {
         console.log(id)
         var deleteForm = document.getElementById('deleteForm');
-        deleteForm.action = "deletetransaksisubkonterima/" + id;
+        deleteForm.action = "deletebahansubkon/" + id;
         $('#confirmDeleteModal').modal('show');
     }
 </script>

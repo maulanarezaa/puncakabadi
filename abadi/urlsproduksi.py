@@ -42,7 +42,7 @@ urlpatterns = [
     path("addgudang", viewsproduksi.add_gudang, name="add_gudang"),
     path("updategudang/<str:id>", viewsproduksi.update_gudang, name="update_gudang"),
     path("deletegudang/<str:id>", viewsproduksi.delete_gudang, name="delete_gudang"),
-    path("viewgudangretur", viewsproduksi.view_gudangretur, name="view_gudangretur"),
+    path("viewretur", viewsproduksi.view_gudangretur, name="view_gudangretur"),
     path("addgudangretur", viewsproduksi.add_gudangretur, name="add_gudangretur"),
     path(
         "updategudangretur/<str:id>",
@@ -64,7 +64,9 @@ urlpatterns = [
         "viewrekapproduksi", viewsproduksi.view_rekapproduksi, name="view_rekapproduksi"
     ),
     path("viewrekaprusak", viewsproduksi.view_rekaprusak, name="view_rekaprusak"),
-    path("viewpemusnahan", viewsproduksi.view_pemusnahan, name="view_pemusnahan"),
+    path(
+        "viewpemusnahanartikel", viewsproduksi.view_pemusnahan, name="view_pemusnahan"
+    ),
     path("addpemusnahan", viewsproduksi.add_pemusnahan, name="add_pemusnahan"),
     path(
         "updatepemusnahan/<str:id>",
@@ -96,6 +98,18 @@ urlpatterns = [
         viewsproduksi.delete_pemusnahanbarang,
         name="delete_pemusnahanbarang",
     ),
+    path("bahanbakusubkon", viewsproduksi.read_bahansubkon, name="read_bahansubkon"),
+    path("addbahansubkon", viewsproduksi.create_bahansubkon, name="create_bahansubkon"),
+    path(
+        "updatebahansubkon/<str:id>",
+        viewsproduksi.update_bahansubkon,
+        name="update_bahansubkon",
+    ),
+    path(
+        "deletebahansubkon/<str:id>",
+        viewsproduksi.delete_bahansubkon,
+        name="delete_bahansubkon",
+    ),
     path("produksubkon", viewsproduksi.read_produksubkon, name="read_produksubkon"),
     path(
         "addproduksubkon", viewsproduksi.create_produksubkon, name="create_produksubkon"
@@ -110,17 +124,65 @@ urlpatterns = [
         viewsproduksi.delete_produksubkon,
         name="delete_produksubkon",
     ),
-    path("subkonkirim", viewsproduksi.view_subkonkirim, name="view_subkonkirim"),
-    path("addsubkonkirim", viewsproduksi.add_subkonkirim, name="add_subkonkirim"),
     path(
-        "updatesubkonkirim/<str:id>",
-        viewsproduksi.update_subkonkirim,
-        name="update_subkonkirim",
+        "subkonbahanmasuk",
+        viewsproduksi.transaksi_subkonbahan_masuk,
+        name="transaksi_subkonbahan_masuk",
     ),
     path(
-        "deletesubkonkirim/<str:id>",
-        viewsproduksi.delete_subkonkirim,
-        name="delete_subkonkirim",
+        "addtransaksisubkonbahanmasuk",
+        viewsproduksi.create_transaksi_subkonbahan_masuk,
+        name="create_transaksi_subkonbahan_masuk",
+    ),
+    path(
+        "updatetransaksisubkonbahanmasuk/<str:id>",
+        viewsproduksi.update_transaksi_subkonbahan_masuk,
+        name="update_transaksi_subkonbahan_masuk",
+    ),
+    path(
+        "deletetransaksisubkonbahanmasuk/<str:id>",
+        viewsproduksi.delete_transaksi_subkonbahan_masuk,
+        name="delete_transaksi_subkonbahan_masuk",
+    ),
+    path(
+        "viewsubkonbahankeluar",
+        viewsproduksi.view_subkonbahankeluar,
+        name="view_subkonbahankeluar",
+    ),
+    path(
+        "addsubkonbahankeluar",
+        viewsproduksi.add_subkonbahankeluar,
+        name="add_subkonbahankeluar",
+    ),
+    path(
+        "updatesubkonbahankeluar/<str:id>",
+        viewsproduksi.update_subkonbahankeluar,
+        name="update_subkonbahankeluar",
+    ),
+    path(
+        "deletesubkonbahankeluar/<str:id>",
+        viewsproduksi.delete_subkonbahankeluar,
+        name="delete_subkonbahankeluar",
+    ),
+    path(
+        "viewsubkonprodukmasuk",
+        viewsproduksi.view_subkonprodukmasuk,
+        name="view_subkonprodukmasuk",
+    ),
+    path(
+        "addsubkonprodukmasuk",
+        viewsproduksi.add_subkonprodukmasuk,
+        name="add_subkonprodukmasuk",
+    ),
+    path(
+        "updatesubkonprodukmasuk/<str:id>",
+        viewsproduksi.update_subkonprodukmasuk,
+        name="update_subkonprodukmasuk",
+    ),
+    path(
+        "deletesubkonprodukmasuk/<str:id>",
+        viewsproduksi.delete_subkonprodukmasuk,
+        name="delete_subkonprodukmasuk",
     ),
     path(
         "subkonterima",
@@ -163,14 +225,24 @@ urlpatterns = [
     ),
     path(
         "kalkulatorpenyesuaian2",
-        viewsproduksi.kalkulatorpenyesuaianv1,
+        viewsproduksi.kalkulatorpenyesuaian2,
         name="kalkulatorpenyesuaian2",
     ),
-    path("viewsaldobahan", viewsproduksi.view_saldobahan, name="view_saldobahan"),
+    path("viewsaldobahanbaku", viewsproduksi.view_saldobahan, name="view_saldobahan"),
     path("viewsaldoartikel", viewsproduksi.view_saldoartikel, name="view_saldoartikel"),
+    path(
+        "viewsaldobahansubkon",
+        viewsproduksi.view_saldobahansubkon,
+        name="view_saldobahansubkon",
+    ),
     path("viewsaldosubkon", viewsproduksi.view_saldosubkon, name="view_saldosubkon"),
     path("addsaldobahan", viewsproduksi.add_saldobahan, name="add_saldobahan"),
     path("addsaldoartikel", viewsproduksi.add_saldoartikel, name="add_saldoartikel"),
+    path(
+        "addsaldobahansubkon",
+        viewsproduksi.add_saldobahansubkon,
+        name="add_saldobahansubkon",
+    ),
     path("addsaldosubkon", viewsproduksi.add_saldosubkon, name="add_saldosubkon"),
     path(
         "updatesaldobahan/<str:id>",
@@ -181,6 +253,11 @@ urlpatterns = [
         "updatesaldoartikel/<str:id>",
         viewsproduksi.update_saldoartikel,
         name="update_saldoartikel",
+    ),
+    path(
+        "updatesaldobahansubkon/<str:id>",
+        viewsproduksi.update_saldobahansubkon,
+        name="update_saldobahansubkon",
     ),
     path(
         "updatesaldosubkon/<str:id>",
@@ -198,6 +275,11 @@ urlpatterns = [
         name="delete_saldoartikel",
     ),
     path(
+        "deletesaldobahansubkon/<str:id>",
+        viewsproduksi.delete_saldobahansubkon,
+        name="delete_saldobahansubkon",
+    ),
+    path(
         "deletesaldosubkon/<str:id>",
         viewsproduksi.delete_saldosubkon,
         name="delete_saldosubkon",
@@ -209,6 +291,16 @@ urlpatterns = [
         name="update_produk_produksi",
     ),
     path("load_display", viewsproduksi.load_display, name="load_display"),
-    path("load_versi", viewsproduksi.load_versi, name="load_versi"),
-    path("loadpenyusun", viewsproduksi.load_penyusun2, name="loadpenyusun"),
+    path("bahanbakusubkon", viewsproduksi.read_bahansubkon, name="read_bahansubkon"),
+    path("addbahansubkon", viewsproduksi.create_bahansubkon, name="create_bahansubkon"),
+    path(
+        "updatebahansubkon/<str:id>",
+        viewsproduksi.update_bahansubkon,
+        name="update_bahansubkon",
+    ),
+    path(
+        "deletebahansubkon/<str:id>",
+        viewsproduksi.delete_bahansubkon,
+        name="delete_bahansubkon",
+    ),
 ]

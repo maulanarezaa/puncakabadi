@@ -24,7 +24,12 @@
                             <div class="form-group">
                                 <div class="input-group">
                                     <input required type="text" class="form-control" placeholder="Masukkan Kode Barang"
-                                        aria-label="Masukkan Kode Barang" name="kodebarang" value="{{kodebarang}}">
+                                        aria-label="Masukkan Kode Barang" name="kodebarang" value="{{kodebarang}}" list="kodebarang">
+                                    <datalist id="kodebarang">
+                                        {% for i in kodeprodukobj %}
+                                        <option value="{{i.KodeProduk}}">{{i.NamaProduk}}</option>
+                                        {% endfor %}
+                                    </datalist>
                                 </div>
                             </div>
                         </div>

@@ -1,0 +1,158 @@
+{% extends "produksi/base.html" %}
+{% load static %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+<!-- Page content  -->
+{% block content %}
+<div class="col-12 grid-margin">
+  <div class="card">
+    <div class="card-body">
+      <form class="form-sample" action="" method="post">
+        <h4 class="card-title">Form Surat Jalan Terima Produk Subkon</h4>
+        <a href="/produksi/viewsubkonprodukmasuk">
+          <button type="button" class="btn btn-light btn-icon-text">
+            <i class="typcn typcn-chevron-left btn-icon-prepend"></i>
+            Kembali
+          </button>
+        </a>
+        <br>
+        <br>
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">No. Surat Jalan</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" name="nosuratjalan" placeholder="Masukkan Nomor Surat Jalan"
+                  list="suratjalan" />
+                <datalist id="suratjalan">
+                  {% for i in detailsk %}
+                  <option value="{{i.IDSubkonKirim}}">{{i.Tanggal}}</option>
+                  {% endfor %}
+                </datalist>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Tanggal</label>
+              <div class="col-sm-9">
+                <input type="date" class="form-control" name="tanggal" required />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h4 class="card-title">Detail Surat Jalan Terima Produk Subkon</h4>
+
+        <div id="products"><!-- Div ini ditambahkan untuk menampung produk yang ditambahkan dinamis -->
+          <div class="row">
+            <div class="col-md-4">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Produk</label>
+                <div class="col-sm-9">
+                  <input type="text" class="form-control" placeholder="Masukkan Nama Produk"
+                    aria-label="Masukkan Nama bahanbaku" name="kodeproduk" list="listproduk" required>
+                  <datalist id="listproduk">
+                    {% for i in getproduk %}
+                    <option value="{{i.NamaProduk}} Art. {{i.KodeArtikel}}">{{i.NamaProduk}} Art. {{i.KodeArtikel}}</option>
+                    {% endfor %}
+                  </datalist>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Jumlah</label>
+                <div class="col-sm-8">
+                  <input min="0" value="0" step="any" type="number" class="form-control" name="jumlah" required>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Ket.</label>
+                <div class="col-sm-9">
+                  <input type="text" class="form-control" name="keterangan" id="ket" required />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-auto mr-auto">
+            <button type="button" class="btn btn-success" onclick="addProduct()"><i class="typcn typcn-plus btn-icon-prepend"></i>Tambahkan Produk</button>
+          </div>
+          <div class="col-auto">
+            <button type="submit" class="btn btn-primary ml-5">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% block javascripts %}
+<script>
+  function addProduct() {
+    let productCounter = document.querySelectorAll('.form-group.row').length + 1;
+    const productDiv = document.createElement('div');
+    productDiv.className = "row";
+    productDiv.innerHTML = `<div class="col-md-4">
+                                  <div class="form-group row">
+                                      <label class="col-sm-3 col-form-label">Produk</label>
+                                      <div class="col-sm-9">
+                                          <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
+                                              aria-label="Masukkan Nama bahanbaku" name="kodeproduk" list="listproduk" required>
+                                          <datalist id="listproduk">
+                                              {% for i in getproduk %}
+                                              <option value="{{i.KodeProduk}}">{{i.NamaProduk}}</option>
+                                              {% endfor %}
+                                          </datalist>
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="col-md-4">
+                                  <div class="form-group row">
+                                      <label class="col-sm-3 col-form-label">Jumlah</label>
+                                      <div class="col-sm-8">
+                                          <input min="0" value="0" step="any" type="number" class="form-control" name="jumlah" required>
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="col-md-3">
+                                <div class="form-group row">
+                                  <label class="col-sm-3 col-form-label">Ket.</label>
+                                  <div class="col-sm-9">
+                                    <input type="text" class="form-control" name="keterangan" id="ket" required />
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="col-md-1">
+                                  <button type="button" class="btn btn-danger" onclick="removeProduct(this)"><i class="typcn typcn typcn-trash"></i></button>
+                              </div>`;
+    document.getElementById('products').appendChild(productDiv);
+    // Hapus baris jika terlalu banyak
+    if (productCounter > 5) { // Misalnya, batas jumlah baris adalah 5
+      removeExcessRows();
+    }
+  }
+
+  function removeProduct(button) {
+    let row = button.closest('.row');
+    row.parentNode.removeChild(row);
+  }
+
+  function removeExcessRows() {
+    let productsDiv = document.getElementById('products');
+    let rows = productsDiv.getElementsByClassName('row');
+    if (rows.length > 5) { // Misalnya, batas jumlah baris adalah 5
+      productsDiv.removeChild(rows[rows.length - 1]); // Hapus baris terakhir
+    }
+  }
+</script>
+{% endblock javascripts %}
+{% endblock content %}
