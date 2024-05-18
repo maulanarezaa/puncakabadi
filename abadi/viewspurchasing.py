@@ -770,30 +770,72 @@ def read_spk(request):
 
 
 def track_spk(request, id):
-    print("id", id)
+    dataartikel = models.Artikel.objects.all()
+    datadisplay = models.Display.objects.all()
     dataspk = models.SPK.objects.get(id=id)
-    datadetailspk = models.DetailSPK.objects.filter(NoSPK=dataspk.id)
+    if dataspk.StatusDisplay == False:
+        datadetail = models.DetailSPK.objects.filter(NoSPK=dataspk.id)
+    else:
+        datadetail = models.DetailSPKDisplay.objects.filter(NoSPK=dataspk.id)
+    if dataspk.StatusDisplay == True:
 
-    transaksigudangobj = models.TransaksiGudang.objects.filter(
-        DetailSPK__NoSPK=dataspk.id, jumlah__gte=0
-    ).order_by("tanggal")
+        # Data SPK terkait yang telah di request ke Gudang
+        transaksigudangobj = models.TransaksiGudang.objects.filter(
+            DetailSPKDisplay__NoSPK=dataspk.id, jumlah__gte=0
+        )
 
-    transaksifg = models.TransaksiProduksi.objects.filter(
-        DetailSPK__NoSPK=dataspk.id, Jenis="Mutasi"
-    ).order_by("Tanggal")
+        # Data SPK Terkait yang telah jadi di FG
+        transaksiproduksiobj = models.TransaksiProduksi.objects.filter(
+            DetailSPK__NoSPK=dataspk.id, Jenis="Mutasi"
+        )
 
-    sppbobj = models.DetailSPPB.objects.filter(DetailSPK__NoSPK=dataspk.id).order_by(
-        "NoSPPB__Tanggal"
-    )
+        # Data SPK Terkait yang telah dikirim
+        sppbobj = models.DetailSPPB.objects.filter(DetailSPKDisplay__NoSPK=dataspk.id)
+        rekapjumlahpermintaanperbahanbaku = transaksigudangobj.values(
+            "KodeProduk__KodeProduk", "KodeProduk__NamaProduk", "KodeProduk__unit"
+        ).annotate(total=Sum("jumlah"))
+        rekapjumlahpengirimanperartikel = sppbobj.values(
+            "DetailSPKDisplay__KodeDisplay__KodeDisplay"
+        ).annotate(total=Sum("Jumlah"))
+    else:
+        # Data SPK terkait yang telah di request ke Gudang
+        transaksigudangobj = models.TransaksiGudang.objects.filter(
+            DetailSPK__NoSPK=dataspk.id, jumlah__gte=0
+        )
+
+        # Data SPK Terkait yang telah jadi di FG
+        transaksiproduksiobj = models.TransaksiProduksi.objects.filter(
+            DetailSPK__NoSPK=dataspk.id, Jenis="Mutasi"
+        )
+
+        # Data SPK Terkait yang telah dikirim
+        sppbobj = models.DetailSPPB.objects.filter(DetailSPK__NoSPK=dataspk.id)
+        rekapjumlahpermintaanperbahanbaku = transaksigudangobj.values(
+            "KodeProduk__KodeProduk", "KodeProduk__NamaProduk", "KodeProduk__unit"
+        ).annotate(total=Sum("jumlah"))
+        rekapjumlahpengirimanperartikel = sppbobj.values(
+            "DetailSPK__KodeArtikel__KodeArtikel"
+        ).annotate(total=Sum("Jumlah"))
+
+    if request.method == "GET":
+        tanggal = datetime.strftime(dataspk.Tanggal, "%Y-%m-%d")
+
+    print(transaksigudangobj)
+
     return render(
         request,
-        "Purchasing/trackspk.html",
+        "purchasing/trackspk.html",
         {
+            "data": dataartikel,
+            "datadisplay": datadisplay,
             "dataspk": dataspk,
-            "datadetailspk": datadetailspk,
-            "transaksigudangobj": transaksigudangobj,
-            "transaksifg": transaksifg,
+            "datadetail": datadetail,
+            "tanggal": tanggal,
+            "transaksigudang": transaksigudangobj,
+            "transaksiproduksi": transaksiproduksiobj,
             "transaksikeluar": sppbobj,
+            "datarekappermintaanbahanbaku": rekapjumlahpermintaanperbahanbaku,
+            "datarekappengiriman": rekapjumlahpengirimanperartikel,
         },
     )
 
@@ -1244,7 +1286,7 @@ def kebutuhan_barang(request):
     list_q_akhir = []
     list_kode_art = []
     if len(request.GET) == 0:
-        spkall = models.SPK.objects.filter(StatusAktif = True)
+        spkall = models.SPK.objects.filter(StatusAktif=True)
         return render(request, "Purchasing/kebutuhan_barang.html", {"spkall": spkall})
     else:
         inputno_spk = request.GET["inputno_spk"]
@@ -1546,10 +1588,38 @@ def views_rekapharga(request):
                     hargamasuktotalperhari += j.Harga * j.Jumlah
                     jumlahmasukperhari += j.Jumlah
                 hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
-            else:
-                hargamasuktotalperhari = 0
-                jumlahmasukperhari = 0
-                hargamasuksatuanperhari = 0
+                print("data SJP ada")
+                print(hargamasuksatuanperhari)
+                print(jumlahmasukperhari)
+                dumy = {
+                    "Tanggal": i.strftime("%Y-%m-%d"),
+                    "Jumlahstokawal": saldoawal,
+                    "Hargasatuanawal": round(hargasatuanawal, 2),
+                    "Hargatotalawal": round(hargatotalawal, 2),
+                    "Jumlahmasuk": jumlahmasukperhari,
+                    "Hargamasuksatuan": round(hargamasuksatuanperhari, 2),
+                    "Hargamasuktotal": round(hargamasuktotalperhari, 2),
+                    "Jumlahkeluar": jumlahkeluarperhari,
+                    "Hargakeluarsatuan": round(hargakeluarsatuanperhari, 2),
+                    "Hargakeluartotal": round(hargakeluartotalperhari, 2),
+                }
+                saldoawal += jumlahmasukperhari - jumlahkeluarperhari
+                hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
+                hargasatuanawal = hargatotalawal / saldoawal
+
+                print("Sisa Stok Hari Ini : ", saldoawal)
+                print("harga awal Hari Ini :", hargasatuanawal)
+                print("harga total Hari Ini :", hargatotalawal, "\n")
+                dumy["Sisahariini"] = saldoawal
+                dumy["Hargasatuansisa"] = round(hargasatuanawal, 2)
+                dumy["Hargatotalsisa"] = round(hargatotalawal, 2)
+                print(dumy)
+                listdata.append(dumy)
+                # print(asdasd)
+
+            hargamasuktotalperhari = 0
+            jumlahmasukperhari = 0
+            hargamasuksatuanperhari = 0
 
             transaksigudangobj = keluarobj.filter(tanggal=i)
             print(transaksigudangobj)
@@ -1618,7 +1688,6 @@ def views_rekapharga(request):
             dumy["Sisahariini"] = saldoawal
             dumy["Hargasatuansisa"] = round(hargasatuanawal, 2)
             dumy["Hargatotalsisa"] = round(hargatotalawal, 2)
-
 
             listdata.append(dumy)
 

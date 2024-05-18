@@ -8,28 +8,187 @@
 <!-- Page content  -->
 {% block content %}
 
+<div class="col-12 grid-margin">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Form SPK</h4>
+      <div class="template-demo">
+        <a href="/produksi/viewspk">
+          <button type="button" class="btn btn-light btn-icon-text">
+            <i class="typcn typcn-chevron-left btn-icon-prepend"></i>
+            Kembali
+          </button>
+        </a>
+      </div>
+      <br>
+
+      {% csrf_token %}
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group row">
+            <label class="col-sm-3 col-form-label">Tanggal</label>
+            <div class="col-sm-9">
+              <input type="date" class="form-control" name="tanggal" value="{{tanggal}}" readonly />
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group row">
+            <label class="col-sm-3 col-form-label">Nomor SPK</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" name="nomor_spk" value="{{dataspk.NoSPK}}" readonly />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group row">
+            <label class="col-sm-3 col-form-label">Keterangan</label>
+            <div class="col-sm-9">
+              <textarea class="form-control" name="keterangan" rows="3" readonly>{{dataspk.Keterangan}} </textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <h4 class="card-title">Detail SPK</h4>
+      <div id="artikels">
+        {% if dataspk.StatusDisplay == True %}
+        {% for i in datadetail %}
+        <div class="row">
+          <div class="col-md-5">
+            <div class="form-group">
+              <label for="artikel_{{ forloop.counter }}">Display {{ forloop.counter }}:</label>
+              <select class="form-control artikel" name="artikel[]" disabled>
+                {% for item in datadisplay %}
+                {% if item.KodeDisplay == i.KodeDisplay.KodeDisplay %}
+                <option selected value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }}</option>
+                {% else %}
+                <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }}</option>
+                {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="form-group">
+              <label for="quantity_{{ forloop.counter }}">Jumlah</label>
+              <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity"
+                value="{{i.Jumlah}}" readonly>
+            </div>
+          </div>
+
+        </div>
+        {% endfor %}
+        {% else %}
+        {% for i in datadetail %}
+        <div class="row">
+          <div class="col-md-5">
+            <div class="form-group">
+              <label for="artikel_{{ forloop.counter }}">Artikel {{ forloop.counter }}:</label>
+              <select class="form-control artikel" name="artikel[]" disabled>
+                {% for item in data %}
+                {% if item.KodeArtikel == i.KodeArtikel.KodeArtikel %}
+                <option selected value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
+                {% else %}
+                <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
+                {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="form-group">
+              <label for="quantity_{{ forloop.counter }}">Jumlah</label>
+              <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity"
+                value="{{i.Jumlah}}" readonly>
+            </div>
+          </div>
+
+        </div>
+        {% endfor %}
+        {% endif %}
+      </div>
+      <br><br>
+
+    </div>
+  </div>
+</div>
+<div class="col-lg-12 grid-margin stretch-card">
+  <div class="card">
+    <div class="card-body">
+      <div>
+        <h4 class="card-title">Rekap SPK</h4>
+        <div class="table-responsive pt-3">
+          <h5>Kumulasi Permintaan Barang</h5>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Kode Bahan Baku</th>
+                <th>Nama Bahan Baku</th>
+                <th>Satuan</th>
+                <th>Total Permintaan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for i in datarekappermintaanbahanbaku %}
+              <tr>
+                <td>{{i.KodeProduk__KodeProduk}}</td>
+                <td>{{i.KodeProduk__NamaProduk}}</td>
+                <td>{{i.KodeProduk__unit}}</td>
+                <td>{{i.total}}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="table-responsive pt-3">
+          <h5>Kumulasi Pengiriman Barang</h5>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Kode Artikel/Display</th>
+                <th>Jumlah</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for i in datarekappengiriman %}
+              <tr>
+                {% if dataspk.StatusDisplay == True %}
+                <td>{{i.DetailSPKDisplay__KodeDisplay__KodeDisplay}}</td>
+                {% else %}
+                <td>{{i.DetailSPK__KodeArtikel__KodeArtikel}}</td>
+                {% endif %}
+                <td>{{i.total}}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div class="col-lg-12 grid-margin stretch-card">
   <div class="card">
     <div class="card-body">
       <h4 class="card-title">Tracking SPK</h4>
       <div class="template-demo">
-        <a href="/purchasing/read_spk">
-            <button type="button" class="btn btn-light btn-icon-text">
-              <i class="typcn typcn-chevron-left btn-icon-prepend"></i>
-              Kembali
-            </button>
-          </a>
+
       </div>
       <div class="table-responsive pt-3">
 
         <h5>Permintaan Barang Ke Gudang</h5>
-        <table class="table table-bordered" id="datapermintaan" name="datapermintaan">
+        <table class="table table-bordered">
           <thead>
             <tr>
-              <th>No</th>
               <th>Tanggal</th>
               <th>Nomor SPK</th>
-              <th>Kode Barang</th>
+              <th>Bahan Baku</th>
+              <th>Nama Produk</th>
+              <th>Unit</th>
               <th>Artikel Peruntukan</th>
               <th>Jumlah</th>
               <th>Lokasi</th>
@@ -37,12 +196,15 @@
             </tr>
           </thead>
           <tbody>
-            {% for i in transaksigudangobj %}
+            {% for i in transaksigudang %}
             <tr>
-              <td>{{forloop.counter}}</td>
               <td>{{i.tanggal}}</td>
               <td>{{i.DetailSPK.NoSPK}}</td>
               <td>{{i.KodeProduk}}</td>
+              <td>{{i.KodeProduk.NamaProduk}}</td>
+              <td>{{i.KodeProduk.unit}}</td>
+
+
               <td>{{i.DetailSPK.KodeArtikel.KodeArtikel}}</td>
               <td>{{i.jumlah}}</td>
               <td>{{i.Lokasi}}</td>
@@ -55,10 +217,9 @@
       <div class="table-responsive pt-3 mt-3">
 
         <h5>Barang di FG</h5>
-        <table class="table table-bordered" id="datafg" name="datafg">
+        <table class="table table-bordered">
           <thead>
             <tr>
-              <th>No</th>
               <th>Tanggal Mutasi</th>
               <th>Nomor SPK</th>
               <th>Artikel </th>
@@ -67,9 +228,8 @@
             </tr>
           </thead>
           <tbody>
-            {% for i in transaksifg %}
+            {% for i in transaksiproduksi %}
             <tr>
-              <td>{{forloop.counter}}</td>
               <td>{{i.Tanggal}}</td>
               <td>{{i.DetailSPK.NoSPK}}</td>
               <td>{{i.DetailSPK.KodeArtikel.KodeArtikel}}</td>
@@ -84,10 +244,9 @@
       <div class="table-responsive pt-3 mt-3">
 
         <h5>Barang dikirim</h5>
-        <table class="table table-bordered" id="datakirim" name="datakirim">
+        <table class="table table-bordered">
           <thead>
             <tr>
-              <th>No</th>
               <th>Tanggal Pengeluaran</th>
               <th>Nomor SPPB</th>
               <th>No SPK</th>
@@ -99,7 +258,6 @@
           <tbody>
             {% for i in transaksikeluar %}
             <tr>
-              <td>{{forloop.counter}}</td>
               <td>{{i.NoSPPB.Tanggal}}</td>
               <td>{{i.NoSPPB.NoSPPB}}</td>
               <td>{{i.DetailSPK.NoSPK}}</td>
