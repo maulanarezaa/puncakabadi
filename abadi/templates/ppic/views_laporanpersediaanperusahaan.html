@@ -29,6 +29,11 @@
 
 
                     <button type="submit" class="btn btn-primary mb-2">Submit</button>
+                    {% if waktu %}
+                    <a href="{% url 'exportlaporanpersediaan' %}?bulan={{waktu}}" class="btn btn-primary mb-2">Export
+                        Excel</a>
+                    {% endif %}
+
                 </form>
 
                 <div class="table-responsive pt-3">

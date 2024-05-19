@@ -33,5 +33,13 @@ urlpatterns = [
         viewsgudang.update_produk_gudang,
         name="update_produk_gudang",
     ),
+    path("read_saldoawalbahan", viewsgudang.read_saldoawal, name="read_saldoawalbahan"),
+    path("addsaldobahan", viewsgudang.addsaldo, name="addsaldobahan"),
+    path(
+        "deletesaldobahan/<str:id>", viewsgudang.delete_saldo, name="deletesaldobahan"
+    ),
+    path(
+        "update_saldobahan/<str:id>", viewsgudang.update_saldo, name="updatesaldobahan"
+    ),
     path("load_produk", viewsgudang.load_produk, name="load_produk"),
 ]

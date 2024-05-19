@@ -24,7 +24,6 @@
         </form>
             </div>
         <div class="table-responsive pt-3">
-        {% if datasjb %}
         <table class="table table-bordered" id="rekapgudang">
         <thead>
             <tr>
@@ -33,28 +32,25 @@
                 <th>Nama Barang</th>
                 <th>Kuantitas</th>
                 <th>Satuan</th>
-                <th>Keterangan</th>
             </tr>
         </thead>
         <tbody id="tableBody">
-            {% for i in datasjb %}
+            {% for i in dict_semua %}
             <tr>
-                <td>{{i.KodeProduk}}</td>
-                <td>{{i.KodeProduk__NamaProduk}}</td>
-                {% if i.kuantitas < 0 %}
-                <td style="background-color: red;">{{i.kuantitas}}</td>
-                {% elif i.kuantitas == 0 %}
-                <td style="background-color: yellow;">{{i.kuantitas}}</td>
+                <td>{{i.produk}}</td>
+                <td>{{i.nama}}</td>
+                {% if i.jumlah < 0 %}
+                <td style="background-color: red;">{{i.jumlah}}</td>
+                {% elif i.jumlah == 0 %}
+                <td style="background-color: yellow;">{{i.jumlah}}</td>
                 {% else %}
-                <td>{{i.kuantitas}}</td>
+                <td>{{i.jumlah}}</td>
                 {% endif %}
-                <td>{{i.KodeProduk__unit}}</td>
-                <td>{{i.KodeProduk__keterangan}}</td>
+                <td>{{i.unit}}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    {% endif %}
 </div>
 </div>
 </div>

@@ -68,4 +68,9 @@ urlpatterns = [
     ),
     path("transactionlog", viewsppic.read_transactionlog, name="transactionlog"),
     # path("delete/<str:id>", viewsppic.updateco, name="updateco"),
+    path(
+        "exportlaporanpersediaan",
+        viewsppic.exportlaporanbulananexcel,
+        name="exportlaporanpersediaan",
+    ),
 ]

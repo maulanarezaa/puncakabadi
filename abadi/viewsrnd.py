@@ -8,6 +8,8 @@ from urllib.parse import quote
 import pandas as pd
 from io import BytesIO
 from datetime import datetime, timedelta, date
+from . import logindecorators
+from django.contrib.auth.decorators import login_required
 
 
 # Create your views here.
@@ -34,7 +36,8 @@ def gethargafg(penyusunobj):
     print("Harga Konversi : ", nilaifgperkodeproduk)
     return nilaifgperkodeproduk
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['rnd'])
 def dashboard(request):
     tanggalsekarang = date.today()
     selisihwaktu = timedelta(days=7)
