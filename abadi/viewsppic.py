@@ -2049,39 +2049,6 @@ Perhitungan Saldo Gudang perlu di pecah antara saldo awal dan saldo akhir di lap
 def getstokbahanproduksi(last_days, stopindex, awaltahun):
     stokawalbahanproduksi = {}
     totalbiayasaldoawal = 0
-    hargafgperartikel = gethargafgperbulan(last_days, stopindex, awaltahun)
-    # print("\n", hargafgperartikel)
-    dataartikel = models.Artikel.objects.all()
-    for artikel in dataartikel:
-        """LOKASI BELUM DI SETTING"""
-        saldoawalobj = models.SaldoAwalArtikel.objects.filter(
-            IDArtikel=artikel, Tanggal__gte=awaltahun, 
-        )
-        print(saldoawalobj)
-        if saldoawalobj.exists():
-            saldoawalobj = saldoawalobj.first()
-            totalbiayaawal = (
-                hargafgperartikel[artikel][0]["hargafg"] * saldoawalobj.Jumlah
-            )
-            hargasatuanawal = hargafgperartikel[artikel][0]["hargafg"]
-            jumlahawal = saldoawalobj.Jumlah
-
-        else:
-            totalbiayaawal = 0
-            hargasatuanawal = 0
-            jumlahawal = 0
-
-        totalbiayasaldoawal += totalbiayaawal
-        artikel.hargasatuanawal = hargasatuanawal
-        artikel.totalbiayaawal = totalbiayaawal
-        artikel.jumlahawal = jumlahawal
-
-    """DATA SALDO AWAL BAHAN BAKU BELUM DIMASUKKAN"""
-
-    # print(hargaakhirbulanperproduk)
-    # print(adsasd)
-    saldoawal = {}
-    saldoakhirgudang = {}
     totalbiayasaldoawal = 0
     bahanbaku = models.Produk.objects.all()
     for produk in bahanbaku:
@@ -2422,6 +2389,8 @@ def exportlaporanbulananexcel(request):
     baranggudang = saldogudang(last_days, index, awaltahun)
     """SECTION FG"""
     barangfg = getstokartikelfg(last_days, index, awaltahun)
+    """SECTION STOK AWAL PRODUKSI"""
+    datawip = getstokbahanproduksi(last_days,index,awaltahun)
     """SECTION WIP (Skip dulu)"""
     dataperhitunganpersediaan = perhitunganpersediaan(
         last_days,
@@ -2492,8 +2461,48 @@ def exportlaporanbulananexcel(request):
     totalbiayakeluar = sum(datamodelkeluar["Total Biaya"])
     dfdatakeluar = pd.DataFrame(datamodelkeluar)
 
-    
-   
+    '''4. Sheet Stock Awal Gudang'''
+    datamodelstockawalgudang = {
+        'Kode Produk' : [],
+        'Nama Produk' : [],
+        'Unit' : [],
+        'Harga Satuan' : [],
+        'Jumlah' : [],
+        'Total Biaya' : [],
+    }
+    print(baranggudang['datasaldoawal'])
+    for item in baranggudang['datasaldoawal']:
+        datamodelstockawalgudang["Kode Produk"].append(item.KodeProduk)
+        datamodelstockawalgudang["Unit"].append(item.unit)
+        datamodelstockawalgudang["Nama Produk"].append(item.NamaProduk)
+        datamodelstockawalgudang['Jumlah'].append(item.jumlahawal)
+        datamodelstockawalgudang["Total Biaya"].append(item.totalbiayaawal)
+        datamodelstockawalgudang['Harga Satuan'].append(item.hargasatuanawal)
+
+    print(datamodelstockawalgudang)
+    dfstokgudang = pd.DataFrame(datamodelstockawalgudang)
+
+    '''5. Sheet Stock Awal Produksi'''
+    datamodelstockawalwip = {
+        'Kode Produk' : [],
+        'Nama Produk' : [],
+        'Unit' : [],
+        'Harga Satuan' : [],
+        'Jumlah' : [],
+        'Total Biaya' : [],
+    }
+    for stokawal in datawip[0]['data']:
+        print(stokawal)
+        datamodelstockawalwip["Harga Satuan"].append(stokawal.hargasatuanawal)
+        datamodelstockawalwip["Jumlah"].append(stokawal.jumlahawal)
+        datamodelstockawalwip["Kode Produk"].append(stokawal.KodeProduk)
+        datamodelstockawalwip["Nama Produk"].append(stokawal.NamaProduk)
+        datamodelstockawalwip["Total Biaya"].append(stokawal.totalbiayaawal)
+        datamodelstockawalwip["Unit"].append(stokawal.unit)
+    # print(datawip)
+    dfstokawalwip= pd.DataFrame(datamodelstockawalwip)
+    # print(asdas)
+
     buffer = BytesIO()
 
     # Use pandas to write DataFrame to the BytesIO buffer
@@ -2501,7 +2510,8 @@ def exportlaporanbulananexcel(request):
         df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
         df2.to_excel(writer, index=False, startrow=1, sheet_name="Barang Masuk")
         dfdatakeluar.to_excel(writer,index=False,startrow=1,sheet_name='Barang Keluar')
-
+        dfstokgudang.to_excel(writer,index=False,startrow=1,sheet_name='Saldo Awal Gudang')
+        dfstokawalwip.to_excel(writer,index=False,startrow=1,sheet_name='Saldo WIP')
 
     # Load the workbook from the buffer
     buffer.seek(0)
@@ -2509,6 +2519,7 @@ def exportlaporanbulananexcel(request):
     ws = wb['Laporan Persediaan']
     ws2 = wb["Barang Masuk"]
     ws3 = wb['Barang Keluar']
+
 
     # Insert header "Januari" above the table
     ws["A1"] = listbulan[waktuobj.month - 1]
