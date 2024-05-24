@@ -16,6 +16,11 @@ urlpatterns = [
         viewsproduksi.delete_detailspk,
         name="delete_detailspk",
     ),
+    path(
+        "detailspk/deletedetaildisplay/<str:id>",
+        viewsproduksi.delete_detailspkdisplay,
+        name="delete_detailspkdisplay",
+    ),
     path("trackingspk/<str:id>", viewsproduksi.track_spk, name="tracking_spk"),
     path("viewsppb", viewsproduksi.view_sppb, name="view_sppb"),
     path("addsppb", viewsproduksi.add_sppb, name="add_sppb"),

@@ -27,7 +27,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Tanggal</label>
               <div class="col-sm-9">
-                <input type="date" class="form-control" name="tanggal" />
+                <input type="date" class="form-control" name="tanggal" required/>
               </div>
             </div>
           </div>
@@ -35,7 +35,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Nomor SPK</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="nomor_spk" />
+                <input type="text" class="form-control" name="nomor_spk" required/>
               </div>
             </div>
           </div>
@@ -65,12 +65,10 @@
         <h4 class="card-title">Detail SPK</h4>
         <div id="spkartikel">
           <div id="artikels">
-
           </div>
         </div>
         <div id="spkdisplay">
           <div id="displays">
-
           </div>
         </div>
         <br><br>
@@ -110,7 +108,7 @@
     productRow.innerHTML = `<div class="col-md-5">
                                     <div class="form-group">
                                         <label >Artikel ${productCounter}:</label>
-                                        <input required type="text" class="form-control artikel" name="artikel[]" list="listartikel" >
+                                        <input required type="text" class="form-control artikel" name="artikel[]" list="listartikel">
                                         <datalist  id="listartikel">
                                           {% for item in data %}
                                           <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
@@ -121,7 +119,7 @@
                                 <div class="col-md-5">
                                     <div class="form-group">
                                         <label >Jumlah</label>
-                                        <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity">
+                                        <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity" required>
                                     </div>
                                 </div>
                                 <div class="col-md-1">
@@ -133,7 +131,7 @@
     document.getElementById('artikels').appendChild(productRow);
   }
   function addDisplay() {
-    let productCounter = document.querySelectorAll('.artikel').length + 1;
+    let productCounter = document.querySelectorAll('.display').length + 1;
     console.log(productCounter)
     const productRow = document.createElement('div');
     productRow.className = "row";
@@ -141,7 +139,7 @@
     productRow.innerHTML = `<div class="col-md-5">
                                     <div class="form-group">
                                         <label >Display ${productCounter}:</label>
-                                        <input required type="text" class="form-control artikel" name="artikel[]" list="listdisplay" >
+                                        <input required type="text" class="form-control display" name="artikel[]" list="listdisplay" >
                                         <datalist id="listdisplay">
                                         {% for item in datadisplay %}
                                         <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }}</option>
@@ -151,8 +149,8 @@
                                 </div>
                                 <div class="col-md-5">
                                     <div class="form-group">
-                                        <label >Jumlah</label>
-                                        <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity">
+                                        <label>Jumlah</label>
+                                        <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity" required>
                                     </div>
                                 </div>
                                 <div class="col-md-1">
