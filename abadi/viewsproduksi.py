@@ -1483,11 +1483,6 @@ def view_rekapproduksi(request):
                         datamodels['Tanggal'] = i.strftime("%Y-%m-%d")
                         datamodels['Sisa'] = saldoawal
 
-                        # Cari data penyesuaian
-                        if saldoawal < 0:
-                            messages.warning(
-                                request,
-                                "Sisa stok menjadi negatif pada tanggal {}.\nCek kembali mutasi barang".format(i),)
                         listdata.append(datamodels)
                 else:
                     data = data.filter(Lokasi=1)
@@ -1526,14 +1521,6 @@ def view_rekapproduksi(request):
                             totalkeluar = 0
 
                         saldoawal += totalpenyerahanwip - totalkeluar
-
-                        if saldoawal < 0:
-                            messages.warning(
-                                request,
-                                "Sisa stok menjadi negatif pada tanggal {}.\nCek kembali mutasi barang".format(
-                                    i
-                                ),
-                            )
 
                         datamodels ['Tanggal'] = i.strftime('%Y-%m-%d')
                         datamodels['Sisa'] = saldoawal
