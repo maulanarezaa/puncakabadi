@@ -5,8 +5,12 @@ from django.db.models import Sum
 from datetime import datetime, timedelta
 from django.db import IntegrityError
 import pandas as pd
+from . import logindecorators
+from django.contrib.auth.decorators import login_required
 # Create your views here.
 # Dashboard Gudang
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def dashboard(request):
     data = models.Artikel.objects.all()
     alldata = []

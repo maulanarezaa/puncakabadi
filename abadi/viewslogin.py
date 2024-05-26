@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 
 def login_view(request):
@@ -13,14 +14,30 @@ def login_view(request):
         password = request.POST["password"]
         user = authenticate(request, username=username, password=password)
         # form = AuthenticationForm(request, data=request.POST)
-        print(user.groups)
-        print(user.groups.all())
-        print(user.groups.all())
         if user is not None:
+            print(user.groups)
+            print(user.groups.all())
+            print(user.groups.all().exists())
 
-            login(request, user)
-            # if user.groups.filter(name="rnd").exists():
-            return redirect("dashboardrnd")
+            if user.groups.all().exists():
+                login(request, user)
+                selectedgrup = str(user.groups.all()[0])
+                print(selectedgrup)
+                if selectedgrup == "rnd":
+                    return redirect("dashboardrnd")
+                elif selectedgrup == "produksi":
+                    return redirect("dashboardproduksi")
+                elif selectedgrup == "gudang":
+                    return redirect("viewgudang")
+                elif selectedgrup == "purchasing":
+                    return redirect("notif_purchasing")
+                elif selectedgrup == "ppic":
+                    return redirect("dashboardppic")
+            else:
+                return redirect("guestpage")
+        else:
+            messages.error(request, "Login Gagal. Username atau Password Salah")
+            return redirect("login")
         # else:
 
         #     return redirect("logout")
@@ -37,6 +54,10 @@ def login_view(request):
     else:
         form = AuthenticationForm()
     return render(request, "login/login.html", {"form": form})
+
+
+def guestpage(request):
+    return render(request, "login/guestpage.html")
 
 
 def logout_view(request):
