@@ -68,6 +68,7 @@
         </div>
         <h4 class="card-title">Detail SPK</h4>
         <div id="artikels">
+          {% if dataspk.StatusDisplay == False %}
           {% for i in datadetail %}
           <div class="row">
             <div class="col-md-5">
@@ -79,7 +80,7 @@
                   {% for item in data %}
                   <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
                   {% endfor %}
-                  </select>
+                </datalist>
               </div>
             </div>
             <div class="col-md-5">
@@ -100,14 +101,55 @@
             </div>
           </div>
           {% endfor %}
+          {% else %}
+          {% for j in datadetail %}
+          <div class="row">
+            <div class="col-md-5">
+              <div class="form-group">
+                <label for="artikel_{{ forloop.counter }}">Display {{ forloop.counter }}:</label>
+                <input required type="text" class="form-control artikel" name="artikel[]" list="listartikel"
+                  value="{{j.KodeDisplay}}">
+                <datalist id="listartikel">
+                  {% for item in datadisplay %}
+                  <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }}</option>
+                  {% endfor %}
+                </datalist>
+              </div>
+            </div>
+            <div class="col-md-5">
+              <div class="form-group">
+                <label for="quantity_{{ forloop.counter }}">Jumlah</label>
+                <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity"
+                  value="{{j.Jumlah}}">
+              </div>
+            </div>
+            <div class="col-md-1">
+              <br>
+              <label for=""></label>
+              <a>
+                <button type="button" onclick="confirmDeleteDisplay('{{ j.IDDetailSPK }}')" class="btn btn-danger">
+                  <i class="typcn typcn typcn-trash"></i>
+                </button>
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+          {% endif %}
         </div>
         <br><br>
         <div class="row">
           <div class="col-auto mr-auto">
+            {% if dataspk.StatusDisplay == False %}
             <button type="button" class="btn btn-success" onclick="addProduct()">
               <i class="typcn typcn-plus btn-icon-prepend"></i>
               Tambahkan Produk
             </button>
+            {% else %}
+            <button type="button" class="btn btn-success" onclick="addDisplay()">
+              <i class="typcn typcn-plus btn-icon-prepend"></i>
+              Tambahkan Produk
+            </button>
+            {% endif %}
           </div>
           <div class="col-auto"><button type="submit" class="btn btn-primary mr-2">Update</button></div>
         </div>
@@ -119,7 +161,7 @@
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
   aria-hidden="true">
   <div class="modal-dialog" role="document">
-    <div class="modal-contFent">
+    <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLabel">Konfirmasi Penghapusan</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -139,7 +181,6 @@
     </div>
   </div>
 </div>
-
 
 {% block javascripts %}
 <script>
@@ -171,10 +212,45 @@
     document.getElementById('artikels').appendChild(productRow);
   }
 
+  function addDisplay() {
+    let productCounter = document.querySelectorAll('.artikel').length + 1;
+    const productRow = document.createElement('div');
+    productRow.className = "row";
+    productRow.innerHTML = `<div class="col-md-5">
+                                    <div class="form-group">
+                                        <label for="artikel_${productCounter}">Display ${productCounter}:</label>
+                                        <select class="form-control artikel" name="artikel[]">
+                                            {% for item in datadisplay %}
+                                            <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="form-group">
+                                        <label for="quantity_${productCounter}">Jumlah</label>
+                                        <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity">
+                                    </div>
+                                </div>
+                                <div class="col-md-1">
+                                  <br>
+                                  <label for=""></label>
+                                  <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn-trash"></i></button>
+                                </div>`;
+    document.getElementById('artikels').appendChild(productRow);
+  }
+
   function confirmDelete(id) {
     console.log(id)
     var deleteForm = document.getElementById('deleteForm');
     deleteForm.action = "deletedetailspk/" + id;
+    $('#confirmDeleteModal').modal('show');
+  }
+
+  function confirmDeleteDisplay(id) {
+    console.log(id)
+    var deleteForm = document.getElementById('deleteForm');
+    deleteForm.action = "deletedetaildisplay/" + id;
     $('#confirmDeleteModal').modal('show');
   }
 </script>

@@ -17,23 +17,22 @@
                     <table class="table table-bordered" id="myTable">
                         <thead>
                             <tr>
-                                <td>Kode Artikel</td>
-                                <td>Versi</td>
-                                <td>Kode Stock</td>
-                                <td>Nama</td>
-                                <td>Satuan</td>
-                                <td>Lokasi</td>
-                                <td>Utama</td>
-                                <td>Konversi</td>
-                                <td>Konversi (2.5%) </td>
-                                <td>Harga</td>
-                                <td>Harga Konversi</td>
+                                <th>Tanggal Update</th>
+                                <th>Kode Artikel</th>
+                                <th>Versi</th>
+                                <th>Kode Stock</th>
+                                <th>Nama</th>
+                                <th>Satuan</th>
+                                <th>Lokasi</th>
+                                <th>Utama</th>
+
                             </tr>
                         </thead>
                         <tbody>
                             {% for row in data %}
                             {% for item in row %}
                             <tr>
+                                <td>{{ item.Tanggal }}</td>
                                 <td>{{ item.kodeartikel }}</td>
                                 <td>{{ item.Penyusunobj.versi}}</td>
                                 <td>{{ item.Penyusunobj.KodeProduk}}</td>
@@ -41,10 +40,6 @@
                                 <td>{{ item.Penyusunobj.KodeProduk.unit}}</td>
                                 <td>{{ item.Penyusunobj.Lokasi.NamaLokasi}}</td>
                                 <td>{{ item.Penyusunobj.Status}}</td>
-                                <td>{{ item.Konversi }}</td>
-                                <td>{{ item.Allowance }}</td>
-                                <td>{{ item.HargaSatuan }}</td>
-                                <td>{{ item.Hargakotak }}</td>
                             </tr>
                             {% endfor %}
                             {% endfor %}

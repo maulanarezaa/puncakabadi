@@ -37,7 +37,7 @@
                 <th>Artikel</th>
                 <th>Kode Bahan Baku</th>
                 <th>Tanggal Mulai</th>
-                <th>Tanggal Akhir</th>
+                <th>Tanggal Minus</th>
                 <th>Kuantitas</th>
                 <th>action</th>
               </tr>
@@ -48,7 +48,7 @@
                 <td>{{i.KodePenyusun.KodeArtikel.KodeArtikel}}</td>
                 <td>{{i.KodePenyusun.KodeProduk.KodeProduk}}</td>
                 <td>{{i.TanggalMulai}}</td>
-                <td>{{i.TanggalAkhir}}</td>
+                <td>{{i.TanggalMinus}}</td>
                 <td>{{i.konversi}}</td>
                 <td>
                   <a href="{% url 'update_penyesuaian' i.IDPenyesuaian %}">
