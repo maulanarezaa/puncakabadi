@@ -1895,7 +1895,11 @@ def views_rekapharga(request):
         keluarobj = models.TransaksiGudang.objects.filter(
             jumlah__gte=0, KodeProduk=produkobj.KodeProduk, tanggal__gte=awaltahun
         )
+        returobj = models.TransaksiGudang.objects.filter(
+            jumlah__lt=0, KodeProduk=produkobj.KodeProduk, tanggal__gte=awaltahun
+        )
         tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
+        tanggalretur = returobj.values_list("tanggal", flat=True)
         print("ini kode bahan baku", keluarobj)
         if not keluarobj.exists():
             messages.error(request, "Tidak ditemukan data Transaksi Barang")
@@ -1926,7 +1930,7 @@ def views_rekapharga(request):
         listdata = []
         print(tanggalmasuk)
         print(tanggalkeluar)
-        listtanggal = sorted(list(set(tanggalmasuk.union(tanggalkeluar))))
+        listtanggal = sorted(list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalretur))))
         print(listtanggal)
         for i in listtanggal:
             jumlahmasukperhari = 0
@@ -1987,6 +1991,17 @@ def views_rekapharga(request):
                 hargakeluartotalperhari = 0
                 hargakeluarsatuanperhari = 0
                 jumlahkeluarperhari = 0
+            
+            transaksireturobj = returobj.filter(tanggal=i)
+            if transaksireturobj.exists():
+                for j in transaksireturobj:
+                    jumlahmasukperhari += (j.jumlah *-1)
+                    hargamasuktotalperhari += j.jumlah * hargasatuanawal * -1
+                hargamasuksatuanperhari += ( hargamasuktotalperhari / jumlahmasukperhari)
+            else:
+                hargamasuktotalperhari =0
+                hargamasuksatuanperhari = 0
+                jumlahmasukperhari = 0
 
             print("Tanggal : ", i)
             print("Sisa Stok Hari Sebelumnya : ", saldoawal)

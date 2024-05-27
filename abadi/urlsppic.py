@@ -73,4 +73,9 @@ urlpatterns = [
         viewsppic.exportlaporanbulananexcel,
         name="exportlaporanpersediaan",
     ),
+    path(
+        "exportlaporanpersediaankeseluruhan",
+        viewsppic.exportlaporanbulananexcelkeseluruhan,
+        name="exportlaporanpersediaankeseluruhan",
+    ),
 ]
