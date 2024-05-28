@@ -30,8 +30,9 @@
 
                     <button type="submit" class="btn btn-primary mb-2">Submit</button>
                     {% if waktu %}
-                    <a href="{% url 'exportlaporanpersediaan' %}?bulan={{waktu}}" class="btn btn-primary mb-2">Export
-                        Excel</a>
+                    <a href="{% url 'exportlaporanpersediaankeseluruhan' %}?bulan={{waktu}}"
+                        class="btn btn-success ml-5">Export
+                        Excel keseluruhan</a>
                     {% endif %}
 
                 </form>
@@ -39,7 +40,10 @@
                 <div class="table-responsive pt-3">
                     {% if modeldata %}
                     {% for bulan,data in modeldata.items %}
-                    <h5>Laporan Persediaan Bulan : {{bulan}}</h5>
+                    <h5>Laporan Persediaan Bulan : {{bulan}}-{{tahun}} <span class="ml-5"> <a
+                                href="{% url 'exportlaporanpersediaan' %}?bulan={{tahun}}-{{forloop.counter}}"
+                                class="btn  btn-outline-success btn-sm mb-2">Export Excel </a></span></h5>
+
 
                     <table class="table table-bordered">
                         <thead>

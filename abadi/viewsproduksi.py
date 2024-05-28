@@ -3950,6 +3950,7 @@ def add_sppb(request):
                 
 
 
+
 def load_display(request):
     print(request.GET)
     kode_display = request.GET.get("kode_artikel")
@@ -4608,6 +4609,7 @@ def view_ksbb3(request):
         listdata,saldoawal = calculate_KSBB(produk,tanggal_mulai,tanggal_akhir)
 
         return render(request, "produksi/view_ksbb.html",{'data':listdata,'saldo':saldoawal,'kodebarang':request.GET["kodebarang"],"nama": nama,"satuan": satuan,'kodeprodukobj':kodeproduk,'sekarang':tahun})
+
 
 
 def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
