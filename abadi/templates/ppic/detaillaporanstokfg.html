@@ -33,7 +33,6 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <p>{{stokfg}}</p>
                             {% for item,values in stokfg.data.items %}
                             <tr>
                                 <td>{{forloop.counter}}</td>
@@ -73,7 +72,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <p>{{sisabahafg}}</p>
+
                             {% for item,values in sisabahafg.items %}
                             <tr>
                                 <td>{{forloop.counter}}</td>
@@ -91,7 +90,7 @@
                         <thead>
                             <tr>
                                 <td>Total</td>
-                                <td>{{stokfg.total}}</td>
+                                <td>{{sisabahafg.total}}</td>
                         </thead>
                     </table>
 

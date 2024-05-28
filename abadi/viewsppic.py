@@ -1936,7 +1936,7 @@ def detaillaporanstokfg(request):
             "ppic/detaillaporanstokfg.html",
             {
                 "stokfg": datastokgudang[index - 1],
-                "sisabahafg": bahanbakusisafg,
+                "sisabahafg": bahanbakusisafg[index - 1],
                 "bulan": bulan,
             },
         )
@@ -1962,13 +1962,14 @@ def getstokartikelfg(last_days, stopindex, awaltahun):
 
         else:
             datatransaksiproduksi = models.TransaksiProduksi.objects.filter(
-                Tanggal__lte=hari, Tanggal__gt=awaltahun, Jenis="Mutasi"
+                Tanggal__lte=hari, Tanggal__gt=last_days[index - 1], Jenis="Mutasi"
             )
             databarangkeluar = models.DetailSPPB.objects.filter(
-                NoSPPB__Tanggal__lte=hari, NoSPPB__Tanggal__gte=awaltahun
+                NoSPPB__Tanggal__lte=hari, NoSPPB__Tanggal__gt=last_days[index - 1]
             )
-            print(datatransaksiproduksi)
-            print(databarangkeluar)
+            # print(datatransaksiproduksi)
+            # print(databarangkeluar)
+            # pritn(asdas)
 
             # print(asd)
 
@@ -1983,16 +1984,30 @@ def getstokartikelfg(last_days, stopindex, awaltahun):
         bahanbakurequestkefg = models.Produk.objects.all()
         listbahanbaku = []
         for bahanbaku in bahanbakurequestkefg:
-            stokdifg = 0
-            datatransaksigudangfg = models.TransaksiGudang.objects.filter(
-                tanggal__gte=awaltahun,
-                tanggal__lte=hari,
-                Lokasi__NamaLokasi="FG",
-                KodeProduk=bahanbaku,
-            )
+            if index == 0:
+                stokdifg = 0
+                datatransaksigudangfg = models.TransaksiGudang.objects.filter(
+                    tanggal__gte=awaltahun,
+                    tanggal__lte=hari,
+                    Lokasi__NamaLokasi="FG",
+                    KodeProduk=bahanbaku,
+                )
+            else:
+                stokdifg = datastokbahanbakufg[index - 1][bahanbaku]["stok"]
+
+                datatransaksigudangfg = models.TransaksiGudang.objects.filter(
+                    tanggal__gt=last_days[index - 1],
+                    tanggal__lte=hari,
+                    Lokasi__NamaLokasi="FG",
+                    KodeProduk=bahanbaku,
+                )
             if datatransaksigudangfg.exists():
-                stokdifg = datatransaksigudangfg.aggregate(total=Sum("jumlah"))["total"]
-            # print(stokdifg)
+                stokdifg += datatransaksigudangfg.aggregate(total=Sum("jumlah"))[
+                    "total"
+                ]
+                print(index, stokdifg, bahanbaku)
+                print(datatransaksigudangfg)
+
             hargasatuan = hargaakhirbulanperproduk[bahanbaku]["data"][index][
                 "hargasatuan"
             ]
@@ -2001,8 +2016,9 @@ def getstokartikelfg(last_days, stopindex, awaltahun):
                 "Hargasatuan": hargasatuan,
                 "Hargatotal": 0,
             }
+        # print('sebelum',datastokbahanbakufg)
         datastokbahanbakufg[index] = datamodelsisabarangfg
-        # print(datahargafgartikel)
+        # print('sesudah',datastokbahanbakufg)
 
         semuaartikel = models.Artikel.objects.all()
         for dataartikel in semuaartikel:
@@ -2016,24 +2032,18 @@ def getstokartikelfg(last_days, stopindex, awaltahun):
                     total=Sum("Jumlah")
                 )["total"]
                 stokawal += totaltransaksimutasi
-                
+
             jumlahkeluarartikelmutasiperbulan = databarangkeluar.filter(
                 DetailSPK__KodeArtikel=dataartikel
             )
             if jumlahkeluarartikelmutasiperbulan.exists():
-                print(hari, jumlahkeluarartikelmutasiperbulan)
+                # print(hari, jumlahkeluarartikelmutasiperbulan)
                 # print(asdas)
                 totaltransaksikeuar = jumlahkeluarartikelmutasiperbulan.aggregate(
                     total=Sum("Jumlah")
                 )["total"]
                 stokawal -= totaltransaksikeuar
-                totalbiaya = datahargafgartikel[dataartikel][index]["hargafg"] * stokawal
 
-                dummy[dataartikel] = {
-                "jumlah": stokawal,
-                "hargafg": datahargafgartikel[dataartikel][index]["hargafg"],
-                "biaya": totalbiaya,
-            }
                 # for x in datahargafgartikel[dataartikel][index]['penyusun']:
                 # print("\n\n", datahargafgartikel.keys)
                 versiterakhirperbulan = (
@@ -2050,13 +2060,13 @@ def getstokartikelfg(last_days, stopindex, awaltahun):
                     versi=versiterakhirperbulan,
                     Lokasi__NamaLokasi="FG",
                 )
-                print('ini versi : ',versiterakhirperbulan)
-                print('ini penyusun terpilih : ',penyusunversiterpilih)
+
                 if penyusunversiterpilih.exists():
                     for bahanfg in penyusunversiterpilih:
                         kuantitas = models.KonversiMaster.objects.get(
                             KodePenyusun=bahanfg
                         ).Kuantitas
+                        # print('\n\n\n',index, kuantitas,dataartikel,totaltransaksikeuar,datamodelsisabarangfg[bahanfg.KodeProduk]["stok"])
                         kuantitas += kuantitas * 0.0025
                         datamodelsisabarangfg[bahanfg.KodeProduk]["stok"] -= (
                             kuantitas * totaltransaksikeuar
@@ -2079,25 +2089,31 @@ def getstokartikelfg(last_days, stopindex, awaltahun):
                 # print(asdas)
             # print('awal',index,dataartikel,stokawal,datahargafgartikel[dataartikel][index]["hargafg"])
             """Data Request ke FG"""
+            totalbiaya = datahargafgartikel[dataartikel][index]["hargafg"] * stokawal
 
+            dummy[dataartikel] = {
+                "jumlah": stokawal,
+                "hargafg": datahargafgartikel[dataartikel][index]["hargafg"],
+                "biaya": totalbiaya,
+            }
             jumlahkumulatifbiayaperbulan += totalbiaya
         datastokfgperbulan[index] = {
             "data": dummy,
             "total": jumlahkumulatifbiayaperbulan,
         }
-    """Menghitung total persediaan bahan baku fg"""
-    total = 0
-    for item in datamodelsisabarangfg.values():
-        item["Hargatotal"] = item["stok"] * item["Hargasatuan"]
-        total += item["Hargatotal"]
-    datamodelsisabarangfg["total"] = total
+        """Menghitung total persediaan bahan baku fg"""
+        total = 0
+        for item in datamodelsisabarangfg.values():
+            item["Hargatotal"] = item["stok"] * item["Hargasatuan"]
+            total += item["Hargatotal"]
+        datamodelsisabarangfg["total"] = total
     """
     Data Models
     2: {'data': {<Artikel: 9010/AC>: {'jumlah': 1365, 'hargafg': 40993.59298941417, 'biaya': 55956254.43055034}, <Artikel: 5111/EXP>: {'jumlah': 222, 'hargafg': 400.0974675766822, 'biaya': 88821.63780202346}}, 'total': 56045076.068352364}}  
     """
-    print(datastokfgperbulan[1])
-    print(asdas)
-    return datastokfgperbulan, datamodelsisabarangfg
+    # print(datastokbahanbakufg[1])
+    # print(asdas)
+    return datastokfgperbulan, datastokbahanbakufg
 
 
 def getsaldoawalgudang(request):
@@ -2344,7 +2360,14 @@ def detaillaporanbaranstokwip(request):
 
 
 def perhitunganpersediaan(
-    last_days, stopindex, awaltahun, stockgudang, bahanbakumasuk, barangkeluar, barangfg
+    last_days,
+    stopindex,
+    awaltahun,
+    stockgudang,
+    bahanbakumasuk,
+    barangkeluar,
+    barangfg,
+    sisabahanproduksifg,
 ):
     listbulan = [
         "Januari",
@@ -2381,7 +2404,11 @@ def perhitunganpersediaan(
     # print(barangkeluar)
     # {0: 255036.39385, 1: 0, 2: 41113622.22968718}
     # print(datastokwipawal)
+
+    # print(sisabahanproduksifg)
+
     datasaldoawalbahanproduksi[0] = datastokwipawal[0]["total"]
+    # {0: {<Produk: A-101>: {'stok': 0, 'Hargasatuan': 80000.0, 'Hargatotal': 0}, <Produk: B-001>: {'stok': 0, 'Hargasatuan': 0, 'Hargatotal': 0}, <Produk: C-001>: {'stok': 499.6472403, 'Hargasatuan': 10000.0, 'Hargatotal': 0}, <Produk: D-001>: {'stok': 1000, 'Hargasatuan': 80000.0, 'Hargatotal': 0}, <Produk: A-001-02>: {'stok': 0, 'Hargasatuan': 0, 'Hargatotal': 0}, <Produk: A-001-03>: {'stok': 0, 'Hargasatuan': 50000.0, 'Hargatotal': 0}, <Produk: A-001-06>: {'stok': 0, 'Hargasatuan': 77727.25727272723, 'Hargatotal': 0}, <Produk: coba-001>: {'stok': 0, 'Hargasatuan': 12500.0, 'Hargatotal': 0}, <Produk: tes>: {'stok': 0, 'Hargasatuan': 0, 'Hargatotal': 0}, <Produk: tesksbb>: {'stok': 0, 'Hargasatuan': 10000.0, 'Hargatotal': 0}}, 1: {<Produk: A-101>: {'stok': 0, 'Hargasatuan': 80000.0, 'Hargatotal': 0}, <Produk: B-001>: {'stok': 0, 'Hargasatuan': 0, 'Hargatotal': 0}, <Produk: C-001>: {'stok': 499.6472403, 'Hargasatuan': 10000.0, 'Hargatotal': 0}, <Produk: D-001>: {'stok': 1000, 'Hargasatuan': 80000.0, 'Hargatotal': 0}, <Produk: A-001-02>: {'stok': 0, 'Hargasatuan': 0, 'Hargatotal': 0}, <Produk: A-001-03>: {'stok': 0, 'Hargasatuan': 50000.0, 'Hargatotal': 0}, <Produk: A-001-06>: {'stok': 0, 'Hargasatuan': 77727.25727272723, 'Hargatotal': 0}, <Produk: coba-001>: {'stok': 0, 'Hargasatuan': 12500.0, 'Hargatotal': 0}, <Produk: tes>: {'stok': 0, 'Hargasatuan': 0, 'Hargatotal': 0}, <Produk: tesksbb>: {'stok': 0, 'Hargasatuan': 10000.0, 'Hargatotal': 0}}, 2: {<Produk: A-101>: {'stok': 0, 'Hargasatuan': 79987.61015368767, 'Hargatotal': 0.0}, <Produk: B-001>: {'stok': 0, 'Hargasatuan': 125000.0, 'Hargatotal': 0.0}, <Produk: C-001>: {'stok': 553.3972403, 'Hargasatuan': 10000.0, 'Hargatotal': 5533972.403}, <Produk: D-001>: {'stok': 1000, 'Hargasatuan': 80000.0, 'Hargatotal': 80000000.0}, <Produk: A-001-02>: {'stok': 0, 'Hargasatuan': 96000.0, 'Hargatotal': 0.0}, <Produk: A-001-03>: {'stok': 0, 'Hargasatuan': 50000.0, 'Hargatotal': 0.0}, <Produk: A-001-06>: {'stok': 0, 'Hargasatuan': 77727.25727272723, 'Hargatotal': 0.0}, <Produk: coba-001>: {'stok': 0, 'Hargasatuan': 64423.07692307692, 'Hargatotal': 0.0}, <Produk: tes>: {'stok': 0, 'Hargasatuan': 0, 'Hargatotal': 0}, <Produk: tesksbb>: {'stok': 0, 'Hargasatuan': 10000.0, 'Hargatotal': 0.0}, 'total': 85533972.403}}
 
     # print(asd)
     for index in range(0, stopindex):
@@ -2406,7 +2433,9 @@ def perhitunganpersediaan(
         except KeyError:
             jumlahsaldoakhirgudang = 0
         try:
-            jumlahstokfg = barangfg[index]["total"]
+            jumlahstokfg = (
+                barangfg[index]["total"] + sisabahanproduksifg[index]["total"]
+            )
         except KeyError:
             jumlahstokfg = 0
         try:
@@ -2479,6 +2508,8 @@ def laporanpersediaan(request):
         baranggudang = saldogudang(last_days, index, awaltahun)
         """SECTION FG"""
         barangfg, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
+        print(bahanbakusisafg[0])
+        # print(asda)
         """SECTION WIP (Skip dulu)"""
         dataperhitunganpersediaan = perhitunganpersediaan(
             last_days,
@@ -2488,10 +2519,12 @@ def laporanpersediaan(request):
             barangmasuk,
             totalbiayakeluar,
             barangfg,
+            bahanbakusisafg,
         )
 
         print("\n")
         print(dataperhitunganpersediaan)
+        print("tes")
         return render(
             request,
             "ppic/views_laporanpersediaanperusahaan.html",
