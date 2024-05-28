@@ -56,6 +56,48 @@
 
                     {% endif %}
                 </div>
+                <div class="table-responsive pt-3">
+                    {% if stokfg %}
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>No</td>
+                                <td>Kode Bahan Baku</td>
+                                <td>Nama Bahan Baku</td>
+                                <td>Unit</td>
+                                <td>Harga Satuan</td>
+                                <td>Jumlah</td>
+                                <td>Total Biaya</td>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <p>{{sisabahafg}}</p>
+                            {% for item,values in sisabahafg.items %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{item}}</td>
+                                <td>{{item.NamaProduk}}</td>
+                                <td>{{item.unit}}</td>
+                                <td>{{values.Hargasatuan}}</td>
+                                <td>{{values.stok}}</td>
+                                <td>{{values.Hargatotal}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>Total</td>
+                                <td>{{stokfg.total}}</td>
+                        </thead>
+                    </table>
+
+
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>

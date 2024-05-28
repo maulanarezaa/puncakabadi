@@ -208,7 +208,7 @@ class DetailSPPB(models.Model):
     )
 
     def __str__(self):
-        return f"{self.IDDetailSPPB} - {self.NoSPPB} - {self.DetailSPK} - {self.Jumlah}"
+        return f"{self.IDDetailSPPB} - {self.NoSPPB} - {self.NoSPPB.Tanggal} - {self.DetailSPK} - {self.Jumlah}"
 
 
 class TransaksiProduksi(models.Model):

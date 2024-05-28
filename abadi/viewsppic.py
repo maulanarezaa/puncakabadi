@@ -19,14 +19,14 @@ from django.contrib.auth.decorators import login_required
 def gethargabahanbaku(
     listtanggal, hargamasukobj, hargakeluarobj, hargaawal, jumlahawal
 ):
+    listdata = []
     totalharga = hargaawal * jumlahawal
     for j in listtanggal:
-        jumlahmasukperhari = 0
-        hargamasuktotalperhari = 0
-        hargamasuksatuanperhari = 0
         jumlahkeluarperhari = 0
         hargakeluartotalperhari = 0
         hargakeluarsatuanperhari = 0
+        hargamasuktotalperhari = 0
+        hargamasuksatuanperhari = 0
         jumlahmasukperhari = 0
 
         sjpobj = hargamasukobj.filter(NoSuratJalan__Tanggal=j)
@@ -35,6 +35,37 @@ def gethargabahanbaku(
                 hargamasuktotalperhari += k.Harga * k.Jumlah
                 jumlahmasukperhari += k.Jumlah
             hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
+            # print("data SJP ada")
+            # print(hargamasuksatuanperhari)
+            # print(jumlahmasukperhari)
+            dumy = {
+                "Tanggal": j,
+                "Jumlahstokawal": jumlahawal,
+                "Hargasatuanawal": round(hargaawal, 2),
+                "Hargatotalawal": round(totalharga, 2),
+                "Jumlahmasuk": jumlahmasukperhari,
+                "Hargamasuksatuan": round(hargamasuksatuanperhari, 2),
+                "Hargamasuktotal": round(hargamasuktotalperhari, 2),
+                "Jumlahkeluar": jumlahkeluarperhari,
+                "Hargakeluarsatuan": round(hargakeluarsatuanperhari, 2),
+                "Hargakeluartotal": round(hargakeluartotalperhari, 2),
+            }
+            jumlahawal += jumlahmasukperhari - jumlahkeluarperhari
+            totalharga += hargamasuktotalperhari - hargakeluartotalperhari
+            hargaawal = totalharga / jumlahawal
+
+            # print("Sisa Stok Hari Ini : ", jumlahawal)
+            # print("harga awal Hari Ini :", hargaawal)
+            # print("harga total Hari Ini :", totalharga, "\n")
+            dumy["Sisahariini"] = jumlahawal
+            dumy["Hargasatuansisa"] = round(hargaawal, 2)
+            dumy["Hargatotalsisa"] = round(totalharga, 2)
+            listdata.append(dumy)
+            print(dumy)
+
+        hargamasuktotalperhari = 0
+        hargamasuksatuanperhari = 0
+        jumlahmasukperhari = 0
 
         # print(j)
         transaksigudangobj = hargakeluarobj.filter(tanggal=j)
@@ -1507,7 +1538,7 @@ def getbarangkeluar(last_days, stopindex, awaltahun):
 
 def gethargapurchasingperbulan(last_days, stopindex, awaltahun):
     bahanbaku = models.Produk.objects.all()
-    # bahanbaku = models.Produk.objects.filter(KodeProduk="A-101")
+    # bahanbaku = models.Produk.objects.filter(KodeProduk="A-001-06")
 
     hargaakhirbulanperproduk = {}
     for i in bahanbaku:
@@ -1576,7 +1607,7 @@ def gethargapurchasingperbulan(last_days, stopindex, awaltahun):
                 hargaawal,
                 jumlahawal,
             )
-            print(j, k, datahargaperbulan)
+            # print(j, k, datahargaperbulan)
             hargaakhirbulan[j] = {
                 "hargasatuan": datahargaperbulan[0],
                 "jumlah": datahargaperbulan[1],
@@ -1596,6 +1627,8 @@ def gethargafgperbulan(last_days, stopindex, awaltahun):
     hargaakhirbulanperproduk = gethargapurchasingperbulan(
         last_days, stopindex, awaltahun
     )
+    # print(hargaakhirbulanperproduk)
+    # print(asd)
     dataartikel = models.Artikel.objects.all()
     datahargafgartikel = {}
     for artikel in dataartikel:
@@ -1897,50 +1930,174 @@ def detaillaporanstokfg(request):
             last_days.append(date(waktuobj.year, month, last_day))
         # print(last_days)
         # print(last_days[:index+1])
-        datastokgudang = getstokartikelfg(last_days, index, awaltahun)
+        datastokgudang, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
         return render(
             request,
             "ppic/detaillaporanstokfg.html",
-            {"stokfg": datastokgudang[index - 1], "bulan": bulan},
+            {
+                "stokfg": datastokgudang[index - 1],
+                "sisabahafg": bahanbakusisafg,
+                "bulan": bulan,
+            },
         )
 
 
 def getstokartikelfg(last_days, stopindex, awaltahun):
     datastokfgperbulan = {}
     datahargafgartikel = gethargafgperbulan(last_days, stopindex, awaltahun)
+    hargaakhirbulanperproduk = gethargapurchasingperbulan(
+        last_days, stopindex, awaltahun
+    )
+    # print(hargaakhirbulanperproduk)
+
+    datastokbahanbakufg = {}
     for index, hari in enumerate(last_days[:stopindex]):
         if index == 0:
             datatransaksiproduksi = models.TransaksiProduksi.objects.filter(
-                Tanggal__lte=hari, Tanggal__gt=awaltahun, Jenis="Mutasi"
+                Tanggal__lte=hari, Tanggal__gte=awaltahun, Jenis="Mutasi"
             )
+            databarangkeluar = models.DetailSPPB.objects.filter(
+                NoSPPB__Tanggal__lte=hari, NoSPPB__Tanggal__gte=awaltahun
+            )
+
         else:
             datatransaksiproduksi = models.TransaksiProduksi.objects.filter(
-                Tanggal__lte=hari, Tanggal__gt=last_days[index - 1], Jenis="Mutasi"
+                Tanggal__lte=hari, Tanggal__gt=awaltahun, Jenis="Mutasi"
             )
+            databarangkeluar = models.DetailSPPB.objects.filter(
+                NoSPPB__Tanggal__lte=hari, NoSPPB__Tanggal__gte=awaltahun
+            )
+            print(datatransaksiproduksi)
+            print(databarangkeluar)
+
+            # print(asd)
+
+        # print("tes", hari, datahargafgartikel)
+        # print(asdas)
+
         jumlahkumulatifbiayaperbulan = 0
+        dumystok = {}
         dummy = {}
-        if datatransaksiproduksi.exists():
-            jumlahartikelmutasiperbulan = datatransaksiproduksi.values(
-                "KodeArtikel"
-            ).annotate(total=Sum("Jumlah"))
-            for artikel in jumlahartikelmutasiperbulan:
-                dataartikel = models.Artikel.objects.get(id=artikel["KodeArtikel"])
-                jumlah = artikel["total"]
-                totalbiaya = jumlah * datahargafgartikel[dataartikel][index]["hargafg"]
-                jumlahkumulatifbiayaperbulan += totalbiaya
+
+        datamodelsisabarangfg = {}
+        bahanbakurequestkefg = models.Produk.objects.all()
+        listbahanbaku = []
+        for bahanbaku in bahanbakurequestkefg:
+            stokdifg = 0
+            datatransaksigudangfg = models.TransaksiGudang.objects.filter(
+                tanggal__gte=awaltahun,
+                tanggal__lte=hari,
+                Lokasi__NamaLokasi="FG",
+                KodeProduk=bahanbaku,
+            )
+            if datatransaksigudangfg.exists():
+                stokdifg = datatransaksigudangfg.aggregate(total=Sum("jumlah"))["total"]
+            # print(stokdifg)
+            hargasatuan = hargaakhirbulanperproduk[bahanbaku]["data"][index][
+                "hargasatuan"
+            ]
+            datamodelsisabarangfg[bahanbaku] = {
+                "stok": stokdifg,
+                "Hargasatuan": hargasatuan,
+                "Hargatotal": 0,
+            }
+        datastokbahanbakufg[index] = datamodelsisabarangfg
+        # print(datahargafgartikel)
+
+        semuaartikel = models.Artikel.objects.all()
+        for dataartikel in semuaartikel:
+            # cek mutasi produk
+            stokawal = 0
+            jumlahartikelmutasiperbulan = datatransaksiproduksi.filter(
+                KodeArtikel=dataartikel
+            )
+            if jumlahartikelmutasiperbulan.exists():
+                totaltransaksimutasi = jumlahartikelmutasiperbulan.aggregate(
+                    total=Sum("Jumlah")
+                )["total"]
+                stokawal += totaltransaksimutasi
+                
+            jumlahkeluarartikelmutasiperbulan = databarangkeluar.filter(
+                DetailSPK__KodeArtikel=dataartikel
+            )
+            if jumlahkeluarartikelmutasiperbulan.exists():
+                print(hari, jumlahkeluarartikelmutasiperbulan)
+                # print(asdas)
+                totaltransaksikeuar = jumlahkeluarartikelmutasiperbulan.aggregate(
+                    total=Sum("Jumlah")
+                )["total"]
+                stokawal -= totaltransaksikeuar
+                totalbiaya = datahargafgartikel[dataartikel][index]["hargafg"] * stokawal
+
                 dummy[dataartikel] = {
-                    "jumlah": jumlah,
-                    "hargafg": datahargafgartikel[dataartikel][index]["hargafg"],
-                    "biaya": totalbiaya,
-                }
-        else:
-            dummy = 0
+                "jumlah": stokawal,
+                "hargafg": datahargafgartikel[dataartikel][index]["hargafg"],
+                "biaya": totalbiaya,
+            }
+                # for x in datahargafgartikel[dataartikel][index]['penyusun']:
+                # print("\n\n", datahargafgartikel.keys)
+                versiterakhirperbulan = (
+                    models.Penyusun.objects.filter(
+                        KodeArtikel=dataartikel, versi__lte=hari
+                    )
+                    .values_list("versi", flat=True)
+                    .distinct()
+                    .order_by("versi")
+                    .last()
+                )
+                penyusunversiterpilih = models.Penyusun.objects.filter(
+                    KodeArtikel=dataartikel,
+                    versi=versiterakhirperbulan,
+                    Lokasi__NamaLokasi="FG",
+                )
+                print('ini versi : ',versiterakhirperbulan)
+                print('ini penyusun terpilih : ',penyusunversiterpilih)
+                if penyusunversiterpilih.exists():
+                    for bahanfg in penyusunversiterpilih:
+                        kuantitas = models.KonversiMaster.objects.get(
+                            KodePenyusun=bahanfg
+                        ).Kuantitas
+                        kuantitas += kuantitas * 0.0025
+                        datamodelsisabarangfg[bahanfg.KodeProduk]["stok"] -= (
+                            kuantitas * totaltransaksikeuar
+                        )
+                        hargasatuan = datahargafgartikel[dataartikel][index][
+                            "penyusun"
+                        ][bahanfg.KodeProduk]["harga"]
+                        hargatotal = (
+                            hargasatuan
+                            * datamodelsisabarangfg[bahanfg.KodeProduk]["stok"]
+                        )
+                        datamodelsisabarangfg[bahanfg.KodeProduk][
+                            "Hargasatuan"
+                        ] = hargasatuan
+
+                        # print(datamodelsisabarangfg)
+                        # print(kuantitas * totaltransaksikeuar)
+                # print(datamodelsisabarangfg)
+
+                # print(asdas)
+            # print('awal',index,dataartikel,stokawal,datahargafgartikel[dataartikel][index]["hargafg"])
+            """Data Request ke FG"""
+
+            jumlahkumulatifbiayaperbulan += totalbiaya
         datastokfgperbulan[index] = {
             "data": dummy,
             "total": jumlahkumulatifbiayaperbulan,
         }
-    # print(datastokfgperbulan)
-    return datastokfgperbulan
+    """Menghitung total persediaan bahan baku fg"""
+    total = 0
+    for item in datamodelsisabarangfg.values():
+        item["Hargatotal"] = item["stok"] * item["Hargasatuan"]
+        total += item["Hargatotal"]
+    datamodelsisabarangfg["total"] = total
+    """
+    Data Models
+    2: {'data': {<Artikel: 9010/AC>: {'jumlah': 1365, 'hargafg': 40993.59298941417, 'biaya': 55956254.43055034}, <Artikel: 5111/EXP>: {'jumlah': 222, 'hargafg': 400.0974675766822, 'biaya': 88821.63780202346}}, 'total': 56045076.068352364}}  
+    """
+    print(datastokfgperbulan[1])
+    print(asdas)
+    return datastokfgperbulan, datamodelsisabarangfg
 
 
 def getsaldoawalgudang(request):
@@ -2055,13 +2212,17 @@ def getstokbahanproduksi(last_days, stopindex, awaltahun):
     stokawalbahanproduksi = {}
     totalbiayasaldoawal = 0
     totalbiayasaldoawal = 0
+    # print(awaltahun)
     bahanbaku = models.Produk.objects.all()
+    # bahanbaku = models.Produk.objects.filter(KodeProduk = 'tesksbb')
     for produk in bahanbaku:
         saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(
             Tanggal__gte=awaltahun,
             IDLokasi__NamaLokasi__in=("WIP", "FG"),
             IDBahanBaku=produk,
         )
+        # print(saldoawalobj)
+        # print(asdas)
         # print(saldoawalobj)
 
         totalbiayaawal = 0
@@ -2081,10 +2242,74 @@ def getstokbahanproduksi(last_days, stopindex, awaltahun):
         produk.jumlahawal = jumlahawal
 
     stokawalbahanproduksi[0] = {"data": bahanbaku, "total": totalbiayasaldoawal}
-    # print(stokawalbahanproduksi)
-    # print(asdas)
-    # stokawalbahanproduksi[0] = {"data": dataartikel, "total": totalbiayasaldoawal}
-    return stokawalbahanproduksi
+
+    stokawalbahanproduksiwip = {}
+    totalbiayasaldoawal = 0
+    totalbiayasaldoawal = 0
+    print(awaltahun)
+    bahanbaku = models.Produk.objects.all()
+    for produk in bahanbaku:
+        saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(
+            Tanggal__gte=awaltahun,
+            IDLokasi__NamaLokasi="WIP",
+            IDBahanBaku=produk,
+        )
+        print(saldoawalobj)
+        # print(saldoawalobj)
+
+        totalbiayaawal = 0
+        hargasatuanawal = 0
+        jumlahawal = 0
+        if saldoawalobj.exists():
+            # saldoawalobj = saldoawalobj.first()
+            # HARGA JANGAN LANGSUNG DI JUMLAH. PAKAI KONSEP KSBB. DI KALI DULU JUMLAH DAN TOTAL BIAYA NANTI HARGA SATUANNYA TOTAL/Jumlah
+            for dataproduk in saldoawalobj:
+                totalbiayaawal += dataproduk.Harga * dataproduk.Jumlah
+                jumlahawal += dataproduk.Jumlah
+            hargasatuanawal = totalbiayaawal / jumlahawal
+
+        totalbiayasaldoawal += totalbiayaawal
+        produk.hargasatuanawal = hargasatuanawal
+        produk.totalbiayaawal = totalbiayaawal
+        produk.jumlahawal = jumlahawal
+
+    stokawalbahanproduksiwip[0] = {"data": bahanbaku, "total": totalbiayasaldoawal}
+
+    stokawalbahanproduksifg = {}
+    totalbiayasaldoawal = 0
+    totalbiayasaldoawal = 0
+
+    bahanbaku = models.Produk.objects.all()
+
+    for produk in bahanbaku:
+        saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(
+            Tanggal__gte=awaltahun,
+            IDLokasi__NamaLokasi="FG",
+            IDBahanBaku=produk,
+        )
+
+        # print(saldoawalobj)
+
+        totalbiayaawal = 0
+        hargasatuanawal = 0
+        jumlahawal = 0
+        if saldoawalobj.exists():
+            # saldoawalobj = saldoawalobj.first()
+            # HARGA JANGAN LANGSUNG DI JUMLAH. PAKAI KONSEP KSBB. DI KALI DULU JUMLAH DAN TOTAL BIAYA NANTI HARGA SATUANNYA TOTAL/Jumlah
+            for dataproduk in saldoawalobj:
+                totalbiayaawal += dataproduk.Harga * dataproduk.Jumlah
+                jumlahawal += dataproduk.Jumlah
+            hargasatuanawal = totalbiayaawal / jumlahawal
+
+        totalbiayasaldoawal += totalbiayaawal
+        produk.hargasatuanawal = hargasatuanawal
+        produk.totalbiayaawal = totalbiayaawal
+        produk.jumlahawal = jumlahawal
+
+    stokawalbahanproduksifg[0] = {"data": bahanbaku, "total": totalbiayasaldoawal}
+
+    # pritn(asdas)
+    return stokawalbahanproduksi, stokawalbahanproduksiwip, stokawalbahanproduksifg
 
 
 def detaillaporanbaranstokwip(request):
@@ -2137,7 +2362,9 @@ def perhitunganpersediaan(
     ]
     datakirim = {}
     datasaldoawalbahanproduksi = {}
-    datastokwipawal = getstokbahanproduksi(last_days, stopindex, awaltahun)
+    datastokwipawal, datastokwip, datastokfg = getstokbahanproduksi(
+        last_days, stopindex, awaltahun
+    )
     # print(barangfg)
     # {0: {'data': {<Artikel: 1>: {'jumlah': 2640, 'hargafg': 410000.0, 'biaya': 1082400000.0}, <Artikel: 5171/AC>: {'jumlah': 13571, 'hargafg': 390.31990242, 'biaya': 5297031.39574182}, <Artikel: 5115/AC#1>: {'jumlah': 2130, 'hargafg': 803.5997990999999, 'biaya': 1711667.5720829999}, <Artikel: 9010/ACC>: {'jumlah': 19837, 'hargafg': 1071.739732065, 'biaya': 21260101.064973406}}, 'total': 1110668800.0327983}}
 
@@ -2251,7 +2478,7 @@ def laporanpersediaan(request):
         """SECTION STOCK GUDANG"""
         baranggudang = saldogudang(last_days, index, awaltahun)
         """SECTION FG"""
-        barangfg = getstokartikelfg(last_days, index, awaltahun)
+        barangfg, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
         """SECTION WIP (Skip dulu)"""
         dataperhitunganpersediaan = perhitunganpersediaan(
             last_days,
@@ -2304,7 +2531,9 @@ def detaillaporanbaranstokawalproduksi(request):
             last_days.append(date(waktuobj.year, month, last_day))
         # print(last_days)
         # print(last_days[:index+1])
-        datawip = getstokbahanproduksi(last_days, index, awaltahun)
+        datawip, datastokwip, datastokfg = getstokbahanproduksi(
+            last_days, index, awaltahun
+        )
         print(dir(datawip[0]["data"][0]))
         return render(
             request,
@@ -2398,9 +2627,11 @@ def exportlaporanbulananexcel(request):
     """SECTION STOCK GUDANG"""
     baranggudang = saldogudang(last_days, index, awaltahun)
     """SECTION FG"""
-    barangfg = getstokartikelfg(last_days, index, awaltahun)
+    barangfg, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
     """SECTION STOK AWAL PRODUKSI"""
-    datawip = getstokbahanproduksi(last_days, index, awaltahun)
+    datawip, datastokwiponly, datastokfgonly = getstokbahanproduksi(
+        last_days, index, awaltahun
+    )
     """SECTION WIP (Skip dulu)"""
     dataperhitunganpersediaan = perhitunganpersediaan(
         last_days,
@@ -2506,7 +2737,7 @@ def exportlaporanbulananexcel(request):
         datamodelstockawalwip["Nama Produk"].append(stokawal.NamaProduk)
         datamodelstockawalwip["Total Biaya"].append(stokawal.totalbiayaawal)
         datamodelstockawalwip["Unit"].append(stokawal.unit)
-    # print(datawip)
+    print(datawip)
     dfstokawalwip = pd.DataFrame(datamodelstockawalwip)
     # print(asdas)
 
@@ -2563,6 +2794,25 @@ def exportlaporanbulananexcel(request):
     return response
 
 
+def create_dataframeproduksi(data):
+    datamodel = {
+        "Kode Produk": [],
+        "Nama Produk": [],
+        "Unit": [],
+        "Harga Satuan": [],
+        "Jumlah": [],
+        "Total Biaya": [],
+    }
+    for item in data["data"]:
+        datamodel["Harga Satuan"].append(item.hargasatuanawal)
+        datamodel["Jumlah"].append(item.jumlahawal)
+        datamodel["Kode Produk"].append(item.KodeProduk)
+        datamodel["Nama Produk"].append(item.NamaProduk)
+        datamodel["Total Biaya"].append(item.totalbiayaawal)
+        datamodel["Unit"].append(item.unit)
+    return pd.DataFrame(datamodel)
+
+
 # Cek Perhitungan Laporan
 
 
@@ -2602,9 +2852,13 @@ def exportlaporanbulananexcelkeseluruhan(request):
     print(baranggudang)
     # print(asdas)
     """SECTION FG"""
-    barangfg = getstokartikelfg(last_days, index, awaltahun)
+    barangfg, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
+    # print(barangfg)
+    # print(asdas)
     """SECTION STOK AWAL PRODUKSI"""
-    datawip = getstokbahanproduksi(last_days, index, awaltahun)
+    datawip, datastokwiponly, datastokfgonly = getstokbahanproduksi(
+        last_days, index, awaltahun
+    )
     """SECTION WIP (Skip dulu)"""
     dataperhitunganpersediaan = perhitunganpersediaan(
         last_days,
@@ -2621,7 +2875,13 @@ def exportlaporanbulananexcelkeseluruhan(request):
     dfpersediaan = pd.DataFrame.from_dict(
         dataperhitunganpersediaan[listbulan[waktuobj.month - 1]], orient="index"
     ).T
+    listpersediaan = []
+    for key, value in dataperhitunganpersediaan.items():
+        df = pd.DataFrame.from_dict(value, orient="index").T
+        listpersediaan.append(df)
     """2. Sheet untuk laporan barang masuk"""
+    print(listpersediaan)
+    # print(asdas)
     listdatamodelmasuk = []
     # print(barangmasuk)
     for bulan, value in barangmasuk.items():
@@ -2679,7 +2939,54 @@ def exportlaporanbulananexcelkeseluruhan(request):
     # print(listdatamodelkeluar)
     # print(adsasd)
 
-    """4. Sheet Stock Awal Gudang"""
+    """4. Sheet Stock Bahan Baku Gudang"""
+
+    # print(hargaakhirbulan)
+    data_per_bulan = {i: {} for i in range(12)}
+    for produk, values in hargaakhirbulan.items():
+        for bulan_index, detail in values["data"].items():
+            if bulan_index not in data_per_bulan:
+                data_per_bulan[bulan_index] = {}
+            data_per_bulan[bulan_index][produk] = detail
+
+    """5. Sheet Stock Awal Produksi"""
+    liststokawalproduksi = []
+    dfstokawalproduksi = create_dataframeproduksi(datawip[0])
+    liststokawalproduksi.append(dfstokawalproduksi)
+
+    # Proses datastokwiponly
+    dfstokawalwip = create_dataframeproduksi(datastokwiponly[0])
+    liststokawalproduksi.append(dfstokawalwip)
+
+    # Proses datastokfgonly
+    dfstokawalfg = create_dataframeproduksi(datastokfgonly[0])
+    liststokawalproduksi.append(dfstokawalfg)
+    print(liststokawalproduksi)
+
+    """6. SHEET STOK BARANG FG"""
+    # print("\n\n")
+    listdataartikelfg = []
+    for bulan, data in barangfg.items():
+        datamodelsartikelfg = {
+            "Kode Artikel": [],
+            "Jumlah": [],
+            "Harga FG": [],
+            "Total Biaya": [],
+        }
+        for artikel, nilai in data["data"].items():
+            # print(artikel, nilai)
+            datamodelsartikelfg["Kode Artikel"].append(artikel)
+            datamodelsartikelfg["Jumlah"].append(nilai["jumlah"])
+            datamodelsartikelfg["Harga FG"].append(nilai["hargafg"])
+            datamodelsartikelfg["Total Biaya"].append(nilai["biaya"])
+        # print("\n\n")
+        df = pd.DataFrame(datamodelsartikelfg)
+        listdataartikelfg.append(df)
+
+    # print(listdataartikelfg)
+    # print(asd)
+
+    """7. Stok Awal Gudang"""
     datamodelstockawalgudang = {
         "Kode Produk": [],
         "Nama Produk": [],
@@ -2688,64 +2995,43 @@ def exportlaporanbulananexcelkeseluruhan(request):
         "Jumlah": [],
         "Total Biaya": [],
     }
-    # print(hargaakhirbulan)
-    data_per_bulan = {i: {} for i in range(12)}
-    for produk, values in hargaakhirbulan.items():
-        for bulan_index, detail in values["data"].items():
-            if bulan_index not in data_per_bulan:
-                data_per_bulan[bulan_index] = {}
-            data_per_bulan[bulan_index][produk] = detail
-    print(data_per_bulan)
-
-    # print(asdasd)
-    # Saldo Awal Bahan Baku
-    # for item in baranggudang["datasaldoawal"]:
-    #     datamodelstockawalgudang["Kode Produk"].append(item.KodeProduk)
-    #     datamodelstockawalgudang["Unit"].append(item.unit)
-    #     datamodelstockawalgudang["Nama Produk"].append(item.NamaProduk)
-    #     datamodelstockawalgudang["Jumlah"].append(item.jumlahawal)
-    #     datamodelstockawalgudang["Total Biaya"].append(item.totalbiayaawal)
-    #     datamodelstockawalgudang["Harga Satuan"].append(item.hargasatuanawal)
+    # print(baranggudang["datasaldoawal"])
+    for item in baranggudang["datasaldoawal"]:
+        datamodelstockawalgudang["Kode Produk"].append(item.KodeProduk)
+        datamodelstockawalgudang["Unit"].append(item.unit)
+        datamodelstockawalgudang["Nama Produk"].append(item.NamaProduk)
+        datamodelstockawalgudang["Jumlah"].append(item.jumlahawal)
+        datamodelstockawalgudang["Total Biaya"].append(item.totalbiayaawal)
+        datamodelstockawalgudang["Harga Satuan"].append(item.hargasatuanawal)
 
     # print(datamodelstockawalgudang)
-    # Stok akhir bulan
-    for item in hargaakhirbulan:
-        print(item)
-
     dfstokgudang = pd.DataFrame(datamodelstockawalgudang)
-
-    """5. Sheet Stock Awal Produksi"""
-    datamodelstockawalwip = {
-        "Kode Produk": [],
-        "Nama Produk": [],
-        "Unit": [],
-        "Harga Satuan": [],
-        "Jumlah": [],
-        "Total Biaya": [],
-    }
-    for stokawal in datawip[0]["data"]:
-        print(stokawal)
-        datamodelstockawalwip["Harga Satuan"].append(stokawal.hargasatuanawal)
-        datamodelstockawalwip["Jumlah"].append(stokawal.jumlahawal)
-        datamodelstockawalwip["Kode Produk"].append(stokawal.KodeProduk)
-        datamodelstockawalwip["Nama Produk"].append(stokawal.NamaProduk)
-        datamodelstockawalwip["Total Biaya"].append(stokawal.totalbiayaawal)
-        datamodelstockawalwip["Unit"].append(stokawal.unit)
-    # print(datawip)
-    dfstokawalwip = pd.DataFrame(datamodelstockawalwip)
-    # print(asdas)
 
     buffer = BytesIO()
 
     # Use pandas to write DataFrame to the BytesIO buffer
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-        dfpersediaan.to_excel(
-            writer, index=False, startrow=1, sheet_name="Laporan Persediaan"
-        )
-        ws = writer.sheets["Laporan Persediaan"]
-        ws.cell(
-            row=1, column=1, value=f"Laporan Persediaan {listbulan[waktuobj.month - 1]}"
-        )
+        startcol = 0
+        for i, datamasuk in enumerate(listpersediaan):
+            datamasuk.to_excel(
+                writer,
+                index=False,
+                startcol=startcol,
+                startrow=1,
+                sheet_name="Laporan Persediaan",
+            )
+            ws = writer.sheets["Laporan Persediaan"]
+            ws.cell(
+                row=1, column=startcol + 1, value=f"Laporan Persediaan {listbulan[i]}"
+            )
+            startcol += datamasuk.shape[1] + 1
+        # dfpersediaan.to_excel(
+        #     writer, index=False, startrow=1, sheet_name="Laporan Persediaan"
+        # )
+        # ws = writer.sheets["Laporan Persediaan"]
+        # ws.cell(
+        #     row=1, column=1, value=f"Laporan Persediaan {listbulan[waktuobj.month - 1]}"
+        # )
         pd.DataFrame().to_excel(writer, index=False, sheet_name="Barang Masuk")
         pd.DataFrame().to_excel(writer, index=False, sheet_name="Barang Keluar")
 
@@ -2778,6 +3064,7 @@ def exportlaporanbulananexcelkeseluruhan(request):
                 row=1, column=startcol + 1, value=f"Bahan Baku Keluar {listbulan[i]}"
             )
             startcol += daatakeluar.shape[1] + 1
+
         startcol = 0  # Mulai dari kolom kedua untuk menambahkan "Kode Bahan Baku" di sebelah kiri
         for bulan_index, bulan_data in data_per_bulan.items():
             if not bulan_data:
@@ -2792,11 +3079,53 @@ def exportlaporanbulananexcelkeseluruhan(request):
                 index=True,
                 startcol=startcol,
                 startrow=1,
-                sheet_name="Laporan Barang",
+                sheet_name="Bahan Produksi",
             )
-            ws = writer.sheets["Laporan Barang"]
-            ws.cell(row=1, column=startcol+1, value=listbulan[bulan_index])
+            ws = writer.sheets["Bahan Produksi"]
+            ws.cell(row=1, column=startcol + 1, value=listbulan[bulan_index])
             startcol += df.shape[1] + 2  # +2 to add some space between columns
+
+        startcol = 0
+        for i, daatakeluar in enumerate(listdataartikelfg):
+            daatakeluar.to_excel(
+                writer,
+                index=False,
+                startcol=startcol,
+                startrow=1,
+                sheet_name="Stok Produk FG",
+            )
+            ws = writer.sheets["Stok Produk FG"]
+            ws.cell(row=1, column=startcol + 1, value=f"Stok FG {listbulan[i]}")
+            startcol += daatakeluar.shape[1] + 1
+
+        startcol = 0
+        datalistheadertabel = [
+            "Total Stok Awal Bahan Produksi",
+            "Stok Awal WIP",
+            "Stok Awal FG",
+        ]
+        for i, daatakeluar in enumerate(liststokawalproduksi):
+            daatakeluar.to_excel(
+                writer,
+                index=False,
+                startcol=startcol,
+                startrow=1,
+                sheet_name="Stok Awal Bahan Produksi",
+            )
+            ws = writer.sheets["Stok Awal Bahan Produksi"]
+            ws.cell(
+                row=1,
+                column=startcol + 1,
+                value=f"{datalistheadertabel[i]} - {waktuobj.year}",
+            )
+            startcol += daatakeluar.shape[1] + 1
+
+        dfstokgudang.to_excel(
+            writer, startrow=1, index=False, sheet_name="Stock Awal Gudang"
+        )
+        ws = writer.sheets["Stock Awal Gudang"]
+        ws.cell(row=1, column=1, value=f"Stock Awal Gudang {waktuobj.year}")
+
     # Load the workbook from the buffer
     buffer.seek(0)
     wb = load_workbook(buffer)

@@ -1906,11 +1906,13 @@ def views_rekapharga(request):
             return redirect("rekapharga")
         saldoawalobj = (
             models.SaldoAwalBahanBaku.objects.filter(
-                IDBahanBaku=produkobj.KodeProduk, IDLokasi=1, Tanggal__lte=awaltahun
+                IDBahanBaku=produkobj.KodeProduk, IDLokasi__IDLokasi=3, Tanggal__gte=awaltahun
             )
             .order_by("-Tanggal")
             .first()
         )
+        print(saldoawalobj)
+        # print(asdas)
         if saldoawalobj:
             print("ada data")
             saldoawal = saldoawalobj.Jumlah
