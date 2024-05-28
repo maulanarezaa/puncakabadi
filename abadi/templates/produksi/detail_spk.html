@@ -86,7 +86,7 @@
             <div class="col-md-5">
               <div class="form-group">
                 <label for="quantity_{{ forloop.counter }}">Jumlah</label>
-                <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity"
+                <input type="number" min="0" class="form-control quantity" name="quantity[]" placeholder="Quantity"
                   value="{{i.Jumlah}}">
               </div>
             </div>
@@ -119,7 +119,7 @@
             <div class="col-md-5">
               <div class="form-group">
                 <label for="quantity_{{ forloop.counter }}">Jumlah</label>
-                <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity"
+                <input type="number" min="0" class="form-control quantity" name="quantity[]" placeholder="Quantity"
                   value="{{j.Jumlah}}">
               </div>
             </div>

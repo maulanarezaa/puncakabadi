@@ -14,13 +14,13 @@
     <div class="col-lg-12 grid-margin stretch-card">
       <div class="card">
         <div class="card-body">
-          <h4 class="card-title">Rekap Barang WIP</h4>
+          <h4 class="card-title">Rekap Bahan Baku WIP</h4>
           <form method="get">
             <div class="row">
               <div class="col-lg-4">
                   <div class="form-group">
                       <div class="input-group">
-                          <input required type="number" class="form-control"  value="tahun_bulan_sekarang" placeholder="Masukkan Periode" min="2024" max="2200"
+                          <input required type="date" class="form-control"  value="{{tanggal_akhir}}" placeholder="Masukkan Periode"
                               aria-label="Masukkan Periode" name="periode">
                           <div class="input-group-append">
                               <button class="btn btn-sm btn-primary"  type="submit">Filter</button>
@@ -34,21 +34,27 @@
             <table class="table table-bordered" id="artikel">
               <thead>
                 <tr>
+                  <th>No</th>
                   <th>Kode Produk</th>
                   <th>Nama Produk</th>
                   <th>Kuantitas</th>
                   <th>Satuan</th>
-                  <th>Keterangan</th>
                 </tr>
               </thead>
               <tbody>
                 {% for i in data %}
                 <tr>
+                  <td>{{forloop.counter}}</td>
                   <td>{{i.KodeProduk}}</td>
                   <td>{{i.NamaProduk}}</td>
+                  {% if i.kuantitas < 0 %}
+                  <td style="background-color: red;">{{i.kuantitas}}</td>
+                  {% elif i.kuantitas == 0 %}
+                  <td style="background-color: yellow;">{{i.kuantitas}}</td>
+                  {% else %}
                   <td>{{i.kuantitas}}</td>
+                  {% endif %}
                   <td>{{i.unit}}</td>
-                  <td>{{i.keteranganProduksi}}</td>
                 </tr>
                 {% endfor %}
               </tbody>
