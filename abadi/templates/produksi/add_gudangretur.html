@@ -37,7 +37,7 @@
             <div class="row artikel"> <!-- Added class artikel -->
               <div class="col-md-6">
                 <div class="form-group row">
-                  <label class="col-sm-3 col-form-label" for="produk_1">Produk 1:</label>
+                  <label class="col-sm-3 col-form-label" for="produk_1">Bahan Baku 1:</label>
                   <div class="col-sm-9">
                       <input required type="text" class="form-control" name="kode_produk[]" list="listproduk" >
                       <datalist  id="listproduk">
@@ -52,7 +52,7 @@
                 <div class="form-group row">
                   <label class="col-sm-3 col-form-label">Jumlah</label>
                   <div class="col-sm-9">
-                    <input required type="number" class="form-control" name="jumlah[]"/>
+                    <input required min="0" type="number" class="form-control" name="jumlah[]"/>
                   </div>
                 </div>
               </div>
@@ -105,9 +105,9 @@
         productRow.innerHTML = `<div class="row">
                                   <div class="col-md-6">
                                     <div class="form-group row">
-                                      <label class="col-sm-3 col-form-label" for="produk_${productCounter}">Produk ${productCounter}:</label>
+                                      <label class="col-sm-3 col-form-label" for="produk_${productCounter}">Bahan Baku ${productCounter}:</label>
                                       <div class="col-sm-9">
-                                        <input type="text" class="form-control" name="kode_produk[]" list="listproduk_${productCounter}" >
+                                        <input required type="text" class="form-control" name="kode_produk[]" list="listproduk_${productCounter}" >
                                         <datalist  id="listproduk_${productCounter}">
                                           {% for i in kode_produk %}
                                             <option value="{{i.KodeProduk}}">{{i.KodeProduk}} / {{i.NamaProduk}}</option>
@@ -120,7 +120,7 @@
                                     <div class="form-group row">
                                       <label class="col-sm-3 col-form-label">Jumlah</label>
                                       <div class="col-sm-9">
-                                        <input type="number" class="form-control" name="jumlah[]"/>
+                                        <input required min="0" type="number" class="form-control" name="jumlah[]"/>
                                       </div>
                                     </div>
                                   </div>

@@ -14,7 +14,7 @@
   <div class="col-lg-12 grid-margin stretch-card">
     <div class="card">
       <div class="card-body">
-        <h4 class="card-title">Pemusnahan Barang</h4>
+        <h4 class="card-title">Pemusnahan Bahan Baku</h4>
         <div class="template-demo">
           <a href="{% url 'add_pemusnahanbarang' %}">
             <button type="button" class="btn btn-success btn-icon-text">
@@ -28,7 +28,7 @@
             <thead>
               <tr>
                 <th>Tanggal</th>
-                <th>Kode Barang</th>
+                <th>Kode Bahan Baku</th>
                 <th>Lokasi</th>
                 <th>Jumlah</th>
                 <th>Action</th>
@@ -51,7 +51,7 @@
                     </a>
                     <a>
 
-                      <button type="button" class="btn btn-danger" onclick="confirmDelete({{i.IDPemusnahanArtikel}})">
+                      <button type="button" class="btn btn-danger" onclick="confirmDelete({{i.IDPemusnahanBahanBaku}})">
                         <i class="typcn typcn typcn-trash"></i>
                       </button>
                     </a>
@@ -93,7 +93,7 @@
 <script>
   function confirmDelete(id) {
     var deleteForm = document.getElementById('deleteForm');
-    deleteForm.action = "deletepemusnahan/" + id;
+    deleteForm.action = "deletepemusnahanbarang/" + id;
     $('#confirmDeleteModal').modal('show');
   }
 

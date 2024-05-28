@@ -55,19 +55,37 @@
                         <tr>
                             <th>WIP</th>
                             {% for i in item.1 %}
+                                {% if i.Sisa < 0 %}
+                                <td style="background-color: red;">{{i.Sisa}}</td>
+                                {% elif i.Sisa == 0 %}
+                                <td style="background-color: yellow;">{{i.Sisa}}</td>
+                                {% else %}
                                 <td>{{ i.Sisa }}</td>
+                                {% endif %}
                             {% endfor %}
                         </tr>
                         <tr>
                             <th>FG</th>
                             {% for i in item.2 %}
+                                {% if i.Sisa < 0 %}
+                                <td style="background-color: red;">{{i.Sisa}}</td>
+                                {% elif i.Sisa == 0 %}
+                                <td style="background-color: yellow;">{{i.Sisa}}</td>
+                                {% else %}
                                 <td>{{ i.Sisa }}</td>
+                                {% endif %}
                             {% endfor %}
                         </tr>
                         <tr>
                             <th>Total</th>
                             {% for i in item.3 %}
+                                {% if i.Sisa < 0 %}
+                                <td style="background-color: red;">{{i.Sisa}}</td>
+                                {% elif i.Sisa == 0 %}
+                                <td style="background-color: yellow;">{{i.Sisa}}</td>
+                                {% else %}
                                 <td>{{ i.Sisa }}</td>
+                                {% endif %}
                             {% endfor %}
                         </tr>
                     </tbody>
