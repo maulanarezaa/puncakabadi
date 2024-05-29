@@ -1901,9 +1901,6 @@ def views_rekapharga(request):
         tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
         tanggalretur = returobj.values_list("tanggal", flat=True)
         print("ini kode bahan baku", keluarobj)
-        if not keluarobj.exists():
-            messages.error(request, "Tidak ditemukan data Transaksi Barang")
-            return redirect("rekapharga")
         saldoawalobj = (
             models.SaldoAwalBahanBaku.objects.filter(
                 IDBahanBaku=produkobj.KodeProduk, IDLokasi__IDLokasi=3, Tanggal__gte=awaltahun
@@ -1912,6 +1909,9 @@ def views_rekapharga(request):
             .first()
         )
         print(saldoawalobj)
+        if not keluarobj.exists() and not returobj.exists() and not masukobj.exists() and saldoawalobj.DoesNotExist():
+            messages.error(request, "Tidak ditemukan data Transaksi Barang")
+            return redirect("rekapharga")
         # print(asdas)
         if saldoawalobj:
             print("ada data")
@@ -1934,6 +1934,7 @@ def views_rekapharga(request):
         print(tanggalkeluar)
         listtanggal = sorted(list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalretur))))
         print(listtanggal)
+        statusmasuk = False
         for i in listtanggal:
             jumlahmasukperhari = 0
             hargamasuktotalperhari = 0
@@ -1973,6 +1974,7 @@ def views_rekapharga(request):
                 dumy["Hargasatuansisa"] = round(hargasatuanawal, 2)
                 dumy["Hargatotalsisa"] = round(hargatotalawal, 2)
                 print(dumy)
+                statusmasuk = True
                 listdata.append(dumy)
                 # print(asdasd)
 
@@ -1990,6 +1992,9 @@ def views_rekapharga(request):
                     hargakeluartotalperhari / jumlahkeluarperhari
                 )
             else:
+                if statusmasuk :
+                    statusmasuk = False
+                    continue
                 hargakeluartotalperhari = 0
                 hargakeluarsatuanperhari = 0
                 jumlahkeluarperhari = 0
