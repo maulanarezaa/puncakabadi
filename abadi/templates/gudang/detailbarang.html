@@ -15,7 +15,7 @@
             <div class="card-body">
                 <form class="form-inline" action="" method="get">
                 <div class="form-group">
-                        <label  for="input_kode">Kode Produk :</label>
+                        <label  for="input_kode">Kode Barang :</label>
                         <div class="input-group mb- mr-sm-2 ml-2">
                             <input type="text" class="form-control" placeholder="Masukkan Kode Produk"
                                     aria-label="Masukkan Nama Produk" name="input_kode" list="listkode">
@@ -61,6 +61,10 @@
             <tr>
                 <td colspan="3">Saldo Awal</td>
                 <td>{{saldoawal}}</td>
+            </tr>
+            <tr>
+                <td colspan="3">Pemusnahan</td>
+                <td>{{pemusnahan}}</td>
             </tr>
             {% for i in dict_semua %}
             <tr>

@@ -35,18 +35,18 @@
             </tr>
         </thead>
         <tbody id="tableBody">
-            {% for i in dict_semua %}
+            {% for i, detail in dict_semua.items %}
             <tr>
-                <td>{{i.produk}}</td>
-                <td>{{i.nama}}</td>
-                {% if i.jumlah < 0 %}
-                <td style="background-color: red;">{{i.jumlah}}</td>
-                {% elif i.jumlah == 0 %}
-                <td style="background-color: yellow;">{{i.jumlah}}</td>
+                <td>{{i}}</td>
+                <td>{{detail.NamaProduk}}</td>
+                {% if detail.StokAkhir < 0 %}
+                <td style="background-color: red;">{{detail.StokAkhir}}</td>
+                {% elif detail.StokAkhir == 0 %}
+                <td style="background-color: yellow;">{{detail.StokAkhir}}</td>
                 {% else %}
-                <td>{{i.jumlah}}</td>
+                <td>{{detail.StokAkhir}}</td>
                 {% endif %}
-                <td>{{i.unit}}</td>
+                <td>{{detail.Satuan}}</td>
             </tr>
             {% endfor %}
         </tbody>
