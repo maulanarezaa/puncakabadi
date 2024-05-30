@@ -35,11 +35,14 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Produk</label>
               <div class="col-sm-9">
-                <input type="text" name="produk" list="listartikel" class="form-control" required value="{{data.IDProdukSubkon}}">
-                <datalist id="listartikel">
-                  {% for i in datasubkon %}
-                  <option value="{{i.NamaProduk}}">{{i.NamaProduk}}</option>
-                  {% endfor %}
+                <input type="text" class="form-control" placeholder="Masukkan Nama Produk Subkon"
+                    aria-label="Masukkan Nama Produk Subkon" list="kodebarang"
+                    id="kodebarangInput" value="{{data.IDProdukSubkon.NamaProduk}} {{data.IDProdukSubkon.KodeArtikel}}">
+                <input type="hidden" name="kodebarangHidden" id="kodebarangHidden" value="{{ data.IDProdukSubkon }}">
+                <datalist id="kodebarang">
+                    {% for i in datasubkon %}
+                    <option data-id="{{i.IDProdukSubkon}}" value="{{i.NamaProduk}} {{i.KodeArtikel}}"></option>
+                    {% endfor %}
                 </datalist>
               </div>
             </div>
@@ -60,4 +63,24 @@
     </div>
   </div>
 </div>
+<script>
+  document.getElementById('kodebarangInput').addEventListener('input', function() {
+      var input = this;
+      var list = input.getAttribute('list');
+      var options = document.getElementById(list).childNodes;
+      var found = false;
+  
+      for (var i = 0; i < options.length; i++) {
+          if (options[i].value === input.value) {
+              document.getElementById('kodebarangHidden').value = options[i].getAttribute('data-id');
+              found = true;
+              break;
+          }
+      }
+  
+      if (!found) {
+          document.getElementById('kodebarangHidden').value = '{{ data.IDProdukSubkon }}';
+      }
+  });
+  </script>
 {% endblock content %}

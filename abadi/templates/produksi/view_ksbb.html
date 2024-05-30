@@ -24,13 +24,11 @@
                             <div class="form-group">
                                 <input type="text" class="form-control" placeholder="Masukkan Kode Barangg"
                                     name="kodebarang" list="kodebarang" value="{{kodebarang}}" required>
-
                                 <datalist id="kodebarang">
                                     {% for i in kodeprodukobj %}
                                     <option value="{{i.KodeProduk}}">{{i.NamaProduk}} - {{i.unit}}</option>
                                     {% endfor %}
                                 </datalist>
-
                             </div>
                         </div>
                         <div class="col-lg-4">
@@ -46,7 +44,6 @@
                             </div>
                         </div>
                     </div>
-
                     {% else %}
                     <div class="row">
                         <div class="col-lg-4">
@@ -58,7 +55,6 @@
                                         {% for i in kodeprodukobj %}
                                         <option value="{{i.KodeProduk}}">{{i.NamaProduk}}</option>
                                         {% endfor %}
-
                                     </datalist>
                                     <input type="month" name="periode" value="tahun_bulan_sekarang"
                                         style="display: none;">

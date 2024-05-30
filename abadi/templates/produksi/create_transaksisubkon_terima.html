@@ -33,29 +33,32 @@
             </div>
           </div>
         </div>
+
         <h4 class="card-title">Detail Transaksi Produk Subkon Keluar</h4>
-        <div id="artikels">
-          <div class="artikel" id="produk_1">
-            <div class="row">
-              <div class="col-md-5">
-                <div class="form-group row">
-                  <label class="col-sm-3 col-form-label">Produk 1:</label>
-                  <div class="col-sm-9">
-                    <input type="text" class="form-control" name="nama_produk[]" required list="produksubkon" />
-                    <datalist id="produksubkon">
+
+        <div id="products">
+          <div class="row">
+            <div class="col-md-5">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Produk 1:</label>
+                <div class="col-sm-9">
+                  <input type="text" class="form-control kodebarang-input" placeholder="Masukkan Nama Produk Subkon"
+                    aria-label="Masukkan Nama Produk Subkon" list="kodebarang"
+                    id="kodebarangInput_1">
+                  <input type="hidden" name="kodebarangHidden" id="kodebarangHidden_1">
+                  <datalist id="kodebarang">
                       {% for i in produksubkon %}
-                      <option value="{{ i.NamaProduk }} Art. {{i.KodeArtikel}}">{{ i.NamaProduk }} Art. {{i.KodeArtikel}}</option>
-                      {%endfor %}
-                    </datalist>
-                  </div>
+                      <option data-id="{{i.IDProdukSubkon}}" value="{{i.NamaProduk}} {{i.KodeArtikel}}"></option>
+                      {% endfor %}
+                  </datalist>
                 </div>
               </div>
-              <div class="col-md-5">
-                <div class="form-group row">
-                  <label class="col-sm-3 col-form-label">Jumlah</label>
-                  <div class="col-sm-9">
-                    <input type="number" min="0" class="form-control" name="jumlah[]" id="jumlah" required />
-                  </div>
+            </div>
+            <div class="col-md-5">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Jumlah</label>
+                <div class="col-sm-9">
+                  <input type="number" min="0" class="form-control" name="jumlah[]" id="jumlah" required />
                 </div>
               </div>
             </div>
@@ -77,43 +80,73 @@
 
 {% block javascripts %}
 <script>
+  let productCounter = 1;
+
   function addProduct() {
-      var productCounter = document.querySelectorAll('.artikel').length + 1;
-      var productRow = document.createElement('div');
-      productRow.className = "artikel"; // Added class artikel
-      productRow.id = `produk_${productCounter}`;
-      productRow.innerHTML = `<div class="row">
-                                <div class="col-md-5">
-                                  <div class="form-group row">
-                                    <label class="col-sm-3 col-form-label">Produk ${productCounter}:</label>
-                                    <div class="col-sm-9">
-                                      <input type="text" class="form-control" name="nama_produk[]" required list="produksubkon" />
-                                      <datalist id="produksubkon">
-                                        {% for i in produksubkon %}
-                                        <option value="{{ i.NamaProduk }} Art. {{i.KodeArtikel}}">{{ i.NamaProduk }} Art. {{i.KodeArtikel}}</option>
-                                        {%endfor %}
-                                      </datalist>
-                                    </div>
-                                  </div>
+    productCounter++;
+    const productDiv = document.createElement('div');
+    productDiv.className = "row product-row";
+    productDiv.innerHTML = `
+                            <div class="col-md-5">
+                              <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Produk ${productCounter}:</label>
+                                <div class="col-sm-9">
+                                  <input type="text" class="form-control kodebarang-input" placeholder="Masukkan Nama Produk Subkon"
+                                    aria-label="Masukkan Nama Produk Subkon" list="kodebarang"
+                                    id="kodebarangInput_${productCounter}">
+                                  <input type="hidden" name="kodebarangHidden" id="kodebarangHidden_${productCounter}">
+                                  <datalist id="kodebarang">
+                                      {% for i in produksubkon %}
+                                      <option data-id="{{i.IDProdukSubkon}}" value="{{i.NamaProduk}} {{i.KodeArtikel}}"></option>
+                                      {% endfor %}
+                                  </datalist>
                                 </div>
-                                <div class="col-md-5">
-                                  <div class="form-group row">
-                                    <label class="col-sm-3 col-form-label">Jumlah</label>
-                                    <div class="col-sm-9">
-                                      <input type="number" min="0" class="form-control" name="jumlah[]" id="jumlah" required />
-                                    </div>
-                                  </div>
+                              </div>
+                            </div>
+                            <div class="col-md-5">
+                              <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Jumlah</label>
+                                <div class="col-sm-9">
+                                  <input type="number" min="0" class="form-control" name="jumlah[]" id="jumlah" required />
                                 </div>
-                                <div class="col-md-1">
-                                  <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
-                                </div>
-                              </div>`;
-      document.getElementById('artikels').appendChild(productRow);
+                              </div>
+                            </div>
+                            <div class="col-md-1">
+                              <button type="button" class="btn btn-danger" onclick="removeProduct(this)"><i class="typcn typcn typcn-trash"></i></button>
+                            </div>
+                            `;
+    document.getElementById('products').appendChild(productDiv);
+    addEventListenersToInputs();
   }
 
-  function deleteRow(button) {
-      button.closest('.artikel').remove(); // Changed .col to .artikel
+  function removeProduct(button) {
+    let row = button.closest('.row.product-row');
+    row.parentNode.removeChild(row);
   }
+
+  function addEventListenersToInputs() {
+    const inputs = document.querySelectorAll('.kodebarang-input');
+    inputs.forEach((input, index) => {
+      input.removeEventListener('input', handleInputEvent); // Remove previous event listener if exists
+      input.addEventListener('input', handleInputEvent);
+    });
+  }
+
+  function handleInputEvent(event) {
+    const input = event.target;
+    const list = input.getAttribute('list');
+    const options = document.getElementById(list).childNodes;
+    for (let i = 0; i < options.length; i++) {
+      if (options[i].value === input.value) {
+        const hiddenInputId = input.id.replace('kodebarangInput', 'kodebarangHidden');
+        document.getElementById(hiddenInputId).value = options[i].getAttribute('data-id');
+        break;
+      }
+    }
+  }
+
+  // Initial call to add event listeners
+  addEventListenersToInputs();
 </script>
 {% endblock javascripts %}
 {% endblock content %}
