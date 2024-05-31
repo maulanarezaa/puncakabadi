@@ -32,7 +32,7 @@
               <div class="col-lg-4">
                   <div class="form-group">
                       <div class="input-group">
-                          <input required type="number" class="form-control"  value="tahun_bulan_sekarang" placeholder="Masukkan Periode" min="2024" max="2200"
+                          <input required type="date" class="form-control"  value="{{tanggal_akhir}}" placeholder="Masukkan Periode" min="2024" max="2200"
                               aria-label="Masukkan Periode" name="periode">
                           <div class="input-group-append">
                               <button class="btn btn-sm btn-primary"  type="submit">Filter</button>
@@ -43,7 +43,7 @@
             </div>
           </form>
           <div class="row">
-            <div class="col-7">
+            <div class="col-6">
               <h3>Bahan Baku</h3>
               <div class="barang table-responsive pt-3">
                 <table class="table table-bordered" id="barang">
@@ -52,8 +52,6 @@
                       <th>Kode Produk</th>
                       <th>Nama Produk</th>
                       <th>Kuantitas</th>
-                      <th>Satuan</th>
-                      <th>Keterangan</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -62,15 +60,13 @@
                       <td>{{i.KodeBahanBaku}}</td>
                       <td>{{i.KodeBahanBaku__NamaProduk}}</td>
                       <td>{{i.kuantitas}}</td>
-                      <td>{{i.KodeBahanBaku__unit}}</td>
-                      <td>{{i.KodeBahanBaku__keteranganProduksi}}</td>
                     </tr>
                     {% endfor %}
                   </tbody>
                 </table>
               </div>
             </div>
-            <div class="col-5">
+            <div class="col-6">
               <h3>Artikel</h3>
               <div class="table-responsive pt-3">
                 <table class="table table-bordered" id="artikel">
@@ -78,7 +74,6 @@
                     <tr>
                       <th>Kode Artikel</th>
                       <th>Kuantitas</th>
-                      <th>Keterangan</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -86,7 +81,6 @@
                     <tr>
                       <td>{{i.KodeArtikel__KodeArtikel}}</td>
                       <td>{{i.kuantitas}}</td>
-                      <td>{{i.KodeArtikel__keterangan}}</td>
                     </tr>
                     {% endfor %}
                   </tbody>

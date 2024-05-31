@@ -5,9 +5,10 @@ from django.db.models import Sum
 from datetime import datetime, timedelta
 from django.db import IntegrityError
 import pandas as pd
+
 from . import logindecorators
 from django.contrib.auth.decorators import login_required
-# Create your views here.
+
 # Dashboard Gudang
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi'])
@@ -126,7 +127,8 @@ def dashboard(request):
 
     return render(request, "produksi/dashboard.html",{"data": alldata})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def load_detailspk(request):
     no_spk = request.GET.get("nomor_spk")
     id_spk = models.SPK.objects.get(NoSPK=no_spk)
@@ -134,7 +136,8 @@ def load_detailspk(request):
 
     return render(request, "produksi/opsi_spk.html", {"detailspk": detailspk})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def load_htmx(request):
     no_spk = request.GET.get("nomor_spk")
     id_spk = models.SPK.objects.get(NoSPK=no_spk)
@@ -142,7 +145,8 @@ def load_htmx(request):
 
     return render(request, "produksi/opsi_htmx.html", {"detailspk": detailspk})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def load_artikel(request):
     kode_artikel = request.GET.get("kode_artikel")
     artikelobj = models.Artikel.objects.get(KodeArtikel=kode_artikel)
@@ -150,7 +154,8 @@ def load_artikel(request):
 
     return render(request, "produksi/opsi_artikel.html", {"detailspk": detailspk})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def load_penyusun(request):
     kodeartikel = request.GET.get("artikel")
     penyusun = models.Penyusun.objects.filter(KodeArtikel=kodeartikel)
@@ -159,6 +164,8 @@ def load_penyusun(request):
 
 
 # SPK
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_spk(request):
     dataspk = models.SPK.objects.all().order_by("-Tanggal")
 
@@ -176,7 +183,8 @@ def view_spk(request):
 
     return render(request, "produksi/view_spk.html", {"dataspk": dataspk})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_spk(request):
     dataartikel = models.Artikel.objects.all()
     if request.method == "GET":
@@ -217,7 +225,8 @@ def add_spk(request):
 
             return redirect("view_spk")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def detail_spk(request, id):
     dataartikel = models.Artikel.objects.all()
     datadisplay = models.Display.objects.all()
@@ -281,27 +290,31 @@ def detail_spk(request, id):
 
         return redirect("detail_spk", id=id)
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_spk(request, id):
     dataspk = models.SPK.objects.get(id=id)
     dataspk.delete()
     return redirect("view_spk")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_detailspk(request, id):
     datadetailspk = models.DetailSPK.objects.get(IDDetailSPK=id)
     dataspk = models.SPK.objects.get(NoSPK=datadetailspk.NoSPK)
     datadetailspk.delete()
     return redirect("detail_spk", id=dataspk.id)
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_detailspkdisplay(request, id):
     datadetailspk = models.DetailSPKDisplay.objects.get(IDDetailSPK=id)
     dataspk = models.SPK.objects.get(NoSPK=datadetailspk.NoSPK)
     datadetailspk.delete()
     return redirect("detail_spk", id=dataspk.id)
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def track_spk(request, id):
     dataartikel = models.Artikel.objects.all()
     datadisplay =models.Display.objects.all()
@@ -347,7 +360,8 @@ def track_spk(request, id):
             },
         )
     
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 # SPPB
 def view_sppb(request):
     datasppb = models.SPPB.objects.all().order_by("-Tanggal")
@@ -356,7 +370,8 @@ def view_sppb(request):
 
     return render(request, "produksi/view_sppb.html", {"datasppb": datasppb})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_sppb(request):
     dataartikel = models.Artikel.objects.all()
 
@@ -388,34 +403,39 @@ def add_sppb(request):
             jumlah_list = request.POST.getlist("quantity[]")
             no_sppb = models.SPPB.objects.get(NoSPPB=nomor_sppb)
 
-            for artikel, jumlah in zip(artikel_list, jumlah_list):
-                # Pisahkan KodeArtikel dari jumlah dengan delimiter '/'
-                kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel)
-                jumlah_produk = jumlah
+            if artikel_list:
+                for artikel, jumlah in zip(artikel_list, jumlah_list):
+                    # Pisahkan KodeArtikel dari jumlah dengan delimiter '/'
+                    kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel)
+                    jumlah_produk = jumlah
 
-                # Simpan data ke dalam model DetailSPK
-                datadetailspk = models.DetailSPPB(
-                    NoSPPB=no_sppb, DetailSPK=kode_artikel, Jumlah=jumlah_produk
-                )
-                datadetailspk.save()
+                    # Simpan data ke dalam model DetailSPK
+                    datadetailspk = models.DetailSPPB(
+                        NoSPPB=no_sppb, DetailSPK=kode_artikel, Jumlah=jumlah_produk
+                    )
+                    datadetailspk.save()
+            else:
+                messages.error(request, "Masukkan kode Artikel atau Display")
 
             return redirect("view_sppb")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_sppb(request, id):
     datasppb = models.SPPB.objects.get(id=id)
     datasppb.delete()
     return redirect("view_sppb")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_detailsppb(request, id):
     datadetailsppb = models.DetailSPPB.objects.get(IDDetailSPPB=id)
     datasppb = models.SPPB.objects.get(NoSPPB=datadetailsppb.NoSPPB)
     datadetailsppb.delete()
     return redirect("detail_sppb", id=datasppb.id)
 
-
-# Transaksi Produksi
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_mutasi(request):
     dataproduksi = models.TransaksiProduksi.objects.filter(Jenis="Mutasi").order_by(
         "-Tanggal", "KodeArtikel"
@@ -425,7 +445,8 @@ def view_mutasi(request):
 
     return render(request, "produksi/view_mutasi.html", {"dataproduksi": dataproduksi})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_produksi(request):
     dataproduksi = models.TransaksiProduksi.objects.filter(Jenis="Produksi").order_by(
         "-Tanggal", "KodeArtikel"
@@ -437,7 +458,8 @@ def view_produksi(request):
         request, "produksi/view_produksi.html", {"dataproduksi": dataproduksi}
     )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_mutasi(request):
     if request.method == "GET":
         data_artikel = models.Artikel.objects.all()
@@ -456,17 +478,20 @@ def add_mutasi(request):
 
     if request.method == "POST":
         listkode_artikel = request.POST.getlist("kode_artikel[]")
-        listlokasi = request.POST.getlist("nama_lokasi[]")
         tanggal = request.POST["tanggal"]
         listjumlah = request.POST.getlist("jumlah[]")
         listketerangan = request.POST.getlist("keterangan[]")
         listdetail_spk = request.POST.getlist("detail_spk[]")
 
-        for kode, lokasi, jumlah, keterangan, detail_spk in zip(
-            listkode_artikel, listlokasi, listjumlah, listketerangan, listdetail_spk
+        for kode, jumlah, keterangan, detail_spk in zip(
+            listkode_artikel, listjumlah, listketerangan, listdetail_spk
         ):
-            artikelref = models.Artikel.objects.get(KodeArtikel=kode)
-            lokasiref = models.Lokasi.objects.get(IDLokasi=lokasi)
+            try:
+                artikelref = models.Artikel.objects.get(KodeArtikel=kode)
+            except:
+                messages.error(request, "Kode Artikel tidak ditemukan")
+                return redirect("add_mutasi")
+            
             try:
                 detailspkref = models.DetailSPK.objects.get(IDDetailSPK=detail_spk)
             except:
@@ -474,7 +499,7 @@ def add_mutasi(request):
 
             data_produksi = models.TransaksiProduksi(
                 KodeArtikel=artikelref,
-                Lokasi=lokasiref,
+                Lokasi=models.Lokasi.objects.get(IDLokasi=1),
                 Tanggal=tanggal,
                 Jumlah=jumlah,
                 Keterangan=keterangan,
@@ -485,7 +510,8 @@ def add_mutasi(request):
 
         return redirect("view_mutasi")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_produksi(request):
     if request.method == "GET":
         data_artikel = models.Artikel.objects.all()
@@ -527,7 +553,8 @@ def add_produksi(request):
 
         return redirect("view_produksi")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_produksi(request, id):
     produksiobj = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
     data_artikel = models.Artikel.objects.all()
@@ -576,11 +603,11 @@ def update_produksi(request, id):
 
         return redirect("view_produksi")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_mutasi(request, id):
     produksiobj = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
     data_artikel = models.Artikel.objects.all()
-    data_lokasi = models.Lokasi.objects.all()
     data_spk = models.SPK.objects.all()
 
     try:
@@ -599,7 +626,6 @@ def update_mutasi(request, id):
                 "produksi": produksiobj,
                 "tanggal": tanggal,
                 "kode_artikel": data_artikel,
-                "nama_lokasi": data_lokasi,
                 "data_spk": data_spk,
                 "data_detailspk": data_detailspk,
             },
@@ -608,8 +634,6 @@ def update_mutasi(request, id):
     elif request.method == "POST":
         kode_artikel = request.POST["kode_artikel"]
         getartikel = models.Artikel.objects.get(KodeArtikel=kode_artikel)
-        lokasi = request.POST["nama_lokasi"]
-        getlokasi = models.Lokasi.objects.get(IDLokasi=lokasi)
         tanggal = request.POST["tanggal"]
         jumlah = request.POST["jumlah"]
         keterangan = request.POST["keterangan"]
@@ -620,7 +644,6 @@ def update_mutasi(request, id):
             detspkobj = None
 
         produksiobj.KodeArtikel = getartikel
-        produksiobj.Lokasi = getlokasi
         produksiobj.Tanggal = tanggal
         produksiobj.Jumlah = jumlah
         produksiobj.Keterangan = keterangan
@@ -630,14 +653,16 @@ def update_mutasi(request, id):
 
         return redirect("view_mutasi")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_produksi(request, id):
     dataproduksi = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
     dataproduksi.delete()
     messages.success(request, "Data Berhasil dihapus")
     return redirect("view_produksi")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_mutasi(request, id):
     dataproduksi = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
     dataproduksi.delete()
@@ -646,6 +671,8 @@ def delete_mutasi(request, id):
 
 
 # Transaksi Gudang
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_gudang(request):
     datagudang = models.TransaksiGudang.objects.filter(jumlah__gt=0).order_by(
         "-tanggal", "KodeProduk"
@@ -655,7 +682,8 @@ def view_gudang(request):
 
     return render(request, "produksi/view_gudang.html", {"datagudang": datagudang})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_gudangretur(request):
     datagudang = models.TransaksiGudang.objects.filter(jumlah__lt=0).order_by(
         "-tanggal", "KodeProduk"
@@ -667,12 +695,13 @@ def view_gudangretur(request):
 
     return render(request, "produksi/view_gudangretur.html", {"datagudang": datagudang})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_gudang(request):
     if request.method == "GET":
         data_produk = models.Produk.objects.all()
         data_lokasi = models.Lokasi.objects.all()
-        data_spk = models.SPK.objects.all()
+        data_spk = models.SPK.objects.filter(StatusAktif=True)
 
         listproduk = [produk.NamaProduk for produk in data_produk]
 
@@ -721,7 +750,8 @@ def add_gudang(request):
 
         return redirect("view_gudang")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_gudangretur(request):
     if request.method == "GET":
         data_produk = models.Produk.objects.all()
@@ -735,7 +765,7 @@ def add_gudangretur(request):
             "produksi/add_gudangretur.html",
             {
                 "kode_produk": data_produk,
-                "nama_lokasi": data_lokasi,
+                "nama_lokasi": data_lokasi[:2],
                 "data_spk": data_spk,
                 "listproduk": listproduk,
             },
@@ -767,7 +797,8 @@ def add_gudangretur(request):
 
         return redirect("view_gudangretur")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_gudang(request, id):
     gudangobj = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     data_produk = models.Produk.objects.all()
@@ -789,7 +820,7 @@ def update_gudang(request, id):
                 "gudang": gudangobj,
                 "tanggal": tanggal,
                 "kode_produk": data_produk,
-                "nama_lokasi": data_lokasi,
+                "nama_lokasi": data_lokasi[:2],
                 "data_spk": data_spk,
                 "data_detailspk": data_detailspk,
             },
@@ -822,7 +853,8 @@ def update_gudang(request, id):
 
         return redirect("view_gudang")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_gudangretur(request, id):
     gudangobj = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     data_produk = models.Produk.objects.all()
@@ -863,7 +895,8 @@ def update_gudangretur(request, id):
 
         return redirect("view_gudangretur")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_gudang(request, id):
     datagudang = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     datagudang.delete()
@@ -871,7 +904,8 @@ def delete_gudang(request, id):
 
     return redirect("view_gudang")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_gudangretur(request, id):
     datagudang = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     datagudang.delete()
@@ -881,6 +915,8 @@ def delete_gudangretur(request, id):
 
 
 # Rekapitulasi
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_ksbb2(request):
     if len(request.GET) == 0:
         return render(request, "produksi/view_ksbb.html")
@@ -1032,7 +1068,8 @@ def view_ksbb2(request):
             },
         )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def views_ksbj(request):
     if len(request.GET) == 0:
         dataartikel = models.Artikel.objects.all()
@@ -1348,22 +1385,20 @@ def views_ksbj(request):
                 },
             )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_rekapbarang(request):
-    if len(request.GET) == 0:
-        return render(request, "produksi/rekap_barang.html")
-    else:
-        if request.GET["periode"]:
-            tahun = int(request.GET["periode"])
-        else:
-            sekarang = datetime.now()
-            tahun = sekarang.year
 
-        tanggal_mulai = datetime(year=tahun, month=1, day=1)
-        tanggal_akhir = datetime(year=tahun, month=12, day=31)
+    tanggal_akhir = request.GET.get("periode")
+    
+    sekarang = datetime.now()
+    tahun = sekarang.year
 
-        dataproduk = models.Produk.objects.all()
+    tanggal_mulai = datetime(year=tahun, month=1, day=1)
 
+    dataproduk = models.Produk.objects.all()
+
+    if tanggal_akhir:
         for produk in dataproduk:
             listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, tanggal_akhir)
 
@@ -1371,32 +1406,49 @@ def view_rekapbarang(request):
                 produk.kuantitas = listdata[-1]["Sisa"][0]
             else:
                 produk.kuantitas = 0
-
-        return render(request, "produksi/rekap_barang.html", {'data':dataproduk})
-
-
-def view_rekaprusak(request):
-    if len(request.GET) == 0:
-        return render(request, "produksi/rekap_rusak.html")
     else:
-        if request.GET["periode"]:
-            tahun = int(request.GET["periode"])
-        else:
-            sekarang = datetime.now()
-            tahun = sekarang.year
+        for produk in dataproduk:
+            listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, sekarang)
 
-        lokasi = request.GET["lokasi"]
+            if listdata:
+                produk.kuantitas = listdata[-1]["Sisa"][0]
+            else:
+                produk.kuantitas = 0
+
+    return render(request, "produksi/rekap_barang.html", {'data':dataproduk , 'tanggal_akhir':tanggal_akhir})
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
+def view_rekaprusak(request):
+
+    tanggal_akhir = request.GET.get("periode")
+    
+    sekarang = datetime.now()
+    tahun = sekarang.year
+
+    tanggal_mulai = datetime(year=tahun, month=1, day=1)
+
+    lokasi = request.GET.get("lokasi")
+    if lokasi:
         lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
+    else:
+        lokasiobj = models.Lokasi.objects.get(IDLokasi=1)
+        
+    tanggal_mulai = datetime(year=tahun, month=1, day=1)
 
-        tanggal_mulai = datetime(year=tahun, month=1, day=1)
-        tanggal_akhir = datetime(year=tahun, month=12, day=31)
+    if tanggal_akhir:
 
         databarang = models.PemusnahanBahanBaku.objects.filter(lokasi=lokasiobj,Tanggal__range=(tanggal_mulai, tanggal_akhir)).values('KodeBahanBaku','KodeBahanBaku__NamaProduk','KodeBahanBaku__unit','KodeBahanBaku__keteranganProduksi').annotate(kuantitas=Sum('Jumlah'))
         dataartikel = models.PemusnahanArtikel.objects.filter(lokasi=lokasiobj,Tanggal__range=(tanggal_mulai, tanggal_akhir)).values('KodeArtikel__KodeArtikel','KodeArtikel__keterangan').annotate(kuantitas=Sum('Jumlah'))
 
-        return render(request, "produksi/rekap_rusak.html", {"databarang": databarang, "dataartikel": dataartikel, "lokasi":lokasi})
+    else:
+        databarang = models.PemusnahanBahanBaku.objects.filter(lokasi=lokasiobj,Tanggal__range=(tanggal_mulai, sekarang)).values('KodeBahanBaku','KodeBahanBaku__NamaProduk','KodeBahanBaku__unit','KodeBahanBaku__keteranganProduksi').annotate(kuantitas=Sum('Jumlah'))
+        dataartikel = models.PemusnahanArtikel.objects.filter(lokasi=lokasiobj,Tanggal__range=(tanggal_mulai, sekarang)).values('KodeArtikel__KodeArtikel','KodeArtikel__keterangan').annotate(kuantitas=Sum('Jumlah'))
 
+    return render(request, "produksi/rekap_rusak.html", {"databarang": databarang, "dataartikel": dataartikel, "lokasi":lokasi,'tanggal_akhir':tanggal_akhir})
 
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_rekapproduksi(request):
     if len(request.GET) == 0:
         return render(request, "produksi/rekap_produksi.html")
@@ -1427,7 +1479,7 @@ def view_rekapproduksi(request):
             data = models.TransaksiProduksi.objects.filter(KodeArtikel=artikel.id,Jenis = "Mutasi")
             datamasuk = models.TransaksiGudang.objects.filter(DetailSPK__KodeArtikel = artikel.id)
             listtanggalmasuk = datamasuk.values_list('tanggal',flat=True).distinct()
-            
+
             if not data :
                 messages.error(request, ("Tidak ditemukan data Transaki Produksi untuk Artikel",artikel.KodeArtikel))
                 continue
@@ -1445,16 +1497,18 @@ def view_rekapproduksi(request):
                     try:
                         saldoawalobj = models.SaldoAwalArtikel.objects.get(IDArtikel__KodeArtikel=artikel.KodeArtikel, IDLokasi=lokasi.IDLokasi,Tanggal__range =(tanggal_mulai,tanggal_akhir))
                         saldo = saldoawalobj.Jumlah
+                        listtanggalsaldo = models.SaldoAwalArtikel.objects.filter(IDArtikel__KodeArtikel=artikel.KodeArtikel, IDLokasi=lokasi.IDLokasi,Tanggal__range =(tanggal_mulai,tanggal_akhir)).values_list("Tanggal", flat=True).distinct()
                         saldoawalobj.Tanggal = saldoawalobj.Tanggal.strftime("%Y-%m-%d")
 
                     except models.SaldoAwalArtikel.DoesNotExist :
                         saldo = 0
                         saldoawal = None
-                        saldoawalobj ={'Tanggal' : 'Belum ada Data','saldo' : saldo}
+                        saldoawalobj = {'Tanggal' : 'Belum ada Data','saldo' : saldo}
 
-                    tanggallist = (data.filter(Tanggal__range=(tanggal_mulai, tanggal_akhir)).values_list("Tanggal", flat=True).distinct())
-                    saldoawal = saldo
-                    tanggallist = sorted(list(set((tanggallist.union(listtanggalmasuk)))))
+                    tanggallist = data.filter(Tanggal__range=(tanggal_mulai, tanggal_akhir)).values_list("Tanggal", flat=True).distinct()
+                    saldoawal = saldo                        
+
+                    tanggallist = sorted(list(set((tanggallist.union(listtanggalmasuk.union(listtanggalsaldo))))))
 
                     for i in tanggallist:
                         datamodels = {
@@ -1557,11 +1611,10 @@ def view_rekapproduksi(request):
 
             datarekap.append(dataartikel)
 
-        print(datarekap)
-
         return render(request, "produksi/rekap_produksi.html", {'artikel':artikelobj, 'data':datarekap })
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_ksbb(request):
     kodeproduk = models.Produk.objects.all()
     if len(request.GET) == 0:
@@ -1743,6 +1796,8 @@ def view_ksbb(request):
     
 
 # Pemusnahan Artikel
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_pemusnahan(request):
     dataproduksi = models.PemusnahanArtikel.objects.all().order_by("-Tanggal")
     for i in dataproduksi:
@@ -1752,7 +1807,8 @@ def view_pemusnahan(request):
         request, "produksi/view_pemusnahan.html", {"dataproduksi": dataproduksi}
     )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_pemusnahan(request):
     dataartikel = models.Artikel.objects.all()
     datalokasi = models.Lokasi.objects.all()
@@ -1760,7 +1816,7 @@ def add_pemusnahan(request):
         return render(
             request,
             "produksi/add_pemusnahan.html",
-            {"nama_lokasi": datalokasi, "dataartikel": dataartikel},
+            {"nama_lokasi": datalokasi[:2], "dataartikel": dataartikel},
         )
     else:
         print(request.POST)
@@ -1769,7 +1825,12 @@ def add_pemusnahan(request):
         lokasi = request.POST["nama_lokasi"]
         jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
-        artikelobj = models.Artikel.objects.get(KodeArtikel=kodeartikel)
+        try:
+            artikelobj = models.Artikel.objects.get(KodeArtikel=kodeartikel)
+        except:
+            messages.error(request, "Kode Artikel tidak ditemukan")
+            return redirect("add_pemusnahan")
+
         lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
         pemusnahanobj = models.PemusnahanArtikel(
             Tanggal=tanggal, Jumlah=jumlah, KodeArtikel=artikelobj, lokasi=lokasiobj
@@ -1777,8 +1838,10 @@ def add_pemusnahan(request):
         pemusnahanobj.save()
         return redirect("view_pemusnahan")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_pemusnahan(request, id):
+    dataartikel = models.Artikel.objects.all()
     dataobj = models.PemusnahanArtikel.objects.get(IDPemusnahanArtikel=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
     lokasiobj = models.Lokasi.objects.all()
@@ -1787,7 +1850,7 @@ def update_pemusnahan(request, id):
         return render(
             request,
             "produksi/update_pemusnahan.html",
-            {"data": dataobj, "nama_lokasi": lokasiobj},
+            {"data": dataobj, "nama_lokasi": lokasiobj[:2], "dataartikel": dataartikel},
         )
 
     else:
@@ -1796,7 +1859,11 @@ def update_pemusnahan(request, id):
         lokasi = request.POST["nama_lokasi"]
         jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
-        artikelobj = models.Artikel.objects.get(KodeArtikel=kodeartikel)
+        try:
+            artikelobj = models.Artikel.objects.get(KodeArtikel=kodeartikel)
+        except:
+            messages.error(request, "Kode Artikel tidak ditemukan")
+            return redirect("update_pemusnahan")
         lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
 
         dataobj.Tanggal = tanggal
@@ -1807,7 +1874,8 @@ def update_pemusnahan(request, id):
         dataobj.save()
         return redirect("view_pemusnahan")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_pemusnahan(request, id):
     dataobj = models.PemusnahanArtikel.objects.get(IDPemusnahanArtikel=id)
 
@@ -1816,6 +1884,8 @@ def delete_pemusnahan(request, id):
 
 
 # Pemusnahan Barang
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_pemusnahanbarang(request):
     dataproduksi = models.PemusnahanBahanBaku.objects.all().order_by("-Tanggal")
     for i in dataproduksi:
@@ -1825,7 +1895,8 @@ def view_pemusnahanbarang(request):
         request, "produksi/view_pemusnahanbarang.html", {"dataproduksi": dataproduksi}
     )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_pemusnahanbarang(request):
     databarang = models.Produk.objects.all()
     datalokasi = models.Lokasi.objects.all()
@@ -1833,7 +1904,7 @@ def add_pemusnahanbarang(request):
         return render(
             request,
             "produksi/add_pemusnahanbarang.html",
-            {"nama_lokasi": datalokasi, "databarang": databarang},
+            {"nama_lokasi": datalokasi[:2], "databarang": databarang},
         )
     else:
         print(request.POST)
@@ -1842,16 +1913,23 @@ def add_pemusnahanbarang(request):
         lokasi = request.POST["nama_lokasi"]
         jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
-        produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
         lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
+        try:
+            produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
+        except:
+            messages.error(request, "Kode Bahan Baku tidak ditemukan")
+            return redirect("add_pemusnahanbarang")
+        
         pemusnahanobj = models.PemusnahanBahanBaku(
             Tanggal=tanggal, Jumlah=jumlah, KodeBahanBaku=produkobj, lokasi=lokasiobj
         )
         pemusnahanobj.save()
         return redirect("view_pemusnahanbarang")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_pemusnahanbarang(request, id):
+    databarang = models.Produk.objects.all()
     dataobj = models.PemusnahanBahanBaku.objects.get(IDPemusnahanBahanBaku=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
     lokasiobj = models.Lokasi.objects.all()
@@ -1860,7 +1938,7 @@ def update_pemusnahanbarang(request, id):
         return render(
             request,
             "produksi/update_pemusnahanbarang.html",
-            {"data": dataobj, "nama_lokasi": lokasiobj},
+            {"data": dataobj, "nama_lokasi": lokasiobj[:2], 'dataproduk':databarang},
         )
 
     else:
@@ -1868,7 +1946,11 @@ def update_pemusnahanbarang(request, id):
         lokasi = request.POST["nama_lokasi"]
         jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
-        produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
+        try:
+            produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
+        except:
+            messages.error(request, "Kode Bahan Baku tidak ditemukan")
+            return redirect("add_pemusnahanbarang")
         lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
 
         dataobj.Tanggal = tanggal
@@ -1879,20 +1961,24 @@ def update_pemusnahanbarang(request, id):
         dataobj.save()
         return redirect("view_pemusnahanbarang")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_pemusnahanbarang(request, id):
     dataobj = models.PemusnahanBahanBaku.objects.get(IDPemusnahanBahanBaku=id)
 
     dataobj.delete()
-    return redirect(view_pemusnahan)
+    return redirect(view_pemusnahanbarang)
 
 
 # Produk SUBKON
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def read_produksubkon(request):
     produkobj = models.ProdukSubkon.objects.all()
     return render(request, "produksi/read_produksubkon.html", {"produkobj": produkobj})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def create_produksubkon(request):
     kodeartikel = models.Artikel.objects.all()
     if request.method == "GET":
@@ -1933,7 +2019,8 @@ def create_produksubkon(request):
             new_produk.save()
             return redirect("read_produksubkon")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_produksubkon(request, id):
     produkobj = models.ProdukSubkon.objects.get(pk=id)
     dataartikel = models.Artikel.objects.all()
@@ -1955,7 +2042,8 @@ def update_produksubkon(request, id):
         produkobj.save()
         return redirect("read_produksubkon")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_produksubkon(request, id):
     print(id)
     produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=id)
@@ -1965,6 +2053,8 @@ def delete_produksubkon(request, id):
 
 
 # Transaksi Subkon Kirim
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_subkonkirim(request):
     datasubkon = models.DetailSubkonKirim.objects.all().order_by("IDSubkonKirim__Tanggal")
     for i in datasubkon:
@@ -1972,7 +2062,8 @@ def view_subkonkirim(request):
 
     return render(request, "produksi/view_subkonkirim.html", {"datasubkon": datasubkon})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_subkonkirim(request):
     if request.method == "GET":
         subkonkirim = models.DetailSubkonKirim.objects.all()
@@ -2011,7 +2102,8 @@ def add_subkonkirim(request):
 
         return redirect("view_subkonkirim")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_subkonkirim(request, id):
     datasjp = models.DetailSubkonKirim.objects.get(IDDetailSubkonKirim=id)
 
@@ -2050,7 +2142,8 @@ def update_subkonkirim(request, id):
 
         return redirect("view_subkonkirim")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_subkonkirim(request, id):
     dataskk = models.DetailSubkonKirim.objects.get(IDDetailSubkonKirim=id)
     dataskk.delete()
@@ -2058,6 +2151,8 @@ def delete_subkonkirim(request, id):
 
 
 # Transaksi subkon masuk = nilai + pada kolom jumlah berarti masuk dari subkon ke pabrik, Transaksi nilai - pada kolom jumlah berarti keluar ke WIP
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def transaksi_subkon_terima(request):
     produkobj = models.TransaksiSubkon.objects.all().order_by("-Tanggal")
     for i in produkobj:
@@ -2066,7 +2161,8 @@ def transaksi_subkon_terima(request):
         request, "produksi/read_transaksisubkon_terima.html", {"produkobj": produkobj}
     )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def create_transaksi_subkon_terima(request):
     produksubkon = models.ProdukSubkon.objects.all()
     if request.method == "GET":
@@ -2097,7 +2193,8 @@ def create_transaksi_subkon_terima(request):
         new_produk.save()
         return redirect("transaksi_subkon_terima")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_transaksi_subkon_terima(request, id):
     produkobj = models.TransaksiSubkon.objects.get(pk=id)
     produkobj.Tanggal = produkobj.Tanggal.strftime("%Y-%m-%d")
@@ -2127,7 +2224,8 @@ def update_transaksi_subkon_terima(request, id):
         produkobj.save()
         return redirect("transaksi_subkon_terima")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_transaksi_subkon_terima(request, id):
     produkobj = models.TransaksiSubkon.objects.get(IDTransaksiSubkon=id)
     produkobj.delete()
@@ -2136,13 +2234,16 @@ def delete_transaksi_subkon_terima(request, id):
 
 
 # Penyesuaian
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def penyesuaian(request):
     datapenyesuaian = models.Penyesuaian.objects.all()
     return render(
         request, "produksi/view_penyesuaian.html", {"datapenyesuaian": datapenyesuaian}
     )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def addpenyesuaian(request):
     dataartikel = models.Artikel.objects.all()
     if request.method == "GET":
@@ -2171,7 +2272,8 @@ def addpenyesuaian(request):
 
         return redirect("view_penyesuaian")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_penyesuaian(request, id):
     datapenyesuaianobj = models.DetailKonversiProduksi.objects.get(
         IDDetailKonversiProduksi=id
@@ -2206,13 +2308,15 @@ def update_penyesuaian(request, id):
         penyesuaianobj.save()
         return redirect("view_penyesuaian")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_penyesuaian(request, id):
     datapenyesuaian = models.Penyesuaian.objects.get(IDPenyesuaian=id)
     datapenyesuaian.delete()
     return redirect("view_penyesuaian")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def kalkulatorpenyesuaian(request):
     kodeproduk = models.Produk.objects.all()
     if len(request.GET) == 0:
@@ -2469,7 +2573,8 @@ def kalkulatorpenyesuaian(request):
             },
         )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def detailksbb(request, id, tanggal):
     tanggal = datetime.strptime(tanggal, "%Y-%m-%d")
     tanggal = tanggal.strftime("%Y-%m-%d")
@@ -2506,7 +2611,8 @@ def detailksbb(request, id, tanggal):
         },
     )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_ksbb3(request):
     kodeproduk = models.Produk.objects.all()
     if len(request.GET) == 0:
@@ -2714,7 +2820,8 @@ def view_ksbb3(request):
 
         return render(request, "produksi/view_ksbb.html",{'data':listdata,'saldo':saldoawal,'kodebarang':request.GET["kodebarang"],"nama": nama,"satuan": satuan,})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_ksbj2(request):
     dataartikel = models.Artikel.objects.all()
     if len(request.GET) == 0:
@@ -2900,7 +3007,8 @@ def view_ksbj2(request):
                 },
             )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def kalkulatorpenyesuaianv1(request):
     kodeproduk = models.Produk.objects.all()
     if len(request.GET) == 0:
@@ -3313,6 +3421,8 @@ def kalkulatorpenyesuaianv1(request):
 
 
 # Saldo Awal Bahan Baku
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_saldobahan(request):
     dataproduk = models.SaldoAwalBahanBaku.objects.all().order_by("-Tanggal")
     for i in dataproduk:
@@ -3322,7 +3432,8 @@ def view_saldobahan(request):
         request, "produksi/view_saldobahan.html", {"dataproduk": dataproduk}
     )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_saldobahan(request):
     databarang = models.Produk.objects.all()
     datalokasi = models.Lokasi.objects.all()
@@ -3350,7 +3461,7 @@ def add_saldobahan(request):
         if existing_entry:
             # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
             messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("view_saldobahan")
+            return redirect("add_saldobahan")
         
         produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
         lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
@@ -3359,7 +3470,8 @@ def add_saldobahan(request):
         pemusnahanobj.save()
         return redirect("view_saldobahan")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_saldobahan(request, id):
     databarang = models.Produk.objects.all()
     dataobj = models.SaldoAwalBahanBaku.objects.get(IDSaldoAwalBahanBaku=id)
@@ -3378,6 +3490,21 @@ def update_saldobahan(request, id):
         jumlah = request.POST["jumlah"]
         harga = request.POST["harga"]
         tanggal = request.POST["tanggal"]
+
+        # Ubah format tanggal menjadi YYYY-MM-DD
+        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
+        # Periksa apakah entri sudah ada
+        existing_entry = models.SaldoAwalBahanBaku.objects.filter(
+            Tanggal__year=tanggal_formatted.year,
+            IDBahanBaku__KodeProduk=kodeproduk,
+            IDLokasi=lokasi
+        ).exclude(IDSaldoAwalBahanBaku=id).exists()
+
+        if existing_entry:
+            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
+            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
+            return redirect("view_saldobahan")
+        
         produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
         lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
 
@@ -3389,7 +3516,8 @@ def update_saldobahan(request, id):
         dataobj.save()
         return redirect("view_saldobahan")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_saldobahan(request, id):
     dataobj = models.SaldoAwalBahanBaku.objects.get(IDSaldoAwalBahanBaku=id)
 
@@ -3398,6 +3526,8 @@ def delete_saldobahan(request, id):
 
 
 # Saldo Awal Artikel
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_saldoartikel(request):
     dataartikel = models.SaldoAwalArtikel.objects.all().order_by("-Tanggal")
     for i in dataartikel:
@@ -3407,7 +3537,8 @@ def view_saldoartikel(request):
         request, "produksi/view_saldoartikel.html", {"dataartikel": dataartikel}
     )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_saldoartikel(request):
     dataartikel = models.Artikel.objects.all()
     datalokasi = models.Lokasi.objects.all()
@@ -3434,7 +3565,7 @@ def add_saldoartikel(request):
         if existing_entry:
             # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
             messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("view_saldoartikel")
+            return redirect("add_saldoartikel")
         
         artikelobj = models.Artikel.objects.get(KodeArtikel=artikel)
         lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
@@ -3444,7 +3575,8 @@ def add_saldoartikel(request):
         pemusnahanobj.save()
         return redirect("view_saldoartikel")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_saldoartikel(request, id):
     dataartikel = models.Artikel.objects.all()
     dataobj = models.SaldoAwalArtikel.objects.get(IDSaldoAwalBahanBaku=id)
@@ -3464,6 +3596,20 @@ def update_saldoartikel(request, id):
         jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
 
+        # Ubah format tanggal menjadi YYYY-MM-DD
+        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
+        # Periksa apakah entri sudah ada
+        existing_entry = models.SaldoAwalArtikel.objects.filter(
+            Tanggal__year=tanggal_formatted.year,
+            IDArtikel__KodeArtikel=artikel,
+            IDLokasi=lokasi
+        ).exclude(IDSaldoAwalBahanBaku=id).exists()
+
+        if existing_entry:
+            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
+            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
+            return redirect("view_saldoartikel")
+
         artikelobj = models.Artikel.objects.get(KodeArtikel=artikel)
         lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
 
@@ -3475,7 +3621,8 @@ def update_saldoartikel(request, id):
         dataobj.save()
         return redirect("view_saldoartikel")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_saldoartikel(request, id):
     dataobj = models.SaldoAwalArtikel.objects.get(IDSaldoAwalBahanBaku=id)
 
@@ -3484,6 +3631,8 @@ def delete_saldoartikel(request, id):
 
 
 # Saldo Awal Subkon
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_saldosubkon(request):
     datasubkon = models.SaldoAwalSubkon.objects.all().order_by("-Tanggal")
     for i in datasubkon:
@@ -3493,7 +3642,8 @@ def view_saldosubkon(request):
         request, "produksi/view_saldosubkon.html", {"datasubkon": datasubkon}
     )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_saldosubkon(request):
     datasubkon = models.ProdukSubkon.objects.all()
     if request.method == "GET":
@@ -3503,7 +3653,7 @@ def add_saldosubkon(request):
             { "datasubkon": datasubkon},
         )
     else:
-        kodeproduk = request.POST["produk"]
+        kodeproduk = request.POST["kodebarangHidden"]
         jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
 
@@ -3514,18 +3664,23 @@ def add_saldosubkon(request):
             Tanggal__year=tanggal_formatted.year,
             IDProdukSubkon__NamaProduk=kodeproduk,
         ).exists()
+
         if existing_entry:
             # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
             messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("view_saldosubkon")
+            return redirect("add_saldosubkon")
         
-        produkobj = models.ProdukSubkon.objects.get(NamaProduk=kodeproduk)
+
+        produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=kodeproduk)
+
+
         pemusnahanobj = models.SaldoAwalSubkon(
             Tanggal=tanggal, Jumlah=jumlah, IDProdukSubkon=produkobj)
         pemusnahanobj.save()
         return redirect("view_saldosubkon")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_saldosubkon(request, id):
     dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -3538,10 +3693,24 @@ def update_saldosubkon(request, id):
         )
 
     else:
-        kodeproduk = request.POST["produk"]
+        kodeproduk = request.POST["kodebarangHidden"]
         jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
-        produkobj = models.ProdukSubkon.objects.get(NamaProduk=kodeproduk)
+
+        # Ubah format tanggal menjadi YYYY-MM-DD
+        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
+        # Periksa apakah entri sudah ada
+        existing_entry = models.SaldoAwalSubkon.objects.filter(
+            Tanggal__year=tanggal_formatted.year,
+            IDProdukSubkon__NamaProduk=kodeproduk,
+        ).exclude(IDSaldoAwalProdukSubkon=id).exists()
+          
+        if existing_entry:
+            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
+            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
+            return redirect("view_saldosubkon")
+        
+        produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=kodeproduk)
 
         dataobj.Tanggal = tanggal
         dataobj.Jumlah = jumlah
@@ -3549,15 +3718,17 @@ def update_saldosubkon(request, id):
         dataobj.save()
         return redirect("view_saldosubkon")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_saldosubkon(request, id):
     dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
 
     dataobj.delete()
     return redirect(view_saldosubkon)
 
-
 # Kartu Stok Subkon
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_ksbbsubkon(request):
     kodeproduk = models.Produk.objects.all()
     if len(request.GET) == 0:
@@ -3648,7 +3819,8 @@ def view_ksbbsubkon(request):
 
         return render(request, "produksi/view_ksbbsubkon.html",{'data':listdata,'saldo':saldoawal,'kodebarang':request.GET["kodebarang"],"nama": nama,"satuan": satuan,})
     
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_ksbjsubkon(request):
     kodeproduk = models.ProdukSubkon.objects.all()
     if len(request.GET) == 0:
@@ -3751,12 +3923,14 @@ def view_ksbjsubkon(request):
 
         return render(request, "produksi/view_ksbjsubkon.html",{"data":listdata,'saldo':saldoawal,"nama": nama,"satuan": satuan,"artikel":artikel})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def read_bahanbaku(request):
     produkobj = models.Produk.objects.all()
     return render(request, "produksi/read_produk.html", {"produkobj": produkobj})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_produk_produksi(request, id):
     produkobj = models.Produk.objects.get(pk=id)
     if request.method == "GET":
@@ -3781,6 +3955,8 @@ REVISI 5/11/2024
 7. Update ADD SPK DIsplay dan ARtikel
 '''
 
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_sppb(request):
     dataartikel = models.Artikel.objects.all()
     datadisplay = models.Display.objects.all()
@@ -3802,7 +3978,6 @@ def add_sppb(request):
         tanggal = request.POST["tanggal"]
         keterangan = request.POST["keterangan"]
         
-        print(request.POST)
         displaylist = request.POST.getlist("detail_spkdisplay[]")
         jumlahdisplay = request.POST.getlist('quantitydisplay[]')
         confirmationorderdisplay = request.POST.getlist("purchaseorderdisplay")
@@ -3812,58 +3987,71 @@ def add_sppb(request):
             messages.error(request, "Nomor SPPB sudah ada")
             return redirect("add_sppb")
         else:
-            messages.success(request, "Data berhasil disimpan")
-            data_sppb = models.SPPB(
-                NoSPPB=nomor_sppb, Tanggal=tanggal, Keterangan=keterangan
-            ).save()
-
+            
             artikel_list = request.POST.getlist("detail_spk[]")
             jumlah_list = request.POST.getlist("quantity[]")
             confirmationorderartikel = request.POST.getlist("purchaseorderartikel")
-            no_sppb = models.SPPB.objects.get(NoSPPB=nomor_sppb)
 
-            for artikel, jumlah, confirmationorder in zip(artikel_list, jumlah_list,confirmationorderartikel):
-                if artikel == '' or jumlah == '':
-                    print('tidak ada data artikel')
-                    continue
-                # Pisahkan KodeArtikel dari jumlah dengan delimiter '/'
-                kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel)
-                jumlah_produk = jumlah
+            # Periksa apakah setidaknya satu item dari artikel atau display list memiliki data
+            valid_artikel_list = any(artikel_list) and any(jumlah_list)
+            valid_display_list = any(displaylist) and any(jumlahdisplay)
 
-                # Simpan data ke dalam model DetailSPK
-                datadetailspk = models.DetailSPPB(
-                    NoSPPB=no_sppb, DetailSPK=kode_artikel, Jumlah=jumlah_produk
-                )
-                if not confirmationorder == "":
+            if valid_artikel_list or valid_display_list:
 
-                    datadetailspk.IDCO = models.confirmationorder.objects.get(pk=confirmationorder)
-                datadetailspk.save()
+                data_sppb = models.SPPB(
+                    NoSPPB=nomor_sppb, Tanggal=tanggal, Keterangan=keterangan
+                ).save()
+                messages.success(request, "Data berhasil disimpan")
 
-            for display,jumlah,confirmationorder in zip(displaylist,jumlahdisplay,confirmationorderdisplay):
-                print('ini : ',display, jumlah)
-                if display == "" or jumlah == "":
-                    print('tidak ada Display')
-                    continue
-                detailspkdisplayobj = models.DetailSPKDisplay.objects.get(IDDetailSPK = display)
-                datadetailspkdisplay = models.DetailSPPB(
-                NoSPPB=no_sppb, DetailSPKDisplay=detailspkdisplayobj, Jumlah=jumlah
-                )
-                if not confirmationorder == "":
-                    datadetailspkdisplay.IDCO = models.confirmationorder.objects.get(pk = confirmationorder)
-                datadetailspkdisplay.save()
+                no_sppb = models.SPPB.objects.get(NoSPPB=nomor_sppb)
 
-                # Buat Transaksi Mutasi 
-                transaksiproduksiobj = models.TransaksiProduksi(
-                    Tanggal = tanggal, Jumlah = jumlah, Jenis = "Mutasi", Keterangan = "Mutasi Display", Lokasi = models.Lokasi.objects.get(pk = 1), DetailSPPBDisplay = datadetailspkdisplay
+                for artikel, jumlah, confirmationorder in zip(artikel_list, jumlah_list,confirmationorderartikel):
+                    if artikel == '' or jumlah == '':
+                        print('tidak ada data artikel')
+                        continue
+                    # Pisahkan KodeArtikel dari jumlah dengan delimiter '/'
+                    kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel)
+                    jumlah_produk = jumlah
+
+                    # Simpan data ke dalam model DetailSPK
+                    datadetailspk = models.DetailSPPB(
+                        NoSPPB=no_sppb, DetailSPK=kode_artikel, Jumlah=jumlah_produk
+                    )
+                    if not confirmationorder == "":
+
+                        datadetailspk.IDCO = models.confirmationorder.objects.get(pk=confirmationorder)
+                    datadetailspk.save()
+
+                for display,jumlah,confirmationorder in zip(displaylist,jumlahdisplay,confirmationorderdisplay):
+                    print('ini : ',display, jumlah)
+                    if display == "" or jumlah == "":
+                        print('tidak ada Display')
+                        continue
+                    detailspkdisplayobj = models.DetailSPKDisplay.objects.get(IDDetailSPK = display)
+                    datadetailspkdisplay = models.DetailSPPB(
+                    NoSPPB=no_sppb, DetailSPKDisplay=detailspkdisplayobj, Jumlah=jumlah
+                    )
+                    if not confirmationorder == "":
+                        datadetailspkdisplay.IDCO = models.confirmationorder.objects.get(pk = confirmationorder)
+                    datadetailspkdisplay.save()
+
+                    # Buat Transaksi Mutasi 
+                    transaksiproduksiobj = models.TransaksiProduksi(
+                        Tanggal = tanggal, Jumlah = jumlah, Jenis = "Mutasi", Keterangan = "Mutasi Display", Lokasi = models.Lokasi.objects.get(pk = 1), DetailSPPBDisplay = datadetailspkdisplay
+                    
+                    )
+                    
+                    transaksiproduksiobj.save()
+                    print(transaksiproduksiobj)
+
+                return redirect("view_sppb")
+            
+            else:
+                messages.error(request, "Masukkan Artikel atau Display")
+                return redirect("add_sppb")
                 
-                )
-                
-                transaksiproduksiobj.save()
-                print(transaksiproduksiobj)
-
-            return redirect("view_sppb")
-
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def load_display(request):
     print(request.GET)
     kode_display = request.GET.get("kode_artikel")
@@ -3873,7 +4061,8 @@ def load_display(request):
 
     return render(request, "produksi/opsi_spkdisplay.html", {"detailspk": detailspk})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def detail_sppb(request, id):
     dataartikel = models.Artikel.objects.all()
     datadisplay = models.Display.objects.all()
@@ -3980,7 +4169,8 @@ def detail_sppb(request, id):
         
         return redirect("detail_sppb", id=id)
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def track_spk(request, id):
     dataartikel = models.Artikel.objects.all()
     datadisplay =models.Display.objects.all()
@@ -4043,7 +4233,8 @@ def track_spk(request, id):
             },
         )
     
-    
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])    
 def load_detailspk(request):
     no_spk = request.GET.get("nomor_spk")
     id_spk = models.SPK.objects.get(NoSPK=no_spk)
@@ -4054,12 +4245,13 @@ def load_detailspk(request):
 
     return render(request, "produksi/opsi_spk.html", {"detailspk": detailspk})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_gudang(request):
     if request.method == "GET":
         data_produk = models.Produk.objects.all()
         data_lokasi = models.Lokasi.objects.all()
-        data_spk = models.SPK.objects.all()
+        data_spk = models.SPK.objects.filter(StatusAktif=True)
 
         listproduk = [produk.NamaProduk for produk in data_produk]
 
@@ -4068,7 +4260,7 @@ def add_gudang(request):
             "produksi/add_gudang.html",
             {
                 "kode_produk": data_produk,
-                "nama_lokasi": data_lokasi,
+                "nama_lokasi": data_lokasi[:2],
                 "data_spk": data_spk,
                 "listproduk": listproduk,
             },
@@ -4130,7 +4322,8 @@ def add_gudang(request):
         
         return redirect("view_gudang")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def detail_spk(request, id):
     dataartikel = models.Artikel.objects.all()
     datadisplay =models.Display.objects.all()
@@ -4217,7 +4410,8 @@ def detail_spk(request, id):
 
         return redirect("detail_spk", id=id)
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_spk(request):
     dataspk = models.SPK.objects.all().order_by("-Tanggal")
 
@@ -4243,6 +4437,8 @@ SPK
 Menambahkan selector untuk menambahkan SPK Display dan SPK Artikel. Satu SPK hanya bisa diisi Artikel saja atau Display saja
 
 '''
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_spk(request):
     dataartikel = models.Artikel.objects.all()
     datadisplay = models.Display.objects.all()
@@ -4303,7 +4499,8 @@ def add_spk(request):
 
 
 ''' KSBJ Section '''
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_ksbj2(request):
     dataartikel = models.Artikel.objects.all()
     if len(request.GET) == 0:
@@ -4418,6 +4615,7 @@ def view_ksbj2(request):
                 {
                     "data": data,
                     "kodeartikel": kodeartikel,
+                    "dataartikel": dataartikel,
                     "lokasi": lokasi,
                     "listdata": listdata,
                     "saldoawal": saldoawalobj,
@@ -4488,6 +4686,7 @@ def view_ksbj2(request):
                 {
                     "data": data,
                     "kodeartikel": kodeartikel,
+                    "dataartikel": dataartikel,
                     "lokasi": "FG",
                     "listdata": listdata,
                     "saldoawal": saldoawalobj,
@@ -4497,6 +4696,8 @@ def view_ksbj2(request):
 
 
 # KSBB: Konversi belum dikali 2.5%
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_ksbb3(request):
     kodeproduk = models.Produk.objects.all()
     if len(request.GET) == 0:
@@ -4521,7 +4722,7 @@ def view_ksbb3(request):
 
         listdata,saldoawal = calculate_KSBB(produk,tanggal_mulai,tanggal_akhir)
 
-        return render(request, "produksi/view_ksbb.html",{'data':listdata,'saldo':saldoawal,'kodebarang':request.GET["kodebarang"],"nama": nama,"satuan": satuan,'kodeprodukobj':kodeproduk})
+        return render(request, "produksi/view_ksbb.html",{'data':listdata,'saldo':saldoawal,'kodebarang':request.GET["kodebarang"],"nama": nama,"satuan": satuan,'kodeprodukobj':kodeproduk,'sekarang':tahun})
 
 
 def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
@@ -4783,7 +4984,8 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
 # Kalkulator Penyesuaian Belum bisa 2 kali Penyesuaian (Done)
 # Kurang Setting Tanggal Awal Perhitungan berdasarkan cek kondisi dari (DONE) 
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def kalkulatorpenyesuaian2(request):
     kodeproduk = models.Produk.objects.all()
     if len(request.GET) == 0:
@@ -5001,7 +5203,8 @@ def kalkulatorpenyesuaian2(request):
             },
         )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def addpenyesuaian(request):
     dataartikel = models.Artikel.objects.all()
     if request.method == "GET":
@@ -5033,7 +5236,8 @@ def addpenyesuaian(request):
 
         return redirect("view_penyesuaian")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def load_versi(request):
     kodeartikel = request.GET.get("artikel")
     print(request.GET)
@@ -5042,7 +5246,8 @@ def load_versi(request):
 
     return render(request, "produksi/opsi_versi.html", {"penyusun": penyusun,'kodeartikel':kodeartikel})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def load_penyusun2(request):
     print(request.GET)
     kodeartikel = request.GET.get("artikel")
@@ -5055,7 +5260,8 @@ def load_penyusun2(request):
 
     return render(request, "produksi/opsi_penyusun.html", {"penyusun": penyusun})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_penyesuaian(request, id):
     
     dataartikel = models.Artikel.objects.all()
@@ -5085,6 +5291,8 @@ def update_penyesuaian(request, id):
 
 '''SUBKON SECTION'''
 # Bahan Baku SUBKON
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def read_bahansubkon(request):
     produkobj = models.BahanBakuSubkon.objects.all()
     return render(request, "produksi/read_bahansubkon.html", {"produkobj": produkobj})
@@ -5113,7 +5321,8 @@ def create_bahansubkon(request):
             new_produk.save()
             return redirect("read_bahansubkon")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_bahansubkon(request, id):
     produkobj = models.BahanBakuSubkon.objects.get(pk=id)
 
@@ -5128,14 +5337,21 @@ def update_bahansubkon(request, id):
         nama_produk = request.POST["nama_produk"]
         unit_produk = request.POST["unit_produk"]
 
-        produkobj.KodeProduk = kode_produk
-        produkobj.NamaProduk = nama_produk
-        produkobj.unit = unit_produk
+        databahan = models.BahanBakuSubkon.objects.filter(KodeProduk=kode_produk).exists()
+        
+        if databahan:
+            messages.error(request, "Kode Produk sudah ada")
+            return redirect("create_bahansubkon")
+        else:
+            produkobj.KodeProduk = kode_produk
+            produkobj.NamaProduk = nama_produk
+            produkobj.unit = unit_produk
 
         produkobj.save()
         return redirect("read_bahansubkon")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_bahansubkon(request, id):
     produkobj = models.BahanBakuSubkon.objects.get(id=id)
     produkobj.delete()
@@ -5144,11 +5360,14 @@ def delete_bahansubkon(request, id):
 
 
 # Produk SUBKON
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def read_produksubkon(request):
     produkobj = models.ProdukSubkon.objects.all()
     return render(request, "produksi/read_produksubkon.html", {"produkobj": produkobj})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def create_produksubkon(request):
     kodeartikel = models.Artikel.objects.all()
     if request.method == "GET":
@@ -5188,7 +5407,8 @@ def create_produksubkon(request):
             new_produk.save()
             return redirect("read_produksubkon")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_produksubkon(request, id):
     produkobj = models.ProdukSubkon.objects.get(pk=id)
     dataartikel = models.Artikel.objects.all()
@@ -5210,14 +5430,28 @@ def update_produksubkon(request, id):
             messages.error(request, "Kode Artikel Peruntukan tidak ditemukan")
             return redirect("update_produksubkon")
         
-        produkobj.KodeArtikel= artikelobj
-        produkobj.NamaProduk = nama_produk
-        produkobj.Unit = unit_produk
-        produkobj.keterangan = keterangan_produk
-        produkobj.save()
+        listkodeproduk = (
+            models.ProdukSubkon.objects.filter(KodeArtikel=artikelobj.id)
+            .values_list("NamaProduk", flat=True)
+            .distinct()
+        )
+
+        if nama_produk in listkodeproduk:
+            messages.error(
+                request, "Nama Produk untuk Artikel terkait sudah ada pada Database"
+            )
+            return redirect("create_produksubkon")
+        else:
+            produkobj.KodeArtikel= artikelobj
+            produkobj.NamaProduk = nama_produk
+            produkobj.Unit = unit_produk
+            produkobj.keterangan = keterangan_produk
+            produkobj.save()
+
         return redirect("read_produksubkon")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_produksubkon(request, id):
     produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=id)
     produkobj.delete()
@@ -5226,6 +5460,8 @@ def delete_produksubkon(request, id):
 
 
 # Surat Jalan Kirim Subkon
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_subkonbahankeluar(request):
     datasubkon = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.all().order_by("NoSuratJalan__Tanggal")
     for i in datasubkon:
@@ -5233,7 +5469,8 @@ def view_subkonbahankeluar(request):
 
     return render(request, "produksi/view_subkonbahankeluar.html", {"datasubkon": datasubkon})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_subkonbahankeluar(request):
     if request.method == "GET":
         subkonkirim = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.all()
@@ -5275,7 +5512,8 @@ def add_subkonbahankeluar(request):
 
             return redirect("view_subkonbahankeluar")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_subkonbahankeluar(request, id):
     datasjp = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.get(IDDetailSJPengirimanSubkon=id)
 
@@ -5316,7 +5554,8 @@ def update_subkonbahankeluar(request, id):
 
         return redirect("view_subkonbahankeluar")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_subkonbahankeluar(request, id):
     dataskk = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.get(IDDetailSJPengirimanSubkon=id)
     dataskk.delete()
@@ -5324,6 +5563,8 @@ def delete_subkonbahankeluar(request, id):
 
 
 # Surat Jalan Terima Subkon
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_subkonprodukmasuk(request):
     datasubkon = models.DetailSuratJalanPenerimaanProdukSubkon.objects.all().order_by("NoSuratJalan__Tanggal")
     for i in datasubkon:
@@ -5331,7 +5572,8 @@ def view_subkonprodukmasuk(request):
 
     return render(request, "produksi/view_subkonprodukmasuk.html", {"datasubkon": datasubkon})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_subkonprodukmasuk(request):
     if request.method == "GET":
         subkonkirim = models.DetailSuratJalanPenerimaanProdukSubkon.objects.all()
@@ -5358,16 +5600,16 @@ def add_subkonprodukmasuk(request):
 
             subkonkirimobj = models.SuratJalanPenerimaanProdukSubkon.objects.get(NoSuratJalan=nosuratjalan)
 
-            listkode = request.POST.getlist("kodeproduk")
+            listkode = request.POST.getlist("kodebarangHidden")
+            print(listkode)
             listjumlah = request.POST.getlist("jumlah")
             listket = request.POST.getlist("keterangan")
 
             for kodeproduk, jumlah, keterangan in zip(listkode, listjumlah, listket):
-                nama_produk, kode_artikel = kodeproduk.split(" Art. ")
 
                 try:
                     produksubkonobj = models.ProdukSubkon.objects.get(
-                        NamaProduk=nama_produk,KodeArtikel__KodeArtikel=kode_artikel
+                        IDProdukSubkon=kodeproduk
                     )
 
                 except models.ProdukSubkon.DoesNotExist:
@@ -5384,7 +5626,8 @@ def add_subkonprodukmasuk(request):
 
             return redirect("view_subkonprodukmasuk")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_subkonprodukmasuk(request, id):
     datasjp = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPengirimanSubkon=id)
 
@@ -5407,14 +5650,9 @@ def update_subkonprodukmasuk(request, id):
     else:
         nosuratjalan = request.POST["nosuratjalan"]
         tanggal = request.POST["tanggal"]
-        kode_produk = request.POST["kodeproduk"]
-
-        nama_produk, kode_artikel = kode_produk.split(" Art. ")
-
+        kode_produk = request.POST["kodebarangHidden"]
         try:
-            produksubkonobj = models.ProdukSubkon.objects.get(
-                NamaProduk=nama_produk,KodeArtikel__KodeArtikel=kode_artikel
-            )
+            produksubkonobj = models.ProdukSubkon.objects.get(IDProdukSubkon=kode_produk)
 
         except models.ProdukSubkon.DoesNotExist:
             messages.error(request, "Kode Produk Subkon tidak ditemukan")
@@ -5436,7 +5674,8 @@ def update_subkonprodukmasuk(request, id):
 
         return redirect("view_subkonprodukmasuk")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_subkonprodukmasuk(request, id):
     dataskk = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPengirimanSubkon=id)
     dataskk.delete()
@@ -5444,6 +5683,8 @@ def delete_subkonprodukmasuk(request, id):
 
 
 # Transaksi subkon bahan baku masuk
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def transaksi_subkonbahan_masuk(request):
     produkobj = models.TransaksiBahanBakuSubkon.objects.all().order_by("-Tanggal")
     for i in produkobj:
@@ -5452,7 +5693,8 @@ def transaksi_subkonbahan_masuk(request):
         request, "produksi/read_transaksisubkonbahan_masuk.html", {"produkobj": produkobj}
     )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def create_transaksi_subkonbahan_masuk(request):
     produksubkon = models.BahanBakuSubkon.objects.all()
     if request.method == "GET":
@@ -5484,7 +5726,8 @@ def create_transaksi_subkonbahan_masuk(request):
 
         return redirect("transaksi_subkonbahan_masuk")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_transaksi_subkonbahan_masuk(request, id):
     produkobj = models.TransaksiBahanBakuSubkon.objects.get(pk=id)
     produkobj.Tanggal = produkobj.Tanggal.strftime("%Y-%m-%d")
@@ -5511,7 +5754,8 @@ def update_transaksi_subkonbahan_masuk(request, id):
         produkobj.save()
         return redirect("transaksi_subkonbahan_masuk")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_transaksi_subkonbahan_masuk(request, id):
     produkobj = models.TransaksiBahanBakuSubkon.objects.get(IDTransaksiBahanBakuSubkon=id)
     produkobj.delete()
@@ -5520,6 +5764,8 @@ def delete_transaksi_subkonbahan_masuk(request, id):
 
 
 # Transaksi subkon produk keluar
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def transaksi_subkon_terima(request):
     produkobj = models.TransaksiSubkon.objects.all().order_by("-Tanggal")
     for i in produkobj:
@@ -5528,7 +5774,8 @@ def transaksi_subkon_terima(request):
         request, "produksi/read_transaksisubkon_terima.html", {"produkobj": produkobj}
     )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def create_transaksi_subkon_terima(request):
     produksubkon = models.ProdukSubkon.objects.all()
     if request.method == "GET":
@@ -5539,16 +5786,15 @@ def create_transaksi_subkon_terima(request):
         )
     else:
         tanggal = request.POST["tanggal"]
-        list_nama_kode = request.POST.getlist("nama_produk[]")
+        list_nama_kode = request.POST.getlist("kodebarangHidden")
         listjumlah = request.POST.getlist("jumlah[]")
 
+        print(list_nama_kode)
+
         for nama_kode, jumlah in zip(list_nama_kode,listjumlah):
-            nama_produk, kode_artikel = nama_kode.split(" Art. ")
 
             try:
-                produksubkonobj = models.ProdukSubkon.objects.get(
-                    NamaProduk=nama_produk,KodeArtikel__KodeArtikel=kode_artikel
-                )
+                produksubkonobj = models.ProdukSubkon.objects.get(IDProdukSubkon=nama_kode)
 
             except models.ProdukSubkon.DoesNotExist:
                 messages.error(request, "Kode Produk Subkon tidak ditemukan")
@@ -5564,7 +5810,8 @@ def create_transaksi_subkon_terima(request):
 
         return redirect("transaksi_subkon_terima")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_transaksi_subkon_terima(request, id):
     produkobj = models.TransaksiSubkon.objects.get(pk=id)
     produkobj.Tanggal = produkobj.Tanggal.strftime("%Y-%m-%d")
@@ -5577,13 +5824,12 @@ def update_transaksi_subkon_terima(request, id):
         )
     else:
         jumlah = request.POST["jumlah"]
-        nama_kode = request.POST["nama_produk"]
-        nama_produk, kode_artikel = nama_kode.split(" Art. ")
+        nama_kode = request.POST["kodebarangHidden"]
         tanggal = request.POST["tanggal"]
 
         try:
             produksubkonobj = models.ProdukSubkon.objects.get(
-                NamaProduk=nama_produk,KodeArtikel__KodeArtikel=kode_artikel
+                IDProdukSubkon=nama_kode
             )
         except models.ProdukSubkon.DoesNotExist:
             messages.error(request, "Kode Produk Subkon tidak ditemukan")
@@ -5596,14 +5842,16 @@ def update_transaksi_subkon_terima(request, id):
         produkobj.save()
         return redirect("transaksi_subkon_terima")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_transaksi_subkon_terima(request, id):
     produkobj = models.TransaksiSubkon.objects.get(IDTransaksiProdukSubkon=id)
     produkobj.delete()
     messages.success(request, "Data Berhasil dihapus")
     return redirect("transaksi_subkon_terima")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_saldobahansubkon(request):
     datasubkon = models.SaldoAwalBahanBakuSubkon.objects.all().order_by("-Tanggal")
     for i in datasubkon:
@@ -5613,7 +5861,8 @@ def view_saldobahansubkon(request):
         request, "produksi/view_saldobahansubkon.html", {"datasubkon": datasubkon}
     )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_saldobahansubkon(request):
     datasubkon = models.BahanBakuSubkon.objects.all()
     if request.method == "GET":
@@ -5638,7 +5887,7 @@ def add_saldobahansubkon(request):
         if existing_entry:
             # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
             messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("view_saldobahansubkon")
+            return redirect("add_saldobahansubkon")
         
         produkobj = models.BahanBakuSubkon.objects.get(KodeProduk=kodeproduk)
         pemusnahanobj = models.SaldoAwalBahanBakuSubkon(
@@ -5647,7 +5896,8 @@ def add_saldobahansubkon(request):
 
         return redirect("view_saldobahansubkon")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def update_saldobahansubkon(request, id):
     dataobj = models.SaldoAwalBahanBakuSubkon.objects.get(IDSaldoAwalBahanBakuSubkon=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -5663,6 +5913,20 @@ def update_saldobahansubkon(request, id):
         kodeproduk = request.POST["produk"]
         jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
+
+        # Ubah format tanggal menjadi YYYY-MM-DD
+        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
+        # Periksa apakah entri sudah ada
+        existing_entry = models.SaldoAwalBahanBakuSubkon.objects.filter(
+            Tanggal__year=tanggal_formatted.year,
+            IDBahanBakuSubkon__KodeProduk=kodeproduk,
+        ).exclude(IDSaldoAwalBahanBakuSubkon=id).exists()
+
+        if existing_entry:
+            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
+            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
+            return redirect("view_saldobahansubkon")
+        
         produkobj = models.BahanBakuSubkon.objects.get(KodeProduk=kodeproduk)
 
         dataobj.Tanggal = tanggal
@@ -5671,14 +5935,16 @@ def update_saldobahansubkon(request, id):
         dataobj.save()
         return redirect("view_saldobahansubkon")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def delete_saldobahansubkon(request, id):
     dataobj = models.SaldoAwalBahanBakuSubkon.objects.get(IDSaldoAwalBahanBakuSubkon=id)
 
     dataobj.delete()
     return redirect(view_saldobahansubkon)
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_ksbjsubkon(request):
     kodeproduk = models.ProdukSubkon.objects.all()
     print(kodeproduk)
@@ -5688,21 +5954,15 @@ def view_ksbjsubkon(request):
         """
         1. Cari 
         """
-        nama_kode = request.GET["kodebarang"]
-        print(request.GET)
-        # nama_produk, kode_artikel = nama_kode.split(" Art. ")
+        nama_kode = request.GET["kodebarangHidden"]
         
-
         try:
             produk = models.ProdukSubkon.objects.get(
                pk = nama_kode
-
             )
-
             nama = produk.NamaProduk
             satuan = produk.Unit
-
-        except models.ProdukSubkon.DoesNotExist:
+        except:
             messages.error(request, "Kode Produk Subkon tidak ditemukan")
             return redirect("ksbjsubkon")
         
@@ -5784,7 +6044,8 @@ def view_ksbjsubkon(request):
 
         return render(request, "produksi/view_ksbjsubkon.html",{"data":listdata,'saldo':saldoawal,"nama": nama,"satuan": satuan,"artikel":artikel,"kodeprodukobj": kodeproduk})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_ksbbsubkon(request):
     kodeproduk = models.BahanBakuSubkon.objects.all()
     if len(request.GET) == 0:
@@ -5874,6 +6135,3 @@ def view_ksbbsubkon(request):
             listdata.append(data)
 
         return render(request, "produksi/view_ksbbsubkon.html",{'data':listdata,'saldo':saldoawal,'kodebarang':request.GET["kodebarang"],"nama": nama,"satuan": satuan,"kodeprodukobj": kodeproduk})
-    
-
-#  Menyesuaikan Rekap Bahan Baku disesuaikan dengan jumlah penyesuaian Belum masuk

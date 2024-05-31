@@ -22,7 +22,12 @@
                             <div class="form-group">
                                 <div class="input-group">
                                     <input required type="text" class="form-control" placeholder="Masukkan Nama Artikel"
-                                        aria-label="Masukkan Nama Artikel" name="kodeartikel" value="{{kodeartikel}}">
+                                        aria-label="Masukkan Nama Artikel" name="kodeartikel" list="listartikel" value="{{kodeartikel}}">
+                                    <datalist id="listartikel">
+                                        {% for i in dataartikel %}
+                                        <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
+                                        {% endfor %}
+                                    </datalist>
                                 </div>
                             </div>
                         </div>
@@ -31,7 +36,6 @@
                                 <div class="input-group">
                                     <input type="number" name="tahun" class="form-control" placeholder="Masukan Tahun"
                                         value="{{tahun}}">
-
                                 </div>
                             </div>
                         </div>

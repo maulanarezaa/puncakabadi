@@ -13,7 +13,7 @@
             <div class="card-body">
                 <h4 class="card-title">Kartu Stok Bahan Baku : <span style="font-weight: lighter;">
                         {{kodebarang}}</span></h4>
-                <h4 class="card-title">Nama Barang : <span style="font-weight: lighter;">
+                <h4 class="card-title">Nama Bahan Baku : <span style="font-weight: lighter;">
                         {{nama}}</span></h4>
                 <h4 class="card-title">Satuan : <span style="font-weight: lighter;">
                         {{satuan}}</span></h4>
@@ -24,20 +24,18 @@
                             <div class="form-group">
                                 <input type="text" class="form-control" placeholder="Masukkan Kode Barangg"
                                     name="kodebarang" list="kodebarang" value="{{kodebarang}}" required>
-
                                 <datalist id="kodebarang">
                                     {% for i in kodeprodukobj %}
                                     <option value="{{i.KodeProduk}}">{{i.NamaProduk}} - {{i.unit}}</option>
                                     {% endfor %}
                                 </datalist>
-
                             </div>
                         </div>
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="number" class="form-control" value="tahun_bulan_sekarang"
-                                        placeholder="Masukkan Periode" min="2024" max="2200"
+                                    <input type="number" class="form-control" value="{{sekarang}}"
+                                        min="2024" max="2200"
                                         aria-label="Masukkan Periode" name="periode">
                                     <div class="input-group-append">
                                         <button class="btn btn-sm btn-primary" type="submit">Filter</button>
@@ -46,7 +44,6 @@
                             </div>
                         </div>
                     </div>
-
                     {% else %}
                     <div class="row">
                         <div class="col-lg-4">
@@ -58,7 +55,6 @@
                                         {% for i in kodeprodukobj %}
                                         <option value="{{i.KodeProduk}}">{{i.NamaProduk}}</option>
                                         {% endfor %}
-
                                     </datalist>
                                     <input type="month" name="periode" value="tahun_bulan_sekarang"
                                         style="display: none;">
