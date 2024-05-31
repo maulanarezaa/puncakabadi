@@ -88,5 +88,6 @@ def custom_error_500(request):
 
 
 def custom_error_404(request, exception):
+    print("test")
     print(exception)
     return render(request, "error/404.html")
