@@ -1625,16 +1625,14 @@ def gethargapurchasingperbulan(last_days, stopindex, awaltahun):
     return hargaakhirbulanperproduk
 
 
-def gethargaartikelfgperbulan(artikel, tanggal):
+def gethargaartikelfgperbulan(artikel, tanggal, hargaakhirbulanperproduk):
     last_days = []
     for month in range(1, 13):
             last_day = calendar.monthrange(tanggal.year, month)[1]
             last_days.append(date(tanggal.year, month, last_day))
 
 
-    hargaakhirbulanperproduk = gethargapurchasingperbulan(
-        last_days, tanggal.month, datetime(tanggal.year, 1, 1)
-    )
+   
     dataartikel = models.Artikel.objects.filter(KodeArtikel=artikel)
     datahargawipartikel = {}
     for artikel in dataartikel:
@@ -1692,16 +1690,14 @@ def gethargaartikelfgperbulan(artikel, tanggal):
 
 
 
-def gethargaartikelwipperbulan( artikel,tanggal):
+def gethargaartikelwipperbulan( artikel,tanggal,hargaakhirbulanperproduk):
     last_days = []
     for month in range(1, 13):
             last_day = calendar.monthrange(tanggal.year, month)[1]
             last_days.append(date(tanggal.year, month, last_day))
 
 
-    hargaakhirbulanperproduk = gethargapurchasingperbulan(
-        last_days, tanggal.month, datetime(tanggal.year, 1, 1)
-    )
+    
     dataartikel = models.Artikel.objects.filter(KodeArtikel=artikel)
     datahargawipartikel = {}
     for artikel in dataartikel:
@@ -2341,8 +2337,8 @@ def getstokartikelfg(last_days, stopindex, awaltahun):
             if cekmutasifg > cekmutasiwip:
                 # print('Mutasi FG Lebih baru dari pada WIP, Menggunakan harga WIP Terakhir')
                 cekmutasifg = cekmutasifgterakhir(dataartikel,cekmutasiwip)
-            datakomponenwip = gethargaartikelwipperbulan(dataartikel, cekmutasiwip)
-            datakomponenfg = gethargaartikelfgperbulan(dataartikel,cekmutasifg)
+            datakomponenwip = gethargaartikelwipperbulan(dataartikel, cekmutasiwip,hargaakhirbulanperproduk)
+            datakomponenfg = gethargaartikelfgperbulan(dataartikel,cekmutasifg,hargaakhirbulanperproduk)
 
 
             # print(datakomponenwip)
