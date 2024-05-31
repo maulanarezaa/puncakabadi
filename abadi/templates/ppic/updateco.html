@@ -41,7 +41,7 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Kepada</label>
               <div class="col-sm-9">
@@ -49,7 +49,24 @@
               </div>
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-4">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Status CO</label>
+              <div class="col-sm-9">
+                <select name="status" id="" class="form-control">
+                  {% if dataco.StatusAktif == True%}
+                  <option value="1" selected>Aktif</option>
+                  <option value="0">Non-Aktif</option>
+                  {% else %}
+                  <option value="0" selected>Aktif</option>
+                  <option value="1">Non-Aktif</option>
+                  {% endif %}
+
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Perihal</label>
               <div class="col-sm-9">

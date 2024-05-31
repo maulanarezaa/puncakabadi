@@ -23,4 +23,5 @@ urlpatterns = [
     path("rekapharga", viewsrnd.views_rekapharga, name="rekaphargarnd"),
     path("upload-excel", viewsrnd.uploadexcel, name="upload-excel"),
     path("read_bahanbaku", viewsrnd.read_produk, name="read_bahanbaku_rnd"),
+    path("trackingspk/<str:id>", viewsrnd.track_spk, name="trackingspkrnd"),
 ]

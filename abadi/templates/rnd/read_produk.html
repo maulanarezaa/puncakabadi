@@ -22,6 +22,7 @@
                                 <th>Keterangan RND</th>
                                 <th>Keterangan Gudang</th>
                                 <th>Keterangan Produksi</th>
+                                <th>Keterangan Purchasing</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -57,6 +58,14 @@
                                     {% else %}
 
                                     {{i.keteranganProduksi}}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if i.keteranganPurchasing == None %}
+                                    -
+                                    {% else %}
+
+                                    {{i.keteranganPurchasing}}
                                     {% endif %}
                                 </td>
                                 <td>

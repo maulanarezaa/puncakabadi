@@ -554,7 +554,7 @@ Revisi 4/21/2024
 
 
 def viewconfirmationorder(request):
-    data = models.confirmationorder.objects.filter(StatusAktif=True)
+    data = models.confirmationorder.objects.all()
 
     print(data)
     for i in data:
@@ -645,6 +645,7 @@ def updateco(request, id):
         nomorco = request.POST["nomorco"]
         kepada = request.POST["kepada"]
         perihal = request.POST["perihal"]
+        status = request.POST['status']
         artikel = request.POST.getlist("artikel[]")
         kuantitas = request.POST.getlist("kuantitas[]")
         harga = request.POST.getlist("harga[]")
@@ -654,6 +655,7 @@ def updateco(request, id):
         data.nomorco = nomorco
         data.kepada = kepada
         data.perihal = perihal
+        data.StatusAktif = status
 
         data.save()
 
@@ -2073,48 +2075,48 @@ def detaillaporanstokfg(request):
         )
 
 
-def cekmutasifgterakhir2(artikel, tanggaltes):
-    mutasifg = (
-        models.DetailSPPB.objects.filter(
-            DetailSPK__KodeArtikel=artikel, NoSPPB__Tanggal__lte=tanggaltes
-        )
-        .values_list("NoSPPB__Tanggal", flat=True)
-        .distinct()
-        .order_by("-NoSPPB__Tanggal")
-        .first()
-    )
+# def cekmutasifgterakhir2(artikel, tanggaltes):
+#     mutasifg = (
+#         models.DetailSPPB.objects.filter(
+#             DetailSPK__KodeArtikel=artikel, NoSPPB__Tanggal__lte=tanggaltes
+#         )
+#         .values_list("NoSPPB__Tanggal", flat=True)
+#         .distinct()
+#         .order_by("-NoSPPB__Tanggal")
+#         .first()
+#     )
   
-    print(asd)
+#     # print(asd)
 
-    if mutasifg:
-        if (
-            f"{mutasifg.month}-{mutasifg.year}"
-            == f"{tanggaltes.month}-{tanggaltes.year}"
-        ):
-            print(True, "Terdapat Mutasi FG")
-            if cekmutasiwip:
-                print("Mutasi FG Ada, Mutasi WIP Ada")
-                print("Menggunakan data harga Bulan ini")
-                return 1
-            else:
-                print("Mutasi FG Ada, Mutasi WIP Tidak ada")
-                print(
-                    "Harga WIP = Mutasi Harga WIP Terakhir, Harga FG = Harga WIP Terakhir"
-                )
-                return 2
-        else:
-            print("Mutasi FG Gaada")
-            print(
-                "Harga WIP = Mutasi Harga WIP Paling terakhir, Harga FG = Harga FG mutasi terakhir"
-            )
-            return 3
-    else:
-        print("Tidak ada data mutasi terekam pada database")
-        print("Pakai Harga WIP")
-        datapenyusunwip = perhitunganmutasiwipterakhir(artikel, tanggaltes)
-        print("\n\n", datapenyusunwip)
-        print(asd)
-        return False
+#     if mutasifg:
+#         if (
+#             f"{mutasifg.month}-{mutasifg.year}"
+#             == f"{tanggaltes.month}-{tanggaltes.year}"
+#         ):
+#             print(True, "Terdapat Mutasi FG")
+#             if cekmutasiwip:
+#                 print("Mutasi FG Ada, Mutasi WIP Ada")
+#                 print("Menggunakan data harga Bulan ini")
+#                 return 1
+#             else:
+#                 print("Mutasi FG Ada, Mutasi WIP Tidak ada")
+#                 print(
+#                     "Harga WIP = Mutasi Harga WIP Terakhir, Harga FG = Harga WIP Terakhir"
+#                 )
+#                 return 2
+#         else:
+#             print("Mutasi FG Gaada")
+#             print(
+#                 "Harga WIP = Mutasi Harga WIP Paling terakhir, Harga FG = Harga FG mutasi terakhir"
+#             )
+#             return 3
+#     else:
+#         print("Tidak ada data mutasi terekam pada database")
+#         print("Pakai Harga WIP")
+#         datapenyusunwip = perhitunganmutasiwipterakhir(artikel, tanggaltes)
+#         print("\n\n", datapenyusunwip)
+#         print(asd)
+#         return False
 
 def cekmutasifgterakhir(artikel, tanggaltes):
     mutasifg = (
@@ -2151,7 +2153,7 @@ def cekmutasiwipterakhir(artikel, tanggaltes):
 
 def gethargakomponenwipperartikel(artikel, tanggal):
     print(artikel, tanggal)
-    print(asd)
+    # print(asd)
 
     versiterakhirperbulan = (
         models.Penyusun.objects.filter(KodeArtikel=artikel, versi__lte=tanggal)
@@ -2980,7 +2982,7 @@ def exportlaporanbulananexcel(request):
         baranggudang,
         barangmasuk,
         totalbiayakeluar,
-        barangfg,
+        barangfg,bahanbakusisafg
     )
     print(barangmasuk)
 

@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 
 
 def allowed_users(allowed_roles=[]):
@@ -11,7 +11,7 @@ def allowed_users(allowed_roles=[]):
             if group in allowed_roles:
                 return view_func(request, *args, **kwargs)
             else:
-                return HttpResponse("Anda tidak memiliki otoritas mengkakses laman ini")
+                return render(request, "error/403.html")
 
         return wrapper_function
 

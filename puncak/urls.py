@@ -16,7 +16,10 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls import handler500, handler404
 
+handler500 = "abadi.viewslogin.custom_error_500"
+handler404 = "abadi.viewslogin.custom_error_404"
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("produksi/", include("abadi.urlsproduksi")),

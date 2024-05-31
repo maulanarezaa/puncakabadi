@@ -81,3 +81,12 @@ def register_view(request):
 @login_required
 def home_view(request):
     return render(request, "myapp/home.html")
+
+
+def custom_error_500(request):
+    return render(request, "error/500.html")
+
+
+def custom_error_404(request, exception):
+    print(exception)
+    return render(request, "error/404.html")
