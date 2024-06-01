@@ -28,7 +28,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Tanggal</label>
               <div class="col-sm-9">
-                <input type="date" class="form-control" name="tanggal" required />
+                <input type="date" class="form-control" name="tanggal" required id="tanggal"/>
               </div>
             </div>
           </div>
@@ -147,6 +147,14 @@
 
   // Initial call to add event listeners
   addEventListenersToInputs();
+</script>
+
+<script>
+  // Mendapatkan tanggal hari ini dalam format YYYY-MM-DD
+  var today = new Date().toISOString().split('T')[0];
+
+  // Mengatur nilai input tanggal ke tanggal hari ini
+  document.getElementById('tanggal').value = today;
 </script>
 {% endblock javascripts %}
 {% endblock content %}

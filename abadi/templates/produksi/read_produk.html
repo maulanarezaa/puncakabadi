@@ -1,6 +1,6 @@
 {% extends "produksi/base.html" %}
 {% load static %}
-
+{% load humanize %}
 <!-- Page content  -->
 {% block content %}
 
@@ -30,7 +30,7 @@
                                 <td>{{i.KodeProduk}}</td>
                                 <td>{{i.NamaProduk}}</td>
                                 <td>{{i.unit}}</td>
-                                <td>{{i.Jumlahminimal}}</td>
+                                <td>{{i.Jumlahminimal|intcomma}}</td>
                                 <td>{{i.keteranganProduksi}}</td>
                                 <td>
                                     <div class="template-demo">

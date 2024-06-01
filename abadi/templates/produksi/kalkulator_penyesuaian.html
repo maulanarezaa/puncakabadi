@@ -1,6 +1,6 @@
 {% extends "produksi/base.html" %}
 {% load static %}
-
+{% load humanize %}
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
@@ -91,13 +91,13 @@
                     <table class="table table-bordered" id="tabelksbb">
                         <thead>
                             <tr>
-                                <td>Tanggal</td>
-                                <td>Artikel</td>
-                                <td>Per Kotak</td>
-                                <td>Konversi</td>
-                                <td>Masuk</td>
-                                <td>Keluar</td>
-                                <td style="text-align:center;">Sisa</td>
+                                <th>Tanggal</th>
+                                <th>Artikel</th>
+                                <th>Per Kotak</th>
+                                <th>Konversi</th>
+                                <th>Masuk</th>
+                                <th>Keluar</th>
+                                <th style="text-align:center;">Sisa</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -114,7 +114,7 @@
                                 <td></td>
                                 <td></td>
 
-                                <td>{{saldo.Jumlah}}</td>
+                                <td>{{saldo.Jumlah|floatformat:2|intcomma}}</td>
 
                             </tr>
                             {% for i in data %}
@@ -137,25 +137,25 @@
                                 <td>
                                     <ul>
                                         {% for jumlah in i.Artikel %}
-                                        <li>{{jumlah.totalkeluar}}</li>
+                                        <li>{{jumlah.totalkeluar|floatformat:2|intcomma}}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>
                                 <td>
                                     <ul>
                                         {% for konversi in i.Artikel %}
-                                        <li>{{konversi.konversi}}</li>
+                                        <li>{{konversi.konversi|floatformat:4|intcomma}}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>
                                 <td>
-                                    {{i.Masuk}}
+                                    {{i.Masuk|floatformat:2|intcomma}}
                                 </td>
                                 <td>
                                     <ul>
                                         {% for keluar in i.Artikel %}
                                         <li>
-                                            {{keluar.konversikeluar}}
+                                            {{keluar.konversikeluar|floatformat:2|intcomma}}
                                         </li>
                                         {% endfor %}
                                     </ul>
@@ -165,7 +165,7 @@
 
                                         {% for sisa in i.Artikel %}
                                         <li>
-                                            {{sisa.sisa}}
+                                            {{sisa.sisa|floatformat:2|intcomma}}
                                         </li>
                                         {% endfor %}
                                     </ul>
@@ -193,7 +193,7 @@
                                         {{i}}
                                     </td>
                                     <td>
-                                        {{j}}
+                                        {{j|floatformat:2|intcomma}}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -215,7 +215,7 @@
                                         {{i}}
                                     </td>
                                     <td>
-                                        {{j}}
+                                        {{j|floatformat:2|intcomma}}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -225,13 +225,13 @@
                     <div class="col-lg-3">
                         <ul>
                             <li>
-                                Saldo Data {{datasisaminus}}
+                                Saldo Data {{datasisaminus|floatformat:2|intcomma}}
                             </li>
                             <li>
-                                Saldo Fisik {{jumlahaktual}}
+                                Saldo Fisik {{jumlahaktual|floatformat:2|intcomma}}
                             </li>
                             <li>
-                                Keluar data {{datajumlah}}
+                                Keluar data {{datajumlah|floatformat:2|intcomma}}
                             </li>
                         </ul>
                     </div>
@@ -250,7 +250,7 @@
                                         {{i}}
                                     </td>
                                     <td>
-                                        {{j}}
+                                        {{j|floatformat:2|intcomma}}
                                     </td>
                                 </tr>
                                 {% endfor %}

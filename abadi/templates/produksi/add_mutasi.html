@@ -27,7 +27,7 @@
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Tanggal</label>
                 <div class="col-sm-9">
-                  <input type="date" class="form-control" name="tanggal" />
+                  <input type="date" class="form-control" name="tanggal" id="tanggal" />
                 </div>
               </div>
             </div>
@@ -164,18 +164,6 @@
                               <div class="row">
                                 <div class="col-md-6">
                                   <div class="form-group row">
-                                    <label class="col-sm-3 col-form-label">Lokasi</label>
-                                    <div class="col-sm-9">
-                                        <select class="form-control" id="exampleSelectGender" name="nama_lokasi[]">
-                                            {% for i in nama_lokasi %}
-                                            <option value="{{i.IDLokasi}}">{{i.NamaLokasi}}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div class="col-md-6">
-                                  <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Keterangan</label>
                                     <div class="col-sm-9">
                                         <textarea class="form-control" name="keterangan[]" rows="3"></textarea>
@@ -217,6 +205,14 @@
           }
       });
   }
+</script>
+
+<script>
+  // Mendapatkan tanggal hari ini dalam format YYYY-MM-DD
+  var today = new Date().toISOString().split('T')[0];
+
+  // Mengatur nilai input tanggal ke tanggal hari ini
+  document.getElementById('tanggal').value = today;
 </script>
 {% endblock javascripts %}
 {% endblock content %}

@@ -28,7 +28,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Tanggal</label>
               <div class="col-sm-9">
-                <input required type="date" class="form-control" name="tanggal" required />
+                <input required type="date" class="form-control" name="tanggal" required id="tanggal"/>
               </div>
             </div>
           </div>
@@ -76,7 +76,7 @@
               </div>
               <div class="col-md-6">
                 <div class="form-group row">
-                  <label class="col-sm-3 col-form-label">Kode Artikel</label>
+                  <label class="col-sm-3 col-form-label">Artikel / Display</label>
                   <div class="col-sm-9" id="detail_spk_1">
                     {% include 'produksi/opsi_spk.html' %}
                   </div>
@@ -231,6 +231,14 @@
       }
     });
   }
+</script>
+
+<script>
+  // Mendapatkan tanggal hari ini dalam format YYYY-MM-DD
+  var today = new Date().toISOString().split('T')[0];
+
+  // Mengatur nilai input tanggal ke tanggal hari ini
+  document.getElementById('tanggal').value = today;
 </script>
 {% endblock javascripts %}
 {% endblock content %}

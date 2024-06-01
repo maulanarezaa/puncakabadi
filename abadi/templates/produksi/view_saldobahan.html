@@ -1,6 +1,6 @@
 {% extends "produksi/base.html" %}
 {% load static %}
-
+{% load humanize %}
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
@@ -28,8 +28,8 @@
             <thead>
               <tr>
                 <th>Tanggal</th>
-                <th>Kode Barang</th>
-                <th>Nama Barang</th>
+                <th>Kode Bahan Baku</th>
+                <th>Nama Bahan Baku</th>
                 <th>Lokasi</th>
                 <th>Jumlah</th>
                 <th>Harga</th>
@@ -43,8 +43,8 @@
                 <td>{{i.IDBahanBaku.KodeProduk}}</td>
                 <td>{{i.IDBahanBaku.NamaProduk}}</td>
                 <td>{{i.IDLokasi}}</td>
-                <td>{{i.Jumlah}}</td>
-                <td>{{i.Harga}}</td>
+                <td>{{i.Jumlah|intcomma}}</td>
+                <td>Rp{{i.Harga|intcomma}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   <div class="template-demo">

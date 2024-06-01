@@ -253,6 +253,11 @@
     deleteForm.action = "deletedetaildisplay/" + id;
     $('#confirmDeleteModal').modal('show');
   }
+
+  function deleteRow(button) {
+    button.closest('.row').remove();
+  }
+
 </script>
 {% endblock javascripts %}
 

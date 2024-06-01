@@ -1,5 +1,6 @@
 {% extends "produksi/base.html" %}
 {% load static %}
+{% load humanize %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -26,7 +27,7 @@
                 <tr>
                     <th>Tanggal</th>
                     <th>Lokasi</th>
-                    <th>Kode Produk</th>
+                    <th>Kode Bahan Baku</th>
                     <th>Jumlah</th>
                     <th>Keterangan</th>
                     <th>Status</th>
@@ -43,7 +44,7 @@
                       <td>Gudang - FG</td>
                     {% endif %}
                     <td>{{i.KodeProduk}}</td>
-                    <td>{{i.retur}}</td>
+                    <td>{{i.retur|intcomma}}</td>
                     <td>{{i.keterangan}}</td>
                     <td>
                       {% if i.KeteranganACC == True %}
@@ -110,7 +111,7 @@
   function confirmDelete(id) {
       console.log(id)
       var deleteForm = document.getElementById('deleteForm');
-      deleteForm.action = "deletegudang/" + id;
+      deleteForm.action = "deletegudangretur/" + id;
       $('#confirmDeleteModal').modal('show');
   }
 </script>

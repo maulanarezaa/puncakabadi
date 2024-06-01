@@ -1,5 +1,6 @@
 {% extends "produksi/base.html" %}
 {% load static %}
+{% load humanize %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -40,7 +41,7 @@
                 <td>{{i.Tanggal}}</td>
                 <td>{{i.IDArtikel.KodeArtikel}}</td>
                 <td>{{i.IDLokasi}}</td>
-                <td>{{i.Jumlah}}</td>
+                <td>{{i.Jumlah|intcomma}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   <div class="template-demo">

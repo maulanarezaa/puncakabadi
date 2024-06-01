@@ -1,5 +1,7 @@
 {% extends "produksi/base.html" %}
 {% load static %}
+{% load humanize %}
+
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -34,8 +36,7 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="number" class="form-control" value="{{sekarang}}"
-                                        min="2024" max="2200"
+                                    <input type="number" class="form-control" value="{{tahun}}"
                                         aria-label="Masukkan Periode" name="periode">
                                     <div class="input-group-append">
                                         <button class="btn btn-sm btn-primary" type="submit">Filter</button>
@@ -56,8 +57,6 @@
                                         <option value="{{i.KodeProduk}}">{{i.NamaProduk}}</option>
                                         {% endfor %}
                                     </datalist>
-                                    <input type="month" name="periode" value="tahun_bulan_sekarang"
-                                        style="display: none;">
                                     <div class="input-group-append">
                                         <button class="btn btn-sm btn-primary" type="submit">Search</button>
                                     </div>
@@ -96,7 +95,7 @@
                                 <td></td>
                                 <td></td>
 
-                                <td>{{saldo.Jumlah}}</td>
+                                <td>{{saldo.Jumlah|floatformat:2|intcomma}}</td>
 
                             </tr>
                             {% for i in data %}
@@ -119,25 +118,25 @@
                                 <td>
                                     <ul>
                                         {% for jumlah in i.Perkotak %}
-                                        <li>{{jumlah}}</li>
+                                        <li>{{jumlah|floatformat:2|intcomma}}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>
                                 <td>
                                     <ul>
                                         {% for konversi in i.Konversi %}
-                                        <li>{{konversi}}</li>
+                                        <li>{{konversi|floatformat:4|intcomma}}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>
                                 <td>
-                                    {{i.Masuk}}
+                                    {{i.Masuk|floatformat:2|intcomma}}
                                 </td>
                                 <td>
                                     <ul>
                                         {% for keluar in i.Keluar %}
                                         <li>
-                                            {{keluar}}
+                                            {{keluar|floatformat:2|intcomma}}
                                         </li>
                                         {% endfor %}
                                     </ul>
@@ -147,7 +146,7 @@
 
                                         {% for sisa in i.Sisa %}
                                         <li>
-                                            {{sisa}}
+                                            {{sisa|floatformat:2|intcomma}}
                                         </li>
 
                                         {% endfor %}

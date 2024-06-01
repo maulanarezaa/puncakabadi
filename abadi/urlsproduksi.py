@@ -228,11 +228,6 @@ urlpatterns = [
         viewsproduksi.kalkulatorpenyesuaian2,
         name="kalkulatorpenyesuaian",
     ),
-    path(
-        "kalkulatorpenyesuaian2",
-        viewsproduksi.kalkulatorpenyesuaian2,
-        name="kalkulatorpenyesuaian2",
-    ),
     path("viewsaldobahanbaku", viewsproduksi.view_saldobahan, name="view_saldobahan"),
     path("viewsaldoartikel", viewsproduksi.view_saldoartikel, name="view_saldoartikel"),
     path(

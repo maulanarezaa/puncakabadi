@@ -1,6 +1,6 @@
 {% extends "produksi/base.html" %}
 {% load static %}
-
+{% load humanize %}
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
@@ -40,7 +40,7 @@
                 <td>{{i.Tanggal}}</td>
                 <td>{{i.IDProdukSubkon.NamaProduk}}</td>
                 <td>{{i.IDProdukSubkon.KodeArtikel.KodeArtikel}}</td>
-                <td>{{i.Jumlah}}</td>
+                <td>{{i.Jumlah|intcomma}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   <div class="template-demo">

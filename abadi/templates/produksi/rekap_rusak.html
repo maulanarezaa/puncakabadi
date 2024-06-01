@@ -1,5 +1,6 @@
 {% extends "produksi/base.html" %}
 {% load static %}
+{% load humanize %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -32,7 +33,7 @@
               <div class="col-lg-4">
                   <div class="form-group">
                       <div class="input-group">
-                          <input required type="date" class="form-control"  value="{{tanggal_akhir}}" placeholder="Masukkan Periode" min="2024" max="2200"
+                          <input required type="date" class="form-control"  value="{{tanggal_akhir}}" placeholder="Masukkan Periode" min="2024" id="tanggal"
                               aria-label="Masukkan Periode" name="periode">
                           <div class="input-group-append">
                               <button class="btn btn-sm btn-primary"  type="submit">Filter</button>
@@ -59,7 +60,7 @@
                     <tr>
                       <td>{{i.KodeBahanBaku}}</td>
                       <td>{{i.KodeBahanBaku__NamaProduk}}</td>
-                      <td>{{i.kuantitas}}</td>
+                      <td>{{i.kuantitas|intcomma}}</td>
                     </tr>
                     {% endfor %}
                   </tbody>
@@ -80,7 +81,7 @@
                     {% for i in dataartikel %}
                     <tr>
                       <td>{{i.KodeArtikel__KodeArtikel}}</td>
-                      <td>{{i.kuantitas}}</td>
+                      <td>{{i.kuantitas|intcomma}}</td>
                     </tr>
                     {% endfor %}
                   </tbody>
@@ -92,4 +93,12 @@
       </div>
     </div>
 </div>
+
+<script>
+  // Mendapatkan tanggal hari ini dalam format YYYY-MM-DD
+  var today = new Date().toISOString().split('T')[0];
+
+  // Mengatur nilai input tanggal ke tanggal hari ini
+  document.getElementById('tanggal').value = today;
+</script>
 {% endblock content %}
