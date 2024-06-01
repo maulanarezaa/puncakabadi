@@ -5,6 +5,7 @@
 {% block stylesheets %}
 {% endblock stylesheets %}
 
+{% load humanize %}
 
 
 <!-- Page content  -->
@@ -44,9 +45,13 @@
 
         <div class="table-responsive pt-3">
           {% if data %}
-          <table class="table table-bordered">
+          <table class="table table-bordered" id="tabelfilterbarangkeluar">
             <thead>
               <tr>
+                <td>No</td>
+                <td>Tanggal</td>
+                <td>NO SPPB</td>
+                <td>NO SPK</td>
                 <td>Artikel</td>
                 <td>Jumlah</td>
                 <td>Nilai FG (Rp)</td>
@@ -56,14 +61,21 @@
             <tbody>
               {% for i in data %}
               <tr>
-                <td>{{i.kode_artikel}}</td>
-                <td>{{i.jumlah}}</td>
-                <td>{{i.harga_fg}}</td>
-                <td>{{i.nilai_total}}</td>
+                <td>{{forloop.counter}}</td>
+                <td>{{i.NoSPPB.Tanggal}}</td>
+                <td>{{i.NoSPPB}}</td>
+                <td>{{i.DetailSPK.NoSPK}}</td>
+                <td>{{i.DetailSPK.KodeArtikel}}</td>
+                <td>{{i.Jumlah}}</td>
+                <td>{{i.HargaFG | intcomma}}</td>
+                <td>{{i.TotalBiayaKeluar}}</td>
               </tr>
               {% endfor %}
               <tr>
                 <td>Total Harga</td>
+                <td></td>
+                <td></td>
+                <td></td>
                 <td></td>
                 <td></td>
                 <td>{{grandtotal}}</td>

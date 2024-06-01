@@ -4,7 +4,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
-
+{% load humanize %}
 
 
 <!-- Page content  -->
@@ -44,7 +44,8 @@
 
                 <div class="table-responsive pt-3">
                     {% if data %}
-                    <table class="table table-bordered">
+
+                    <table class="table table-bordered" id="tabelstokfg">
                         <thead>
                             <tr>
                                 <td>Artikel</td>
@@ -57,16 +58,16 @@
                             {% for i in data %}
                             <tr>
                                 <td>{{i.KodeArtikel}}</td>
-                                <td>{{i.Jumlahakumulasi}}</td>
-                                <td>{{i.HargaFG}}</td>
-                                <td>{{i.NilaiTotal}}</td>
+                                <td>{{i.total}}</td>
+                                <td>{{i.biayafg|floatformat:2|intcomma}}</td>
+                                <td>{{i.hargatotal|floatformat:2|intcomma}}</td>
                             </tr>
                             {% endfor %}
                             <tr>
                                 <td>Grand Total</td>
                                 <td></td>
                                 <td></td>
-                                <td>{{grandtotal}}</td>
+                                <td>{{grandtotal|floatformat:2|intcomma}}</td>
                             </tr>
                         </tbody>
                     </table>
