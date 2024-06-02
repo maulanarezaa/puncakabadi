@@ -22,87 +22,87 @@
       <br>
       <form class="form-sample" action="" method="post">
         {% csrf_token %}
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Tanggal</label>
+              <div class="col-sm-9">
+                <input required type="date" class="form-control" name="tanggal" id="tanggal" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <h4 class="card-title">Detail Transaksi Barang Retur</h4>
+        <div id="artikels">
+          <div class="row artikel"> <!-- Added class artikel -->
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label" for="produk_1">Bahan Baku 1:</label>
+                <div class="col-sm-9">
+                  <input required type="text" class="form-control" name="kode_produk[]" list="listproduk">
+                  <datalist id="listproduk">
+                    {% for i in kode_produk %}
+                    <option value="{{i.KodeProduk}}">{{i.KodeProduk}} / {{i.NamaProduk}}</option>
+                    {% endfor %}
+                  </datalist>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Jumlah</label>
+                <div class="col-sm-9">
+                  <input required min="0" type="number" class="form-control" name="jumlah[]" />
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="row">
             <div class="col-md-6">
               <div class="form-group row">
-                <label class="col-sm-3 col-form-label">Tanggal</label>
+                <label class="col-sm-3 col-form-label">Lokasi Asal</label>
                 <div class="col-sm-9">
-                  <input required type="date" class="form-control" name="tanggal" />
+                  <select required class="form-control" id="exampleSelectGender" name="nama_lokasi[]">
+                    {% for i in nama_lokasi %}
+                    <option value="{{i.IDLokasi}}">{{i.NamaLokasi}}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Keterangan</label>
+                <div class="col-sm-9">
+                  <textarea class="form-control" name="keterangan[]" rows="3"></textarea>
                 </div>
               </div>
             </div>
           </div>
-          <h4 class="card-title">Detail Transaksi Barang Retur</h4>
-          <div id="artikels">
-            <div class="row artikel"> <!-- Added class artikel -->
-              <div class="col-md-6">
-                <div class="form-group row">
-                  <label class="col-sm-3 col-form-label" for="produk_1">Bahan Baku 1:</label>
-                  <div class="col-sm-9">
-                      <input required type="text" class="form-control" name="kode_produk[]" list="listproduk" >
-                      <datalist  id="listproduk">
-                          {% for i in kode_produk %}
-                          <option value="{{i.KodeProduk}}">{{i.KodeProduk}} / {{i.NamaProduk}}</option>
-                          {% endfor %}
-                      </datalist>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="form-group row">
-                  <label class="col-sm-3 col-form-label">Jumlah</label>
-                  <div class="col-sm-9">
-                    <input required min="0" type="number" class="form-control" name="jumlah[]"/>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6">
-                <div class="form-group row">
-                  <label class="col-sm-3 col-form-label">Lokasi</label>
-                  <div class="col-sm-9">
-                      <select required class="form-control" id="exampleSelectGender" name="nama_lokasi[]">
-                          {% for i in nama_lokasi %}
-                          <option value="{{i.IDLokasi}}">{{i.NamaLokasi}}</option>
-                          {% endfor %}
-                      </select>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="form-group row">
-                  <label class="col-sm-3 col-form-label">Keterangan</label>
-                  <div class="col-sm-9">
-                    <textarea class="form-control" name="keterangan[]" rows="3"></textarea>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <br><br>
+          <br><br>
+        </div>
+        <div class="row">
+          <div class="col-auto mr-auto">
+            <button type="button" class="btn btn-success" onclick="addProduct()">
+              <i class="typcn typcn-plus btn-icon-prepend"></i>
+              Tambahkan Produk
+            </button>
           </div>
-          <div class="row">
-            <div class="col-auto mr-auto">
-              <button type="button" class="btn btn-success" onclick="addProduct()">
-                <i class="typcn typcn-plus btn-icon-prepend"></i>
-                Tambahkan Produk
-              </button>
-            </div>
-            <div class="col-auto"><button type="submit" class="btn btn-primary mr-2">Submit</button></div>            
-          </div>
-        </form>
-      </div>
+          <div class="col-auto"><button type="submit" class="btn btn-primary mr-2">Submit</button></div>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
 
 {% block javascripts %}
 <script>
-    function addProduct() {
-        let productCounter = document.querySelectorAll('.artikel').length + 1;
-        const productRow = document.createElement('div');
-        productRow.className = "col artikel"; // Added class artikel
-        productRow.id = `produk_${productCounter}`;
-        productRow.innerHTML = `<div class="row">
+  function addProduct() {
+    let productCounter = document.querySelectorAll('.artikel').length + 1;
+    const productRow = document.createElement('div');
+    productRow.className = "artikel"; // Added class artikel
+    productRow.id = `produk_${productCounter}`;
+    productRow.innerHTML = `<div class="row">
                                   <div class="col-md-6">
                                     <div class="form-group row">
                                       <label class="col-sm-3 col-form-label" for="produk_${productCounter}">Bahan Baku ${productCounter}:</label>
@@ -153,12 +153,20 @@
                                 </div>
                                 <br><br>`;
 
-        document.getElementById('artikels').appendChild(productRow);
-    }
+    document.getElementById('artikels').appendChild(productRow);
+  }
 
-    function deleteRow(button) {
-        button.closest('.artikel').remove(); // Changed .col to .artikel
-    }
+  function deleteRow(button) {
+    button.closest('.artikel').remove(); // Changed .col to .artikel
+  }
+</script>
+
+<script>
+  // Mendapatkan tanggal hari ini dalam format YYYY-MM-DD
+  var today = new Date().toISOString().split('T')[0];
+
+  // Mengatur nilai input tanggal ke tanggal hari ini
+  document.getElementById('tanggal').value = today;
 </script>
 {% endblock javascripts %}
 {% endblock content %}

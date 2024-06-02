@@ -155,6 +155,7 @@ class KonversiMaster(models.Model):
     IDKodeKonversiMaster = models.AutoField(primary_key=True)
     KodePenyusun = models.ForeignKey(Penyusun, on_delete=models.CASCADE)
     Kuantitas = models.FloatField()
+    Allowance = models.FloatField(default=0)
     lastedited = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
@@ -407,7 +408,7 @@ class TransaksiSubkon(models.Model):
 
     def __str__(self):
         return str(self.IDProdukSubkon.NamaProduk) + "-" + str(self.Tanggal)
-    
+
 
 class SaldoAwalBahanBakuSubkon(models.Model):
     IDSaldoAwalBahanBakuSubkon = models.AutoField(primary_key=True)

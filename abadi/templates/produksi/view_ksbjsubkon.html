@@ -1,5 +1,6 @@
 {% extends "produksi/base.html" %}
 {% load static %}
+{% load humanize %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -26,7 +27,7 @@
                                     <input type="text" class="form-control" placeholder="Masukkan Nama Produk Subkon"
                                         aria-label="Masukkan Nama Produk Subkon" list="kodebarang"
                                         id="kodebarangInput" value="{{nama}} {{artikel}}">
-                                    <input type="hidden" name="kodebarangHidden" id="kodebarangHidden">
+                                    <input type="hidden" name="kodebarangHidden" id="kodebarangHidden" value="{{produk.IDProdukSubkon}}">
                                     <datalist id="kodebarang">
                                         {% for i in kodeprodukobj %}
                                         <option data-id="{{i.IDProdukSubkon}}" value="{{i.NamaProduk}} {{i.KodeArtikel}}"></option>
@@ -96,7 +97,7 @@
                                 </td>
                                 <td></td>
                                 <td></td>
-                                <td>{{saldo.Jumlah}}</td>
+                                <td>{{saldo.Jumlah|intcomma}}</td>
                             </tr>
                             {% for i in data %}
                             <tr>
@@ -104,13 +105,13 @@
                                     {{i.Tanggal}}
                                 </td>
                                 <td>
-                                    {{i.Masuk}}
+                                    {{i.Masuk|intcomma}}
                                 </td>
                                 <td>
-                                    {{i.Keluar}}
+                                    {{i.Keluar|intcomma}}
                                 </td>
                                 <td>
-                                    {{i.Sisa}}
+                                    {{i.Sisa|intcomma}}
                                 </td>
                             </tr>
                             {% endfor %}

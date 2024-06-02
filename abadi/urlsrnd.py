@@ -1,6 +1,5 @@
 from django.urls import path
 from . import viewsrnd
-from .viewsproduksi import views_ksbj
 
 urlpatterns = [
     path("", viewsrnd.dashboard, name="dashboardrnd"),

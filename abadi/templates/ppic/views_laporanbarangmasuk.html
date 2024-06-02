@@ -20,9 +20,10 @@
                         <label for="tanggalawal">Tanggal Awal</label>
                         {% if tanggalawal%}
                         <input type="date" class="form-control mb-2 mr-sm-2 ml-2" id="tanggalawal" name="tanggalawal"
-                            value="{{tanggalawal}}">
+                            value="{{tanggalawal}}" required>
                         {% else %}
-                        <input type="date" class="form-control mb-2 mr-sm-2 ml-2" id="tanggalawal" name="tanggalawal">
+                        <input type="date" class="form-control mb-2 mr-sm-2 ml-2" id="tanggalawal" name="tanggalawal"
+                            required>
                         {% endif %}
                     </div>
                     <div class="form-group">
@@ -31,24 +32,17 @@
                         <div class="input-group mb-2 mr-sm-2 ml-2">
                             {% if tanggalakhir %}
                             <input type="date" class="form-control" id="tanggalakhir" placeholder="Username"
-                                name="tanggalakhir" value="{{tanggalakhir}}">
+                                name="tanggalakhir" value="{{tanggalakhir}}" required>
                             {% else %}
                             <input type="date" class="form-control" id="tanggalakhir" placeholder="Username"
-                                name="tanggalakhir">
+                                name="tanggalakhir" required>
                             {% endif %}
                         </div>
                     </div>
 
                     <button type="submit" class="btn btn-primary mb-2">Submit</button>
                 </form>
-                {% if data %}
-                <form method="post" action="{% url  'laporanbarangmasukexcel' %}">
-                    {% csrf_token %}
-                    <input type="text" value="{{tanggalawal}}" hidden name="tanggalawal">
-                    <input type="text" name="tanggalakhir" value="{{tanggalakhir}}" id="" hidden>
-                    <button type="submit" class="btn btn-primary mb-2" hidden>Cetak Excel</button>
-                </form>
-                {% endif %}
+
                 </a>
 
                 <div class="table-responsive pt-3">

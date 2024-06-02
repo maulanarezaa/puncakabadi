@@ -67,8 +67,8 @@
                 <td>{{i.DetailSPK.NoSPK}}</td>
                 <td>{{i.DetailSPK.KodeArtikel}}</td>
                 <td>{{i.Jumlah}}</td>
-                <td>{{i.HargaFG | intcomma}}</td>
-                <td>{{i.TotalBiayaKeluar}}</td>
+                <td>{{i.HargaFG|floatformat:2|intcomma}}</td>
+                <td>{{i.TotalBiayaKeluar|floatformat:2|intcomma}}</td>
               </tr>
               {% endfor %}
               <tr>
@@ -78,7 +78,8 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                <td>{{grandtotal}}</td>
+                <td></td>
+                <td>{{grandtotal| intcomma |floatformat:2}}</td>
               </tr>
             </tbody>
           </table>

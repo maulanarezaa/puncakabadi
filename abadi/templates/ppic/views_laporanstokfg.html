@@ -16,25 +16,17 @@
                 <h4 class="card-title">Laporan Stok Finish Good</h4>
 
                 <form class="form-inline" method="get">
-                    <div class="form-group">
-                        <label for="tanggalawal">Tanggal Awal</label>
-                        {% if tanggalawal%}
-                        <input type="date" class="form-control mb-2 mr-sm-2 ml-2" id="tanggalawal" name="tanggalawal"
-                            value="{{tanggalawal}}">
-                        {% else %}
-                        <input type="date" class="form-control mb-2 mr-sm-2 ml-2" id="tanggalawal" name="tanggalawal">
-                        {% endif %}
-                    </div>
+
                     <div class="form-group">
 
                         <label for="tanggalakhir">Tanggal Akhir</label>
                         <div class="input-group mb-2 mr-sm-2 ml-2">
                             {% if tanggalakhir %}
                             <input type="date" class="form-control" id="tanggalakhir" placeholder="Username"
-                                name="tanggalakhir" value="{{tanggalakhir}}">
+                                name="tanggalakhir" value="{{tanggalakhir}}" required>
                             {% else %}
                             <input type="date" class="form-control" id="tanggalakhir" placeholder="Username"
-                                name="tanggalakhir">
+                                name="tanggalakhir" required>
                             {% endif %}
                         </div>
                     </div>

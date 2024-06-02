@@ -31,12 +31,12 @@
               </div>
             </div>
           </div>
-          
+
         </div>
         <div class="row">
           <div class="col-md-6">
             <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Produk</label>
+              <label class="col-sm-3 col-form-label">Bahan Baku</label>
               <div class="col-sm-9">
                 <input type="text" name="produk" list="listartikel" class="form-control" required>
                 <datalist id="listartikel">
@@ -59,22 +59,22 @@
               </div>
             </div>
           </div>
-          
+
         </div>
         <div class="row">
           <div class="col-md-6">
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Jumlah</label>
               <div class="col-sm-9">
-                <input type="number" class="form-control" name="jumlah" required />
+                <input type="number" min="0" class="form-control" name="jumlah" required />
               </div>
             </div>
           </div>
           <div class="col-md-6">
             <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Harga</label>
+              <label class="col-sm-3 col-form-label">Harga Satuan</label>
               <div class="col-sm-9">
-                <input type="number" class="form-control" name="harga" required />
+                <input type="number" min="0" class="form-control" name="harga" required />
               </div>
             </div>
           </div>

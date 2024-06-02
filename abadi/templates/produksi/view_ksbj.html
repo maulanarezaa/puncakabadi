@@ -1,5 +1,7 @@
 {% extends "produksi/base.html" %}
 {% load static %}
+{% load humanize %}
+
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -22,7 +24,8 @@
                             <div class="form-group">
                                 <div class="input-group">
                                     <input required type="text" class="form-control" placeholder="Masukkan Nama Artikel"
-                                        aria-label="Masukkan Nama Artikel" name="kodeartikel" list="listartikel" value="{{kodeartikel}}">
+                                        aria-label="Masukkan Nama Artikel" name="kodeartikel" list="listartikel"
+                                        value="{{kodeartikel}}">
                                     <datalist id="listartikel">
                                         {% for i in dataartikel %}
                                         <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
@@ -105,7 +108,7 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td>{{saldoawal.Jumlah}}</td>
+                                <td>{{saldoawal.Jumlah|floatformat:0|intcomma}}</td>
                             </tr>
                             {% for i in listdata %}
                             <tr>
@@ -127,10 +130,10 @@
 
                                 </td>
                                 <td>{{i.Kodeproduk.KodeProduk.KodeProduk}}</td>
-                                <td>{{i.Masuklembar}}</td>
-                                <td>{{i.Masukkonversi}}</td>
-                                <td>{{i.Hasil}}</td>
-                                <td>{{i.Sisa}}</td>
+                                <td>{{i.Masuklembar|floatformat:0|intcomma}}</td>
+                                <td>{{i.Masukkonversi|floatformat:0|intcomma}}</td>
+                                <td>{{i.Hasil|floatformat:0|intcomma}}</td>
+                                <td>{{i.Sisa|floatformat:0|intcomma}}</td>
                             </tr>
 
                             {% endfor %}

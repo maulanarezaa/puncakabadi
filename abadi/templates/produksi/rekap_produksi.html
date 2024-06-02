@@ -1,5 +1,6 @@
 {% extends "produksi/base.html" %}
 {% load static %}
+{% load humanize %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -20,7 +21,7 @@
               <div class="col-lg-4">
                   <div class="form-group">
                       <div class="input-group">
-                          <input required type="number" class="form-control"  value="tahun_bulan_sekarang" placeholder="Masukkan Periode" min="2024" max="2200"
+                          <input required type="number" class="form-control"  placeholder="Masukkan Periode" value="{{ tahun }}" min="2024" id="tanggal"
                               aria-label="Masukkan Periode" name="periode">
                           <div class="input-group-append">
                               <button class="btn btn-sm btn-primary"  type="submit">Filter</button>
@@ -56,9 +57,9 @@
                             <th>WIP</th>
                             {% for i in item.1 %}
                                 {% if i.Sisa < 0 %}
-                                <td style="background-color: red;">{{i.Sisa}}</td>
+                                <td style="background-color: red;">{{i.Sisa|floatformat:2|intcomma}}</td>
                                 {% elif i.Sisa == 0 %}
-                                <td style="background-color: yellow;">{{i.Sisa}}</td>
+                                <td style="background-color: yellow;">{{i.Sisa|floatformat:2|intcomma}}</td>
                                 {% else %}
                                 <td>{{ i.Sisa }}</td>
                                 {% endif %}
@@ -68,9 +69,9 @@
                             <th>FG</th>
                             {% for i in item.2 %}
                                 {% if i.Sisa < 0 %}
-                                <td style="background-color: red;">{{i.Sisa}}</td>
+                                <td style="background-color: red;">{{i.Sisa|floatformat:2|intcomma}}</td>
                                 {% elif i.Sisa == 0 %}
-                                <td style="background-color: yellow;">{{i.Sisa}}</td>
+                                <td style="background-color: yellow;">{{i.Sisa|floatformat:2|intcomma}}</td>
                                 {% else %}
                                 <td>{{ i.Sisa }}</td>
                                 {% endif %}
@@ -80,9 +81,9 @@
                             <th>Total</th>
                             {% for i in item.3 %}
                                 {% if i.Sisa < 0 %}
-                                <td style="background-color: red;">{{i.Sisa}}</td>
+                                <td style="background-color: red;">{{i.Sisa|floatformat:2|intcomma}}</td>
                                 {% elif i.Sisa == 0 %}
-                                <td style="background-color: yellow;">{{i.Sisa}}</td>
+                                <td style="background-color: yellow;">{{i.Sisa|floatformat:2|intcomma}}</td>
                                 {% else %}
                                 <td>{{ i.Sisa }}</td>
                                 {% endif %}

@@ -1,9 +1,9 @@
 <select class="form-control" name="detail_spk[]">
-    <option value="">Masukkan Kode Artikel</option>
+    <option value="">Masukkan Kode</option>
 
     {% for i in detailspk %}
     {% if i.NoSPK.StatusDisplay == True %}
-    <option value="{{i.IDDetailSPK}}">{{i.KodeDisplay}} - {{i.IDDetailSPK}}</option>
+    <option value="{{i.IDDetailSPK}}">{{i.KodeDisplay}}</option>
     {% else %}
     <option value="{{i.IDDetailSPK}}">{{i.KodeArtikel}}</option>
     {% endif %}

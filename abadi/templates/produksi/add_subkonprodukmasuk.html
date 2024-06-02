@@ -26,8 +26,8 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">No. Surat Jalan</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="nosuratjalan" placeholder="Masukkan Nomor Surat Jalan"
-                  list="suratjalan" />
+                <input type="text" required class="form-control" name="nosuratjalan"
+                  placeholder="Masukkan Nomor Surat Jalan" list="suratjalan" />
                 <datalist id="suratjalan">
                   {% for i in detailsk %}
                   <option value="{{i.IDSubkonKirim}}">{{i.Tanggal}}</option>
@@ -40,7 +40,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Tanggal</label>
               <div class="col-sm-9">
-                <input type="date" class="form-control" name="tanggal" required />
+                <input type="date" class="form-control" name="tanggal" required id="tanggal" />
               </div>
             </div>
           </div>
@@ -49,19 +49,19 @@
         <h4 class="card-title">Detail Surat Jalan Terima Produk Subkon</h4>
 
         <div id="products"><!-- Div ini ditambahkan untuk menampung produk yang ditambahkan dinamis -->
-          <div class="row">
+          <div class="row product-row">
             <div class="col-md-4">
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Produk</label>
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" placeholder="Masukkan Nama Produk Subkon"
-                    aria-label="Masukkan Nama Produk Subkon" list="kodebarang"
+                  <input required type="text" class="form-control kodebarang-input"
+                    placeholder="Masukkan Nama Produk Subkon" aria-label="Masukkan Nama Produk Subkon" list="kodebarang"
                     id="kodebarangInput_1">
                   <input type="hidden" name="kodebarangHidden" id="kodebarangHidden_1">
                   <datalist id="kodebarang">
-                      {% for i in getproduk %}
-                      <option data-id="{{i.IDProdukSubkon}}" value="{{i.NamaProduk}} {{i.KodeArtikel}}"></option>
-                      {% endfor %}
+                    {% for i in getproduk %}
+                    <option data-id="{{i.IDProdukSubkon}}" value="{{i.NamaProduk}} {{i.KodeArtikel}}"></option>
+                    {% endfor %}
                   </datalist>
                 </div>
               </div>
@@ -78,15 +78,17 @@
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Ket.</label>
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" name="keterangan" id="ket" required />
+                  <input type="text" required class="form-control" name="keterangan" id="ket" />
                 </div>
               </div>
             </div>
+
           </div>
         </div>
         <div class="row">
           <div class="col-auto mr-auto">
-            <button type="button" class="btn btn-success" onclick="addProduct()"><i class="typcn typcn-plus btn-icon-prepend"></i>Tambahkan Produk</button>
+            <button type="button" class="btn btn-success" onclick="addProduct()"><i
+                class="typcn typcn-plus btn-icon-prepend"></i>Tambahkan Produk</button>
           </div>
           <div class="col-auto">
             <button type="submit" class="btn btn-primary ml-5">Submit</button>
@@ -151,7 +153,7 @@
 
   function addEventListenersToInputs() {
     const inputs = document.querySelectorAll('.kodebarang-input');
-    inputs.forEach((input, index) => {
+    inputs.forEach((input) => {
       input.removeEventListener('input', handleInputEvent); // Remove previous event listener if exists
       input.addEventListener('input', handleInputEvent);
     });
@@ -171,6 +173,15 @@
   }
 
   // Initial call to add event listeners
-  addEventListenersToInputs();
+  document.addEventListener("DOMContentLoaded", addEventListenersToInputs);
 </script>
+
+<script>
+  // Mendapatkan tanggal hari ini dalam format YYYY-MM-DD
+  var today = new Date().toISOString().split('T')[0];
+
+  // Mengatur nilai input tanggal ke tanggal hari ini
+  document.getElementById('tanggal').value = today;
+</script>
+{% endblock javascripts %}
 {% endblock content %}

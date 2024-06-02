@@ -1,5 +1,6 @@
 {% extends "produksi/base.html" %}
 {% load static %}
+{% load humanize %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -48,7 +49,7 @@
                 <td>{{i.DetailSPPBDisplay.DetailSPKDisplay.KodeDisplay}}</td>
 
                 {% endif %}
-                <td>{{i.Jumlah}}</td>
+                <td>{{i.Jumlah|intcomma}}</td>
                 <td>{{i.Keterangan}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->

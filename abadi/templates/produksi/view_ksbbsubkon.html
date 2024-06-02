@@ -1,5 +1,6 @@
 {% extends "produksi/base.html" %}
 {% load static %}
+{% load humanize %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -92,7 +93,7 @@
                                 </td>
                                 <td></td>
                                 <td></td>
-                                <td>{{saldo.Jumlah}}</td>
+                                <td>{{saldo.Jumlah|intcomma}}</td>
                             </tr>
                             {% for i in data %}
                             <tr>
@@ -100,13 +101,13 @@
                                     {{i.Tanggal}}
                                 </td>
                                 <td>
-                                    {{i.Masuk}}
+                                    {{i.Masuk|intcomma}}
                                 </td>
                                 <td>
-                                    {{i.Keluar}}
+                                    {{i.Keluar|intcomma}}
                                 </td>
                                 <td>
-                                    {{i.Sisa}}
+                                    {{i.Sisa|intcomma}}
                                 </td>
                             </tr>
                             {% endfor %}

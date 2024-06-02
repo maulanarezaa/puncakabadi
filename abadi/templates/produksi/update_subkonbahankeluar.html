@@ -5,8 +5,6 @@
 {% block stylesheets %}
 {% endblock stylesheets %}
 
-
-
 <!-- Page content  -->
 {% block content %}
 <div class="col-12 grid-margin">
@@ -26,9 +24,10 @@
         <div class="row">
           <div class="col-md-6">
             <div class="form-group row">
-              <label class="col-sm-3 col-form-label">No. SJ Subkon</label>
+              <label class="col-sm-3 col-form-label">No. Surat Jalan</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="nosuratjalan" placeholder="Masukkan Nomor Surat jalan" value="{{datasjp.NoSuratJalan}}"/>
+                <input type="text" required class="form-control" name="nosuratjalan"
+                  placeholder="Masukkan Nomor Surat Jalan" value="{{datasjp.NoSuratJalan}}" />
               </div>
             </div>
           </div>
@@ -36,52 +35,121 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Tanggal</label>
               <div class="col-sm-9">
-                <input type="date" class="form-control" name="tanggal" required value="{{tanggal}}"/>
+                <input type="date" class="form-control" name="tanggal" required value="{{tanggal}}" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h4 class="card-title">Detail Surat Jalan Kirim Bahan Baku Subkon</h4>
+
+        <div id="products"><!-- Div ini ditambahkan untuk menampung produk yang ditambahkan dinamis -->
+          <div class="row">
+            <div class="col-md-4">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Bahan</label>
+                <div class="col-sm-9">
+                  <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
+                    value="{{detailsjp.KodeBahanBaku.KodeProduk}}" aria-label="Masukkan Nama bahanbaku"
+                    name="kodeproduk" list="listproduk" required>
+                  <datalist id="listproduk">
+                    {% for i in getproduk %}
+                    <option value="{{i.KodeProduk}}">{{i.NamaProduk}}</option>
+                    {% endfor %}
+                  </datalist>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Jumlah</label>
+                <div class="col-sm-8">
+                  <input min="0" type="number" class="form-control" name="jumlah" value="{{detailsjp.Jumlah}}" required>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Ket.</label>
+                <div class="col-sm-9">
+                  <input type="text" class="form-control" name="keterangan" id="ket" value="{{detailsjp.Keterangan}}" />
+                </div>
               </div>
             </div>
           </div>
         </div>
         <div class="row">
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Kode Produk</label>
-              <div class="col-sm-9">
-                <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
-                  aria-label="Masukkan Nama bahanbaku" name="kodeproduk" list="listproduk" required
-                  value="{{detailsjp.KodeBahanBaku.KodeProduk}}">
-                <datalist id="listproduk">
-                  {% for i in getproduk %}
-                  <option value="{{i.KodeProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
-                  {% endfor %}
-                </datalist>
-              </div>
-            </div>
+          <div class="col-auto mr-auto">
+            <button type="button" class="btn btn-success" onclick="addProduct()"><i
+                class="typcn typcn-plus btn-icon-prepend"></i>Tambahkan Produk</button>
           </div>
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Jumlah</label>
-              <div class="col-sm-9">
-                <input min="0" step="any" type="number" value="{{detailsjp.Jumlah}}" class="form-control" name="jumlah"
-                  required>
-              </div>
-            </div>
+          <div class="col-auto">
+            <button type="submit" class="btn btn-primary ml-5">Submit</button>
           </div>
         </div>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Keterangan</label>
-              <div class="col-sm-9">
-                <input type="text" value="{{detailsjp.Keterangan}}" class="form-control" name="keterangan"
-                  required>
-              </div>
-            </div>
-          </div>
-        </div>
-        <button type="submit" class="btn btn-primary ">Update</button>
       </form>
     </div>
   </div>
 </div>
 
+{% block javascripts %}
+<script>
+  function addProduct() {
+    let productCounter = document.querySelectorAll('.form-group.row').length + 1;
+    const productDiv = document.createElement('div');
+    productDiv.className = "row";
+    productDiv.innerHTML = `<div class="col-md-4">
+                                  <div class="form-group row">
+                                      <label class="col-sm-3 col-form-label">Bahan</label>
+                                      <div class="col-sm-9">
+                                          <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
+                                              aria-label="Masukkan Nama bahanbaku" name="kodeproduk[]" list="listproduk" required>
+                                          <datalist id="listproduk">
+                                              {% for i in getproduk %}
+                                              <option value="{{i.KodeProduk}}">{{i.NamaProduk}}</option>
+                                              {% endfor %}
+                                          </datalist>
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="col-md-4">
+                                  <div class="form-group row">
+                                      <label class="col-sm-3 col-form-label">Jumlah</label>
+                                      <div class="col-sm-8">
+                                          <input min="0" value="0" step="any" type="number" class="form-control" name="jumlah[]" required>
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="col-md-3">
+                                <div class="form-group row">
+                                  <label class="col-sm-3 col-form-label">Ket.</label>
+                                  <div class="col-sm-9">
+                                    <input type="text" class="form-control" name="keterangan[]" id="ket" />
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="col-md-1">
+                                  <button type="button" class="btn btn-danger" onclick="removeProduct(this)"><i class="typcn typcn typcn-trash"></i></button>
+                              </div>`;
+    document.getElementById('products').appendChild(productDiv);
+    // Hapus baris jika terlalu banyak
+    if (productCounter > 5) { // Misalnya, batas jumlah baris adalah 5
+      removeExcessRows();
+    }
+  }
+
+  function removeProduct(button) {
+    let row = button.closest('.row');
+    row.parentNode.removeChild(row);
+  }
+
+  function removeExcessRows() {
+    let productsDiv = document.getElementById('products');
+    let rows = productsDiv.getElementsByClassName('row');
+    if (rows.length > 5) { // Misalnya, batas jumlah baris adalah 5
+      productsDiv.removeChild(rows[rows.length - 1]); // Hapus baris terakhir
+    }
+  }
+</script>
+{% endblock javascripts %}
 {% endblock content %}

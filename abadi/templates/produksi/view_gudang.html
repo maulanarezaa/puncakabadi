@@ -1,5 +1,6 @@
 {% extends "produksi/base.html" %}
 {% load static %}
+{% load humanize %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -26,9 +27,9 @@
                 <tr>
                     <th>Tanggal</th>
                     <th>No. SPK</th>
-                    <th>Kode Artikel</th>
+                    <th>Artikel / Display</th>
                     <th>Lokasi</th>
-                    <th>Kode Produk</th>
+                    <th>Kode Bahan Baku</th>
                     <th>Jumlah</th>
                     <th>Keterangan</th>
                     <th>Status</th>
@@ -39,15 +40,20 @@
                 {% for i in datagudang %}
                 <tr>
                     <td>{{i.tanggal}}</td>
-                    <td>{{i.DetailSPK.NoSPK}}</td>
-                    <td>{{i.DetailSPK.KodeArtikel}}</td>
+                    {% if i.DetailSPK %}
+                      <td>{{i.DetailSPK.NoSPK}}</td>
+                      <td>{{i.DetailSPK.KodeArtikel}}</td>
+                    {% else %}
+                      <td>{{i.DetailSPKDisplay.NoSPK}}</td>
+                      <td>{{i.DetailSPKDisplay.KodeDisplay}}</td>
+                    {% endif %}
                     {% if i.Lokasi.NamaLokasi == "WIP" %}
                       <td>Gudang - WIP</td>
                     {% else %}
                       <td>Gudang - FG</td>
                     {% endif %}
                     <td>{{i.KodeProduk}}</td>
-                    <td>{{i.jumlah}}</td>
+                    <td>{{i.jumlah|intcomma}}</td>
                     <td>{{i.keterangan}}</td>
                     <td>
                       {% if i.KeteranganACC == True %}

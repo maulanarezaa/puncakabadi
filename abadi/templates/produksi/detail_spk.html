@@ -27,7 +27,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Tanggal</label>
               <div class="col-sm-9">
-                <input type="date" class="form-control" name="tanggal" value="{{tanggal}}" />
+                <input type="date" class="form-control" name="tanggal" value="{{tanggal}}" required />
               </div>
             </div>
           </div>
@@ -35,7 +35,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Nomor SPK</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="nomor_spk" value="{{dataspk.NoSPK}}" />
+                <input type="text" class="form-control" name="nomor_spk" value="{{dataspk.NoSPK}}" required />
               </div>
             </div>
           </div>
@@ -53,7 +53,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Status Aktif </label>
               <div class="col-sm-9">
-                <select name="StatusAktif" id="" class="form-control">
+                <select name="StatusAktif" id="" class="form-control" required>
                   {% if dataspk.StatusAktif == True %}
                   <option value="1" selected>Aktif</option>
                   <option value="0">Non Aktif</option>
@@ -253,6 +253,11 @@
     deleteForm.action = "deletedetaildisplay/" + id;
     $('#confirmDeleteModal').modal('show');
   }
+
+  function deleteRow(button) {
+    button.closest('.row').remove();
+  }
+
 </script>
 {% endblock javascripts %}
 

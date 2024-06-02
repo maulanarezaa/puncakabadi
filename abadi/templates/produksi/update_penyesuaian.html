@@ -25,7 +25,7 @@
                             <label class="col-sm-3 col-form-label">Tanggal Mulai</label>
                             <div class="col-sm-9">
                                 <input type="date" class="form-control" name="tanggalmulai" required
-                                    value="{{dataobj.TanggalMulai}}" disabled />
+                                    value="{{dataobj.TanggalMulai}}" />
                             </div>
                         </div>
                     </div>
@@ -38,7 +38,7 @@
                             <div class="">
                                 <input type="text" class="form-control" hx-get="{% url 'load_penyusun' %}"
                                     hx-trigger="change" list="Artikel" hx-target="#produk"
-                                    value="{{dataobj.KodePenyusun.KodeArtikel.KodeArtikel}}" disabled name="artikel">
+                                    value="{{dataobj.KodePenyusun.KodeArtikel.KodeArtikel}}" name="artikel">
 
                             </div>
                         </div>
@@ -47,7 +47,7 @@
                         <div class="form-group ">
                             <label class="">Versi</label>
                             <div class="" id="produk">
-                                <select class="form-control" disabled name="versi">
+                                <select class="form-control" name="versi">
                                     <option value="{{dataobj.KodePenyesuaian.KodePenyusun.KodeProduk.KodeProduk}}"
                                         selected> {{dataobj.KodePenyusun.versi}}
                                     </option>
@@ -59,7 +59,7 @@
                         <div class="form-group ">
                             <label class="">Bahan Baku</label>
                             <div class="" id="produk">
-                                <select class="form-control" disabled>
+                                <select class="form-control">
                                     <option value="{{dataobj.KodePenyesuaian.KodePenyusun.KodeProduk.KodeProduk}}"
                                         selected> {{dataobj.KodePenyusun.KodeProduk.KodeProduk}}
                                     </option>
@@ -71,7 +71,8 @@
                         <div class="form-group ">
                             <label class="">Kuantitas</label>
                             <div class="" id="produk">
-                                <input type="text" class="form-control" name="kuantitas" value="{{dataobj.konversi}}">
+                                <input type="number" min="0" step="any" class="form-control" required name="kuantitas"
+                                    value="{{dataobj.konversi}}">
 
 
                             </div>

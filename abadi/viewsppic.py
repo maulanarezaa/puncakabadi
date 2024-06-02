@@ -175,9 +175,7 @@ def laporanbarangjadi(request):
         return render(request, "ppic/views_laporanstokfg.html")
     else:
         # Rumus = Saldo awal periode sampai tanggal akhir - Keluar awal periode sampai tanggal akhir
-        tanggal_mulai = request.GET["tanggalawal"]
         tanggal_akhir = request.GET["tanggalakhir"]
-        tanggalawal_obj = datetime.strptime(tanggal_mulai, "%Y-%m-%d")
         tanggalakhir_obj = datetime.strptime(tanggal_akhir, "%Y-%m-%d")
         last_days = []
         for month in range(1, 13):
@@ -232,7 +230,6 @@ def laporanbarangjadi(request):
             "ppic/views_laporanstokfg.html",
             {
                 "data": result,
-                "tanggalawal": tanggal_mulai,
                 "tanggalakhir": tanggal_akhir,
                 "grandtotal": grandtotal,
             },
@@ -1521,11 +1518,11 @@ def getbarangkeluar(last_days, stopindex, awaltahun):
         totalbiayakeluar = 0
         if index == 0:
             datadetailsppb = models.DetailSPPB.objects.filter(
-                NoSPPB__Tanggal__lte=hari, NoSPPB__Tanggal__gte=awaltahun
+                NoSPPB__Tanggal__lte=hari, NoSPPB__Tanggal__gte=awaltahun, DetailSPKDisplay = None
             )
         else:
             datadetailsppb = models.DetailSPPB.objects.filter(
-                NoSPPB__Tanggal__lte=hari, NoSPPB__Tanggal__gt=last_days[index - 1]
+                NoSPPB__Tanggal__lte=hari, NoSPPB__Tanggal__gt=last_days[index - 1], DetailSPKDisplay = None
             )
         if datadetailsppb.exists():
             for detailsppb in datadetailsppb:
