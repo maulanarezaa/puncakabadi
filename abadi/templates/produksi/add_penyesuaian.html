@@ -149,11 +149,12 @@
     function deleteRow(button) {
         button.closest('.row').remove();
     }
+
     function loadVersiOptions(selectElement) {
         var artikel = selectElement.value;
         var productCounter = selectElement.id.split('_')[1];
         var detailSpkDiv = document.getElementById('versi_' + productCounter);
-        console.log(selectElement.id)
+
         var url = "{% url 'load_versi' %}";
 
         // Menghapus opsi sebelumnya jika ada
@@ -177,9 +178,7 @@
         var productCounter = selectElement.parentNode.id.split('_')[1]
         var detailSpkDiv = document.getElementById('penyusun_' + productCounter);
         var artikel = document.getElementById('kodeartikel_' + productCounter)
-        console.log(selectElement.parentNode)
-        console.log(versi)
-        console.log(artikel.value)
+
         var url = "{% url 'loadpenyusun' %}";
 
         // Menghapus opsi sebelumnya jika ada
@@ -201,3 +200,4 @@
 </script>
 {% endblock javascripts %}
 {% endblock content %}
+

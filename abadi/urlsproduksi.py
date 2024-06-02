@@ -6,7 +6,7 @@ urlpatterns = [
     path("load_detailspk/", viewsproduksi.load_detailspk, name="load_detailspk"),
     path("load_artikel/", viewsproduksi.load_artikel, name="load_artikel"),
     path("load_htmx/", viewsproduksi.load_htmx, name="load_htmx"),
-    path("load_penyusun", viewsproduksi.load_penyusun, name="load_penyusun"),
+
     path("viewspk", viewsproduksi.view_spk, name="view_spk"),
     path("addspk", viewsproduksi.add_spk, name="add_spk"),
     path("detailspk/<str:id>", viewsproduksi.detail_spk, name="detail_spk"),

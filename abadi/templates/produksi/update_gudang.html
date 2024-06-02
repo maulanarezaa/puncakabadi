@@ -95,6 +95,7 @@
                 <label class="col-sm-3 col-form-label">Kode Artikel</label>
                 <div class="col-sm-9" id="detail">
                   <select class="form-control" name="detail_spk[]">
+                    <option value="tot">Masukkan Kode</option>
                     {% for i in data_detailspk %}
                       {% if i.IDDetailSPK == gudang.DetailSPK.IDDetailSPK %}
                         <option selected value="{{i.IDDetailSPK}}">{{i.KodeArtikel}}</option>
@@ -129,6 +130,7 @@
                 <label class="col-sm-3 col-form-label">Kode Display</label>
                 <div class="col-sm-9" id="detail">
                   <select class="form-control" name="detail_spk[]">
+                    <option value="tot">Masukkan Kode</option>
                     {% for i in data_detailspkdisplay %}
                       {% if i.IDDetailSPK == gudang.DetailSPKDisplay.IDDetailSPK %}
                         <option selected value="{{i.IDDetailSPK}}">{{i.KodeDisplay}}</option>
