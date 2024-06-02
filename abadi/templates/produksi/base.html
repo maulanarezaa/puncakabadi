@@ -66,8 +66,7 @@
   <script src=" {% static 'assets/vendors/datatables.net/jquery.dataTables.js' %}"></script>
   <script src=" {% static 'assets/vendors/datatables.net-bs4/dataTables.bootstrap4.js' %}"></script>
   <!-- HTMX -->
-  <script src="https://unpkg.com/htmx.org@1.6.0"></script>
-
+  <script src="{% static 'assets/js/htmx.min.js' %}"></script>
   <script>
     $(document).ready(function () {
       $('#myTable').dataTable();
