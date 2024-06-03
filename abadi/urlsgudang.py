@@ -11,16 +11,16 @@ urlpatterns = [
     path("addgudang2", viewsgudang.add_gudang2, name="addgudang2"),
     path("detailbarang", viewsgudang.detail_barang, name="detailbarang"),
     path("rekapgudang", viewsgudang.rekap_gudang, name="rekapgudang"),
-    path("barangkeluar/", viewsgudang.barang_keluar, name="barangkeluar"),
-    path("barangretur/", viewsgudang.barang_retur, name="barangretur"),
+    path("barangkeluar", viewsgudang.barang_keluar, name="barangkeluar"),
+    path("barangretur", viewsgudang.barang_retur, name="barangretur"),
     path(
-        "accgudang2/<str:id>/<str:date>/<str:date2>/<str:lok>",
+        "accgudang2/<str:id>",
         viewsgudang.accgudang2,
         name="accgudang2",
     ),
-    path("addgudang3", viewsgudang.addgudang3, name="addgudang3"),
+    path("addtransaksinonproduksi", viewsgudang.addgudang3, name="addgudang3"),
     path(
-        "accgudang3/",
+        "accgudang3/<str:id>",
         viewsgudang.accgudang3,
         name="accgudang3",
     ),
@@ -42,4 +42,14 @@ urlpatterns = [
         "update_saldobahan/<str:id>", viewsgudang.update_saldo, name="updatesaldobahan"
     ),
     path("load_produk", viewsgudang.load_produk, name="load_produk"),
+    path(
+        "updatetransaksinonproduksi/<str:id>",
+        viewsgudang.updatetransaksilainlain,
+        name="updatetransaksilainlain",
+    ),
+    path(
+        "deletetransaksilainlain/<str:id>",
+        viewsgudang.deletetransaksilainlain,
+        name="deletetransaksilainlain",
+    ),
 ]

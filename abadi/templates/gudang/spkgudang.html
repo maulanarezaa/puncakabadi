@@ -23,7 +23,7 @@
                 <th>Tanggal</th>
                 <th>Nomor SPK</th>
                 <th>Keterangan</th>
-                <th>Status</th>
+                <th>Status Aktif</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -34,7 +34,7 @@
                 <td>{{i.NoSPK}}</td>
                 <td>{{i.Keterangan}}</td>
                 <td>
-                  {% if i.KeteranganACC == True %}
+                  {% if i.StatusAktif == True %}
                   <button class="btn btn-success">
                     <i class="typcn typcn typcn-tick"></i>
                   </button>

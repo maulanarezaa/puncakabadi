@@ -512,7 +512,7 @@ def track_spk(request, id):
 
         # Data SPK Terkait yang telah jadi di FG
         transaksiproduksiobj = models.TransaksiProduksi.objects.filter(
-            DetailSPKDisplay__NoSPK=dataspk.id, Jenis="Mutasi"
+            DetailSPK__NoSPK=dataspk.id, Jenis="Mutasi"
         )
 
         # Data SPK Terkait yang telah dikirim
@@ -1459,7 +1459,11 @@ def update_gudangretur(request, id):
 
     elif request.method == "POST":
         kode_produk = request.POST["kode_produk"]
-        getproduk = models.Produk.objects.get(KodeProduk=kode_produk)
+        try:
+            getproduk = models.Produk.objects.get(KodeProduk=kode_produk)
+        except:
+            messages.error(request,f"Data bahan baku {kode_produk} tidak ditemukan")
+            return redirect("update_gudangretur",id=id)
         lokasi = request.POST["nama_lokasi"]
         getlokasi = models.Lokasi.objects.get(IDLokasi=lokasi)
         tanggal = request.POST["tanggal"]

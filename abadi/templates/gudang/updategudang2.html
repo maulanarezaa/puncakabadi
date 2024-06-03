@@ -21,11 +21,11 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">No Surat jalan</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="nosuratjalan" placeholder="Masukkan Nomor Surat jalan"
-                  list="suratjalan" value="{{datasjp.NoSuratJalan}}" />
+                <input required type="text" class="form-control" name="nosuratjalan"
+                  placeholder="Masukkan Nomor Surat jalan" list="suratjalan" value="{{datasjp.NoSuratJalan}}" />
                 <datalist id="suratjalan">
-                  {% for i in detailsj %}
-                  <option value="{{i.NoSuratJalan}}">{{i.Tanggal}}</option>
+                  {% for i in datasj %}
+                  <option value="{{i.NoSuratJalan}}">{{i.NoSuratJalan}}</option>
                   {% endfor %}
                 </datalist>
               </div>

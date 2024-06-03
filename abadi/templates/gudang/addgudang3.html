@@ -11,15 +11,15 @@
   <div class="card">
     <div class="card-body">
       <form class="form-sample" action="" method="post">
-        <h4 class="card-title">Form Pengeluaran Barang Non Produksi</h4>
+        <h4 class="card-title">Form Pengeluaran Bahan Baku Non Produksi</h4>
         <br>
         {% csrf_token %}
         <div class="row">
           <div class="col-md-6">
             <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Kode Produk</label>
+              <label class="col-sm-3 col-form-label">Kode Bahan Baku</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="kodeproduk" placeholder="Masukkan Kode Produk"
+                <input required type="text" class="form-control" name="kodeproduk" placeholder="Masukkan Kode Produk"
                   list="kodeproduk" />
                 <datalist id="kodeproduk">
                   {% for i in getproduk %}
@@ -43,7 +43,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Keterangan</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="keterangan" placeholder="Masukan Keterangan" />
+                <input required type="text" class="form-control" name="keterangan" placeholder="Masukan Keterangan" />
               </div>
             </div>
           </div>
@@ -51,7 +51,8 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Jumlah</label>
               <div class="col-sm-9">
-                <input type="number" class="form-control" name="jumlah" placeholder="Masukkan Jumlah" />
+                <input required min="0" type="number" class="form-control" name="jumlah"
+                  placeholder="Masukkan Jumlah" />
               </div>
             </div>
           </div>

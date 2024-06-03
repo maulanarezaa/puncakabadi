@@ -19,7 +19,7 @@
   <!-- inject:css -->
   <link rel="stylesheet" href="{% static 'assets/css/vertical-layout-light/style.css' %}">
   <!-- endinject -->
-  <link rel="shortcut icon" href="{% static 'assets/images/faviconPA-mini.svg' %}" />
+  <link rel="shortcut icon" href="{% static 'assets/images/logoPA-mini.svg' %}" />
 </head>
 
 <body>
@@ -107,6 +107,18 @@
         }
       );
     });
+    $(document).ready(function () {
+      $('#notifikasibarangkeluar').dataTable(
+      );
+    });
+    $(document).ready(function () {
+      $('#notifikasibarangretur').dataTable(
+      );
+    });
+    $(document).ready(function () {
+      $('#notifikasispk').dataTable(
+      );
+    });
   </script>
 
   <script>
@@ -155,14 +167,10 @@
   <script>
     $(document).ready(function () {
       $('#spkgudang').dataTable(
-        {
-          'order': [],
-          'columnDefs': [{
-            'orderable': false,
-            'targets': [0]
-          },
-          ]
-        }
+      );
+    });
+    $(document).ready(function () {
+      $('#dataproduk').dataTable(
       );
     });
   </script>
