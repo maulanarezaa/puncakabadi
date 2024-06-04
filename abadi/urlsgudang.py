@@ -52,4 +52,6 @@ urlpatterns = [
         viewsgudang.deletetransaksilainlain,
         name="deletetransaksilainlain",
     ),
+    path("bulk_addsjp", viewsgudang.bulk_createsjp),
+    path("bulk_addsa", viewsgudang.bulk_createsaldoawal),
 ]

@@ -26,4 +26,6 @@ urlpatterns = [
     path(
         "updatebahanbaku/<str:id>", viewsrnd.update_produk_rnd, name="update_produk_rnd"
     ),
+    path("bulk_addartikel", viewsrnd.bulk_createartikel),
+    path("bulk_addpenyusun", viewsrnd.bulk_createpenyusun),
 ]

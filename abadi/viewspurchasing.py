@@ -11,6 +11,7 @@ import pandas as pd
 from . import logindecorators
 from django.contrib.auth.decorators import login_required
 from .viewsproduksi import calculate_KSBB
+from django.http import HttpResponse
 
 """PURCHASING"""
 
@@ -337,7 +338,10 @@ def barang_masuk(request):
             )
         else:
             messages.error(request, "Data tidak ditemukan")
-            return redirect("barang_masuk")
+            return render(
+                request,
+                "Purchasing/masuk_purchasing.html",
+)
     else:
         input_awal = request.GET["awal"]
         input_terakhir = request.GET["akhir"]
@@ -2030,3 +2034,40 @@ def accspk2(request, id):
     ).save()
     messages.success(request, "SPK berhasil diacc")
     return redirect("read_spk")
+
+def bulk_createproduk(request):
+    if request.method == 'POST' and request.FILES['file']:
+        file = request.FILES['file']
+        df = pd.read_excel(file, engine='openpyxl')
+        df = df.fillna('-')
+        for index,row in df.iterrows():
+            bahanbakubaru = models.Produk(
+                KodeProduk = row['Kode Stock'],
+                NamaProduk = row['Nama Barang'],
+                unit = row['Satuan'],
+                TanggalPembuatan = datetime.now(),
+                Jumlahminimal = 0,
+                keteranganPurchasing = row['Keterangan']
+            )
+            print(bahanbakubaru.keteranganPurchasing)
+            bahanbakubaru.save()
+        return HttpResponse("Data successfully uploaded and processed!")
+    
+    return render(request, 'Purchasing/bulk_createproduk.html')
+
+
+def bulk_createsjp(request):
+    if request.method == "POST" and request.FILES["file"]:
+        file = request.FILES["file"]
+        excel_file = pd.ExcelFile(file)
+
+        # Mendapatkan daftar nama sheet
+        sheet_names = excel_file.sheet_names
+        print(sheet_names)
+        for item in sheet_names:
+            data = models.Artikel(KodeArtikel=item, keterangan="-")
+            print(data)
+            data.save()
+        return HttpResponse("Berhasil Upload")
+
+    return render(request, "Purchasing/bulk_createproduk.html")

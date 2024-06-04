@@ -6,7 +6,7 @@
 {% endblock stylesheets %}
 
 
-
+{% load humanize %}
 <!-- Page content  -->
 {% block content %}
 <div class="row">
@@ -42,8 +42,8 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="number" class="form-control" placeholder="Periode Tahun" min="2024"
-                                        aria-label="Masukkan Nama Artikel" name="tahun" value="{{tahun}}">
+                                    <input required type="number" class="form-control" placeholder="Periode Tahun"
+                                        min="2024" aria-label="Masukkan Nama Artikel" name="tahun" value="{{tahun}}">
 
                                     <div class="input-group-append">
                                         <button class="btn btn-sm btn-primary" type="submit">Search</button>
@@ -98,14 +98,14 @@
                             <tr>
                                 <td>{{i.Tanggal}}</td>
                                 <td>{{i.Jumlahmasuk}}</td>
-                                <td>{{i.Hargamasuksatuan}}</td>
-                                <td>{{i.Hargamasuktotal}}</td>
+                                <td>{{i.Hargamasuksatuan|floatformat:2|intcomma}}</td>
+                                <td>{{i.Hargamasuktotal|floatformat:2|intcomma}}</td>
                                 <td>{{i.Jumlahkeluar}}</td>
-                                <td>{{i.Hargakeluarsatuan}}</td>
-                                <td>{{i.Hargakeluartotal}}</td>
+                                <td>{{i.Hargakeluarsatuan|floatformat:2|intcomma}}</td>
+                                <td>{{i.Hargakeluartotal|floatformat:2|intcomma}}</td>
                                 <td>{{i.Sisahariini}}</td>
-                                <td>{{i.Hargasatuansisa}}</td>
-                                <td>{{i.Hargatotalsisa}}</td>
+                                <td>{{i.Hargasatuansisa|floatformat:2|intcomma}}</td>
+                                <td>{{i.Hargatotalsisa|floatformat:2|intcomma}}</td>
 
                             </tr>
                             {% endfor %}

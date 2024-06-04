@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.http import Http404, JsonResponse
+from django.http import Http404, JsonResponse, HttpResponse
 from django.urls import reverse
 from . import models
 from django.db.models import Sum, Value
@@ -10,6 +10,7 @@ from datetime import timedelta
 from django.db.models.functions import ExtractYear
 from . import logindecorators
 from django.contrib.auth.decorators import login_required
+import pandas as pd
 
 
 @login_required
@@ -66,7 +67,6 @@ def view_gudang(request):
             "getkeluar": getkeluar,
             "getretur": getretur,
             "allspk": allspk,
-            "detailspk": detailspk,
         },
     )
 
@@ -995,7 +995,7 @@ def update_saldo(request, id):
             pesan=f"Kode Barang Lama : {dataobj.IDBahanBaku} Jumlah Lama : {dataobj.Jumlah} Harga Lama : {dataobj.Harga} Kode Barang Baru : {kodeproduk} Jumlah Baru : {jumlah} Harga Baru : {harga}",
         ).save()
         dataobj.save()
-        messages.success(request,'Data berhasil disimpan')
+        messages.success(request, "Data berhasil disimpan")
         return redirect("read_saldoawalbahan")
 
 
@@ -1068,3 +1068,88 @@ def load_produk(request):
         "unit": produkobj.unit,
     }
     return JsonResponse(data, safe=False)
+
+
+def bulk_createsjp(request):
+    if request.method == "POST" and request.FILES["file"]:
+        file = request.FILES["file"]
+        excel_file = pd.ExcelFile(file)
+
+        # Mendapatkan daftar nama sheet
+        sheet_names = excel_file.sheet_names
+
+        for item in sheet_names:
+            df = pd.read_excel(file, engine="openpyxl", sheet_name=item)
+            print(item)
+            print(df)
+
+            i = 0
+            for index, row in df.iterrows():
+                if i < 2:
+                    i += 1
+                    continue
+                print(row["Tanggal"])
+                if pd.isna(row["Tanggal"]):
+                    print(f"Index {index}: Tanggal adalah NaT")
+                else:
+                    print(index, row["Tanggal"])
+                    print(row["Masuk "])
+                    if pd.isna(row["Masuk "]):
+                        continue
+                    data = models.SuratJalanPembelian(
+                        NoSuratJalan=f"SJP/{row['Tanggal']}",
+                        Tanggal=row["Tanggal"],
+                        supplier="-",
+                        PO="-",
+                    ).save()
+                    detailsjp = models.DetailSuratJalanPembelian(
+                        Jumlah=row["Masuk "],
+                        KeteranganACC=1,
+                        Harga=row["Unnamed: 3"],
+                        KodeProduk=models.Produk.objects.get(KodeProduk=item),
+                        NoSuratJalan=models.SuratJalanPembelian.objects.get(
+                            Tanggal=row["Tanggal"]
+                        ),
+                    ).save()
+
+        return HttpResponse("Berhasil Upload")
+
+    return render(request, "Purchasing/bulk_createproduk.html")
+
+
+def bulk_createsaldoawal(request):
+    if request.method == "POST" and request.FILES["file"]:
+        file = request.FILES["file"]
+        excel_file = pd.ExcelFile(file)
+
+        # Mendapatkan daftar nama sheet
+        sheet_names = excel_file.sheet_names
+
+        for item in sheet_names:
+            df = pd.read_excel(file, engine="openpyxl", sheet_name=item)
+            print(item)
+            print(df)
+
+            i = 0
+            for index, row in df.iterrows():
+                if i < 1:
+                    i += 1
+                    continue
+                else:
+                    print("Saldo Akhir")
+                    if pd.isna(row["Unnamed: 9"]):
+                        print(f"Data Kosong, Lanjut")
+                        break
+                    else:
+                        saldoawalwip = models.SaldoAwalBahanBaku(
+                            Harga=row["Unnamed: 9"],
+                            Jumlah=row["Sisa"],
+                            Tanggal="2024-01-01",
+                            IDBahanBaku=models.Produk.objects.get(KodeProduk=item),
+                            IDLokasi=models.Lokasi.objects.get(pk=3),
+                        ).save()
+                        break
+                        
+        return HttpResponse("Berhasil Upload")
+
+    return render(request, "Purchasing/bulk_createproduk.html")
