@@ -33,12 +33,52 @@
                             {% for i in datasppb %}
                             <tr>
                                 <td>{{forloop.counter}}</td>
-                                <td>{{i.NoSPPB.Tanggal}}</td>
+                                <td>{{i.Tanggal}}</td>
                                 <td>{{i.NoSPPB}}</td>
-                                <td>{{i.DetailSPK.NoSPK}}</td>
-                                <td>{{i.DetailSPK.KodeArtikel}}</td>
-                                <td>{{i.Jumlah}}</td>
-                                <td>{{i.NoSPPB.Keterangan}}</td>
+                                <td>
+                                    <ul>
+                                        {% for i in i.detailsppb %}
+                                        {% if i.DetailSPKDisplay == None %}
+                                        <li>
+                                            {{i.DetailSPK.NoSPK}}
+                                        </li>
+                                        {% else %}
+                                        <li>
+
+                                            {{i.DetailSPKDisplay.NoSPK}}
+                                        </li>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        {% for i in i.detailsppb %}
+                                        {% if i.DetailSPKDisplay == None %}
+                                        <li>
+                                            {{i.DetailSPK.KodeArtikel}}
+                                        </li>
+                                        {% else %}
+                                        <li>
+
+                                            {{i.DetailSPKDisplay.KodeDisplay}}
+                                        </li>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </ul>
+
+                                </td>
+                                <td>
+                                    <ul>
+
+                                        {% for i in i.detailsppb %}
+                                        <li>
+                                            {{ i.Jumlah}}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>{{i.Keterangan}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

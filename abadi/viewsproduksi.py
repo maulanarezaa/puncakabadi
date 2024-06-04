@@ -3086,7 +3086,7 @@ def update_saldoartikel(request, id):
             jenis="Update",
             pesan=f"Saldo Artikel. Kode Bahan Baku : {artikelobj.KodeArtikel} Jumlah : {jumlah} Lokasi : {lokasiobj.NamaLokasi}",
         ).save()
-        messages.success('Data berhasil disimpan')
+        messages.success(request,'Data berhasil disimpan')
         return redirect("view_saldoartikel")
 
 @login_required

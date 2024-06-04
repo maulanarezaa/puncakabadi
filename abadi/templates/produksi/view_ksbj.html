@@ -86,7 +86,7 @@
                 </form>
 
                 <div class="table-responsive pt-3">
-                    {% if data.count > 0 and kodeartikel and lokasi == 'WIP'%}
+                    {% if data.count > 0 and kodeartikel and lokasi == 'WIP' or saldoawal%}
                     <table class="table table-bordered" id="tabelksbjwip">
                         <thead>
                             <tr>
@@ -222,7 +222,6 @@
                     {% endif %}
                     {% if data.count == 0 %}
                     <h4>Tidak ditemukan data Transaki Produksi</h4>
-                    <h4>Saldo Awal : {{saldoawal}}</h4>
                     {% endif %}
 
 

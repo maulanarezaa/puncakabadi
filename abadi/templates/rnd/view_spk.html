@@ -17,12 +17,14 @@
         </div>
         <div class="table-responsive pt-3">
 
-          <table class="table table-bordered" id="myTable">
+          <table class="table table-bordered" id="spk">
             <thead>
               <tr>
                 <th>Tanggal</th>
                 <th>Nomor SPK</th>
                 <th>Jenis SPK</th>
+                <th>Produk</th>
+                <th>Jumlah</th>
                 <th>Keterangan</th>
                 <th>Status Aktif </th>
                 <th>Status ACC</th>
@@ -42,6 +44,32 @@
                   {% endif %}
 
                 </td>
+
+                <td>
+                  {% if i.StatusDisplay == False%}
+                  {% for j in i.detailspk %}
+                  <li>
+                    {{j.KodeArtikel}}
+                  </li>
+                  {% endfor %}
+                  {% else %}
+                  {% for j in i.detailspk %}
+                  <li>
+                    {{j.KodeDisplay}}
+                  </li>
+                  {% endfor %}
+                  {% endif %}
+
+
+                </td>
+                <td>
+                  {% for j in i.detailspk %}
+                  <li>
+                    {{j.Jumlah}}
+                  </li>
+                  {% endfor %}
+                </td>
+
                 <td>{{i.Keterangan}}</td>
                 <td>
                   {% if i.StatusAktif == True %}

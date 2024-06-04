@@ -46,7 +46,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Versi</label>
                             <div class="col-sm-9">
-                                <input type="date" class="form-control" name="versi">
+                                <input required type="date" class="form-control" name="versi">
                             </div>
                         </div>
                     </div>
@@ -64,12 +64,12 @@
                             </datalist>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <div class="form-group row p-3">
-                            <label class="">Status</label>
+                            <label class="">Status Bahan</label>
                             <select name="Status" class="form-control" id="">
-                                <option value="False">Bahan Baku Non Utama</option>
-                                <option value="True">Bahan Utama</option>
+                                <option value="False"> Non Utama</option>
+                                <option value="True"> Utama</option>
                             </select>
                         </div>
                     </div>
@@ -82,14 +82,19 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <div class="form-group row p-3">
                             <label class="">Konversi</label>
                             <input min="0" value="0" step="any" type="number" class="form-control" name="kuantitas"
                                 required>
                         </div>
                     </div>
-                    <div class="col-md-1">
+                    <div class="col-md-2">
+                        <div class="form-group row p-3">
+                            <label class="">Allowance</label>
+                            <input min="0" value="0" step="any" type="number" class="form-control" name="allowance"
+                                required>
+                        </div>
                     </div>
                 </div>
                 <button type="button" class="btn btn-outline-info" onclick="addProduct()">Tambahkan produk</button>

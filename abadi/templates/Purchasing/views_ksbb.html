@@ -43,7 +43,7 @@
                             <div class="form-group">
                                 <div class="input-group">
                                     <input type="number" class="form-control" placeholder="Periode Tahun" min="2024"
-                                        aria-label="Masukkan Nama Artikel" name="tahun">
+                                        aria-label="Masukkan Nama Artikel" name="tahun" value="{{tahun}}">
 
                                     <div class="input-group-append">
                                         <button class="btn btn-sm btn-primary" type="submit">Search</button>
@@ -63,7 +63,7 @@
                 </a>
                 {% endif %}
                 <div class="table-responsive pt-3">
-                    {% if data %}
+
 
                     <table class="table table-bordered" id="data_ksbb" name="data_ksbb">
                         <thead>
@@ -82,7 +82,7 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>2024 -Saldo Awal</td>
+                                <td>{{Saldoawal.tahun}} -Saldo Awal</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -93,6 +93,7 @@
                                 <td>{{Saldoawal.hargasatuanawal}}</td>
                                 <td>{{Saldoawal.hargatotalawal}}</td>
                             </tr>
+                            {% if data %}
                             {% for i in data %}
                             <tr>
                                 <td>{{i.Tanggal}}</td>
@@ -108,11 +109,12 @@
 
                             </tr>
                             {% endfor %}
+                            {% endif %}
 
                         </tbody>
                     </table>
 
-                    {% endif %}
+
                 </div>
             </div>
         </div>

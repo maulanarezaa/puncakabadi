@@ -38,15 +38,14 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Kode Produk</label>
                             <div class="col-sm-9">
-                                <select class="form-control" name="kodeproduk" id="">
+                                <input type="text" class="form-control" required name="kodeproduk"
+                                    value="{{data.KodeProduk.KodeProduk}}" id="" list="listkodeproduk">
+                                <datalist id="listkodeproduk">
                                     {% for i in kodestok %}
-                                    {% if i.KodeProduk == data.KodeProduk.KodeProduk %}
                                     <option value="{{i.KodeProduk}}" selected> {{i.KodeProduk}}</option>
-                                    {% else %}
-                                    <option value="{{i.KodeProduk}}">{{i.KodeProduk}}</option>
-                                    {% endif %}
                                     {% endfor %}
-                                </select>
+                                </datalist>
+
                             </div>
                         </div>
                     </div>
@@ -81,16 +80,17 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Kode Produk</label>
+                            <label class="col-sm-3 col-form-label">Lokasi</label>
                             <div class="col-sm-9">
                                 <select name="lokasi" id="" class="form-control">
-                                    {% for i in lokasi %}
-                                    {% if i.IDLokasi == data.Lokasi.IDLokasi %}
-                                    <option value="{{i.IDLokasi}}" selected> {{i.NamaLokasi}}</option>
+                                    {% if data.Lokasi.NamaLokasi == "WIP" %}
+                                    <option value="WIP" selected>WIP</option>
+                                    <option value="FG">FG</option>
                                     {% else %}
-                                    <option value="{{i.IDLokasi}}">{{i.NamaLokasi}}</option>
+                                    <option value="WIP">WIP</option>
+                                    <option value="FG" selected>FG</option>
                                     {% endif %}
-                                    {% endfor %}
+
                                 </select>
                             </div>
                         </div>
@@ -132,9 +132,10 @@
 
                     <div class="col-md-6">
                         <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Konversi 2.5%</label>
+                            <label class="col-sm-3 col-form-label">Allowance</label>
                             <div class="col-sm-9">
-                                <input type="text" value="{{konversi.allowance}}" disabled class="form-control">
+                                <input type="number" min="0" name="allowance" step="any" required
+                                    value="{{konversi.Allowance}}" required class="form-control">
 
                                 </select>
                             </div>

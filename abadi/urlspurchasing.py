@@ -54,4 +54,5 @@ urlpatterns = [
     path("trackspk/<str:id>", viewspurchasing.track_spk, name="trackspk"),
     # R REKAP HARGA
     path("rekap_harga", viewspurchasing.views_rekapharga, name="rekapharga"),
+    path("acc_spk2/<str:id>", viewspurchasing.accspk2, name="acc_spk2"),
 ]

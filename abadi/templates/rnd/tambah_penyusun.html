@@ -13,12 +13,6 @@
             <h4 class="card-title">Form Tambah Data Penyusun Artikel : <span style="font-weight: lighter;">
                     {{kodeartikel.KodeArtikel}} </span></h4>
             <div class="template-demo">
-                <a href="/viewproduksi">
-                    <button type="button" class="btn btn-light btn-icon-text">
-                        <i class="typcn typcn-chevron-left btn-icon-prepend"></i>
-                        Kembali
-                    </button>
-                </a>
             </div>
             <br>
             <form class="form-sample" action="" method="post">
@@ -70,13 +64,13 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="form-group">
-                                <label class="">Status</label>
+                                <label class="">Status Bahan Baku</label>
                                 <div class="">
                                     <select name="status" class="form-control" id="">
-                                        <option value="False">Bahan Baku Non Utama</option>
-                                        <option value="True">Bahan Utama</option>
+                                        <option value="False">Non Utama</option>
+                                        <option value="True">Utama</option>
                                     </select>
                                 </div>
                             </div>
@@ -93,11 +87,20 @@
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <div class="form-group row">
+                            <div class="form-group ">
                                 <label class="">Konversi</label>
                                 <div class="">
                                     <input min="0" value="0" step="any" type="number" class="form-control"
                                         name="kuantitas" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group ">
+                                <label class="">Allowance</label>
+                                <div class="">
+                                    <input min="0" value="0" step="any" type="number" class="form-control"
+                                        name="allowance" required>
                                 </div>
                             </div>
                         </div>
@@ -133,12 +136,12 @@
                                     </datalist>
                 </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="form-group">
-                        <label for="status_${productCounter}">Status</label>
+                        <label for="status_${productCounter}">Status Bahan Baku</label>
                         <select class="form-control" id="status_${productCounter}" name="status">
-                            <option value="False">Bahan Baku Non Utama</option>
-                    <option value="True">Bahan Utama</option>
+                            <option value="False">Non Utama</option>
+                    <option value="True">Utama</option>
                 </select>
             </div>
         </div>
@@ -155,6 +158,12 @@
                         <div class="form-group">
                             <label for="kuantitas_${productCounter}">Konversi</label>
                             <input type="number" class="form-control" id="kuantitas_${productCounter}" name="kuantitas" min="0" value="0" step="any" required>
+                            </div>
+                            </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="allowance_${productCounter}">Allowance</label>
+                            <input type="number" class="form-control" id="allowance_${productCounter}" name="allowance" min="0" value="0" step="any" required>
                             </div>
                             </div>
                             <div class="col-md-1">
