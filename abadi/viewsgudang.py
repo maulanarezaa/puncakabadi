@@ -1149,7 +1149,45 @@ def bulk_createsaldoawal(request):
                             IDLokasi=models.Lokasi.objects.get(pk=3),
                         ).save()
                         break
-                        
+
+        return HttpResponse("Berhasil Upload")
+
+    return render(request, "Purchasing/bulk_createproduk.html")
+
+
+def bulk_createtransaksigudang(request):
+    if request.method == "POST" and request.FILES["file"]:
+        file = request.FILES["file"]
+        excel_file = pd.ExcelFile(file)
+
+        # Mendapatkan daftar nama sheet
+        sheet_names = excel_file.sheet_names
+
+        for item in sheet_names:
+            df = pd.read_excel(file, engine="openpyxl", sheet_name=item)
+            print(item)
+            print(df)
+
+            i = 0
+            for index, row in df.iterrows():
+                if i < 2:
+                    i += 1
+                    continue
+                print(row["Tanggal"])
+                if pd.isna(row["Keluar"]):
+                    print(f"Index {index}: Tanggal adalah NaT")
+                else:
+                    print(index, row["Tanggal"])
+                    print(row["Keluar"])
+                    transaksiobj = models.TransaksiGudang(
+                        keterangan="-",
+                        jumlah=row["Keluar"],
+                        tanggal=row["Tanggal"],
+                        KeteranganACC=True,
+                        KodeProduk=models.Produk.objects.get(KodeProduk=item),
+                        Lokasi=models.Lokasi.objects.get(IDLokasi=1),
+                    ).save()
+
         return HttpResponse("Berhasil Upload")
 
     return render(request, "Purchasing/bulk_createproduk.html")

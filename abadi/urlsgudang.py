@@ -54,4 +54,5 @@ urlpatterns = [
     ),
     path("bulk_addsjp", viewsgudang.bulk_createsjp),
     path("bulk_addsa", viewsgudang.bulk_createsaldoawal),
+    path("bulk_addtg", viewsgudang.bulk_createtransaksigudang),
 ]
