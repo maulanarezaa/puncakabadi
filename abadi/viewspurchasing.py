@@ -94,7 +94,7 @@ def notif_barang_purchasing(request):
                 .annotate(
                     kode_art=F("KodePenyusun__KodeArtikel__KodeArtikel"),
                     kode_produk=F("KodePenyusun__KodeProduk"),
-                    nilai_konversi=F("Kuantitas"),
+                    nilai_konversi=F("Allowance"),
                     nama_bb=F("KodePenyusun__KodeProduk__NamaProduk"),
                     unit_satuan=F("KodePenyusun__KodeProduk__unit"),
                 )
@@ -1380,9 +1380,7 @@ def views_penyusun(request):
 
                         hargaterakhir += hargasatuanawal
                         kuantitaskonversi = konversidataobj.Kuantitas
-                        kuantitasallowance = (
-                            kuantitaskonversi + kuantitaskonversi * 0.025
-                        )
+                        kuantitasallowance = konversidataobj.Allowance
                         hargaperkotak = hargaterakhir * kuantitasallowance
                         # print("\n", hargaterakhir, "\n")
                         nilaifg += hargaperkotak
@@ -1689,7 +1687,7 @@ def kebutuhan_barang(request):
                         .annotate(
                             kode_art=F("KodePenyusun__KodeArtikel__KodeArtikel"),
                             kode_produk=F("KodePenyusun__KodeProduk"),
-                            nilai_konversi=F("Kuantitas"),
+                            nilai_konversi=F("Allowance"),
                             nama_bb=F("KodePenyusun__KodeProduk__NamaProduk"),
                         )
                         .values("kode_art", "kode_produk", "Kuantitas", "nama_bb")

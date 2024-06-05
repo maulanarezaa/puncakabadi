@@ -106,7 +106,7 @@ def dashboard(request):
                 hargaterakhir += hargasatuanawal
                 kuantitaskonversi = konversidataobj.Kuantitas
                 tanggalupdate = konversidataobj.lastedited.strftime("%Y-%m-%d")
-                kuantitasallowance = kuantitaskonversi + kuantitaskonversi * 0.025
+                kuantitasallowance = konversidataobj.Allowance
                 hargaperkotak = hargaterakhir * kuantitasallowance
                 nilaifg += hargaperkotak
 
@@ -1606,9 +1606,11 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
         if konversi.exists():
             dummy = {}
             for tanggal in tanggalversi:
+                print(tanggal,tanggalversi,konversi)
                 datakonversi = konversi.filter(KodePenyusun__versi = tanggal)
-                # print(datakonversi)
-                kuantitas = datakonversi.aggregate(total = Sum('Kuantitas'))
+                print(datakonversi)
+                kuantitas = datakonversi.aggregate(total = Sum('Allowance'))
+                print(kuantitas)
                 listkonversi.append(kuantitas['total'])
                 dummy[tanggal] = kuantitas['total']
             datamodelskonversimaster[artikel] = {'konversi':dummy,'penyesuaian':{}}
@@ -1723,7 +1725,7 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
             tanggalversiterdekat = max(filtered_data)
             indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalversi).index(tanggalversiterdekat)
             konversiterdekat = listartikelmaster[indexartikel].listkonversi[indextanggalterdekat]
-            konversiterdekat += konversiterdekat * 0.025
+
             if listartikelmaster[indexartikel].tanggalpenyesuaian :
                 filtered_data = [d for d in listartikelmaster[indexartikel].tanggalpenyesuaian if d <= i]
 
@@ -1764,7 +1766,7 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
                     tanggalversiterdekat = max(filtered_data)
                     indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalpenyesuaian).index(tanggalversiterdekat)
                     konversiterdekat = listartikelmaster[indexartikel].listpenyesuaian[indextanggalterdekat]
-            konversiterdekat += konversiterdekat *0.025
+
             konversiterdekat= round(konversiterdekat,5)
             datamodelskonversi.append(konversiterdekat)
             datamodelskeluar.append(konversiterdekat*total['total'])
@@ -1956,8 +1958,11 @@ def view_ksbj2(request):
                     penyusunfiltertanggal = models.Penyusun.objects.filter(KodeArtikel = artikel.id, Status = 1, versi__gte = i).order_by('versi').first()
 
                 konversimasterobj = models.KonversiMaster.objects.get(KodePenyusun=penyusunfiltertanggal.IDKodePenyusun)
-
-                masukpcs = round(jumlahmasuk/((konversimasterobj.Kuantitas + (konversimasterobj.Kuantitas * 0.025))))
+                try:
+                    masukpcs = round(jumlahmasuk/((konversimasterobj.Allowance)))
+                except:
+                    masukpcs = round(0)
+                    messages.error(request,'Data allowance belum di set')
                 saldoawal = saldoawal - jumlahmutasi + masukpcs
 
                 datamodels['Tanggal'] = i.strftime("%Y-%m-%d")
@@ -2220,8 +2225,11 @@ def view_rekapproduksi(request):
                             penyusunfiltertanggal = models.Penyusun.objects.filter(KodeArtikel = artikel.id, Status = 1, versi__gte = i).order_by('versi').first()
 
                         konversimasterobj = models.KonversiMaster.objects.get(KodePenyusun=penyusunfiltertanggal.IDKodePenyusun)
-
-                        masukpcs = round(jumlahmasuk/((konversimasterobj.Kuantitas + (konversimasterobj.Kuantitas * 0.025))))
+                        try:
+                            masukpcs = round(jumlahmasuk/((konversimasterobj.Allowance)))
+                        except:
+                            masukpcs = 0
+                            messages.error(request,"Data allowance belum di setting")
                         saldoawal = saldoawal - jumlahmutasi + masukpcs
 
                         datamodels['Tanggal'] = i.strftime("%Y-%m-%d")
