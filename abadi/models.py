@@ -301,7 +301,8 @@ class transactionlog(models.Model):
 
 class detailconfirmationorder(models.Model):
     confirmationorder = models.ForeignKey(confirmationorder, on_delete=models.CASCADE)
-    Artikel = models.ForeignKey(Artikel, on_delete=models.CASCADE)
+    Artikel = models.ForeignKey(Artikel, on_delete=models.CASCADE, null=True)
+    Display = models.ForeignKey(Display, on_delete=models.CASCADE, null=True)
     deskripsi = models.CharField(max_length=200)
     kuantitas = models.IntegerField()
     Harga = models.FloatField()

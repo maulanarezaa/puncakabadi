@@ -394,7 +394,7 @@ def detail_barang(request):
         )
         saldo_awal = (
             models.SaldoAwalBahanBaku.objects.filter(IDBahanBaku=input_kode)
-            .filter(Tanggal__year=input_tahun)
+            .filter(Tanggal__year=input_tahun, IDLokasi__NamaLokasi = "Gudang")
             .order_by("Tanggal")
         )
         datasjp = (

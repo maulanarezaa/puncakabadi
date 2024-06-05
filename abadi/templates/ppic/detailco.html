@@ -63,7 +63,7 @@
             <div class="row" id="artikel_1">
               <div class="col-md-3">
                 <div class="form-group">
-                  <label for="artikel_1">Artikel 1:</label>
+                  <label for="artikel_1">Artikel {{forloop.counter}}:</label>
                   <input type="text" class="form-control" name="perihal" value="{{i.Artikel}}" disabled />
                 </div>
               </div>
@@ -87,8 +87,39 @@
               </div>
             </div>
             {% endfor %}
-          </div>
-          <br><br>
+            <h4 class="card-title">Detail Display</h4>
+            <div id="artikels">
+              {% for i in dataco.detailcopodisplay %}
+              <div class="row" id="artikel_1">
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label for="artikel_1">Display {{forloop.counter}}:</label>
+                    <input type="text" class="form-control" name="perihal" value="{{i.Display}}" disabled />
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label for="quantity_1">Deskripsi</label>
+                    <input type="text" class="form-control" name="perihal" value="{{i.deskripsi}}" disabled />
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <div class="form-group">
+                    <label for="quantity_1">Kuantitas</label>
+                    <input type="text" class="form-control" name="perihal" value="{{i.kuantitas}}" disabled />
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label for="quantity_1">Harga</label>
+                    <input type="text" class="form-control" name="perihal" value="Rp {{i.Harga | intcomma }}"
+                      disabled />
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            <br><br>
         </form>
       </div>
       <br>

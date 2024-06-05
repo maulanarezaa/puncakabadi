@@ -27,7 +27,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Tanggal</label>
               <div class="col-sm-9">
-                <input type="date" class="form-control" name="tanggal" />
+                <input required type="date" class="form-control" name="tanggal" />
               </div>
             </div>
           </div>
@@ -35,7 +35,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Nomor CO</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="nomorco" />
+                <input required type="text" class="form-control" name="nomorco" />
               </div>
             </div>
           </div>
@@ -45,7 +45,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Kepada</label>
               <div class="col-sm-9">
-                <textarea class="form-control" name="kepada" rows="3"></textarea>
+                <textarea required class="form-control" name="kepada" rows="3"></textarea>
               </div>
             </div>
           </div>
@@ -53,7 +53,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Perihal</label>
               <div class="col-sm-9">
-                <textarea class="form-control" name="perihal" rows="3"></textarea>
+                <textarea required class="form-control" name="perihal" rows="3"></textarea>
               </div>
             </div>
           </div>
@@ -64,12 +64,12 @@
             <div class="col-md-3">
               <div class="form-group">
                 <label for="artikel_1">Artikel 1:</label>
-                <input required type="text" class="form-control artikel" name="artikel[]" list="listartikel">
-                <datalist id="listartikel">
+                <select class="form-control" name="artikel[]">
+                  <option value="">Pilih Artikel</option>
                   {% for item in dataartikel %}
                   <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
                   {% endfor %}
-                </datalist>
+                </select>
               </div>
             </div>
             <div class="col-md-3">
@@ -93,14 +93,56 @@
           </div>
         </div>
         <br><br>
+        <h4 class="card-title">Detail Display</h4>
+        <div id="displays">
+          <div class="row" id="display_1">
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="display_1">Display 1:</label>
+                <select class="form-control" name="display[]">
+                  <option value="">Pilih Display</option>
+
+                  {% for item in datadisplay %}
+                  <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="quantity_1">Deskripsi</label>
+                <input type="text" class="form-control quantity" name="deskripsidisplay[]" placeholder="Deskripsi">
+              </div>
+            </div>
+            <div class="col-md-2">
+              <div class="form-group">
+                <label for="quantity_1">Kuantitas</label>
+                <input type="number" class="form-control quantity" min="0" name="kuantitasdisplay[]"
+                  placeholder="Kuantitas">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="quantity_1">Harga</label>
+                <input type="number" class="form-control quantity" min="0" name="hargadisplay[]" placeholder="Harga">
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="row">
           <div class="col-auto mr-auto">
             <button type="button" class="btn btn-success" onclick="addProduct()">
               <i class="typcn typcn-plus btn-icon-prepend"></i>
               Tambahkan Artikel
             </button>
+            <button type="button" class="btn btn-success" onclick="addDisplay()">
+              <i class="typcn typcn-plus btn-icon-prepend"></i>
+              Tambahkan Display
+            </button>
           </div>
-          <div class="col-auto"><button type="submit" class="btn btn-primary mr-2">Submit</button></div>
+          <div class="col-auto">
+            <button type="submit" class="btn btn-primary mr-2">Submit</button>
+          </div>
         </div>
       </form>
     </div>
@@ -118,12 +160,11 @@
       <div class="col-md-3">
         <div class="form-group">
           <label for="artikel_${productCounter}">Artikel ${productCounter}:</label>
-          <input required type="text" class="form-control artikel" name="artikel[]" list="listartikel" >
-          <datalist id="listartikel">
-            {% for item in data %}
-            <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
-            {% endfor %}
-          </datalist>
+          <select class="form-control" name="artikel">
+                  {% for item in dataartikel %}
+                  <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
+                  {% endfor %}
+                </select>
         </div>
       </div>
       <div class="col-md-3">
@@ -154,6 +195,49 @@
 
   function deleteRow(button) {
     button.closest('.row').remove();
+  }
+
+  function addDisplay() {
+    let displayCounter = document.querySelectorAll('.display').length + 1;
+    const displayRow = document.createElement('div');
+    displayRow.className = "row display-row";
+    displayRow.id = `display_row_${displayCounter}`;
+    displayRow.innerHTML = `<div class="col-md-3">
+                              <div class="form-group">
+                                  <label for="display_${displayCounter}">Display ${displayCounter}:</label>
+                                  <select class="form-control" name="display[]">
+                  <option value="">Pilih Display</option>
+
+                  {% for item in datadisplay %}
+                  <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }}</option>
+                  {% endfor %}
+                </select>
+                              </div>
+                          </div>
+                          <div class="col-md-3">
+                              <div class="form-group">
+                                  <label for="deskripsidisplay_${displayCounter}">Deskripsi</label>
+                                  <input required type="text" class="form-control quantity" name="deskripsidisplay[]" placeholder="Deskripsi">
+                              </div>
+                          </div>
+                          <div class="col-md-2">
+                              <div class="form-group">
+                                  <label for="kuantitasdisplay_${displayCounter}">Kuantitas</label>
+                                  <input required type="number" class="form-control quantity" min="0" name="kuantitasdisplay[]" placeholder="Kuantitas">
+                              </div>
+                          </div>
+                          <div class="col-md-3">
+                              <div class="form-group">
+                                  <label for="hargadisplay_${displayCounter}">Harga</label>
+                                  <input required type="number" class="form-control quantity" min="0" name="hargadisplay[]" placeholder="Harga">
+                              </div>
+                          </div>
+                          <div class="col-md-1">
+                              <br>
+                              <label for="hapus${displayCounter}"></label>
+                              <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn-trash"></i></button>
+                          </div>`;
+    document.getElementById('displays').appendChild(displayRow);
   }
 </script>
 {% endblock javascripts %}
