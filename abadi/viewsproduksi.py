@@ -1378,6 +1378,16 @@ def update_gudang(request, id):
         try:
             detail_spk = request.POST["detail_spk[]"]
             nomorspk = request.POST["nomor_spk"]
+            if detail_spk == "tot":
+                gudangobj.DetailSPK = None
+                gudangobj.DetailSPKDisplay = None
+
+                models.transactionlog(
+                    user="Produksi",
+                    waktu=datetime.now(),
+                    jenis="Update",
+                    pesan=f"Transaksi Barang Masuk. Kode Produk : {getproduk.KodeProduk} Jumlah : {jumlah} Keterangan : {keterangan}",
+                ).save()
 
             try:
                 spkobj = models.SPK.objects.get(NoSPK=nomorspk)
@@ -2572,6 +2582,7 @@ def update_penyesuaian(request, id):
 
     datapenyesuaianobj = models.Penyesuaian.objects.get(pk = id)
     datapenyesuaianobj.TanggalMulai = datapenyesuaianobj.TanggalMulai.strftime('%Y-%m-%d')
+    datapenyesuaianobj.TanggalMinus = datapenyesuaianobj.TanggalMinus.strftime('%Y-%m-%d')
 
     if request.method == "GET":
         return render(
@@ -2580,12 +2591,19 @@ def update_penyesuaian(request, id):
             {"dataobj": datapenyesuaianobj, "Artikel": dataartikel},
         )
     else:
+        tanggalmulai = request.POST["tanggalmulai"]
+        tanggalminus = request.POST['tanggalminus']
+        penyusun = request.POST["penyusun"]
         idpenyesuaian = request.POST['idpenyesuaian']
         kuantitas = request.POST['kuantitas']
 
         penyesuaianobj = models.Penyesuaian.objects.get(
             IDPenyesuaian=idpenyesuaian
         )
+        penyusunobj = models.Penyusun.objects.get(IDKodePenyusun=penyusun)
+        penyesuaianobj.TanggalMinus = tanggalminus
+        penyesuaianobj.TanggalMulai = tanggalmulai
+        penyesuaianobj.KodePenyusun = penyusunobj
         penyesuaianobj.konversi = kuantitas
         penyesuaianobj.save()
 
