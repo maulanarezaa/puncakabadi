@@ -1752,6 +1752,9 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
             indexartikel = listartikelmaster.index(artikelkeluarobj)
             filtered_data = [d for d in listartikelmaster[indexartikel].tanggalversi if d <= i]
             filtered_data.sort(reverse=True)
+            if not filtered_data:
+                filtered_data = [d for d in listartikelmaster[indexartikel].tanggalversi]
+
             tanggalversiterdekat = max(filtered_data)
             indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalversi).index(tanggalversiterdekat)
             konversiterdekat = listartikelmaster[indexartikel].listkonversi[indextanggalterdekat]
@@ -2599,6 +2602,7 @@ def update_penyesuaian(request, id):
             {"dataobj": datapenyesuaianobj, "Artikel": dataartikel},
         )
     else:
+        
         tanggalmulai = request.POST["tanggalmulai"]
         tanggalminus = request.POST['tanggalminus']
         penyusun = request.POST["penyusun"]
