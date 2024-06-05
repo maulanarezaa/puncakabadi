@@ -12,6 +12,7 @@ from datetime import datetime, date
 import calendar
 from . import logindecorators
 from django.contrib.auth.decorators import login_required
+import time
 
 # Create your views here.
 
@@ -123,37 +124,34 @@ def dashboard(request):
 
 
 def gethargafgterakhirberdasarkanmutasi(KodeArtikel, Tanggaltes, HargaPurchasing):
+    cekmutasiwipfg = cekmutasiwipfgterakhir(KodeArtikel,Tanggaltes)
     cekmutasiwip = cekmutasiwipterakhir(KodeArtikel, Tanggaltes)
     cekmutasifg = cekmutasifgterakhir(KodeArtikel, Tanggaltes)
     print("\n\n ", Tanggaltes)
-    if cekmutasifg.month == Tanggaltes.month:
-        print(f"Ada Mutasi FG pada {Tanggaltes}, Harga FG Total di update")
-        hargakomponen_fg_fgterakhir = gethargaartikelfgperbulan(
-            KodeArtikel, cekmutasifg, HargaPurchasing
-        )[KodeArtikel]["hargafg"]
-        if cekmutasiwip.month == Tanggaltes.month:
-            print("Ada mutasi WIP bulan : ", cekmutasiwip.month)
-            hargakomponen_wip_fgterakhir = gethargaartikelwipperbulan(
-                KodeArtikel, cekmutasiwip, HargaPurchasing
-            )[KodeArtikel]["hargawip"]
-            totalbiayafg = hargakomponen_wip_fgterakhir + hargakomponen_fg_fgterakhir
+    print(cekmutasiwipfg)
+    print(cekmutasiwip)
+    print(cekmutasifg)
 
-        else:
-            print("Tidak Ada mutasi WIP bulan : ", cekmutasiwip.month)
-            hargakomponen_wip_fgterakhir = gethargaartikelwipperbulan(
-                KodeArtikel, cekmutasiwip, HargaPurchasing
-            )[KodeArtikel]["hargawip"]
-            totalbiayafg = hargakomponen_wip_fgterakhir + hargakomponen_fg_fgterakhir
+    if cekmutasiwipfg.month == Tanggaltes.month:
+        print(f"Ada Mutasi WIP ke FG pada {Tanggaltes}, Harga FG Total di update")
+        hargakomponen_fg_fgterakhir = gethargaartikelfgperbulan(
+            KodeArtikel, cekmutasiwipfg, HargaPurchasing
+        )[KodeArtikel]["hargafg"]
+        hargakomponen_wip_fgterakhir = gethargaartikelwipperbulan(
+                    KodeArtikel, cekmutasiwipfg, HargaPurchasing
+                )[KodeArtikel]["hargawip"]
+        totalbiayafg = hargakomponen_wip_fgterakhir + hargakomponen_fg_fgterakhir
+        
     else:
         print(
             f"Tidak ada Mutasi FG pada {Tanggaltes}, Harga FG menggunakan harga FG terakhir",
-            cekmutasifg,
+            cekmutasiwipfg,
         )
         hargakomponen_wip_fgterakhir = gethargaartikelwipperbulan(
-            KodeArtikel, cekmutasifg, HargaPurchasing
+            KodeArtikel, cekmutasiwipfg, HargaPurchasing
         )[KodeArtikel]["hargawip"]
         hargakomponen_fg_fgterakhir = gethargaartikelfgperbulan(
-            KodeArtikel, cekmutasifg, HargaPurchasing
+            KodeArtikel, cekmutasiwipfg, HargaPurchasing
         )[KodeArtikel]["hargafg"]
         totalbiayafg = hargakomponen_wip_fgterakhir + hargakomponen_fg_fgterakhir
         if cekmutasiwip.month == Tanggaltes.month:
@@ -335,67 +333,12 @@ def laporanbarangkeluar(request):
             )
             return redirect("laporanbarangkeluar")
         for i in data:
-            cekmutasiwip = cekmutasiwipterakhir(
-                i.DetailSPK.KodeArtikel, i.NoSPPB.Tanggal
+            totalbiayafg, datakomponenwip, datakomponenfg = (
+                gethargafgterakhirberdasarkanmutasi(
+                    i.DetailSPK.KodeArtikel, i.NoSPPB.Tanggal, hargaakhirbulanperproduk
+                )
             )
-            # datakomponenwip = gethargaartikelwipperbulan(
-            #     i.DetailSPK.KodeArtikel, cekmutasiwip, hargaakhirbulanperproduk
-            # )
-            # print('Mutasi FG Lebih baru dari pada WIP, Menggunakan harga WIP Terakhir')
-            cekmutasifg = cekmutasifgterakhir(i.DetailSPK.KodeArtikel, i.NoSPPB.Tanggal)
-            # datakomponenfg = gethargaartikelfgperbulan(
-            #     i.DetailSPK.KodeArtikel, cekmutasifg, hargaakhirbulanperproduk
-            # )
-
-            if cekmutasifg.month == i.NoSPPB.Tanggal.month:
-                print(
-                    f"Ada Mutasi FG pada {i.NoSPPB.Tanggal}, Harga FG Total di update"
-                )
-                hargakomponen_fg_fgterakhir = gethargaartikelfgperbulan(
-                    i.DetailSPK.KodeArtikel, cekmutasifg, hargaakhirbulanperproduk
-                )[i.DetailSPK.KodeArtikel]["hargafg"]
-                if cekmutasiwip.month == i.NoSPPB.Tanggal.month:
-                    print("Ada mutasi WIP bulan : ", cekmutasiwip.month)
-                    hargakomponen_wip_fgterakhir = gethargaartikelwipperbulan(
-                        i.DetailSPK.KodeArtikel, cekmutasiwip, hargaakhirbulanperproduk
-                    )[i.DetailSPK.KodeArtikel]["hargawip"]
-                    totalbiayafg = (
-                        hargakomponen_wip_fgterakhir + hargakomponen_fg_fgterakhir
-                    )
-
-                else:
-                    print("Tidak Ada mutasi WIP bulan : ", cekmutasiwip.month)
-                    hargakomponen_wip_fgterakhir = gethargaartikelwipperbulan(
-                        i.DetailSPK.KodeArtikel, cekmutasiwip, hargaakhirbulanperproduk
-                    )[i.DetailSPK.KodeArtikel]["hargawip"]
-                    totalbiayafg = (
-                        hargakomponen_wip_fgterakhir + hargakomponen_fg_fgterakhir
-                    )
-            else:
-                print(
-                    f"Tidak ada Mutasi FG pada {i.NoSPPB.Tanggal}, Harga FG menggunakan harga FG terakhir",
-                    cekmutasifg,
-                )
-                hargakomponen_wip_fgterakhir = gethargaartikelwipperbulan(
-                    i.DetailSPK.KodeArtikel, cekmutasifg, hargaakhirbulanperproduk
-                )[i.DetailSPK.KodeArtikel]["hargawip"]
-                hargakomponen_fg_fgterakhir = gethargaartikelfgperbulan(
-                    i.DetailSPK.KodeArtikel, cekmutasifg, hargaakhirbulanperproduk
-                )[i.DetailSPK.KodeArtikel]["hargafg"]
-                totalbiayafg = (
-                    hargakomponen_wip_fgterakhir + hargakomponen_fg_fgterakhir
-                )
-                if cekmutasiwip.month == i.NoSPPB.Tanggal.month:
-                    print("Ada mutasi WIP bulan : ", cekmutasiwip.month)
-                    hargakomponen_wip_fgterakhir = gethargaartikelwipperbulan(
-                        i.DetailSPK.KodeArtikel, cekmutasiwip, hargaakhirbulanperproduk
-                    )[i.DetailSPK.KodeArtikel]["hargawip"]
-
-                else:
-                    print("Tidak Ada mutasi WIP bulan : ", cekmutasiwip.month)
-                    hargakomponen_wip_fgterakhir = gethargaartikelwipperbulan(
-                        i.DetailSPK.KodeArtikel, cekmutasiwip, hargaakhirbulanperproduk
-                    )[i.DetailSPK.KodeArtikel]["hargawip"]
+            
             i.HargaFG = totalbiayafg
             i.TotalBiayaKeluar = i.HargaFG * i.Jumlah
             grandtotal += totalbiayafg
@@ -1531,7 +1474,6 @@ def getbarangkeluar(last_days, stopindex, awaltahun):
             )
         if datadetailsppb.exists():
             for detailsppb in datadetailsppb:
-                print(detailsppb)
                 # print(biayafgperartikel)
                 harga = (
                     detailsppb.Jumlah
@@ -1730,9 +1672,7 @@ def gethargaartikelwipperbulan(artikel, tanggal, hargaakhirbulanperproduk):
                 .order_by("versi")
                 .last()
             )
-            # print(versiterakhirperbulan)
-            # print(asd)
-            # SEMENTARA PAKAI .LAST()
+
             penyusunversiterpilih = models.Penyusun.objects.filter(
                 KodeArtikel=artikel,
                 versi=versiterakhirperbulan,
@@ -1891,7 +1831,6 @@ def detaillaporanbarangmasuk(request):
         # print(last_days[:index+1])
         bahanbakumasuk = getbarangmasuk(last_days, index, awaltahun)
         print(bahanbakumasuk)
-        print(asd)
 
         return render(
             request,
@@ -2159,6 +2098,21 @@ def cekmutasifgterakhir(artikel, tanggaltes):
     else:
         return tanggaltes
 
+def cekmutasiwipfgterakhir(artikel,tanggaltes):
+    tanggalawalbulan = date(tanggaltes.year, tanggaltes.month, 1)
+    mutasiwip = (
+        models.TransaksiProduksi.objects.filter(
+            KodeArtikel=artikel, Jenis="Mutasi", Tanggal__lte=tanggaltes
+        )
+        .values_list("Tanggal", flat=True)
+        .distinct()
+        .order_by("-Tanggal")
+        .first()
+    )
+    if mutasiwip:
+        return mutasiwip
+    else: 
+        return tanggaltes
 
 def cekmutasiwipterakhir(artikel, tanggaltes):
     tanggalawalbulan = date(tanggaltes.year, tanggaltes.month, 1)
@@ -2322,10 +2276,12 @@ def perhitunganmutasifgterakhir(artikel, tanggaltes):
 
 def getstokartikelfg(last_days, stopindex, awaltahun):
     datastokfgperbulan = {}
-    datahargafgartikel = gethargafgperbulan(last_days, stopindex, awaltahun)
+    starttime = time.time()
     hargaakhirbulanperproduk = gethargapurchasingperbulan(
         last_days, stopindex, awaltahun
     )
+    endtime = time.time()
+    print("Waktu selesai : ", endtime - starttime)
     # print(hargaakhirbulanperproduk)
 
     datastokbahanbakufg = {}
@@ -2427,32 +2383,10 @@ def getstokartikelfg(last_days, stopindex, awaltahun):
                 DetailSPK__KodeArtikel=dataartikel
             )
             if jumlahkeluarartikelmutasiperbulan.exists():
-                # print(hari, jumlahkeluarartikelmutasiperbulan)
-                # print(asdas)
                 totaltransaksikeuar = jumlahkeluarartikelmutasiperbulan.aggregate(
                     total=Sum("Jumlah")
                 )["total"]
                 stokawal -= totaltransaksikeuar
-
-                # for x in datahargafgartikel[dataartikel][index]['penyusun']:
-                # print("\n\n", datahargafgartikel.keys)
-
-                # if datakomponenfg[dataartikel]["penyusun"]:
-                #     for bahanfg, databahanfg in datakomponenfg[dataartikel][
-                #         "penyusun"
-                #     ].items():
-
-                #         # print(asdasd)
-
-                #         # print('\n\n\n',index, kuantitas,dataartikel,totaltransaksikeuar,datamodelsisabarangfg[bahanfg.KodeProduk]["stok"])
-                #         kuantitas = databahanfg["kuantitas"]
-                #         ["kuantitas"]
-                #         datamodelsisabarangfg[bahanfg]["stok"] -= (
-                #             kuantitas * totaltransaksikeuar
-                #         )
-                #         hargasatuan = databahanfg["harga"]
-
-                #         datamodelsisabarangfg[bahanfg]["Hargasatuan"] = hargasatuan
 
             """Data Request ke FG"""
             totalbiaya = totalbiayafg * stokawal
@@ -2839,7 +2773,7 @@ def laporanpersediaan(request):
     if len(request.GET) == 0:
         return render(request, "ppic/views_laporanpersediaanperusahaan.html")
     else:
-
+        starttime = time.time()
         bulan = request.GET["bulan"]
         waktuobj = datetime.strptime(bulan, "%Y-%m")
         print(waktuobj.month)
@@ -2871,11 +2805,12 @@ def laporanpersediaan(request):
         barangmasuk = getbarangmasuk(last_days, index, awaltahun)
         """SECTION STOCK GUDANG"""
         baranggudang = saldogudang(last_days, index, awaltahun)
-        """SECTION FG"""
         barangfg, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
+        """SECTION FG"""
         print(bahanbakusisafg[0])
         # print(asda)
         """SECTION WIP (Skip dulu)"""
+
         dataperhitunganpersediaan = perhitunganpersediaan(
             last_days,
             index,
@@ -2887,9 +2822,13 @@ def laporanpersediaan(request):
             bahanbakusisafg,
         )
 
+        # print(asd)
+
         print("\n")
         print(dataperhitunganpersediaan)
         print("tes")
+        endtime = time.time()
+        print('Selisih waktu : ',endtime-starttime)
         return render(
             request,
             "ppic/views_laporanpersediaanperusahaan.html",
