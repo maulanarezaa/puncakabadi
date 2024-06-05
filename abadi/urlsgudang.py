@@ -55,4 +55,24 @@ urlpatterns = [
     path("bulk_addsjp", viewsgudang.bulk_createsjp),
     path("bulk_addsa", viewsgudang.bulk_createsaldoawal),
     path("bulk_addtg", viewsgudang.bulk_createtransaksigudang),
+    path(
+        "pemusnahan",
+        viewsgudang.view_pemusnahanbarang,
+        name="read_pemusnahanbahangudang",
+    ),
+    path(
+        "addpemusnahan",
+        viewsgudang.add_pemusnahanbarang,
+        name="add_pemusnahangudang",
+    ),
+    path(
+        "updatepemusnahan/<str:id>",
+        viewsgudang.update_pemusnahanbarang,
+        name="update_pemusnahanbaranggudang",
+    ),
+    path(
+        "deletepemusnahan/<str:id>",
+        viewsgudang.delete_pemusnahanbarang,
+        name="delete_pemusnahangudang",
+    ),
 ]

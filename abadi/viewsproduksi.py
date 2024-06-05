@@ -2429,7 +2429,7 @@ def delete_pemusnahan(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_pemusnahanbarang(request):
-    dataproduksi = models.PemusnahanBahanBaku.objects.all().order_by("-Tanggal")
+    dataproduksi = models.PemusnahanBahanBaku.objects.filter(lokasi__NamaLokasi__in=("WIP","FG")).order_by("-Tanggal")
     for i in dataproduksi:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
 
@@ -2867,7 +2867,7 @@ def kalkulatorpenyesuaian2(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_saldobahan(request):
-    dataproduk = models.SaldoAwalBahanBaku.objects.all().order_by("-Tanggal")
+    dataproduk = models.SaldoAwalBahanBaku.objects.filter(IDLokasi__NamaLokasi__in=("WIP","FG")).order_by("-Tanggal")
     for i in dataproduk:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
 

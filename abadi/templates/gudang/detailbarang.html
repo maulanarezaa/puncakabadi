@@ -18,7 +18,8 @@
                         <label for="input_kode">Kode Barang :</label>
                         <div class="input-group mb- mr-sm-2 ml-2">
                             <input required type="text" class="form-control" placeholder="Masukkan Kode Produk"
-                                aria-label="Masukkan Nama Produk" name="input_kode" list="listkode">
+                                aria-label="Masukkan Nama Produk" name="input_kode" list="listkode"
+                                value="{{datasjp.0.KodeProduk}}">
                             <datalist id="listkode">
                                 {% for i in dataproduk %}
                                 <option value="{{i.KodeProduk}}">{{i.KodeProduk}}- {{i.NamaProduk}}</option>
@@ -35,11 +36,11 @@
             <br>
 
 
-            <h4 class="card-title">Detail Barang</h4>
+            <h4 class="card-title">Detail Bahan Baku</h4>
             {% if datasjp %}
-            <h4>Kode Barang : <span style="font-weight: lighter;">
+            <h4>Kode Bahan Baku : <span style="font-weight: lighter;">
                     {{datasjp.0.KodeProduk}}</span></h4>
-            <h4>Nama Barang : <span style="font-weight: lighter;">
+            <h4>Nama Bahan Baku : <span style="font-weight: lighter;">
                     {{datasjp.0.KodeProduk.NamaProduk}}</span></h4>
             <h4>Satuan : <span style="font-weight: lighter;">
                     {{datasjp.0.KodeProduk.unit}}</span></h4>
@@ -61,18 +62,14 @@
                         <tbody>
                             <tr>
                                 <td colspan="3">Saldo Awal</td>
-                                <td>{{saldoawal}}</td>
+                                <td>{{datasaldoawal}}</td>
                             </tr>
+                            {% for tanggal,value in dictdata.items %}
                             <tr>
-                                <td colspan="3">Pemusnahan</td>
-                                <td>{{pemusnahan}}</td>
-                            </tr>
-                            {% for i in dict_semua %}
-                            <tr>
-                                <td>{{i.tanggaltotal}}</td>
-                                <td>{{i.masuk}}</td>
-                                <td>{{i.keluar}}</td>
-                                <td>{{i.sisa}}</td>
+                                <td>{{tanggal}}</td>
+                                <td>{{value.masuk}}</td>
+                                <td>{{value.keluar}}</td>
+                                <td>{{value.saldo}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
