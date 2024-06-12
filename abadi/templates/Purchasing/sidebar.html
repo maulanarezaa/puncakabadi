@@ -62,5 +62,17 @@
         <span class="menu-title">SPPB</span>
       </a>
     </li>
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#saldoawal" aria-expanded="false" aria-controls="produksi">
+        <i class="typcn typcn-shopping-bag menu-icon"></i>
+        <span class="menu-title">Saldo Awal</span>
+        <i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="saldoawal">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="{% url 'saldobahanbakupurchasing' %}">Bahan Baku</a></li>
+        </ul>
+      </div>
+    </li>
   </ul>
 </nav>

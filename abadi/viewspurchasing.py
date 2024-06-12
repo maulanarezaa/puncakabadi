@@ -2012,6 +2012,117 @@ def accspk2(request, id):
     messages.success(request, "SPK berhasil diacc")
     return redirect("read_spk")
 
+'''
+
+REVISI 6/12/2024
+1. Update Harga Saldo Awal 
+'''
+
+def read_saldoawal(request):
+    dataproduk = models.SaldoAwalBahanBaku.objects.all().order_by("-Tanggal")
+    print(dataproduk)
+    for i in dataproduk:
+        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
+
+    return render(
+        request, "Purchasing/read_saldoawalbahan.html", {"dataproduk": dataproduk}
+    )
+
+def update_saldoawal(request,id):
+    databarang = models.Produk.objects.all()
+    dataobj = models.SaldoAwalBahanBaku.objects.get(IDSaldoAwalBahanBaku=id)
+    dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
+    lokasiobj = models.Lokasi.objects.all()
+    if request.method == "GET":
+        return render(
+            request,
+            "Purchasing/update_saldobahan.html",
+            {"data": dataobj, "nama_lokasi": lokasiobj, "databarang": databarang},
+        )
+
+    else:
+
+        harga = request.POST["harga"]
+        
+        hargalama = dataobj.Harga
+        dataobj.Harga = harga
+        models.transactionlog(
+            user="Purchasing",
+            waktu=datetime.now(),
+            jenis="Update",
+            pesan=f"Update Harga Bahan Baku {dataobj.IDBahanBaku.KodeProduk}Jumlah lama {dataobj.Harga}, Jumlah baru {hargalama}",
+        ).save()
+        dataobj.save()
+        messages.success(request, "Data berhasil disimpan")
+        return redirect("saldobahanbakupurchasing")
+
+
+
+def view_saldoartikel(request):
+    dataartikel = models.SaldoAwalArtikel.objects.all().order_by("-Tanggal")
+    for i in dataartikel:
+        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
+
+    return render(
+        request, "Purchasing/view_saldoartikel.html", {"dataartikel": dataartikel}
+    )
+
+def update_saldoartikel(request, id):
+    dataartikel = models.Artikel.objects.all()
+    dataobj = models.SaldoAwalArtikel.objects.get(IDSaldoAwalBahanBaku=id)
+    dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
+    lokasiobj = models.Lokasi.objects.all()
+    if request.method == "GET":
+
+        return render(
+            request,
+            "Purchasing/update_saldoartikel.html",
+            {"data": dataobj, "nama_lokasi": lokasiobj[:2], "dataartikel": dataartikel},
+        )
+
+    else:
+        artikel = request.POST["artikel"]
+        lokasi = request.POST["nama_lokasi"]
+        jumlah = request.POST["jumlah"]
+        tanggal = request.POST["tanggal"]
+
+        # Ubah format tanggal menjadi YYYY-MM-DD
+        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
+        # Periksa apakah entri sudah ada
+        existing_entry = models.SaldoAwalArtikel.objects.filter(
+            Tanggal__year=tanggal_formatted.year,
+            IDArtikel__KodeArtikel=artikel,
+            IDLokasi=lokasi
+        ).exclude(IDSaldoAwalBahanBaku=id).exists()
+
+        if existing_entry:
+            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
+            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
+            return redirect("update_saldoartikel",id=id)
+        try:
+            artikelobj = models.Artikel.objects.get(KodeArtikel=artikel)
+            
+        except:
+            messages.error(request,f'Data artikel {artikel} tidak ditemukan dalam sistem')
+            return redirect("update_saldoartikel",id=id)
+        lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
+
+        dataobj.Tanggal = tanggal
+        dataobj.Jumlah = jumlah
+        dataobj.IDArtikel = artikelobj
+        dataobj.IDLokasi= lokasiobj
+
+        dataobj.save()
+
+        models.transactionlog(
+            user="Produksi",
+            waktu=datetime.now(),
+            jenis="Update",
+            pesan=f"Saldo Artikel. Kode Bahan Baku : {artikelobj.KodeArtikel} Jumlah : {jumlah} Lokasi : {lokasiobj.NamaLokasi}",
+        ).save()
+        messages.success(request,'Data berhasil disimpan')
+        return redirect("view_saldoartikel")
+    
 def bulk_createproduk(request):
     if request.method == 'POST' and request.FILES['file']:
         file = request.FILES['file']
