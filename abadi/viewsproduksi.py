@@ -556,6 +556,7 @@ def view_sppb(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi'])
 def add_sppb(request):
+    databahan = models.Produk.objects.all()
     dataartikel = models.Artikel.objects.all()
     datadisplay = models.Display.objects.all()
     purchaseorder = models.confirmationorder.objects.filter(StatusAktif = True)
@@ -565,8 +566,9 @@ def add_sppb(request):
             request,
             "produksi/add_sppb.html",
             {
-                "data": dataartikel,
-                'display': datadisplay,
+                "bahan": databahan,
+                "artikel": dataartikel,
+                "display": datadisplay,
                 "purchaseorder":purchaseorder
             },
         )
@@ -589,11 +591,16 @@ def add_sppb(request):
             jumlah_list = request.POST.getlist("quantity[]")
             confirmationorderartikel = request.POST.getlist("purchaseorderartikel")
 
+            bahan_list = request.POST.getlist("kode_bahan[]")
+            jumlahbahan = request.POST.getlist("quantitybahan[]")
+            confirmationorderbahan = request.POST.getlist("purchaseorderbahan")
+
             # Periksa apakah setidaknya satu item dari artikel atau display list memiliki data
+            valid_bahan_list = any(bahan_list) and any(jumlahbahan)
             valid_artikel_list = any(artikel_list) and any(jumlah_list)
             valid_display_list = any(displaylist) and any(jumlahdisplay)
 
-            if valid_artikel_list or valid_display_list:
+            if valid_artikel_list or valid_display_list or valid_bahan_list:
 
                 data_sppb = models.SPPB(
                     NoSPPB=nomor_sppb, Tanggal=tanggal, Keterangan=keterangan
@@ -608,6 +615,30 @@ def add_sppb(request):
                     jenis="Create",
                     pesan=f"Surat Perintah Pengiriman Barang. Nomor SPPB : {no_sppb.NoSPPB} Keterangan : {no_sppb.Keterangan}",
                 ).save()
+
+                for bahan, jumlah, confirmationorder in zip(bahan_list, jumlahbahan, confirmationorderbahan):
+                    if bahan == '' or jumlah == '':
+                        continue
+
+                    kode_bahan = models.Produk.objects.get(KodeProduk=bahan)
+                    jumlah_bahan = jumlah
+
+                    # Simpan data ke dalam model DetailSPK
+                    datadetailspk = models.DetailSPPB(
+                        NoSPPB=no_sppb, DetailBahan=kode_bahan, Jumlah=jumlah_bahan
+                    )
+
+                    if not confirmationorder == "":
+                        datadetailspk.IDCO = models.confirmationorder.objects.get(pk=confirmationorder)
+
+                    datadetailspk.save()
+
+                    models.transactionlog(
+                        user="Produksi",
+                        waktu=datetime.now(),
+                        jenis="Create",
+                        pesan=f"Detail Surat Perintah Pengiriman Barang. Nomor SPPB : {no_sppb.NoSPPB} Kode Bahan Baku : {kode_bahan.NamaProduk} Jumlah : {jumlah} CO : { datadetailspk.IDCO if datadetailspk.IDCO is not None  else None}",
+                    ).save()
 
                 for artikel, jumlah, confirmationorder in zip(artikel_list, jumlah_list,confirmationorderartikel):
                     if artikel == '' or jumlah == '':
@@ -663,22 +694,25 @@ def add_sppb(request):
                         jenis="Create",
                         pesan=f"Detail Surat Perintah Pengiriman Barang. Nomor SPPB : {no_sppb.NoSPPB} Kode Display : {detailspkdisplayobj.KodeDisplay} Jumlah : {jumlah} CO : { datadetailspkdisplay.IDCO if datadetailspkdisplay.IDCO is not None  else None}",
                     ).save()
+
                 return redirect("view_sppb")
             
             else:
-                messages.error(request, "Masukkan Artikel atau Display")
+                messages.error(request, "Masukkan Bahan, Artikel atau Display")
                 return redirect("add_sppb")
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi'])
 def detail_sppb(request, id):
+    databahan = models.Produk.objects.all()
     dataartikel = models.Artikel.objects.all()
     datadisplay = models.Display.objects.all()
     datadetailspk = models.DetailSPK.objects.all()
     datadetailspkdisplay = models.DetailSPKDisplay.objects.all()
     datasppb = models.SPPB.objects.get(id=id)
-    datadetailsppbArtikel = models.DetailSPPB.objects.filter(NoSPPB=datasppb.id,DetailSPKDisplay = None)
-    datadetailsppbdisplay = models.DetailSPPB.objects.filter(NoSPPB=datasppb.id,DetailSPK = None)
+    datadetailsppbbahan = models.DetailSPPB.objects.filter(NoSPPB=datasppb.id,DetailSPK = None,DetailSPKDisplay = None)
+    datadetailsppbArtikel = models.DetailSPPB.objects.filter(NoSPPB=datasppb.id,DetailSPKDisplay = None,DetailBahan = None)
+    datadetailsppbdisplay = models.DetailSPPB.objects.filter(NoSPPB=datasppb.id,DetailSPK = None,DetailBahan = None)
     purchaseorderdata = models.confirmationorder.objects.filter(StatusAktif =True)
 
     if request.method == "GET":
@@ -688,11 +722,13 @@ def detail_sppb(request, id):
             request,
             "produksi/detail_sppb.html",
             {
+                "bahan": databahan,
                 "dataartikel": dataartikel,
                 "datadisplay": datadisplay,
                 "data": datadetailspk,
                 "dataspkdisplay": datadetailspkdisplay,
                 "datasppb": datasppb,
+                "datadetailbahan" : datadetailsppbbahan,
                 "datadetail": datadetailsppbArtikel,
                 "datadetaildisplay": datadetailsppbdisplay,
                 "tanggal": tanggal,
@@ -704,10 +740,18 @@ def detail_sppb(request, id):
         nomor_sppb = request.POST["nomor_sppb"]
         tanggall = request.POST["tanggal"]
         keterangan = request.POST["keterangan"]
+
+        bahan_list = request.POST.getlist("kode_bahanawal[]")
+        jumlahbahan = request.POST.getlist("quantitybahan[]")
+        confirmationorderbahan = request.POST.getlist("purchaseorderbahan")
+
         artikel_list = request.POST.getlist("detail_spkawal[]")
         jumlah_list = request.POST.getlist("quantity[]")
+        confirmationorderartikel = request.POST.getlist("purchaseorderartikel")
+
         display_list = request.POST.getlist("detail_spkdisplayawal[]")
         jumlahdisplay_list = request.POST.getlist('quantitydisplay[]')
+        confirmationorderdisplay = request.POST.getlist("purchaseorderdisplay")
 
         artikel_baru = request.POST.getlist('detail_spk[]')
         jumlah_baru = request.POST.getlist('quantitybaru[]')
@@ -716,6 +760,10 @@ def detail_sppb(request, id):
         display_baru = request.POST.getlist('detail_spkdisplay[]')
         jumlahdisplay_baru = request.POST.getlist('quantitydisplaybaru[]')
         purchaseorder_displaybaru = request.POST.getlist('purchaseorderdisplaybaru')
+
+        bahan_baru = request.POST.getlist("kode_bahan[]")
+        jumlahbahan_baru = request.POST.getlist("quantitybahanbaru[]")
+        purchaseorder_bahanbaru = request.POST.getlist("purchaseorderbahanbaru")
 
         datasppbbaru = models.SPPB.objects.filter(NoSPPB=nomor_sppb)
         existsppb = datasppbbaru.exists()
@@ -735,13 +783,38 @@ def detail_sppb(request, id):
                 pesan=f"Surat Perintah Pengiriman Barang. Nomor SPPB : {datasppb.NoSPPB} Keterangan : {datasppb.Keterangan}",
             ).save()
 
+        if datadetailsppbbahan:
+            for detail, bahan, jumlah, confirmationorder in zip(datadetailsppbbahan,bahan_list, jumlahbahan, confirmationorderbahan):
+
+                kode_bahan = models.Produk.objects.get(KodeProduk=bahan)
+
+                detail.DetailBahan = kode_bahan
+                detail.Jumlah = jumlah
+
+                if not confirmationorder == "":
+                    detail.IDCO = models.confirmationorder.objects.get(pk=confirmationorder)
+                    
+                detail.save()
+
+                models.transactionlog(
+                    user="Produksi",
+                    waktu=datetime.now(),
+                    jenis="Update",
+                    pesan=f"Detail Surat Perintah Pengiriman Barang. Nomor SPPB : {datasppb.NoSPPB} Kode Bahan Baku: {kode_bahan.NamaProduk} Jumlah : {jumlah}",
+                ).save()
+
+
         if datadetailsppbArtikel:
-            for detail, artikel_id, jumlah in zip(
-                datadetailsppbArtikel, artikel_list, jumlah_list
+            for detail, artikel_id, jumlah, confirmationorder in zip(
+                datadetailsppbArtikel, artikel_list, jumlah_list, confirmationorderartikel
             ):
                 kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel_id)
                 detail.DetailSPK = kode_artikel
                 detail.Jumlah = jumlah
+
+                if not confirmationorder == "":
+                    detail.IDCO = models.confirmationorder.objects.get(pk=confirmationorder)
+
                 detail.save()
 
                 models.transactionlog(
@@ -752,12 +825,16 @@ def detail_sppb(request, id):
                 ).save()
                 
         if datadetailsppbdisplay:
-            for detail, artikel_id, jumlah in zip(
-                datadetailsppbdisplay, display_list, jumlahdisplay_list
+            for detail, artikel_id, jumlah, confirmationorder in zip(
+                datadetailsppbdisplay, display_list, jumlahdisplay_list, confirmationorderdisplay
             ):
                 kode_display = models.DetailSPKDisplay.objects.get(IDDetailSPK=artikel_id)
                 detail.DetailSPKDisplay = kode_display
                 detail.Jumlah = jumlah
+
+                if not confirmationorder == "":
+                    detail.IDCO = models.confirmationorder.objects.get(pk=confirmationorder)
+
                 detail.save()
 
                 models.transactionlog(
@@ -767,8 +844,34 @@ def detail_sppb(request, id):
                     pesan=f"Detail Surat Perintah Pengiriman Barang. Nomor SPPB : {datasppb.NoSPPB} Kode Artikel : {kode_display.KodeDisplay} Jumlah : {jumlah}",
                 ).save()
 
-
         no_sppb = models.SPPB.objects.get(NoSPPB=nomor_sppb)
+
+        if bahan_baru:
+            for bahan, jumlah, confirmationorder in zip(bahan_baru, jumlahbahan_baru, purchaseorder_bahanbaru):
+                if bahan == '' or jumlah == '':
+                    continue
+
+                kode_bahan = models.Produk.objects.get(KodeProduk=bahan)
+                jumlah_bahan = jumlah
+
+                # Simpan data ke dalam model DetailSPK
+                datadetailspk = models.DetailSPPB(
+                    NoSPPB=no_sppb, DetailBahan=kode_bahan, Jumlah=jumlah_bahan
+                )
+
+                print(confirmationorder)
+
+                if not confirmationorder == "":
+                    datadetailspk.IDCO = models.confirmationorder.objects.get(pk=confirmationorder)
+
+                datadetailspk.save()
+
+                models.transactionlog(
+                    user="Produksi",
+                    waktu=datetime.now(),
+                    jenis="Create",
+                    pesan=f"Detail Surat Perintah Pengiriman Barang. Nomor SPPB : {no_sppb.NoSPPB} Kode Bahan Baku : {kode_bahan.NamaProduk} Jumlah : {jumlah} CO : { datadetailspk.IDCO if datadetailspk.IDCO is not None  else None}",
+                ).save()
 
         if artikel_baru:
             for artikel_id, jumlah,confirmationorder in zip(
@@ -816,6 +919,7 @@ def detail_sppb(request, id):
                     jenis="Create",
                     pesan=f"Detail Surat Perintah Pengiriman Barang. Nomor SPPB : {no_sppb.NoSPPB} Kode Display : {kode_display.KodeDisplay} Jumlah : {jumlah}",
                 ).save()
+
         messages.success(request,"Data berhasil disimpan")
         return redirect("detail_sppb", id=id)
     
@@ -848,12 +952,19 @@ def delete_detailsppb(request, id):
             jenis="Delete",
             pesan=f"Detail Surat Perintah Pengiriman Barang. Nomor SPPB : {datasppb.NoSPPB} Artikel : {datadetailsppb.DetailSPK.KodeArtikel.KodeArtikel} ",
         ).save()
-    else:
+    elif datadetailsppb.DetailSPKDisplay:
         models.transactionlog(
             user="Produksi",
             waktu=datetime.now(),
             jenis="Delete",
             pesan=f"Detail Surat Perintah Pengiriman Barang. Nomor SPPB : {datasppb.NoSPPB}  Display : {datadetailsppb.DetailSPKDisplay.KodeDisplay.KodeDisplay} ",
+        ).save()
+    else:
+        models.transactionlog(
+            user="Produksi",
+            waktu=datetime.now(),
+            jenis="Delete",
+            pesan=f"Detail Surat Perintah Pengiriman Barang. Nomor SPPB : {datasppb.NoSPPB}  Display : {datadetailsppb.DetailBahan.KodeProduk} ",
         ).save()
 
     return redirect("detail_sppb", id=datasppb.id)
