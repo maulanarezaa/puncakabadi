@@ -12,12 +12,7 @@
     <div class="card-body">
       <h4 class="card-title">Detail Confirmation Order</h4>
       <div class="template-demo">
-        <a href="/produksi/viewspk">
-          <button type="button" class="btn btn-light btn-icon-text">
-            <i class="typcn typcn-chevron-left btn-icon-prepend"></i>
-            Kembali
-          </button>
-        </a>
+
       </div>
       <br>
       <form class="form-sample" action="" method="post">
@@ -61,7 +56,6 @@
                   <option value="0" selected>Aktif</option>
                   <option value="1">Non-Aktif</option>
                   {% endif %}
-
                 </select>
               </div>
             </div>
@@ -106,8 +100,45 @@
             </div>
             <div class="col-md-1">
               <br>
-              <label for="hapus{{forloop.counter}}"></label>
-              <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i
+              <button type="button" class="btn btn-danger" onclick="confirmDelete('{{i.id}}')"><i
+                  class="typcn typcn-trash"></i></button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <h4 class="card-title">Detail Display</h4>
+        <div id="displays">
+          {% for i in dataco.detailcopodisplay %}
+          <div class="row" id="display_{{forloop.counter}}">
+            <input type="text" hidden name="iddisplay[]" value="{{i.id}}">
+            <div class="col-md-3 tes">
+              <div class="form-group">
+                <label for="display_{{forloop.counter}}">Display {{forloop.counter}}:</label>
+                <input type="text" class="form-control display" name="display[]" value="{{i.Display}}" required />
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="deskripsi_{{forloop.counter}}">Deskripsi</label>
+                <input type="text" class="form-control" name="deskripsidisplay[]" value="{{i.deskripsi}}" required />
+              </div>
+            </div>
+            <div class="col-md-2">
+              <div class="form-group">
+                <label for="kuantitas_{{forloop.counter}}">Kuantitas</label>
+                <input type="text" class="form-control" name="kuantitasdisplay[]" value="{{i.kuantitas}}" required />
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="harga_{{forloop.counter}}">Harga (Rp)</label>
+                <input type="text" class="form-control" name="hargadisplay[]" value="{{i.Harga}}" required />
+              </div>
+            </div>
+            <div class="col-md-1">
+              <br>
+
+              <button type="button" class="btn btn-danger" onclick="confirmDelete('{{i.id}}')"><i
                   class="typcn typcn-trash"></i></button>
             </div>
           </div>
@@ -119,6 +150,10 @@
               <i class="typcn typcn-plus btn-icon-prepend"></i>
               Tambahkan Artikel
             </button>
+            <button type="button" class="btn btn-success" onclick="addDisplay()">
+              <i class="typcn typcn-plus btn-icon-prepend"></i>
+              Tambahkan Display
+            </button>
           </div>
           <div class="col-auto"><button type="submit" class="btn btn-primary mr-2">Submit</button></div>
         </div>
@@ -127,11 +162,38 @@
     </div>
   </div>
 </div>
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Konfirmasi Penghapusan</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Apakah Anda yakin ingin menghapus data ini?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+        <form id="deleteForm" method="post" action="">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Hapus</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% block javascripts %}
-<!-- ... Bagian lain dari template Anda ... -->
-
 <script>
+  function confirmDelete(id) {
+    console.log(id)
+    var deleteForm = document.getElementById('deleteForm');
+    deleteForm.action = "/ppic/deletedetailco/" + id;
+    $('#confirmDeleteModal').modal('show');
+  }
   function addProduct() {
     let productCounter = document.querySelectorAll('.tes').length + 1;
     const productRow = document.createElement('div');
@@ -142,7 +204,12 @@
       <div class="col-md-3 tes">
         <div class="form-group">
           <label for="artikel_${productCounter}">Artikel ${productCounter}:</label>
-          <input type="text" class="form-control" name="artikel[]" placeholder="Artikel" required>
+          <select class="form-control" name="artikel[]">
+                  <option value="">Pilih Artikel</option>
+                  {% for item in dataartikel %}
+                  <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
+                  {% endfor %}
+                </select>
         </div>
       </div>
       <div class="col-md-3">
@@ -169,6 +236,51 @@
         <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn-trash"></i></button>
       </div>`;
     document.getElementById('artikels').appendChild(productRow);
+  }
+
+  function addDisplay() {
+    let displayCounter = document.querySelectorAll('.display').length + 1;
+    const displayRow = document.createElement('div');
+    displayRow.className = "row";
+    displayRow.id = `display_${displayCounter}`;
+    displayRow.innerHTML = `
+    <input type='text' name=iddisplay[] hidden>
+      <div class="col-md-3 tes">
+        <div class="form-group">
+          <label for="display_${displayCounter}">Display ${displayCounter}:</label>
+          <select class="form-control" name="display[]">
+                  <option value="">Pilih Display</option>
+
+                  {% for item in datadisplay %}
+                  <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }}</option>
+                  {% endfor %}
+                </select>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="deskripsi_${displayCounter}">Deskripsi</label>
+          <input type="text" class="form-control" name="deskripsidisplay[]" placeholder="Deskripsi" required>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="form-group">
+          <label for="kuantitas_${displayCounter}">Kuantitas</label>
+          <input type="number" class="form-control" min="0" name="kuantitasdisplay[]" placeholder="Kuantitas" required>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="harga_${displayCounter}">Harga</label>
+          <input type="number" class="form-control" min="0" name="hargadisplay[]" placeholder="Harga" required>
+        </div>
+      </div>
+      <div class="col-md-1">
+        <br>
+        <label for="hapus${displayCounter}"></label>
+        <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn-trash"></i></button>
+      </div>`;
+    document.getElementById('displays').appendChild(displayRow);
   }
 
   function deleteRow(button) {
@@ -205,13 +317,6 @@
     }
   }
 
-  function confirmDelete(id) {
-    window.location.href = `/ppic/deletedetailco/${id}`;
-  }
-
 </script>
-
-<!-- ... Bagian lain dari template Anda ... -->
-
 {% endblock javascripts %}
 {% endblock content %}

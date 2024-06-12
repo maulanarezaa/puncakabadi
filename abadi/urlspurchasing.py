@@ -56,4 +56,10 @@ urlpatterns = [
     path("rekap_harga", viewspurchasing.views_rekapharga, name="rekapharga"),
     path("acc_spk2/<str:id>", viewspurchasing.accspk2, name="acc_spk2"),
     path('upload_excel', viewspurchasing.bulk_createproduk, name='upload_excel'),
+    # CRUD Purchasing
+    path('saldoawalbahanbaku',viewspurchasing.read_saldoawal,name="saldobahanbakupurchasing"),
+    path('updatesaldoawalbahanbaku/<str:id>',viewspurchasing.update_saldoawal,name="updatesaldobahanbakupurchasing"),
+    path('saldoawalartikel',viewspurchasing.view_saldoartikel,name="saldoartikelpurchasing"),
+    path('updatesaldoawalartikel/<str:id>',viewspurchasing.update_saldoartikel,name='updatesaldoartikelpurchasing')
+
 ]

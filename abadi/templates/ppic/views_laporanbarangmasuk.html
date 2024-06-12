@@ -4,6 +4,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
+{% load humanize %}
 
 
 
@@ -50,9 +51,9 @@
                     <table class="table table-bordered" id="tabelfilterbarangmasuk">
                         <thead>
                             <tr>
-                                <td>No</td>
-                                <td>SJ Pembelian</td>
+
                                 <td>Tanggal</td>
+                                <td>SJ Pembelian</td>
                                 <td>Supplier</td>
                                 <td>Kode Stock</td>
                                 <td>Nama Barang</td>
@@ -70,16 +71,15 @@
                                 {% else %}
                             <tr>
                                 {% endif %}
-                                <td>{{forloop.counter}}</td>
-                                <td>{{i.NoSuratJalan}}</td>
                                 <td>{{i.NoSuratJalan.Tanggal}}</td>
+                                <td>{{i.NoSuratJalan}}</td>
                                 <td>{{i.supplier}}</td>
                                 <td>{{i.KodeProduk.KodeProduk}}</td>
                                 <td>{{i.KodeProduk.NamaProduk}}</td>
                                 <td>{{i.KodeProduk.unit}}</td>
                                 <td>{{i.Jumlah}}</td>
-                                <td>{{i.Harga}}</td>
-                                <td>{{i.totalharga}}</td>
+                                <td>{{i.Harga|floatformat:2|intcomma}}</td>
+                                <td>{{i.totalharga|floatformat:2|intcomma}}</td>
                             </tr>
                             {% endfor %}
                             <tr>

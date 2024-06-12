@@ -46,32 +46,129 @@
                                 <td>{{item.totalharga}}</td>
                             </tr>
                             {% endfor %}
+                            <tr>
+                                <td>Harga Total</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>{{nilaibarangkeluar}}</td>
+                            </tr>
                         </tbody>
                     </table>
                     <table class="table">
                         <thead>
-                            <tr>
-                                <td>Total</td>
-                                <td>{{totalbiayakeluar}}</td>
-                            </tr>
+
                         </thead>
                     </table>
+                    <h5>Detail Transaksi golongan D : {{bulan}}</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>No</td>
+                                <td>Tanggal</td>
+                                <td>Kode Bahan Baku</td>
+                                <td>Nama Bahan Baku</td>
+                                <td>Lokasi</td>
+                                <td>Harga Satuan</td>
+                                <td>Kuantitas</td>
+                                <td>Harga Total</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in transaksigold %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{item.tanggal}}</td>
+                                <td>{{item.KodeProduk.KodeProduk}}</td>
+                                <td>{{item.KodeProduk.NamaProduk}}</td>
+                                <td>{{item.Lokasi}}</td>
+                                <td>{{item.harga}}</td>
+                                <td>{{item.jumlah}}</td>
+                                <td>{{item.hargatotal}}</td>
+                                <td>{{item.totalharga}}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <td>Harga Total</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
 
-                    {% for artikel,item in penyusun.items %}
+                                <td>{{nilaigold}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h5>Detail Transaksi lain-lain : {{bulan}}</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>No</td>
+                                <td>Tanggal</td>
+                                <td>Kode Bahan Baku</td>
+                                <td>Nama Bahan Baku</td>
+                                <td>Lokasi</td>
+                                <td>Harga Satuan</td>
+                                <td>Kuantitas</td>
+                                <td>Harga Total</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            {% for item in lainlain %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{item.tanggal}}</td>
+                                <td>{{item.KodeProduk.KodeProduk}}</td>
+                                <td>{{item.KodeProduk.NamaProduk}}</td>
+                                <td>{{item.Lokasi}}</td>
+                                <td>{{item.harga}}</td>
+                                <td>{{item.jumlah}}</td>
+                                <td>{{item.hargatotal}}</td>
+                                <td>{{item.totalharga}}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <td>Harga Total</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>{{nilailainlain}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Grand Total : <span>{{totalbiayakeluar}}</span> </h4>
+
+                    <!-- {% for artikel,item in penyusun.items %}
                     <h5>Detail Penyusun Artikel {{artikel}}</h4>
                         <table class="table">
                             <thead>
                                 <tr>
                                     <td>Penyusun</td>
-                                    <td>Kuantitas 2.5%</td>
+                                    <td>Kuantitas Allowance</td>
                                     <td>harga satuan</td>
                                     <td>harga perkotak</td>
                                 </tr>
 
                             </thead>
                             <tbody>
+                                {% for bahanbaku,data in item.WIP.items %}
                                 <tr>
-                                    {% for bahanbaku,data in item.penyusun.items %}
+                                    <td>{{bahanbaku}}</td>
+                                    <td>{{data.kuantitas|floatformat:5}}</td>
+                                    <td>{{data.harga|floatformat:2|intcomma}}</td>
+                                    <td>{{data.totalharga|floatformat:2|intcomma}}</td>
+                                </tr>
+                                {% endfor %}
+                                {% for bahanbaku,data in item.FG.items %}
+                                <tr>
                                     <td>{{bahanbaku}}</td>
                                     <td>{{data.kuantitas}}</td>
                                     <td>{{data.harga}}</td>
@@ -89,20 +186,19 @@
                                 </tr>
                             </thead>
                         </table>
-                        {% endfor %}
+                        {% endfor %} -->
 
 
 
 
-                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 
-{% block javascripts %}
+    {% block javascripts %}
 
-{% endblock javascripts %}
-{% endblock content %}
+    {% endblock javascripts %}
+    {% endblock content %}

@@ -1,4 +1,4 @@
-{% extends "gudang/base.html" %}
+{% extends "Purchasing/base.html" %}
 {% load static %}
 
 <!-- Specific Page CSS goes HERE  -->
@@ -17,15 +17,10 @@
       <div class="card-body">
         <h4 class="card-title">Saldo Awal Bahan Baku</h4>
         <div class="template-demo">
-          <a href="/gudang/addsaldobahan">
-            <button type="button" class="btn btn-success btn-icon-text">
-              <i class="typcn typcn-plus btn-icon-prepend"></i>
-              Tambah Data
-            </button>
-          </a>
+          
         </div>
         <div class="table-responsive pt-3">
-          <table class="table table-bordered" id="saldo">
+          <table class="table table-bordered" id="saldobahanbaku">
             <thead>
               <tr>
                 <th>Tanggal</th>
@@ -51,16 +46,12 @@
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   <div class="template-demo">
-                    <a href="{% url 'updatesaldobahan' i.IDSaldoAwalBahanBaku %}">
+                    <a href="{% url 'updatesaldobahanbakupurchasing' i.IDSaldoAwalBahanBaku %}">
                       <button type="button" class="btn btn-warning">
                         <i class="typcn typcn-edit"></i>
                       </button>
                     </a>
-                    <a>
-                      <button type="button" class="btn btn-danger" onclick="confirmDelete({{i.IDSaldoAwalBahanBaku}})">
-                        <i class="typcn typcn typcn-trash"></i>
-                      </button>
-                    </a>
+                    
 
                   </div>
                 </td>

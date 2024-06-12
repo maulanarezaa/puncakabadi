@@ -1863,6 +1863,9 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
             indexartikel = listartikelmaster.index(artikelkeluarobj)
             filtered_data = [d for d in listartikelmaster[indexartikel].tanggalversi if d <= i]
             filtered_data.sort(reverse=True)
+            if not filtered_data:
+                filtered_data = [d for d in listartikelmaster[indexartikel].tanggalversi]
+
             tanggalversiterdekat = max(filtered_data)
             indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalversi).index(tanggalversiterdekat)
             konversiterdekat = listartikelmaster[indexartikel].listkonversi[indextanggalterdekat]
@@ -2537,7 +2540,7 @@ def delete_pemusnahan(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_pemusnahanbarang(request):
-    dataproduksi = models.PemusnahanBahanBaku.objects.all().order_by("-Tanggal")
+    dataproduksi = models.PemusnahanBahanBaku.objects.filter(lokasi__NamaLokasi__in=("WIP","FG")).order_by("-Tanggal")
     for i in dataproduksi:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
 
@@ -2710,6 +2713,7 @@ def update_penyesuaian(request, id):
             {"dataobj": datapenyesuaianobj, "Artikel": dataartikel},
         )
     else:
+        
         tanggalmulai = request.POST["tanggalmulai"]
         tanggalminus = request.POST['tanggalminus']
         penyusun = request.POST["penyusun"]
@@ -2817,8 +2821,6 @@ def kalkulatorpenyesuaian2(request):
                     break
             if not lanjut:
                 break
-        
-
         listdataperhitungan = {}
         if not tanggalminus:
             return render(
@@ -2974,7 +2976,7 @@ def kalkulatorpenyesuaian2(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi'])
 def view_saldobahan(request):
-    dataproduk = models.SaldoAwalBahanBaku.objects.all().order_by("-Tanggal")
+    dataproduk = models.SaldoAwalBahanBaku.objects.filter(IDLokasi__NamaLokasi__in=("WIP","FG")).order_by("-Tanggal")
     for i in dataproduk:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
 

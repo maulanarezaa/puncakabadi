@@ -48,7 +48,6 @@
           <table class="table table-bordered" id="tabelfilterbarangkeluar">
             <thead>
               <tr>
-                <td>No</td>
                 <td>Tanggal</td>
                 <td>NO SPPB</td>
                 <td>NO SPK</td>
@@ -61,7 +60,6 @@
             <tbody>
               {% for i in data %}
               <tr>
-                <td>{{forloop.counter}}</td>
                 <td>{{i.NoSPPB.Tanggal}}</td>
                 <td>{{i.NoSPPB}}</td>
                 <td>{{i.DetailSPK.NoSPK}}</td>

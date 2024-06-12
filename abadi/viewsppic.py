@@ -124,49 +124,75 @@ def dashboard(request):
 
 
 def gethargafgterakhirberdasarkanmutasi(KodeArtikel, Tanggaltes, HargaPurchasing):
-    cekmutasiwipfg = cekmutasiwipfgterakhir(KodeArtikel,Tanggaltes)
+    cekmutasiwipfg = cekmutasiwipfgterakhir(KodeArtikel, Tanggaltes)
     cekmutasiwip = cekmutasiwipterakhir(KodeArtikel, Tanggaltes)
     cekmutasifg = cekmutasifgterakhir(KodeArtikel, Tanggaltes)
     print("\n\n ", Tanggaltes)
-    print(cekmutasiwipfg)
-    print(cekmutasiwip)
-    print(cekmutasifg)
+    print("Mutasi WIP - FG Terakhir", cekmutasiwipfg)
+    print("Mutasi WIP ", cekmutasiwip)
+    print("Mutasi FG ", cekmutasifg)
+    hargakomponen_fg_fgterakhir = gethargaartikelfgperbulan(
+        KodeArtikel, cekmutasiwipfg, HargaPurchasing
+    )
+    print("\n\n", hargakomponen_fg_fgterakhir)
+
+    hargakomponen_wip_fgterakhir = gethargaartikelwipperbulan(
+        KodeArtikel, cekmutasiwipfg, HargaPurchasing
+    )
 
     if cekmutasiwipfg.month == Tanggaltes.month:
         print(f"Ada Mutasi WIP ke FG pada {Tanggaltes}, Harga FG Total di update")
-        hargakomponen_fg_fgterakhir = gethargaartikelfgperbulan(
+        komponen_fg_terakhir = gethargaartikelfgperbulan(
             KodeArtikel, cekmutasiwipfg, HargaPurchasing
-        )[KodeArtikel]["hargafg"]
-        hargakomponen_wip_fgterakhir = gethargaartikelwipperbulan(
-                    KodeArtikel, cekmutasiwipfg, HargaPurchasing
-                )[KodeArtikel]["hargawip"]
+        )
+        hargakomponen_fg_fgterakhir = komponen_fg_terakhir[KodeArtikel]["hargafg"]
+
+        komponen_wip_terakhir = gethargaartikelwipperbulan(
+            KodeArtikel, cekmutasiwipfg, HargaPurchasing
+        )
+
+        hargakomponen_wip_fgterakhir = komponen_wip_terakhir[KodeArtikel]["hargawip"]
         totalbiayafg = hargakomponen_wip_fgterakhir + hargakomponen_fg_fgterakhir
-        
+
     else:
         print(
             f"Tidak ada Mutasi FG pada {Tanggaltes}, Harga FG menggunakan harga FG terakhir",
             cekmutasiwipfg,
         )
-        hargakomponen_wip_fgterakhir = gethargaartikelwipperbulan(
+        komponen_wip_terakhir = gethargaartikelwipperbulan(
             KodeArtikel, cekmutasiwipfg, HargaPurchasing
-        )[KodeArtikel]["hargawip"]
-        hargakomponen_fg_fgterakhir = gethargaartikelfgperbulan(
+        )
+        hargakomponen_wip_fgterakhir = komponen_wip_terakhir[KodeArtikel]["hargawip"]
+        komponen_fg_terakhir = gethargaartikelfgperbulan(
             KodeArtikel, cekmutasiwipfg, HargaPurchasing
-        )[KodeArtikel]["hargafg"]
+        )
+        hargakomponen_fg_fgterakhir = komponen_fg_terakhir[KodeArtikel]["hargafg"]
         totalbiayafg = hargakomponen_wip_fgterakhir + hargakomponen_fg_fgterakhir
         if cekmutasiwip.month == Tanggaltes.month:
             print("Ada mutasi WIP bulan : ", cekmutasiwip.month)
-            hargakomponen_wip_fgterakhir = gethargaartikelwipperbulan(
+            komponen_wip_terakhir = gethargaartikelwipperbulan(
                 KodeArtikel, cekmutasiwip, HargaPurchasing
-            )[KodeArtikel]["hargawip"]
+            )
+            hargakomponen_wip_fgterakhir = komponen_wip_terakhir[KodeArtikel][
+                "hargawip"
+            ]
 
         else:
             print("Tidak Ada mutasi WIP bulan : ", cekmutasiwip.month)
-            hargakomponen_wip_fgterakhir = gethargaartikelwipperbulan(
+            komponen_wip_terakhir = gethargaartikelwipperbulan(
                 KodeArtikel, cekmutasiwip, HargaPurchasing
-            )[KodeArtikel]["hargawip"]
+            )
+            hargakomponen_wip_fgterakhir = komponen_wip_terakhir[KodeArtikel][
+                "hargawip"
+            ]
 
-    return totalbiayafg, hargakomponen_wip_fgterakhir, hargakomponen_wip_fgterakhir
+    return (
+        totalbiayafg,
+        hargakomponen_wip_fgterakhir,
+        hargakomponen_wip_fgterakhir,
+        komponen_wip_terakhir,
+        komponen_fg_terakhir,
+    )
 
 
 def laporanbarangjadi(request):
@@ -256,6 +282,9 @@ def laporanbarangmasuk(request):
                 j.supplier = i.supplier
                 j.totalharga = j.Jumlah * j.Harga
                 grandtotal += j.totalharga
+                j.NoSuratJalan.Tanggal = date.strftime(
+                    j.NoSuratJalan.Tanggal, "%Y-%m-%d"
+                )
                 listdetailsjp.append(j)
 
         print(listdetailsjp)
@@ -278,7 +307,7 @@ def gethargafg(penyusunobj):
         KodePenyusun=penyusunobj.IDKodePenyusun
     )
     # Mengambil kuantitas dan ditambahkan 2.5%
-    konversialowance = konversiobj.Kuantitas + (konversiobj.Kuantitas * 0.025)
+    konversialowance = konversiobj.Allowance
     # Mengambil data Detail surrat jalan pembelian untuk kode produk sesuai dengan penyusun obj (1 penyusun 1 produk 1 artkel)
     detailsjpembelian = models.DetailSuratJalanPembelian.objects.filter(
         KodeProduk=penyusunobj.KodeProduk
@@ -333,14 +362,19 @@ def laporanbarangkeluar(request):
             )
             return redirect("laporanbarangkeluar")
         for i in data:
-            totalbiayafg, datakomponenwip, datakomponenfg = (
-                gethargafgterakhirberdasarkanmutasi(
-                    i.DetailSPK.KodeArtikel, i.NoSPPB.Tanggal, hargaakhirbulanperproduk
-                )
+            (
+                totalbiayafg,
+                hargakomponenwip,
+                hargakomponenfg,
+                datakomponenwip,
+                datakomponenfg,
+            ) = gethargafgterakhirberdasarkanmutasi(
+                i.DetailSPK.KodeArtikel, i.NoSPPB.Tanggal, hargaakhirbulanperproduk
             )
-            
+
             i.HargaFG = totalbiayafg
             i.TotalBiayaKeluar = i.HargaFG * i.Jumlah
+            i.NoSPPB.Tanggal = date.strftime(i.NoSPPB.Tanggal, ("%Y-%m-%d"))
             grandtotal += totalbiayafg
             print(
                 f"\n\n\n\n Harga FG {i.DetailSPK.KodeArtikel} - {i.NoSPPB.Tanggal} ",
@@ -517,6 +551,7 @@ def viewconfirmationorder(request):
         detailcopo = models.detailconfirmationorder.objects.filter(
             confirmationorder=i.id
         )
+
         i.detailcopo = detailcopo
         i.tanggal = i.tanggal.strftime("%Y-%m-%d")
     if len(request.GET) == 0:
@@ -525,8 +560,13 @@ def viewconfirmationorder(request):
 
 def tambahconfirmationorder(request):
     dataartikel = models.Artikel.objects.all()
+    datadisplay = models.Display.objects.all()
     if request.method == "GET":
-        return render(request, "ppic/add_co.html", {"dataartikel": dataartikel})
+        return render(
+            request,
+            "ppic/add_co.html",
+            {"dataartikel": dataartikel, "datadisplay": datadisplay},
+        )
     else:
         print(request.POST)
         tanggaladd = request.POST["tanggal"]
@@ -537,43 +577,90 @@ def tambahconfirmationorder(request):
         kuantitas = request.POST.getlist("kuantitas[]")
         harga = request.POST.getlist("harga[]")
         deskripsi = request.POST.getlist("deskripsi[]")
-        # print(tanggaladd)
-        # print(nomorco)
-        # print(kepada)
-        # print(perihal)
-        # print(artikel)
-        # print(kuantitas)
-        # print(harga)
-        # print(deskripsi)
+        displaylist = request.POST.getlist("display[]")
+        deskripsidisplay = request.POST.getlist("deskripsidisplay[]")
+        kuantitasdisplay = request.POST.getlist("kuantitasdisplay[]")
+        hargadisplay = request.POST.getlist("hargadisplay[]")
 
-        confirmationorderobj = models.confirmationorder(
-            NoCO=nomorco, kepada=kepada, perihal=perihal, tanggal=tanggaladd
-        )
-        confirmationorderobj.save()
-        print(confirmationorderobj.id)
-        for artikel, kuantitas, harga, deskripsi in zip(
-            artikel, kuantitas, harga, deskripsi
-        ):
-            # print(artikel, kuantitas, harga, deskripsi)
-            detailconfirmationobj = models.detailconfirmationorder(
-                confirmationorder=confirmationorderobj,
-                Artikel=models.Artikel.objects.get(KodeArtikel=artikel),
-                Harga=harga,
-                kuantitas=kuantitas,
-                deskripsi=deskripsi,
+        valid_artikel_list = any(artikel)
+        valid_display_list = any(displaylist)
+        if valid_artikel_list or valid_display_list:
+
+            # Cek CO sudah ada atau belum
+            ceknopo = models.confirmationorder.objects.filter(NoCO=nomorco).exists()
+            if ceknopo:
+                messages.error(
+                    request, "Nomor Confirmation Order telah ada pada sistem"
+                )
+                return redirect("addco")
+
+            confirmationorderobj = models.confirmationorder(
+                NoCO=nomorco, kepada=kepada, perihal=perihal, tanggal=tanggaladd
             )
-            print(dir(detailconfirmationobj))
-            detailconfirmationobj.save()
-        return redirect("confirmationorder")
+            confirmationorderobj.save()
+            print(confirmationorderobj.id)
+            for (
+                artikelterpilih,
+                kuantitasterpilih,
+                hargaterpilih,
+                deskripsiterpilih,
+            ) in zip(artikel, kuantitas, harga, deskripsi):
+                if artikelterpilih == "":
+                    continue
+                # print(artikel, kuantitas, harga, deskripsi)
+                try:
+                    artikelobj = models.Artikel.objects.get(KodeArtikel=artikelterpilih)
+
+                except:
+                    messages.error(
+                        request, f"Data Artikel {artikel} tidak ditemukan dalam sistem"
+                    )
+                    continue
+                print(artikelobj)
+                detailconfirmationobj = models.detailconfirmationorder(
+                    confirmationorder=confirmationorderobj,
+                    Artikel=artikelobj,
+                    Harga=hargaterpilih,
+                    kuantitas=kuantitasterpilih,
+                    deskripsi=deskripsiterpilih,
+                )
+                print(dir(detailconfirmationobj))
+                detailconfirmationobj.save()
+            for display, kuantitas, harga, deskripsi in zip(
+                displaylist, kuantitasdisplay, hargadisplay, deskripsidisplay
+            ):
+                if display == "":
+                    continue
+                try:
+                    displayobj = models.Display.objects.get(KodeDisplay=display)
+                except:
+                    messages.error(request, f"Data display {display} tidak ditemukan")
+                    continue
+                detailconfirmationobj = models.detailconfirmationorder(
+                    confirmationorder=confirmationorderobj,
+                    Display=displayobj,
+                    Harga=harga,
+                    kuantitas=kuantitas,
+                    deskripsi=deskripsi,
+                ).save()
+                messages.success(request, f"Data berhasil disimpan")
+            return redirect("confirmationorder")
+        else:
+            messages.error(request, "Masukkan Artikel atau Display")
+            return redirect("addco")
 
 
 def detailco(request, id):
     data = models.confirmationorder.objects.get(id=id)
     detailcopo = models.detailconfirmationorder.objects.filter(
-        confirmationorder=data.id
+        confirmationorder=data.id, Display=None
     )
     data.detailcopo = detailcopo
+    detailcopodisplay = models.detailconfirmationorder.objects.filter(
+        confirmationorder=data.id, Artikel=None
+    )
     data.tanggal = data.tanggal.strftime("%Y-%m-%d")
+    data.detailcopodisplay = detailcopodisplay
     detailsppb = models.DetailSPPB.objects.filter(IDCO=data)
     data.detailsppb = detailsppb
     print(detailsppb)
@@ -588,13 +675,23 @@ def detailco(request, id):
 def updateco(request, id):
     data = models.confirmationorder.objects.get(id=id)
     detailcopo = models.detailconfirmationorder.objects.filter(
-        confirmationorder=data.id
+        confirmationorder=data.id, Display=None
     )
     data.detailcopo = detailcopo
+    detailcopodisplay = models.detailconfirmationorder.objects.filter(
+        confirmationorder=data.id, Artikel=None
+    )
+    data.detailcopodisplay = detailcopodisplay
     data.tanggal = data.tanggal.strftime("%Y-%m-%d")
     print(len(data.detailcopo))
+    dataartikel = models.Artikel.objects.all()
+    datadisplay = models.Display.objects.all()
     if request.method == "GET":
-        return render(request, "ppic/updateco.html", {"dataco": data})
+        return render(
+            request,
+            "ppic/updateco.html",
+            {"dataco": data, "dataartikel": dataartikel, "datadisplay": datadisplay},
+        )
     else:
         print(request.POST)
         tanggaladd = request.POST["tanggal"]
@@ -607,6 +704,12 @@ def updateco(request, id):
         harga = request.POST.getlist("harga[]")
         deskripsi = request.POST.getlist("deskripsi[]")
         listid = request.POST.getlist("id[]")
+        listiddisplay = request.POST.getlist("iddisplay[]")
+        display = request.POST.getlist("display[]")
+        kuantitasdisplay = request.POST.getlist("kuantitasdisplay[]")
+        hargadisplay = request.POST.getlist("hargadisplay[]")
+        deskripsidisplay = request.POST.getlist("deskripsidisplay[]")
+
         data.tanggal = tanggaladd
         data.nomorco = nomorco
         data.kepada = kepada
@@ -640,6 +743,37 @@ def updateco(request, id):
                 detailconfirmationobj.deskripsi = deskripsi
 
             detailconfirmationobj.save()
+        for (
+            iddisplay,
+            displayterpilih,
+            displayqty,
+            displayharga,
+            displaydeskripsi,
+        ) in zip(
+            listiddisplay, display, kuantitasdisplay, hargadisplay, deskripsidisplay
+        ):
+            print("<Masuk")
+            if iddisplay == "":
+                detailconfirmationobj = models.detailconfirmationorder(
+                    confirmationorder=data,
+                    Display=models.Display.objects.get(KodeDisplay=displayterpilih),
+                    Harga=displayharga,
+                    kuantitas=displayqty,
+                    deskripsi=displaydeskripsi,
+                )
+            else:
+                detailconfirmationobj = models.detailconfirmationorder.objects.get(
+                    id=listid
+                )
+                detailconfirmationobj.confirmationorder = data
+
+                detailconfirmationobj.Diplay = models.Display.objects.get(
+                    KodeDisplay=displayterpilih
+                )
+                detailconfirmationobj.Harga = displayharga
+                detailconfirmationobj.kuantitas = displayqty
+                detailconfirmationobj.deskripsi = displaydeskripsi
+            detailconfirmationobj.save()
 
         return redirect("confirmationorder")
 
@@ -655,754 +789,6 @@ def deleteco(request, id):
     data = models.confirmationorder.objects.get(id=id)
     data.delete()
     return redirect("confirmationorder")
-
-
-def newlaporanpersediaan(request):
-    if len(request.GET) == 0:
-        return render(request, "ppic/views_newlaporanpersediaan.html")
-    else:
-        """Initiation"""
-        tanggalmulai = request.GET["tanggalawal"]
-        tanggalakhir = request.GET["tanggalakhir"]
-        bulantahun = request.GET["bulan"]
-        tanggal_obj = datetime.strptime(tanggalakhir, "%Y-%m-%d")
-        tahun = tanggal_obj.year
-        awaltahun = datetime(tahun, 1, 1)
-        tanggal_obj.date()
-
-        data = models.SPPB.objects.filter(
-            Tanggal__range=(tanggalmulai, tanggalakhir)
-        ).order_by("Tanggal")
-        if not data.exists():
-            messages.warning(
-                request, "Data SPPB Tidak ditemukan pada rentang tanggal tersebut"
-            )
-        """End Initiation"""
-
-        """
-        SECTION SJP
-        sudah clear.
-        SJP Hanya mempertimbangkan transaksi di range tanggal tersebut. Tidak ada cakupan untuk perhitungan yang lain
-        """
-
-        datasjp = models.SuratJalanPembelian.objects.filter(
-            Tanggal__range=(tanggalmulai, tanggalakhir)
-        ).order_by("Tanggal")
-        listdetailsjp = []
-        totalhargabarangmasuk = 0
-        for i in datasjp:
-            detailsjpembelianobj = models.DetailSuratJalanPembelian.objects.filter(
-                NoSuratJalan=i.NoSuratJalan
-            )
-            for j in detailsjpembelianobj:
-                j.supplier = i.supplier
-                j.totalharga = j.Jumlah * j.Harga
-                totalhargabarangmasuk += j.totalharga
-                listdetailsjp.append(j)
-        # print("total barang masuk SJP : ", totalhargabarangmasuk)
-        # Output : total barang masuk SJP :  45581000.0
-        """ END SECTION SJP """
-
-        """
-        TOTAL HARGA STOK
-        Belum FIx untuk perhitungan Harga.
-        Bisa di cek dulu menggunakan harga terakhir di bulan tersebut. 
-        apabila ada harganya maka bisa menggunakan harga tersebut. Apabila tidak ada maka menggunakan harga terbesar tanggal terakhir
-        Apabila cek kondisi 0 maka muncul warning dan memilih harga terakhir
-        """
-        bahanbaku = models.Produk.objects.all()
-        # bahanbaku = models.Produk.objects.filter(KodeProduk="coba-001")
-        listhargabahanbaku = {}
-        stokakhirbahanbakutiapbulan = {}
-        hargaakhirbulanperproduk = {}
-        """ PERHITUNGAN HARGA BARU """
-        for i in bahanbaku:
-            hargamasukobj = models.DetailSuratJalanPembelian.objects.filter(
-                KodeProduk=i, NoSuratJalan__Tanggal__gte=awaltahun
-            )
-            hargakeluarobj = models.TransaksiGudang.objects.filter(
-                KodeProduk=i, tanggal__gte=awaltahun
-            )
-            tanggalhargamasukobj = (
-                hargamasukobj.filter(NoSuratJalan__Tanggal__lte=tanggalakhir)
-                .values_list("NoSuratJalan__Tanggal", flat=True)
-                .distinct()
-            )
-            tanggalhargakeluarobj = (
-                hargakeluarobj.filter(tanggal__lte=tanggalakhir)
-                .values_list("tanggal", flat=True)
-                .distinct()
-            )
-            listtanggal = sorted(
-                list(set(tanggalhargamasukobj.union(tanggalhargakeluarobj)))
-            )
-
-            try:
-                saldoawalobj = models.SaldoAwalBahanBaku.objects.get(
-                    IDBahanBaku=i, Tanggal__gte=awaltahun
-                )
-                hargaawal = saldoawalobj.Harga
-                jumlahawal = saldoawalobj.Jumlah
-
-            except models.SaldoAwalBahanBaku.DoesNotExist:
-                hargaawal = 0
-                jumlahawal = 0
-            # Menghitung harga tanggal akhir
-            data = gethargabahanbaku(
-                listtanggal,
-                hargamasukobj,
-                hargakeluarobj,
-                hargaawal,
-                jumlahawal,
-            )
-            listhargabahanbaku[i] = data[0]
-
-            """
-            V2 List harga bahan baku awal dipisah berdasarkan tanggal
-            1. Ambil dulu list tanggal akhir tiap bulan
-            2. cek harga tiap akhir bulan 
-            A. Filter dari GTE awal taun dan LTE akhir bulan untuk SJP dan Transaksi Gudang
-            """
-            """ 1. Ambil List Akhir bulan"""
-            # print(calendar.monthrange(tahun, 1))
-            last_days = []
-            for month in range(1, 13):
-                last_day = calendar.monthrange(tahun, month)[1]
-                last_days.append(date(tahun, month, last_day))
-
-            """ End list akhir bulan"""
-
-            """ 2. Cek harga akhir Bulan"""
-            hargaakhirbulan = {}
-            maxtanggal = hargamasukobj.aggregate(Max("NoSuratJalan__Tanggal"))[
-                "NoSuratJalan__Tanggal__max"
-            ].month
-            # print("Maksimal data", hargamasukobj)
-            # print("Maksimal bulan", maxtanggal)
-            # print(last_days[:maxtanggal])
-            totalhargabahanbakugudangperbulan = 0
-            for j, k in enumerate(last_days[:maxtanggal]):
-                suratjalanpembelianakhirbulanobj = hargamasukobj.filter(
-                    NoSuratJalan__Tanggal__lte=k
-                )
-                transaksigudangakhirbulanobj = hargakeluarobj.filter(tanggal__lte=k)
-                tanggalsuratjalanpembelianakhirbulanobj = (
-                    suratjalanpembelianakhirbulanobj.values_list(
-                        "NoSuratJalan__Tanggal", flat=True
-                    ).distinct()
-                )
-                tanggaltransaksigudangakhirbulanobj = (
-                    transaksigudangakhirbulanobj.values_list(
-                        "tanggal", flat=True
-                    ).distinct()
-                )
-                tanggalkeluarmasukperbulan = sorted(
-                    list(
-                        set(
-                            tanggalsuratjalanpembelianakhirbulanobj.union(
-                                tanggaltransaksigudangakhirbulanobj
-                            )
-                        )
-                    )
-                )
-                datahargaperbulan = gethargabahanbaku(
-                    tanggalkeluarmasukperbulan,
-                    suratjalanpembelianakhirbulanobj,
-                    transaksigudangakhirbulanobj,
-                    hargaawal,
-                    jumlahawal,
-                )
-                # print(j, k, datahargaperbulan)
-                hargaakhirbulan[j] = {
-                    "hargasatuan": datahargaperbulan[0],
-                    "jumlah": datahargaperbulan[1],
-                    "hargatotal": datahargaperbulan[2],
-                }
-                totalhargabahanbakugudangperbulan += datahargaperbulan[2]
-            hargaakhirbulanperproduk[i] = {
-                "data": hargaakhirbulan,
-                "total": totalhargabahanbakugudangperbulan,
-            }
-            # print("data surat jalan pembelian : ", suratjalanpembelianakhirbulanobj)
-            # print("data Transaksi Gudang : ", transaksigudangakhirbulanobj)
-
-            """ End harga akhir bulan"""
-            """ endsection V2 """
-
-        #     print("\n\nDONES\n\n")
-        # print(listhargabahanbaku)
-        # print(listhargabahanbakusebelum)
-        """ END SECTION PERHITUNGAN HARGA BARU """
-
-        print("Data Rekap Harga Perbulan : ", hargaakhirbulanperproduk)
-        # print(asdasdas)
-        totalhargabarangjadi = 0
-        """
-        Data Models harga FG perbulan
-        {
-            Kode Artikel : [
-            { bulan0 :
-                {
-            item1 : 9000
-            item2 : 8000
-            }
-            HargaFG : 17000
-            }
-            ]
-        }
-        """
-        dataartikel = models.Artikel.objects.all()
-        datahargafgartikel = {}
-        for artikel in dataartikel:
-            hargafg = 0
-            dataperbulan = {}
-            """
-            Models perbulan
-            {}
-            """
-            modelsperbulan = {}
-            for index, hari in enumerate(last_days[: tanggal_obj.month]):
-                # Mengambil data terakhir versi penyusun tiap bulannya
-                versiterakhirperbulan = (
-                    models.Penyusun.objects.filter(KodeArtikel=artikel, versi__lte=hari)
-                    .values_list("versi", flat=True)
-                    .distinct()
-                    .order_by("versi")
-                    .last()
-                )
-                # SEMENTARA PAKAI .LAST()
-                penyusunversiterpilih = models.Penyusun.objects.filter(
-                    KodeArtikel=artikel, versi=versiterakhirperbulan
-                )
-                datapenyusun = {}
-                for penyusun in penyusunversiterpilih:
-                    dummy = {}
-                    hargapenyusun = hargaakhirbulanperproduk[penyusun.KodeProduk][
-                        "data"
-                    ][index]["hargasatuan"]
-                    kuantitas = models.KonversiMaster.objects.get(
-                        KodePenyusun=penyusun
-                    ).Kuantitas
-                    hargabahanbakufg = hargapenyusun * kuantitas
-                    hargafg += hargabahanbakufg
-                    dummy["totalharga"] = hargabahanbakufg
-                    dummy["kuantitas"] = kuantitas
-                    dummy["harga"] = hargapenyusun
-                    datapenyusun[penyusun.KodeProduk] = dummy
-
-                dummy2 = {}
-                dummy2["penyusun"] = datapenyusun
-                dummy2["hargafg"] = hargafg
-
-                dataperbulan[index] = dummy2
-            datahargafgartikel[artikel] = dataperbulan
-
-        # print("versi terakhir ", datahargafgartikel)
-        rekapkeluarperbulan = {}
-        rekapmutasiperbulan = {}
-        sisaperbulan = {}
-        bahangudangperbulan = {}
-        datarekapbarangmasukperbulan = {}
-        penyusunartikelperbulan = {}
-        artikelpenyusunperbulan = {}
-        rekapdatabahanbakumasukkewip = {}
-        rekapprodukkeluarperbulan = {}
-        rekappemusnahanartikelperbulan = {}
-        rekappemusnahanbahanbakuperbulan = {}
-
-        for index, hari in enumerate(last_days[: tanggal_obj.month]):
-            """Section SJP --> Mencari barnag masu tiap bulan"""
-            nilaibahanbakumasuk = 0
-            dataartikelmasuk = models.DetailSuratJalanPembelian.objects.filter(
-                NoSuratJalan__Tanggal__lte=hari,
-                NoSuratJalan__Tanggal__gte=awaltahun,
-            )
-            dummy = {}
-            for item in dataartikelmasuk:
-                biaya = item.Harga * item.Jumlah
-                nilaibahanbakumasuk += biaya
-                dummy[item] = {
-                    "biaya": biaya,
-                    "jumlah": item.Jumlah,
-                    "harga": item.Harga,
-                    "kodeproduk": item.KodeProduk,
-                }
-            datarekapbarangmasukperbulan[index] = {
-                "data": dummy,
-                "biayatotal": nilaibahanbakumasuk,
-            }
-            """Section SPPB --> mencari rekap barnag keluar tiap bulan"""
-            if index > 0:
-                datadetailsppb = models.DetailSPPB.objects.filter(
-                    NoSPPB__Tanggal__lte=hari, NoSPPB__Tanggal__gt=last_days[index - 1]
-                )
-                datatransaksiproduksi = models.TransaksiProduksi.objects.filter(
-                    Tanggal__lte=hari, Tanggal__gt=last_days[index - 1], Jenis="Mutasi"
-                )
-            else:
-                datadetailsppb = models.DetailSPPB.objects.filter(
-                    NoSPPB__Tanggal__lte=hari, NoSPPB__Tanggal__gte=awaltahun
-                )
-                datatransaksiproduksi = models.TransaksiProduksi.objects.filter(
-                    Tanggal__lte=hari, Tanggal__gt=awaltahun, Jenis="Mutasi"
-                )
-            print("Data detail SPPB\n", index, datadetailsppb)
-            jumlahkumulatifbiayaperbulan = 0
-            if datadetailsppb.exists():
-                jumlahartikelkeluarperbulan = datadetailsppb.values(
-                    "DetailSPK__KodeArtikel"
-                ).annotate(total=Sum("Jumlah"))
-                # print(jumlahartikelkeluarperbulan)
-                dummy = {}
-                for artikel in jumlahartikelkeluarperbulan:
-                    dataartikel = models.Artikel.objects.get(
-                        id=artikel["DetailSPK__KodeArtikel"]
-                    )
-
-                    jumlah = artikel["total"]
-                    totalbiaya = (
-                        jumlah * datahargafgartikel[dataartikel][index]["hargafg"]
-                    )
-                    # print(dataartikel, jumlah)
-                    # print(datahargafgartikel[dataartikel][index]["hargafg"], totalbiaya)
-                    dummy[dataartikel] = {
-                        "jumlah": jumlah,
-                        "hargafg": datahargafgartikel[dataartikel][index]["hargafg"],
-                        "biaya": totalbiaya,
-                    }
-                    jumlahkumulatifbiayaperbulan += totalbiaya
-            else:
-                dummy = 0
-            rekapkeluarperbulan[index] = {
-                "data": dummy,
-                "jumlah": jumlahkumulatifbiayaperbulan,
-            }
-            dummy = {}
-            """SECTION Transaksi Produksi --> Untuk mencari data mutasi barang jadi"""
-            if datatransaksiproduksi.exists():
-                jumlahartikelmutasiperbulan = datatransaksiproduksi.values(
-                    "KodeArtikel"
-                ).annotate(total=Sum("Jumlah"))
-                for artikel in jumlahartikelmutasiperbulan:
-                    dataartikel = models.Artikel.objects.get(id=artikel["KodeArtikel"])
-                    jumlah = artikel["total"]
-                    totalbiaya = (
-                        jumlah * datahargafgartikel[dataartikel][index]["hargafg"]
-                    )
-                    dummy[dataartikel] = {
-                        "jumlah": jumlah,
-                        "hargafg": datahargafgartikel[dataartikel][index]["hargafg"],
-                        "biaya": totalbiaya,
-                    }
-            else:
-                dummy = 0
-
-            rekapmutasiperbulan[index] = dummy
-            dataartikel = models.Artikel.objects.all()
-            # dataartikel = models.Artikel.objects.all()
-            dummy = {}
-
-            totalbiayasisafg = 0
-            datapenyusunversiterpilih = {}
-            dummypenyusunartikelperbulan = {}
-            for artikel in dataartikel:
-                if index == 0:
-                    dummy[artikel] = {"jumlah": 0, "biaya": 0, "hargafg": 0}
-                else:
-                    dummy[artikel] = {
-                        "jumlah": sisaperbulan[index - 1]["data"][artikel]["jumlah"]
-                    }
-                # ambil jumlah artikel keluar terkait
-                if (
-                    datadetailsppb.exists()
-                    and artikel in rekapkeluarperbulan[index]["data"]
-                ):
-                    jumlahartikelkeluar = rekapkeluarperbulan[index]["data"][artikel][
-                        "jumlah"
-                    ]
-                else:
-                    jumlahartikelkeluar = 0
-
-                if (
-                    datatransaksiproduksi.exists()
-                    and artikel in rekapmutasiperbulan[index]
-                ):
-                    jumlahartikelmasuk = rekapmutasiperbulan[index][artikel]["jumlah"]
-                else:
-                    jumlahartikelmasuk = 0
-                print(artikel, jumlahartikelkeluar, jumlahartikelmasuk)
-
-                # print(dummy)
-                dummy[artikel]["jumlah"] += jumlahartikelmasuk - jumlahartikelkeluar
-                dummy[artikel]["hargafg"] = datahargafgartikel[artikel][index][
-                    "hargafg"
-                ]
-                dummy[artikel]["biaya"] = (
-                    dummy[artikel]["jumlah"]
-                    * datahargafgartikel[artikel][index]["hargafg"]
-                )
-                # print(dummy)
-                totalbiayasisafg += dummy[artikel]["biaya"]
-
-                """SECTION PENYUSUN"""
-                versiterakhirperbulan = (
-                    models.Penyusun.objects.filter(KodeArtikel=artikel, versi__lte=hari)
-                    .values_list("versi", flat=True)
-                    .distinct()
-                    .order_by("versi")
-                    .last()
-                )
-                penyusunversiterpilih = models.KonversiMaster.objects.filter(
-                    KodePenyusun__KodeArtikel=artikel,
-                    KodePenyusun__versi=versiterakhirperbulan,
-                )
-                """
-                {0 : {A-101:{Artikel1:0.34124,{artikel2:0.12314}}}}
-                
-                """
-
-                # print(penyusunversiterpilih)
-                jumlahpenyusunkuantitasperartikel = penyusunversiterpilih.values(
-                    "KodePenyusun__KodeProduk__KodeProduk"
-                ).annotate(total=Sum("Kuantitas"))
-                print(
-                    "Tes Penyusun terpilih", artikel, jumlahpenyusunkuantitasperartikel
-                )
-                dummypenyusunperartikel = {}
-                for penyusun in jumlahpenyusunkuantitasperartikel:
-                    kodeprodukterpilih = penyusun[
-                        "KodePenyusun__KodeProduk__KodeProduk"
-                    ]
-                    kuantitasterpilih = penyusun["total"] + 0.025 * penyusun["total"]
-                    dummypenyusunperartikel[kodeprodukterpilih] = kuantitasterpilih
-                    if kodeprodukterpilih in datapenyusunversiterpilih:
-                        dummypenyusun = {}
-                        for artikeliterasi, kuantitas in datapenyusunversiterpilih[
-                            kodeprodukterpilih
-                        ].items():
-                            dummypenyusun[artikeliterasi] = kuantitas
-                        dummypenyusun[artikel] = kuantitasterpilih
-                        datapenyusunversiterpilih[kodeprodukterpilih] = dummypenyusun
-                    else:
-                        datapenyusunversiterpilih[kodeprodukterpilih] = {
-                            artikel: kuantitasterpilih
-                        }
-                dummypenyusunartikelperbulan[artikel] = dummypenyusunperartikel
-                print("ini data penyusun terpilih", datapenyusunversiterpilih)
-
-            # print(dummypenyusunartikelperbulan)
-            artikelpenyusunperbulan[index] = dummypenyusunartikelperbulan
-
-            # print(asdasdasd)
-            sisaperbulan[index] = {"data": dummy, "total": totalbiayasisafg}
-            penyusunartikelperbulan[index] = datapenyusunversiterpilih
-
-            """SECTION Stock Gudang"""
-            bahanbaku = models.Produk.objects.all()
-            # bahanbaku = models.Produk.objects.filter(KodeProduk="coba-001")
-            dummy = {}
-            rekaphargabahanbakugudangperbulan = 0
-            dummybahanbakumasuk = {}
-            for produk in bahanbaku:
-                saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(
-                    IDBahanBaku=produk, Tanggal__gte=awaltahun
-                )
-                if saldoawalobj.exists():
-                    saldoawalobj = saldoawalobj.first()
-                    totalbiayaawal = saldoawalobj.Harga * saldoawalobj.Jumlah
-                    hargasatuanawal = saldoawalobj.Harga
-                    jumlahawal = saldoawalobj.Jumlah
-                else:
-                    totalbiayaawal = 0
-                    hargasatuanawal = 0
-                    jumlahawal = 0
-
-                barangmasukobj = models.DetailSuratJalanPembelian.objects.filter(
-                    KodeProduk=produk,
-                    NoSuratJalan__Tanggal__gte=awaltahun,
-                    NoSuratJalan__Tanggal__lte=hari,
-                )
-                barangkeluarobj = models.TransaksiGudang.objects.filter(
-                    KodeProduk=produk, tanggal__gte=awaltahun, tanggal__lte=hari
-                )
-
-                tanggalbarangmasukobj = barangmasukobj.values_list(
-                    "NoSuratJalan__Tanggal", flat=True
-                ).distinct()
-                tanggalbarangkeluar = barangkeluarobj.values_list(
-                    "tanggal", flat=True
-                ).distinct()
-                listtanggal = sorted(
-                    list(set(tanggalbarangmasukobj.union(tanggalbarangkeluar)))
-                )
-                print(index, produk, listtanggal)
-                for tanggal in listtanggal:
-                    jumlahmasukperhari = 0
-                    hargamasuktotalperhari = 0
-                    hargamasuksatuanperhari = 0
-                    jumlahkeluarperhari = 0
-                    hargakeluartotalperhari = 0
-                    hargakeluarsatuanperhari = 0
-                    jumlahmasukperhari = 0
-
-                    sjpobj = barangmasukobj.filter(NoSuratJalan__Tanggal=tanggal)
-                    if sjpobj.exists():
-                        for k in sjpobj:
-                            hargamasuktotalperhari += k.Harga * k.Jumlah
-                            jumlahmasukperhari += k.Jumlah
-                            hargamasuksatuanperhari += (
-                                hargamasuktotalperhari / jumlahmasukperhari
-                            )
-                    else:
-                        hargamasuktotalperhari = 0
-                        jumlahmasukperhari = 0
-                        hargamasuksatuanperhari = 0
-
-                    transaksigudangobj = barangkeluarobj.filter(tanggal=tanggal)
-                    if transaksigudangobj.exists():
-                        for k in transaksigudangobj:
-                            jumlahkeluarperhari += k.jumlah
-                            hargakeluartotalperhari += k.jumlah * hargasatuanawal
-                        hargakeluarsatuanperhari += (
-                            hargakeluartotalperhari / jumlahkeluarperhari
-                        )
-                    else:
-                        hargakeluartotalperhari = 0
-                        hargakeluarsatuanperhari = 0
-                        jumlahkeluarperhari = 0
-
-                    # print(produk)
-                    # print("Tanggal : ", tanggal)
-                    # print("Sisa Stok Hari Sebelumnya : ", jumlahawal)
-                    # print("harga awal Hari Sebelumnya :", hargasatuanawal)
-                    # print("harga total Hari Sebelumnya :", totalbiayaawal)
-                    # print("Jumlah Masuk : ", jumlahmasukperhari)
-                    # print("Harga Satuan Masuk : ", hargamasuksatuanperhari)
-                    # print("Harga Total Masuk : ", hargamasuktotalperhari)
-                    # print("Jumlah Keluar : ", jumlahkeluarperhari)
-                    # print("Harga Keluar : ", hargakeluarsatuanperhari)
-                    # print(
-                    #     "Harga Total Keluar : ",
-                    #     hargakeluarsatuanperhari * jumlahkeluarperhari,
-                    # )
-                    jumlahawal += jumlahmasukperhari - jumlahkeluarperhari
-                    totalbiayaawal += hargamasuktotalperhari - hargakeluartotalperhari
-                    try:
-                        hargasatuanawal = totalbiayaawal / jumlahawal
-                    except ZeroDivisionError:
-                        hargasatuanawal = 0
-
-                    # print("Sisa Stok Hari Ini : ", jumlahawal)
-                    # print("harga awal Hari Ini :", hargasatuanawal)
-                    # print("harga total Hari Ini :", totalbiayaawal, "\n")
-                dummy[produk] = {
-                    "hargasatuan": hargasatuanawal,
-                    "jumlah": jumlahawal,
-                    "totalbiaya": totalbiayaawal,
-                }
-                rekaphargabahanbakugudangperbulan += totalbiayaawal
-
-                """ SECTION REKAP WIP """
-
-                # masuk ke wip
-
-                databahanbakumasukkewip = models.TransaksiGudang.objects.filter(
-                    tanggal__gte=awaltahun,
-                    tanggal__lte=hari,
-                    jumlah__gte=0,
-                    KodeProduk=produk,
-                    Lokasi__IDLokasi__in=(1, 2),
-                )
-                jumlahbahanbakumasukkewip = databahanbakumasukkewip.aggregate(
-                    total=Sum("jumlah")
-                )
-                print(produk)
-                print(databahanbakumasukkewip)
-                print(jumlahbahanbakumasukkewip)
-                if jumlahbahanbakumasukkewip["total"] == None:
-                    jumlahbahanbakumasukkewip["total"] = 0
-                # print(asdasd)
-                # Saldo Awal Bahan Baku WIP
-                datasaldoawalbahanbakuwip = models.SaldoAwalBahanBaku.objects.filter(
-                    IDBahanBaku=produk, Tanggal__gte=awaltahun
-                )
-                jumlahsaldoawalbahanbakuwip = datasaldoawalbahanbakuwip.aggregate(
-                    total=Sum("Jumlah")
-                )
-                if jumlahsaldoawalbahanbakuwip["total"] == None:
-                    jumlahsaldoawalbahanbakuwip["total"] = 0
-
-                if index == 0:
-                    dummybahanbakumasuk[produk] = (
-                        jumlahbahanbakumasukkewip["total"]
-                        + jumlahsaldoawalbahanbakuwip["total"]
-                    )
-                    print("di Awal : ", jumlahbahanbakumasukkewip)
-                    # print(asd)
-                else:
-                    dummybahanbakumasuk[produk] = (
-                        jumlahbahanbakumasukkewip["total"]
-                        + rekapdatabahanbakumasukkewip[index - 1][produk]
-                    )
-                    print(jumlahbahanbakumasukkewip)
-                    print(rekapdatabahanbakumasukkewip[index - 1])
-                    print(dummybahanbakumasuk)
-                    # print(asdasd)
-
-                # Keluar dari WIP (iterasi per produk)
-                listkonversikeluar = artikelpenyusunperbulan[index]
-                barangkeluar = rekapkeluarperbulan[index]["data"]
-                print(barangkeluar, "\n")
-                print(listkonversikeluar)
-                dummy3 = {}
-                if barangkeluar == 0:
-                    dummy3 = 0
-                else:
-                    for artikelkeluar, data in barangkeluar.items():
-                        # penyusun artikel terkait
-                        for (
-                            datapenyusunartikel,
-                            kuantitaspenyusunartikel,
-                        ) in listkonversikeluar[artikelkeluar].items():
-                            # print(datapenyusunartikel)
-                            kuantitasbahanbakukeluar = (
-                                kuantitaspenyusunartikel * data["jumlah"]
-                            )
-                            if datapenyusunartikel in dummy3:
-                                dummy3[datapenyusunartikel] += kuantitasbahanbakukeluar
-                            else:
-                                dummy3[datapenyusunartikel] = kuantitasbahanbakukeluar
-
-                rekapprodukkeluarperbulan[index] = dummy3
-            # print(asdas)
-            rekapdatabahanbakumasukkewip[index] = dummybahanbakumasuk
-            bahangudangperbulan[index] = {
-                "data": dummy,
-                "total": rekaphargabahanbakugudangperbulan,
-            }
-            # Barang Pemusnahan
-            """SECTION PEMUSNAHAN ARTIKEL"""
-            if index == 0:
-                datapemusnahanartikel = models.PemusnahanArtikel.objects.filter(
-                    Tanggal__gte=awaltahun, Tanggal__lte=hari
-                )
-            else:
-                datapemusnahanartikel = models.PemusnahanArtikel.objects.filter(
-                    Tanggal__gt=last_days[index - 1],
-                    Tanggal__lte=hari,
-                )
-            jumlahpemusnahanartikel = datapemusnahanartikel.values(
-                "KodeArtikel__KodeArtikel"
-            ).annotate(total=Sum("Jumlah"))
-            dummy = {}
-            for pemusnahan in jumlahpemusnahanartikel:
-                artikelpemusnahan = pemusnahan["KodeArtikel__KodeArtikel"]
-                jumlahpemusnahan = pemusnahan["total"]
-                dummy[artikelpemusnahan] = jumlahpemusnahan
-
-            print("Jumlah Pemusnahan Artikel", jumlahpemusnahanartikel)
-
-            rekappemusnahanartikelperbulan[index] = dummy
-            print(rekapprodukkeluarperbulan)
-
-            """SECTION PEMUSNAHAN BAHAN BAKU"""
-            if index == 0:
-                datapemusnahanbahanbaku = models.PemusnahanBahanBaku.objects.filter(
-                    Tanggal__gte=awaltahun, Tanggal__lte=hari
-                )
-            else:
-                datapemusnahanbahanbaku = models.PemusnahanBahanBaku.objects.filter(
-                    Tanggal__gte=last_days[index - 1], Tanggal__lte=hari
-                )
-            jumlahpemusnahanbahanbaku = datapemusnahanbahanbaku.values(
-                "KodeBahanBaku__KodeProduk"
-            ).annotate(total=Sum("Jumlah"))
-            dummy = {}
-            for pemusnahan in jumlahpemusnahanbahanbaku:
-                bahanbakupemusnahan = pemusnahan["KodeBahanBaku__KodeProduk"]
-                jumlahpemusnahan = pemusnahan["total"]
-                dummy[bahanbakupemusnahan] = jumlahpemusnahan
-
-            print("Jumlah Pemusnahan Artikel", jumlahpemusnahanartikel)
-            rekappemusnahanbahanbakuperbulan[index] = dummy
-
-            """SECTION PERHITUNGAN STOK REAL DI WIP PERBULAN"""
-            # Stok Realtime bahan baku
-            stokrealtimeakhirbulanwip = rekapdatabahanbakumasukkewip
-
-            # print(asdas)
-
-        # print(asdasd)
-        print("ini rekap keluar perbulan\n", rekapkeluarperbulan)
-        print("ini rekap mutasi perbulan\n", rekapmutasiperbulan)
-        print("ini rekap Sisa perbulan\n", sisaperbulan)
-        print("ini rekap Bahan Gudang perbulan\n", bahangudangperbulan)
-        print("ini rekap penyusun per Artikel\n", artikelpenyusunperbulan)
-        print("ini rekap Bahan Baku keluar per Artikel\n", rekapprodukkeluarperbulan)
-        print("ini rekap pemusnahan Artikel Perbulan\n", rekappemusnahanartikelperbulan)
-        print(
-            "ini rekap pemusnahan Bahan Baku Perbulan\n",
-            rekappemusnahanbahanbakuperbulan,
-        )
-        print("ini rekap Bahan Baku Masuk WIP Perbulan\n", rekapdatabahanbakumasukkewip)
-
-        # print(asdasd)
-
-        """Rekapitulasi ke Models Akhir
-        data models
-        {
-        Bulan1 : 
-        {
-        barangkeluar : {
-        artikel1 :value,
-        artikel2:value,
-        dst
-        },
-        barangmasuk :{}
-        bahanproduksi : {}
-        baranggudang : {}
-        }
-        }
-        """
-        modelakhir = {}
-        listbulan = [
-            "Januari",
-            "Februari",
-            "Maret",
-            "April",
-            "Mei",
-            "Juni",
-            "Juli",
-            "Agustus",
-            "September",
-            "Oktober",
-            "Novermber",
-            "Desember",
-        ]
-        for month in range(0, tanggal_obj.month):
-            # Data Barang Keluar
-            modelakhir[listbulan[month]] = {
-                "barangkeluar": rekapkeluarperbulan[month]["jumlah"],
-                "barangmasuk": datarekapbarangmasukperbulan[month]["biayatotal"],
-                "detailbarangkeluar": rekapkeluarperbulan[month]["data"],
-                "sisafg": sisaperbulan[month],
-                "stockgudang": bahangudangperbulan[month],
-                "penyusun": artikelpenyusunperbulan[month],
-                "bahanbakukeluar": rekapprodukkeluarperbulan[month],
-                "bahanbakumasukwip": rekapdatabahanbakumasukkewip[month],
-                "rekappemusnahanartikel": rekappemusnahanartikelperbulan[month],
-                "rekappemusnahanbahanbaku": rekappemusnahanbahanbakuperbulan[month],
-            }
-        return render(
-            request,
-            "ppic/views_newlaporanpersediaan.html",
-            {
-                "modeldata": modelakhir,
-                "tanggalawal": tanggalmulai,
-                "tanggalakhir": tanggalakhir,
-                "bulantahun": bulantahun,
-            },
-        )
 
 
 def detaillaporanbarangkeluar(request):
@@ -1435,9 +821,15 @@ def detaillaporanbarangkeluar(request):
         # print(last_days[:index+1])
 
         """ SPPB Section """
-        datadetailsppb, totalbiayakeluar, datapenyusun, datalistbarangkeluar = (
-            getbarangkeluar(last_days, index, awaltahun)
-        )
+        (
+            datadetailsppb,
+            totalbiayakeluar,
+            datapenyusun,
+            datalistbarangkeluar,
+            transaksilainlain,
+            transaksigold,
+            detailbiaya,
+        ) = getbarangkeluar(last_days, index, awaltahun)
         return render(
             request,
             "ppic/detaillaporanbarangkeluar.html",
@@ -1446,25 +838,44 @@ def detaillaporanbarangkeluar(request):
                 "totalbiayakeluar": totalbiayakeluar[index - 1],
                 "bulan": bulan,
                 "penyusun": datapenyusun,
+                "lainlain": transaksilainlain,
+                "transaksigold": transaksigold,
+                "nilaigold": detailbiaya[index - 1]["nilaigold"],
+                "nilailainlain": detailbiaya[index - 1]["nilailainlain"],
+                "nilaibarangkeluar": detailbiaya[index - 1]["artikelkeluar"],
             },
         )
 
 
 def getbarangkeluar(last_days, stopindex, awaltahun):
-    biayafgperartikel = gethargafgperbulan(last_days, stopindex, awaltahun)
-    # print(biayafgperartikel)
-    # print(stopindex, awaltahun)
-    # print(asda)
+    hargapurchasingperbulan = gethargapurchasingperbulan(
+        last_days, stopindex, awaltahun
+    )
+
     listdatadetailsppb = []
     datapenyusun = {}
     biayakeluar = {}
+    detailbiaya = {}
     for index, hari in enumerate(last_days[:stopindex]):
+
         totalbiayakeluar = 0
+
         if index == 0:
             datadetailsppb = models.DetailSPPB.objects.filter(
                 NoSPPB__Tanggal__lte=hari,
                 NoSPPB__Tanggal__gte=awaltahun,
                 DetailSPKDisplay=None,
+            )
+            # Transaksi Golongan D
+            datatransaksigold = models.TransaksiGudang.objects.filter(
+                KodeProduk__KodeProduk__istartswith="D",
+                tanggal__range=(awaltahun, hari),
+                jumlah__gte=0,
+            )
+            datatransaksilainlain = models.TransaksiGudang.objects.filter(
+                tanggal__range=(awaltahun, hari),
+                jumlah__gte=0,
+                Lokasi__NamaLokasi="Lain-Lain",
             )
         else:
             datadetailsppb = models.DetailSPPB.objects.filter(
@@ -1472,40 +883,91 @@ def getbarangkeluar(last_days, stopindex, awaltahun):
                 NoSPPB__Tanggal__gt=last_days[index - 1],
                 DetailSPKDisplay=None,
             )
+            # Transaksi Golongan D
+            datatransaksigold = models.TransaksiGudang.objects.filter(
+                KodeProduk__KodeProduk__istartswith="D",
+                tanggal__range=(last_days[index - 1], hari),
+                jumlah__gte=0,
+            )
+            datatransaksilainlain = models.TransaksiGudang.objects.filter(
+                tanggal__range=(last_days[index - 1], hari),
+                jumlah__gte=0,
+                Lokasi__NamaLokasi="Lain-Lain",
+            )
         if datadetailsppb.exists():
             for detailsppb in datadetailsppb:
                 # print(biayafgperartikel)
-                harga = (
-                    detailsppb.Jumlah
-                    * biayafgperartikel[detailsppb.DetailSPK.KodeArtikel][index][
-                        "hargafg"
-                    ]
+
+                ge = gethargafgterakhirberdasarkanmutasi(
+                    detailsppb.DetailSPK.KodeArtikel, hari, hargapurchasingperbulan
                 )
-                detailsppb.hargafg = biayafgperartikel[
-                    detailsppb.DetailSPK.KodeArtikel
-                ][index]["hargafg"]
+
+                harga = detailsppb.Jumlah * ge[0]
+                detailsppb.hargafg = ge[0]
                 detailsppb.totalharga = harga
-                detailsppb.penyusun = biayafgperartikel[
-                    detailsppb.DetailSPK.KodeArtikel
-                ][index]["penyusun"]
-                totalbiayakeluar += harga
-                datapenyusun[detailsppb.DetailSPK.KodeArtikel] = biayafgperartikel[
-                    detailsppb.DetailSPK.KodeArtikel
-                ][index]
+
+                totalbiayakeluar += detailsppb.totalharga
+                print(totalbiayakeluar, detailsppb)
+                datapenyusun[detailsppb.DetailSPK.KodeArtikel] = {
+                    "WIP": ge[3][detailsppb.DetailSPK.KodeArtikel]["penyusun"],
+                    "FG": ge[4][detailsppb.DetailSPK.KodeArtikel]["penyusun"],
+                    "hargafg": ge[0],
+                }
+
         listdatadetailsppb.append(datadetailsppb)
-        biayakeluar[index] = totalbiayakeluar
-    return datadetailsppb, biayakeluar, datapenyusun, listdatadetailsppb
+
+        #  Bahan Baku golongan D
+        nilaigold = 0
+        for bahand in datatransaksigold:
+            harga = hargapurchasingperbulan[bahand.KodeProduk]["data"][index][
+                "hargasatuan"
+            ]
+            bahand.harga = harga
+            bahand.hargatotal = harga * bahand.jumlah
+            print(harga)
+            nilaigold += bahand.hargatotal
+
+        # Transaksi Lain lain
+        nilailainlain = 0
+        for tlainlain in datatransaksilainlain:
+            harga = hargapurchasingperbulan[tlainlain.KodeProduk]["data"][index][
+                "hargasatuan"
+            ]
+            tlainlain.harga = harga
+            tlainlain.hargatotal = harga * tlainlain.jumlah
+            nilailainlain += tlainlain.hargatotal
+        biayakeluar[index] = totalbiayakeluar + nilaigold + nilailainlain
+        detailbiaya[index] = {
+            "artikelkeluar": totalbiayakeluar,
+            "nilaigold": nilaigold,
+            "nilailainlain": nilailainlain,
+        }
+        print("\n\n\n\n", biayakeluar, detailbiaya)
+
+    return (
+        datadetailsppb,
+        biayakeluar,
+        datapenyusun,
+        listdatadetailsppb,
+        datatransaksilainlain,
+        datatransaksigold,
+        detailbiaya,
+    )
 
 
 def gethargapurchasingperbulan(last_days, stopindex, awaltahun):
     bahanbaku = models.Produk.objects.all()
-    # bahanbaku = models.Produk.objects.filter(KodeProduk="A-001-06")
+    # bahanbaku = models.Produk.objects.filter(KodeProduk="A-101")
 
     hargaakhirbulanperproduk = {}
     for i in bahanbaku:
         saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(
-            IDBahanBaku=i, Tanggal__gte=awaltahun
+            IDBahanBaku=i,
+            Tanggal__range=(awaltahun, date(awaltahun.year, 12, 31)),
+            IDLokasi__NamaLokasi="Gudang",
         )
+        print(saldoawalobj)
+        # print(asd)
         if saldoawalobj.exists():
             saldoawalobj = saldoawalobj.first()
             totalbiayaawal = saldoawalobj.Harga * saldoawalobj.Jumlah
@@ -1611,9 +1073,16 @@ def gethargaartikelfgperbulan(artikel, tanggal, hargaakhirbulanperproduk):
                 .order_by("versi")
                 .last()
             )
-            # print(versiterakhirperbulan)
-            # print(asd)
-            # SEMENTARA PAKAI .LAST()
+            if versiterakhirperbulan is None:
+                versiterakhirperbulan = (
+                    models.Penyusun.objects.filter(
+                        KodeArtikel=artikel, versi__gte=hari, Lokasi__NamaLokasi="FG"
+                    )
+                    .values_list("versi", flat=True)
+                    .distinct()
+                    .order_by("-versi")
+                    .last()
+                )
             penyusunversiterpilih = models.Penyusun.objects.filter(
                 KodeArtikel=artikel,
                 versi=versiterakhirperbulan,
@@ -1628,14 +1097,20 @@ def gethargaartikelfgperbulan(artikel, tanggal, hargaakhirbulanperproduk):
                 ]["hargasatuan"]
                 kuantitas = models.KonversiMaster.objects.get(
                     KodePenyusun=penyusun
-                ).Kuantitas
-                kuantitas += 0.025 * kuantitas
+                ).Allowance
+
                 hargabahanbakuwip = hargapenyusun * kuantitas
                 hargawip += hargabahanbakuwip
                 dummy["totalharga"] = hargabahanbakuwip
                 dummy["kuantitas"] = kuantitas
                 dummy["harga"] = hargapenyusun
-                datapenyusun[penyusun.KodeProduk] = dummy
+                if penyusun.KodeProduk in datapenyusun:
+                    datapenyusun[penyusun.KodeProduk]["kuantitas"] += dummy["kuantitas"]
+                    datapenyusun[penyusun.KodeProduk]["totalharga"] += (
+                        dummy["kuantitas"] * dummy["harga"]
+                    )
+                else:
+                    datapenyusun[penyusun.KodeProduk] = dummy
 
             dummy2 = {}
             dummy2["penyusun"] = datapenyusun
@@ -1672,12 +1147,25 @@ def gethargaartikelwipperbulan(artikel, tanggal, hargaakhirbulanperproduk):
                 .order_by("versi")
                 .last()
             )
+            if versiterakhirperbulan is None:
+                versiterakhirperbulan = (
+                    models.Penyusun.objects.filter(
+                        KodeArtikel=artikel, versi__gte=hari, Lokasi__NamaLokasi="WIP"
+                    )
+                    .values_list("versi", flat=True)
+                    .distinct()
+                    .order_by("-versi")
+                    .last()
+                )
 
             penyusunversiterpilih = models.Penyusun.objects.filter(
                 KodeArtikel=artikel,
                 versi=versiterakhirperbulan,
                 Lokasi__NamaLokasi="WIP",
             )
+            # print(versiterakhirperbulan)
+            # print(penyusunversiterpilih)
+
             datapenyusun = {}
             hargawip = 0
             for penyusun in penyusunversiterpilih:
@@ -1685,16 +1173,23 @@ def gethargaartikelwipperbulan(artikel, tanggal, hargaakhirbulanperproduk):
                 hargapenyusun = hargaakhirbulanperproduk[penyusun.KodeProduk]["data"][
                     index
                 ]["hargasatuan"]
-                kuantitas = models.KonversiMaster.objects.get(
-                    KodePenyusun=penyusun
-                ).Kuantitas
-                kuantitas += 0.025 * kuantitas
+                kuantitas = models.KonversiMaster.objects.get(KodePenyusun=penyusun)
+                kuantitas = kuantitas.Allowance
                 hargabahanbakuwip = hargapenyusun * kuantitas
                 hargawip += hargabahanbakuwip
                 dummy["totalharga"] = hargabahanbakuwip
                 dummy["kuantitas"] = kuantitas
                 dummy["harga"] = hargapenyusun
-                datapenyusun[penyusun.KodeProduk] = dummy
+                if penyusun.KodeProduk in datapenyusun:
+                    print(datapenyusun[penyusun.KodeProduk]["kuantitas"])
+                    datapenyusun[penyusun.KodeProduk]["kuantitas"] += dummy["kuantitas"]
+                    datapenyusun[penyusun.KodeProduk]["totalharga"] += (
+                        dummy["kuantitas"] * dummy["harga"]
+                    )
+                    print(datapenyusun[penyusun.KodeProduk]["kuantitas"])
+
+                else:
+                    datapenyusun[penyusun.KodeProduk] = dummy
 
             dummy2 = {}
             dummy2["penyusun"] = datapenyusun
@@ -1741,8 +1236,8 @@ def gethargafgperbulan(last_days, stopindex, awaltahun):
                 ]["hargasatuan"]
                 kuantitas = models.KonversiMaster.objects.get(
                     KodePenyusun=penyusun
-                ).Kuantitas
-                kuantitas += 0.025 * kuantitas
+                ).Allowance
+
                 hargabahanbakufg = hargapenyusun * kuantitas
                 hargafg += hargabahanbakufg
                 dummy["totalharga"] = hargabahanbakufg
@@ -2098,7 +1593,8 @@ def cekmutasifgterakhir(artikel, tanggaltes):
     else:
         return tanggaltes
 
-def cekmutasiwipfgterakhir(artikel,tanggaltes):
+
+def cekmutasiwipfgterakhir(artikel, tanggaltes):
     tanggalawalbulan = date(tanggaltes.year, tanggaltes.month, 1)
     mutasiwip = (
         models.TransaksiProduksi.objects.filter(
@@ -2111,8 +1607,9 @@ def cekmutasiwipfgterakhir(artikel,tanggaltes):
     )
     if mutasiwip:
         return mutasiwip
-    else: 
+    else:
         return tanggaltes
+
 
 def cekmutasiwipterakhir(artikel, tanggaltes):
     tanggalawalbulan = date(tanggaltes.year, tanggaltes.month, 1)
@@ -2168,22 +1665,6 @@ def cekmutasiwipterakhir(artikel, tanggaltes):
             return max(mutasiwip, transaksigudang)
     else:
         return tanggaltes
-
-
-def gethargakomponenwipperartikel(artikel, tanggal):
-    print(artikel, tanggal)
-    # print(asd)
-
-    versiterakhirperbulan = (
-        models.Penyusun.objects.filter(KodeArtikel=artikel, versi__lte=tanggal)
-        .values_list("versi", flat=True)
-        .distinct()
-        .order_by("versi")
-        .last()
-    )
-    penyusunversiterpilih = models.Penyusun.objects.filter(
-        KodeArtikel=artikel, versi=versiterakhirperbulan
-    )
 
 
 def perhitunganmutasiwipterakhir(artikel, tanggaltes):
@@ -2357,7 +1838,7 @@ def getstokartikelfg(last_days, stopindex, awaltahun):
             else:
                 stokawal = datastokfgperbulan[index - 1]["data"][dataartikel]["jumlah"]
             # cek mutasi produk
-            totalbiayafg, datakomponenwip, datakomponenfg = (
+            totalbiayafg, datakomponenwip, datakomponenfg, komponenwip, komponenfg = (
                 gethargafgterakhirberdasarkanmutasi(
                     dataartikel, hari, hargaakhirbulanperproduk
                 )
@@ -2458,6 +1939,7 @@ def saldogudang(last_days, stopindex, awaltahun):
     saldoakhirgudang = {}
     totalbiayasaldoawal = 0
     bahanbaku = models.Produk.objects.all()
+    bahanbaku = models.Produk.objects.filter(KodeProduk="A-101")
     for produk in bahanbaku:
         saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(
             IDBahanBaku=produk, Tanggal__gte=awaltahun, IDLokasi__NamaLokasi="Gudang"
@@ -2481,6 +1963,7 @@ def saldogudang(last_days, stopindex, awaltahun):
     hargaakhirbulanperproduk = gethargapurchasingperbulan(
         last_days, stopindex, awaltahun
     )
+    print(hargaakhirbulanperproduk)
     # print(asd)
     dataproduk = models.Produk.objects.all()
     for index, hari in enumerate(last_days[:stopindex]):
@@ -2524,6 +2007,7 @@ Perhitungan Saldo Gudang perlu di pecah antara saldo awal dan saldo akhir di lap
 
 
 def getstokbahanproduksi(last_days, stopindex, awaltahun):
+    """UNTUK MENGHITUNG DATA SALDO AWAL BAHAN BAKU PADA WIP DAN FG"""
     stokawalbahanproduksi = {}
     totalbiayasaldoawal = 0
     totalbiayasaldoawal = 0
@@ -2532,7 +2016,7 @@ def getstokbahanproduksi(last_days, stopindex, awaltahun):
     # bahanbaku = models.Produk.objects.filter(KodeProduk = 'tesksbb')
     for produk in bahanbaku:
         saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(
-            Tanggal__gte=awaltahun,
+            Tanggal__year=awaltahun.year,
             IDLokasi__NamaLokasi__in=("WIP", "FG"),
             IDBahanBaku=produk,
         )
@@ -2544,8 +2028,6 @@ def getstokbahanproduksi(last_days, stopindex, awaltahun):
         hargasatuanawal = 0
         jumlahawal = 0
         if saldoawalobj.exists():
-            # saldoawalobj = saldoawalobj.first()
-            # HARGA JANGAN LANGSUNG DI JUMLAH. PAKAI KONSEP KSBB. DI KALI DULU JUMLAH DAN TOTAL BIAYA NANTI HARGA SATUANNYA TOTAL/Jumlah
             for dataproduk in saldoawalobj:
                 totalbiayaawal += dataproduk.Harga * dataproduk.Jumlah
                 jumlahawal += dataproduk.Jumlah
@@ -2776,7 +2258,6 @@ def laporanpersediaan(request):
         starttime = time.time()
         bulan = request.GET["bulan"]
         waktuobj = datetime.strptime(bulan, "%Y-%m")
-        print(waktuobj.month)
         awaltahun = datetime(waktuobj.year, 1, 1)
         listbulan = [
             "Januari",
@@ -2798,9 +2279,7 @@ def laporanpersediaan(request):
             last_day = calendar.monthrange(waktuobj.year, month)[1]
             last_days.append(date(waktuobj.year, month, last_day))
         """SECTION BARANG KELUAR"""
-        datadetailsppb, totalbiayakeluar, datapenyusun, datalistbarangkeluar = (
-            getbarangkeluar(last_days, index, awaltahun)
-        )
+        totalbiayakeluar = (getbarangkeluar(last_days, index, awaltahun))[1]
         """SECTION BARANG MASUK"""
         barangmasuk = getbarangmasuk(last_days, index, awaltahun)
         """SECTION STOCK GUDANG"""
@@ -2828,7 +2307,7 @@ def laporanpersediaan(request):
         print(dataperhitunganpersediaan)
         print("tes")
         endtime = time.time()
-        print('Selisih waktu : ',endtime-starttime)
+        print("Selisih waktu : ", endtime - starttime)
         return render(
             request,
             "ppic/views_laporanpersediaanperusahaan.html",
@@ -2871,7 +2350,6 @@ def detaillaporanbaranstokawalproduksi(request):
         datawip, datastokwip, datastokfg = getstokbahanproduksi(
             last_days, index, awaltahun
         )
-        print(dir(datawip[0]["data"][0]))
         return render(
             request,
             "ppic/detailstockawalproduksi.html",
@@ -2956,9 +2434,15 @@ def exportlaporanbulananexcel(request):
     for month in range(1, 13):
         last_day = calendar.monthrange(waktuobj.year, month)[1]
         last_days.append(date(waktuobj.year, month, last_day))
-    datadetailsppb, totalbiayakeluar, datapenyusun, datalistbarangkeluar = (
-        getbarangkeluar(last_days, index, awaltahun)
-    )
+    (
+        datadetailsppb,
+        totalbiayakeluar,
+        datapenyusun,
+        datalistbarangkelua,
+        datatransaksilainlain,
+        detailtransaksigold,
+        detailbiaya,
+    ) = getbarangkeluar(last_days, index, awaltahun)
     """SECTION BARANG MASUK"""
     barangmasuk = getbarangmasuk(last_days, index, awaltahun)
     """SECTION STOCK GUDANG"""
@@ -3011,6 +2495,7 @@ def exportlaporanbulananexcel(request):
 
     print(datamodelmasuk)
     df2 = pd.DataFrame(datamodelmasuk)
+    totalbiayamasuk = sum(datamodelmasuk["Harga Total"])
     """3. Sheet untuk Barang Keluar"""
     print(datadetailsppb)
     datamodelkeluar = {
@@ -3036,6 +2521,27 @@ def exportlaporanbulananexcel(request):
     print(datamodelkeluar)
     totalbiayakeluar = sum(datamodelkeluar["Total Biaya"])
     dfdatakeluar = pd.DataFrame(datamodelkeluar)
+
+    datamodelstransaksigold = {
+        "Kode Produk": [],
+        "Nama Produk": [],
+        "Unit": [],
+        "Harga Satuan": [],
+        "Jumlah": [],
+        "Total Biaya": [],
+    }
+    print(baranggudang["datasaldoawal"])
+    for item in detailtransaksigold:
+        datamodelstransaksigold["Kode Produk"].append(item.KodeProduk.KodeProduk)
+        datamodelstransaksigold["Unit"].append(item.KodeProduk.unit)
+        datamodelstransaksigold["Nama Produk"].append(item.KodeProduk.NamaProduk)
+        datamodelstransaksigold["Jumlah"].append(item.jumlah)
+        datamodelstransaksigold["Total Biaya"].append(item.hargatotal)
+        datamodelstransaksigold["Harga Satuan"].append(item.harga)
+
+    print(datamodelstransaksigold)
+    dftransaksigold = pd.DataFrame(datamodelstransaksigold)
+    print(dftransaksigold)
 
     """4. Sheet Stock Awal Gudang"""
     datamodelstockawalgudang = {
@@ -3082,6 +2588,7 @@ def exportlaporanbulananexcel(request):
     buffer = BytesIO()
 
     # Use pandas to write DataFrame to the BytesIO buffer
+    num_cols_dfstokawalwip = dfdatakeluar.shape[1]
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
         df2.to_excel(writer, index=False, startrow=1, sheet_name="Barang Masuk")
@@ -3093,6 +2600,12 @@ def exportlaporanbulananexcel(request):
         )
         dfstokawalwip.to_excel(writer, index=False, startrow=1, sheet_name="Saldo WIP")
 
+        dftransaksigold.to_excel(
+            writer,
+            index=False,
+            startrow=1,
+            startcol=num_cols_dfstokawalwip + 1,
+        )
     # Load the workbook from the buffer
     buffer.seek(0)
     wb = load_workbook(buffer)
@@ -3115,6 +2628,14 @@ def exportlaporanbulananexcel(request):
     ws3.cell(row=baristerakhirws3 + 1, column=kolomterakhirws3 - 1, value="Total Biaya")
     ws3.cell(row=baristerakhirws3 + 1, column=kolomterakhirws3, value=totalbiayakeluar)
     # print(asdas)
+
+    # Custom ws barang masuk
+    baristerakhirws2 = ws2.max_row
+    kolomterakhirws2 = ws2.max_column
+    hurufkolomws3 = get_column_letter(kolomterakhirws2)
+    ws2.cell(row=baristerakhirws2 + 1, column=kolomterakhirws2 - 1, value="Total Biaya")
+    ws2.cell(row=baristerakhirws2 + 1, column=kolomterakhirws2, value=totalbiayamasuk)
+
     # Save the workbook back to the buffer
     buffer = BytesIO()
     wb.save(buffer)
