@@ -197,6 +197,7 @@ class confirmationorder(models.Model):
 class DetailSPPB(models.Model):
     IDDetailSPPB = models.AutoField(primary_key=True)
     NoSPPB = models.ForeignKey(SPPB, on_delete=models.CASCADE)
+    DetailBahan = models.ForeignKey(Produk, on_delete=models.CASCADE, null=True, blank=True)
     DetailSPK = models.ForeignKey(
         DetailSPK, on_delete=models.CASCADE, null=True, blank=True
     )
@@ -283,7 +284,7 @@ class PemusnahanBahanBaku(models.Model):
     Tanggal = models.DateField()
     KodeBahanBaku = models.ForeignKey(Produk, on_delete=models.CASCADE)
     lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
-    Jumlah = models.IntegerField()
+    Jumlah = models.FloatField()
 
     def __str__(self):
         return str(self.KodeBahanBaku) + "-" + str(self.Tanggal)
