@@ -502,7 +502,7 @@ def views_ksbj(request):
             artikel = models.Artikel.objects.get(KodeArtikel=kodeartikel)
         except:
             messages.error(request, "Data Artikel tidak ditemukan")
-            return redirect("view_ksbj")
+            return redirect("view_ksbjrnd")
 
         if request.GET["tahun"]:
             tahun = int(request.GET["tahun"])
@@ -1667,42 +1667,43 @@ def bulk_createpenyusun(request):
             for data, row in df.iterrows():
                 # print(row["Kode Stock"])
                 try:
-                    kodeartikel = models.Artikel.objects.get(KodeArtikel = item)
+                    kodeartikel = models.Artikel.objects.get(KodeArtikel=item)
                 except:
                     continue
                 try:
-                    read_produk = models.Produk.objects.get(KodeProduk=row["Kode Stock"])
+                    read_produk = models.Produk.objects.get(
+                        KodeProduk=row["Kode Stock"]
+                    )
                 except:
-                    listerror.append([data,row,item])
+                    listerror.append([data, row, item])
                     continue
-            
-                print(row['Jumlah Sat/ktk'])
-                kuantitas =row["Jumlah Sat/ktk"]
+
+                print(row["Jumlah Sat/ktk"])
+                kuantitas = row["Jumlah Sat/ktk"]
                 try:
-                    print(row['Jumlah Sat/ktk (+2,5%)'])
-                    allowance = row['Jumlah Sat/ktk (+2,5%)']
+                    print(row["Jumlah Sat/ktk (+2,5%)"])
+                    allowance = row["Jumlah Sat/ktk (+2,5%)"]
                 except:
-                    print(row['Jumlah Sat/ktk (+5%)'])
-                    allowance = row['Jumlah Sat/ktk (+5%)']
+                    print(row["Jumlah Sat/ktk (+5%)"])
+                    allowance = row["Jumlah Sat/ktk (+5%)"]
                 if pd.isna(allowance):
                     allowance = 0
                 if pd.isna(kuantitas):
                     kuantitas = 0
 
                 penyusunobj = models.Penyusun(
-                    Status = 0,
-                    KodeArtikel = kodeartikel,
-                    KodeProduk = read_produk,
-                    Lokasi = models.Lokasi.objects.get(NamaLokasi = "WIP"),
-                    versi = date(2024,1,1),
+                    Status=0,
+                    KodeArtikel=kodeartikel,
+                    KodeProduk=read_produk,
+                    Lokasi=models.Lokasi.objects.get(NamaLokasi="WIP"),
+                    versi=date(2024, 1, 1),
                 ).save()
                 kkonversimasterobj = models.KonversiMaster(
-                    Kuantitas = kuantitas,
-                    KodePenyusun = models.Penyusun.objects.last(),
-                    lastedited = datetime.now(),
-                    Allowance = allowance
+                    Kuantitas=kuantitas,
+                    KodePenyusun=models.Penyusun.objects.last(),
+                    lastedited=datetime.now(),
+                    Allowance=allowance,
                 ).save()
-                
 
                 kodepenyusun += 1
         return HttpResponse(f"Berhasil Upload {listerror}")

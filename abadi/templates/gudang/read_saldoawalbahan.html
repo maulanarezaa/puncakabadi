@@ -8,6 +8,7 @@
 {% block javascripts %}
 {% endblock javascripts %}
 
+{% load humanize %}
 <!-- Page content  -->
 {% block content %}
 <div class="row">
@@ -46,7 +47,7 @@
                 <td>{{i.IDBahanBaku.unit}}</td>
                 <td>{{i.IDLokasi}}</td>
                 <td>{{i.Jumlah}}</td>
-                <td>{{i.Harga}}</td>
+                <td>{{i.Harga|floatformat:2|intcomma}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   <div class="template-demo">

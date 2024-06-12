@@ -2710,8 +2710,6 @@ def kalkulatorpenyesuaian2(request):
                     break
             if not lanjut:
                 break
-        
-
         listdataperhitungan = {}
         if not tanggalminus:
             return render(

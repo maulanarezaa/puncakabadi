@@ -1377,9 +1377,6 @@ def views_penyusun(request):
                             }
                         )
 
-                    # print(data)
-                    print(versiterpilih)
-                    # print(dasdatakonversi)
 
                     return render(
                         request,

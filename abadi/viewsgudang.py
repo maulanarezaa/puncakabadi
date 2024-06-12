@@ -627,7 +627,7 @@ def detail_barang(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def barang_keluar(request):
-    datalokasi = models.Lokasi.objects.filter(NamaLokasi__in=("WIP", "FG"))
+    datalokasi = models.Lokasi.objects.filter(NamaLokasi__in=("WIP", "FG","Lain-Lain"))
     data = models.TransaksiGudang.objects.filter(jumlah__gt=0).order_by("tanggal")
     for i in data:
         i.tanggal = i.tanggal.strftime("%Y-%m-%d")
