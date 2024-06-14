@@ -50,6 +50,40 @@
             </div>
           </div>
         </div>
+        <h4 class="card-title">Detail SPPB Bahan Baku</h4>
+        <div id="bahans">
+          <div class="row" id="bahan_1">
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="bahan_1">Bahan Baku 1:</label>
+                <input required type="text" class="form-control bahan" name="kode_bahan[]" id="kode_bahan-1" list="listbahan">
+                <datalist id="listbahan">
+                  {% for item in bahan %}
+                  <option value="{{ item.KodeProduk }}">{{ item.NamaProduk }}</option>
+                  {% endfor %}
+                </datalist>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="quantity_1">Jumlah</label>
+                <input type="number" min="0" class="form-control quantity" name="quantitybahan[]" placeholder="Quantity">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label>Purchase Order</label>
+                <select name="purchaseorderbahan" id="" class="form-control">
+                  <option value="">Masukkan Kode Purchase Order</option>
+                  {% for i in purchaseorder %}
+                  <option value="{{i.id}}">{{i.NoCO}}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <br><br>
         <h4 class="card-title">Detail SPPB Artikel</h4>
         <div id="artikels">
           <div class="row" id="artikel_1">
@@ -59,7 +93,7 @@
                 <select class="form-control artikel" name="kode_artikel-1" id="kode_artikel-1"
                   onchange="loadArtikelOptions(this)">
                   <option value="">Masukkan Kode Artikel</option>
-                  {% for item in data %}
+                  {% for item in artikel %}
                   <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
                   {% endfor %}
                 </select>
@@ -76,7 +110,7 @@
             <div class="col-md-2">
               <div class="form-group">
                 <label for="quantity_1">Jumlah</label>
-                <input type="number" min="0" class="form-control quantity" name="quantity[]" placeholder="Quantity">
+                <input  type="number" min="0" class="form-control quantity" name="quantity[]" placeholder="Quantity">
               </div>
             </div>
             <div class="col-md-3">
@@ -134,10 +168,15 @@
                 </select>
               </div>
             </div>
-
           </div>
         </div>
         <div class="row">
+          <div class="col-auto mr-auto">
+            <button type="button" class="btn btn-success" onclick="addBahan()">
+              <i class="typcn typcn-plus btn-icon-prepend"></i>
+              Tambahkan Bahan
+            </button>
+          </div>
           <div class="col-auto mr-auto">
             <button type="button" class="btn btn-success" onclick="addProduct()">
               <i class="typcn typcn-plus btn-icon-prepend"></i>
@@ -157,14 +196,53 @@
   </div>
 </div>
 
-{% block javascripts %}
 <script>
+  function addBahan() {
+    let bahanCounter = document.querySelectorAll('.bahan').length + 1;
+    const bahanRow = document.createElement('div');
+    bahanRow.className = "row bahan-row";
+    bahanRow.id = `bahan_row_${bahanCounter}`;
+    bahanRow.innerHTML = `<div class="col-md-4">
+                              <div class="form-group">
+                                <label for="bahan_1">Bahan Baku ${bahanCounter}:</label>
+                                <input required type="text" class="form-control bahan" name="kode_bahan[]" id="kode_bahan-${bahanCounter}" list="listbahan">
+                                <datalist id="listbahan">
+                                  {% for item in bahan %}
+                                  <option value="{{ item.KodeProduk }}">{{ item.NamaProduk }}</option>
+                                  {% endfor %}
+                                </datalist>
+                              </div>
+                            </div>
+                            <div class="col-md-4">
+                              <div class="form-group">
+                                <label for="quantity_${bahanCounter}">Jumlah</label>
+                                <input type="number" min="0" class="form-control quantity" name="quantitybahan[]" placeholder="Quantity">
+                              </div>
+                            </div>
+                            <div class="col-md-3">
+                              <div class="form-group">
+                                <label>Purchase Order</label>
+                                <select name="purchaseorderbahan" id="" class="form-control">
+                                  <option value="">Masukkan Kode Purchase Order</option>
+                                  {% for i in purchaseorder %}
+                                  <option value="{{i.id}}">{{i.NoCO}}</option>
+                                  {% endfor %}
+                                </select>
+                              </div>
+                            </div>
+                            <div class="col-md-1">
+                                <label for="hapus1"></label>
+                                <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
+                            </div>`;
+    document.getElementById('bahans').appendChild(bahanRow);
+  }
+
   function addProduct() {
     let productCounter = document.querySelectorAll('.artikel').length + 1;
     console.log(document.querySelectorAll('.artikel'))
     const productRow = document.createElement('div');
-    productRow.className = "row";
-    productRow.id = `artikel_${productCounter}`;
+    productRow.className = "row artikel-row";
+    productRow.id = `artikel_row_${productCounter}`;
     productRow.innerHTML = `<div class="col-md-3">
                                   <div class="form-group">
                                       <label for="artikel_1">Artikel ${productCounter}:</label>
@@ -208,6 +286,55 @@
     document.getElementById('artikels').appendChild(productRow);
   }
 
+  function addDisplay() {
+    let displayCounter = document.querySelectorAll('.display').length + 1;
+    const displayRow = document.createElement('div');
+    displayRow.className = "row display-row";
+    displayRow.id = `display_row_${displayCounter}`;
+    displayRow.innerHTML = `<div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="SPK_Display-${displayCounter}">Display ${displayCounter}</label>
+                                    <select class="form-control display" name="spk_display[]" id = "SPK_Display-${displayCounter}" onchange="loadDisplayOptions(this)">
+                                      <option value="">Masukkan SPK Display</option
+                                      {% for item in display %}
+                                        <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }} - {{item.Keterangan}}</option>
+                                      {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                              <div class="form-group">
+                                <label for="artikel_1">Nomor SPK</label>
+                                <div id="detail_spkdisplay_${displayCounter}">
+                                  {% include 'produksi/opsi_spkdisplay.html' %}
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-md-2">
+                              <div class="form-group">
+                                  <label for="jumlah_${displayCounter}">Jumlah</label>
+                                  <input type="number" class="form-control" name="quantitydisplay[]" id="jumlah_${displayCounter}" placeholder="Jumlah">
+                              </div>
+                            </div>
+                            <div class="col-md-3">
+                              <div class="form-group">
+                                <label>Purchase Order</label>
+                                <select name="purchaseorderdisplay" id="" class="form-control">
+                                  <option value="">Masukkan Kode Purchase Order</option>
+                                  {% for i in purchaseorder %}
+                                  <option value="{{i.id}}">{{i.NoCO}}</option>
+                                  {% endfor %}
+                                </select>
+                              </div>
+                            </div>
+                            <div class="col-md-1">
+                                <label for="hapus1"></label>
+                                <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
+                            </div>
+                            `;
+    document.getElementById('displays').appendChild(displayRow);
+  }
+
   function deleteRow(button) {
     button.closest('.row').remove();
   }
@@ -233,6 +360,7 @@
       }
     });
   }
+
   function loadDisplayOptions(selectElement) {
     var spkNumber = selectElement.value;
     var productCounter = selectElement.id.split('-')[1];
@@ -255,59 +383,6 @@
       }
     });
   }
-  function addDisplay() {
-    let displayCounter = document.querySelectorAll('.display').length + 1;
-    const displayRow = document.createElement('div');
-    displayRow.className = "row display-row";
-    displayRow.id = `display_row_${displayCounter}`;
-    displayRow.innerHTML = `<div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="SPK_Display-${displayCounter}">Display ${displayCounter}</label>
-                                    <select class="form-control display" name="spk_display[]" id = "SPK_Display-${displayCounter}" onchange="loadDisplayOptions(this)">
-                                    <option value="">Masukkan SPK Display</option>
-                                    
-                                    {% for item in display %}
-                  <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }} - {{item.Keterangan}}</option>
-                  {% endfor %}
-                                        </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                  <div class="form-group">
-                                    <label for="artikel_1">Nomor SPK</label>
-                                    <div id="detail_spkdisplay_${displayCounter}">
-                                      {% include 'produksi/opsi_spkdisplay.html' %}
-                                    </div>
-                                  </div>
-                                </div>
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label for="jumlah_${displayCounter}">Jumlah</label>
-                                    <input type="number" class="form-control" name="quantitydisplay[]" id="jumlah_${displayCounter}" placeholder="Jumlah">
-                                </div>
-                              </div>
-                              <div class="col-md-3">
-              <div class="form-group">
-                <label>Purchase Order</label>
-                <select name="purchaseorderdisplay" id="" class="form-control">
-                  <option value="">Masukkan Kode Purchase Order</option>
-                  {% for i in purchaseorder %}
-                  <option value="{{i.id}}">{{i.NoCO}}</option>
-                  {% endfor %}
-                </select>
-              </div>
-            </div>
-                               
-                            
-                            <div class="col-md-1">
-                                    <label for="hapus1"></label>
-                                    <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
-                                </div>
-                            `;
-    document.getElementById('displays').appendChild(displayRow);
-  }
 
 </script>
-</script>
-{% endblock javascripts %}
 {% endblock content %}

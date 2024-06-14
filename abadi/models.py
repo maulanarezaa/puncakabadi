@@ -200,6 +200,8 @@ class DetailSPPB(models.Model):
     DetailSPK = models.ForeignKey(
         DetailSPK, on_delete=models.CASCADE, null=True, blank=True
     )
+    DetailBahan = models.ForeignKey(Produk, on_delete=models.CASCADE, null=True, blank=True)
+
     DetailSPKDisplay = models.ForeignKey(
         DetailSPKDisplay, on_delete=models.CASCADE, null=True, blank=True
     )
@@ -283,7 +285,7 @@ class PemusnahanBahanBaku(models.Model):
     Tanggal = models.DateField()
     KodeBahanBaku = models.ForeignKey(Produk, on_delete=models.CASCADE)
     lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
-    Jumlah = models.IntegerField()
+    Jumlah = models.FloatField()
 
     def __str__(self):
         return str(self.KodeBahanBaku) + "-" + str(self.Tanggal)

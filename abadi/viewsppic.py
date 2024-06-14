@@ -852,6 +852,7 @@ def getbarangkeluar(last_days, stopindex, awaltahun):
         last_days, stopindex, awaltahun
     )
 
+
     listdatadetailsppb = []
     datapenyusun = {}
     biayakeluar = {}
@@ -877,6 +878,9 @@ def getbarangkeluar(last_days, stopindex, awaltahun):
                 jumlah__gte=0,
                 Lokasi__NamaLokasi="Lain-Lain",
             )
+            datatransaksisppbdisplay = models.DetailSPPB.objects.filter(
+            DetailSPKDisplay__isnull = False,NoSPPB__Tanggal__range = (awaltahun,hari)
+            )
         else:
             datadetailsppb = models.DetailSPPB.objects.filter(
                 NoSPPB__Tanggal__lte=hari,
@@ -894,6 +898,10 @@ def getbarangkeluar(last_days, stopindex, awaltahun):
                 jumlah__gte=0,
                 Lokasi__NamaLokasi="Lain-Lain",
             )
+            datatransaksisppbdisplay = models.DetailSPPB.objects.filter(
+            DetailSPKDisplay__isnull = False,NoSPPB__Tanggal__range = (last_days[index-1],hari)
+            )
+
         if datadetailsppb.exists():
             for detailsppb in datadetailsppb:
                 # print(biayafgperartikel)
@@ -944,6 +952,37 @@ def getbarangkeluar(last_days, stopindex, awaltahun):
         }
         print("\n\n\n\n", biayakeluar, detailbiaya)
 
+        # Section Display 
+        # dummy = []
+        # listspkterpilih = datatransaksisppbdisplay.values_list('DetailSPKDisplay__NoSPK__NoSPK',flat=True).distinct()
+        # for spkdisplay in listspkterpilih :
+        #     print(spkdisplay)
+        #     jumlahartikeldisplay = models.DetailSPKDisplay.objects.filter(NoSPK__NoSPK=spkdisplay)
+        #     jumlahperdisplay = jumlahartikeldisplay.values('KodeDisplay__KodeDisplay').annotate(total = Sum('Jumlah'))
+        #     print(jumlahperdisplay)
+        #     for item in jumlahperdisplay:
+        #         item
+            
+
+        spkdisplay = datatransaksisppbdisplay.values_list('DetailSPKDisplay__NoSPK__NoSPK').annotate(total=Sum('DetailSPKDisplay__Jumlah'))
+        for display in datatransaksisppbdisplay:
+
+            
+            '''
+            1. Cari Jumlah berdasarkan SPK dulu 
+            2.  Melihat jumlah bahan yang sudah diminta berdasarkan spk
+            3. Menghitung berdasarkan pengeluaran 
+            # '''
+            # print(jumlahkirimSPPB)
+            # print(jumlahprodukpadaSPK)
+
+            print(spkdisplay)
+            totalproduksiSPK = display.DetailSPKDisplay.Jumlah
+            print(totalproduksiSPK)
+            totalpermintaanmenggunakanspk = models.TransaksiGudang.objects.filter(DetailSPKDisplay__NoSPK=display.DetailSPKDisplay.NoSPK).values('KodeProduk__KodeProduk').annotate(total = Sum('jumlah'))
+            print(totalpermintaanmenggunakanspk)
+            
+            print(ad)
     return (
         datadetailsppb,
         biayakeluar,
