@@ -103,9 +103,6 @@ def gethargabahanbaku(
         except ZeroDivisionError:
             hargaawal = 0
 
-        # print("Sisa Stok Hari Ini : ", jumlahawal)
-        # print("harga awal Hari Ini :", hargaawal)
-        # print("harga total Hari Ini :", totalharga, "\n")
     return hargaawal, jumlahawal, totalharga
 
 
@@ -848,6 +845,8 @@ def detaillaporanbarangkeluar(request):
                 'display' : datatransaksikeluar['SPPBDisplay']['SPPBDisplay'],
                 "lainlain": datatransaksikeluar['Transaksilainlain']['datatransaksi'],
                 "transaksigold": datatransaksikeluar['Transaksigolongand']['datatransaksi'],
+                "transaksibahanbaku":datatransaksikeluar["Transaksibahanbaku"]['datatransaksi'],
+                "nilaitransaksibahanbaku":datatransaksikeluar["Transaksibahanbaku"]['totalbiaya'],
                 "nilaigold": datatransaksikeluar['Transaksigolongand']['totalbiaya'],
                 "nilailainlain": datatransaksikeluar['Transaksilainlain']['totalbiaya'],
                 "nilaibarangkeluar": datatransaksikeluar['SPPBArtikel']['totalbiayasppb'],
@@ -941,6 +940,10 @@ def getbarangkeluar(last_days, stopindex, awaltahun):
             'datatransaksi' : None,
             'totalbiaya' : None
         }
+        datamodeltransaksibahanbaku = {
+            'datatransaksi' : None,
+            'totalbiaya' : None
+        }
 
         totalbiayakeluar = 0
 
@@ -948,7 +951,7 @@ def getbarangkeluar(last_days, stopindex, awaltahun):
             datadetailsppb = models.DetailSPPB.objects.filter(
                 NoSPPB__Tanggal__lte=hari,
                 NoSPPB__Tanggal__gte=awaltahun,
-                DetailSPKDisplay=None,
+                DetailSPK__isnull=False,
             )
             # Transaksi Golongan D
             datatransaksigold = models.TransaksiGudang.objects.filter(
@@ -964,11 +967,15 @@ def getbarangkeluar(last_days, stopindex, awaltahun):
             datatransaksisppbdisplay = models.DetailSPPB.objects.filter(
             DetailSPKDisplay__isnull = False,NoSPPB__Tanggal__range = (awaltahun,hari)
             )
+            datatransaksibahanbaku = models.DetailSPPB.objects.filter(
+            DetailBahan__isnull = False,NoSPPB__Tanggal__range = (awaltahun,hari)
+            )
+            
         else:
             datadetailsppb = models.DetailSPPB.objects.filter(
                 NoSPPB__Tanggal__lte=hari,
                 NoSPPB__Tanggal__gt=last_days[index - 1],
-                DetailSPKDisplay=None,
+                DetailSPK__isnull=False,
             )
             # Transaksi Golongan D
             datatransaksigold = models.TransaksiGudang.objects.filter(
@@ -984,11 +991,14 @@ def getbarangkeluar(last_days, stopindex, awaltahun):
             datatransaksisppbdisplay = models.DetailSPPB.objects.filter(
             DetailSPKDisplay__isnull = False,NoSPPB__Tanggal__range = (last_days[index-1],hari)
             )
+            datatransaksibahanbaku = models.DetailSPPB.objects.filter(
+            DetailBahan__isnull = False,NoSPPB__Tanggal__range = (last_days[index-1],hari)
+            )
 
         if datadetailsppb.exists():
             for detailsppb in datadetailsppb:
                 # print(biayafgperartikel)
-
+                print(detailsppb)
                 ge = gethargafgterakhirberdasarkanmutasi(
                     detailsppb.DetailSPK.KodeArtikel, hari, hargapurchasingperbulan
                 )
@@ -1036,10 +1046,22 @@ def getbarangkeluar(last_days, stopindex, awaltahun):
         
         datamodeltransaksilainlain["datatransaksi"] = (datatransaksilainlain)
         datamodeltransaksilainlain["totalbiaya"] = (nilailainlain)
-
-        spkdisplay = datatransaksisppbdisplay.values_list('DetailSPKDisplay__NoSPK__NoSPK').annotate(total=Sum('DetailSPKDisplay__Jumlah'))
-        listdisplay = []
         totalbiayadisplay = 0
+
+        # Transaksi Pengiriman Bahan Baku
+        nilaitransaksibahan = 0
+        for transaksibahanbaku in datatransaksibahanbaku:
+            harga = hargapurchasingperbulan[transaksibahanbaku.DetailBahan]["data"][index][
+                "hargasatuan"
+            ]
+            transaksibahanbaku.harga = harga
+            transaksibahanbaku.hargatotal = harga * transaksibahanbaku.Jumlah
+            print(harga)
+            nilaitransaksibahan += transaksibahanbaku.hargatotal
+        
+        datamodeltransaksibahanbaku["datatransaksi"] = (datatransaksibahanbaku)
+        datamodeltransaksibahanbaku["totalbiaya"] = (nilaitransaksibahan)
+
         for display in datatransaksisppbdisplay:
 
             
@@ -1081,17 +1103,20 @@ def getbarangkeluar(last_days, stopindex, awaltahun):
         datamodeldisplay['totalbiayasppb']= (totalbiayadisplay)
 
 
-        biayakeluar[index] = totalbiayakeluar + nilaigold + nilailainlain + totalbiayadisplay
+        biayakeluar[index] = totalbiayakeluar + nilaigold + nilailainlain + totalbiayadisplay + nilaitransaksibahan
         detailbiaya[index] = {
             "artikelkeluar": totalbiayakeluar,
             "nilaigold": nilaigold,
             "nilailainlain": nilailainlain,
             'displaykeluar' : totalbiayadisplay
         }
+
         print("\n\n\n\n", biayakeluar, detailbiaya)
         # pritn(asd)
         
-        listdatakeluar.append({'SPPBArtikel':datamodelssppb,'SPPBDisplay': datamodeldisplay,'Transaksigolongand':datamodeltransaksigolongand,"Transaksilainlain":datamodeltransaksilainlain,'datapenyusunartikel':datapenyusun,"totalkeluar":totalbiayakeluar + nilaigold + nilailainlain + totalbiayadisplay})
+        listdatakeluar.append({'SPPBArtikel':datamodelssppb,'SPPBDisplay': datamodeldisplay,'Transaksigolongand':datamodeltransaksigolongand,"Transaksibahanbaku":datamodeltransaksibahanbaku,"Transaksilainlain":datamodeltransaksilainlain,'datapenyusunartikel':datapenyusun,"totalkeluar":totalbiayakeluar + nilaigold + nilailainlain + totalbiayadisplay + nilaitransaksibahan})
+
+        
     # print(datamodeldisplay)
     # print(datamodelssppb)
     # print(datamodeltransaksigolongand)
