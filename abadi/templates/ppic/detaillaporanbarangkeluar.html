@@ -5,7 +5,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
-
+{% load humanize %}
 
 
 <!-- Page content  -->
@@ -22,7 +22,7 @@
                     {% if sppb %}
 
                     <h5>Detail Barang Keluar Bulan : {{bulan}}</h5>
-                    <table class="table">
+                    <table class="table" id="tabelsppbartikel">
                         <thead>
                             <tr>
                                 <td>No</td>
@@ -42,8 +42,8 @@
                                 <td>{{item.DetailSPK.NoSPK}}</td>
                                 <td>{{item.DetailSPK.KodeArtikel}}</td>
                                 <td>{{item.Jumlah}}</td>
-                                <td>{{item.hargafg}}</td>
-                                <td>{{item.totalharga}}</td>
+                                <td>{{item.hargafg|floatformat:2|intcomma}}</td>
+                                <td>{{item.totalharga|floatformat:2|intcomma}}</td>
                             </tr>
                             {% endfor %}
                             <tr>
@@ -53,17 +53,107 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
+                                <td>{{nilaibarangkeluar|floatformat:2|intcomma}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h5>Detail Display Keluar Bulan : {{bulan}}</h5>
+
+                    <table class="table" id="tabeldisplaybarangkeluar">
+                        <thead>
+                            <tr>
+                                <td>No</td>
+                                <td>No SPPB</td>
+                                <td>No SPK</td>
+                                <td>Display</td>
+                                <td>Jumlah</td>
+                                <td>Jumlah Produksi</td>
+                                <td>Bahan Baku</td>
+                                <td>Jumlah Permintaan</td>
+                                <td>Jumlah Penggunaan</td>
+                                <td>Harga Satuan</td>
+                                <td>Harga konversi</td>
+                                <td>Total Biaya</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in display %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{item.NoSPPB.NoSPPB}}</td>
+                                <td>{{item.DetailSPKDisplay.NoSPK}}</td>
+                                <td>{{item.DetailSPKDisplay.KodeDisplay}}</td>
+                                <td>{{item.Jumlah}}</td>
+                                <td>{{item.DetailSPKDisplay.Jumlah}}</td>
+
+                                <td>
+                                    <ul>
+                                    {% for i in item.penggunaanbahan.keys %}
+                                        <li>
+                                            {{i}}
+                                        </li>
+                                    {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                    {% for i in item.penggunaanbahan.values %}
+                                        <li>
+                                            {{i.totalpermintaan}}
+                                        </li>
+                                    {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        {% for i in item.penggunaanbahan.values %}
+                                            <li>
+                                                {{i.jumlahpenggunaan}}
+                                            </li>
+                                        {% endfor %}
+                                        </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        {% for i in item.penggunaanbahan.values %}
+                                            <li>
+                                                {{i.biayaawal}}
+                                            </li>
+                                        {% endfor %}
+                                        </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        {% for i in item.penggunaanbahan.values %}
+                                            <li>
+                                                {{i.totalbiaya}}
+                                            </li>
+                                        {% endfor %}
+                                        </ul>
+                                </td>
+                                <td>{{item.totalbiaya}}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <td>Harga Total</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
                                 <td>{{nilaibarangkeluar}}</td>
                             </tr>
                         </tbody>
                     </table>
-                    <table class="table">
-                        <thead>
 
-                        </thead>
-                    </table>
+
                     <h5>Detail Transaksi golongan D : {{bulan}}</h5>
-                    <table class="table">
+                    <table class="table" id="tabeltransaksigold">
                         <thead>
                             <tr>
                                 <td>No</td>
@@ -74,6 +164,7 @@
                                 <td>Harga Satuan</td>
                                 <td>Kuantitas</td>
                                 <td>Harga Total</td>
+                                
                             </tr>
                         </thead>
                         <tbody>
@@ -87,7 +178,6 @@
                                 <td>{{item.harga}}</td>
                                 <td>{{item.jumlah}}</td>
                                 <td>{{item.hargatotal}}</td>
-                                <td>{{item.totalharga}}</td>
                             </tr>
                             {% endfor %}
                             <tr>
@@ -98,13 +188,13 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-
                                 <td>{{nilaigold}}</td>
                             </tr>
                         </tbody>
                     </table>
+
                     <h5>Detail Transaksi lain-lain : {{bulan}}</h5>
-                    <table class="table">
+                    <table class="table" id="tabeltransaksilainlain">
                         <thead>
                             <tr>
                                 <td>No</td>
@@ -118,7 +208,6 @@
                             </tr>
                         </thead>
                         <tbody>
-
                             {% for item in lainlain %}
                             <tr>
                                 <td>{{forloop.counter}}</td>
@@ -129,17 +218,19 @@
                                 <td>{{item.harga}}</td>
                                 <td>{{item.jumlah}}</td>
                                 <td>{{item.hargatotal}}</td>
-                                <td>{{item.totalharga}}</td>
+                                
                             </tr>
                             {% endfor %}
                             <tr>
                                 <td>Harga Total</td>
+
                                 <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
+                                
                                 <td>{{nilailainlain}}</td>
                             </tr>
                         </tbody>
