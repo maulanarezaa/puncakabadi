@@ -145,13 +145,19 @@ def gethargafgterakhirberdasarkanmutasi(KodeArtikel, Tanggaltes, HargaPurchasing
         komponen_fg_terakhir = gethargaartikelfgperbulan(
             KodeArtikel, cekmutasiwipfg, HargaPurchasing
         )
-        hargakomponen_fg_fgterakhir = komponen_fg_terakhir[KodeArtikel]["hargafg"]
+        if komponen_fg_terakhir:
+            hargakomponen_fg_fgterakhir = komponen_fg_terakhir[KodeArtikel]["hargafg"]
+        else:
+            hargakomponen_fg_fgterakhir = 0
 
         komponen_wip_terakhir = gethargaartikelwipperbulan(
             KodeArtikel, cekmutasiwipfg, HargaPurchasing
         )
 
-        hargakomponen_wip_fgterakhir = komponen_wip_terakhir[KodeArtikel]["hargawip"]
+        if hargakomponen_wip_fgterakhir:
+            hargakomponen_wip_fgterakhir = komponen_wip_terakhir[KodeArtikel]["hargawip"]
+        else :
+            hargakomponen_wip_fgterakhir = 0
         totalbiayafg = hargakomponen_wip_fgterakhir + hargakomponen_fg_fgterakhir
 
     else:
@@ -1656,7 +1662,128 @@ def detaillaporanbaranstokgudang(request):
             {"stokgudang": bahanbakuperbulan, "bulan": bulan},
         )
 
+def getpenyusunartikelpertanggal(tanggal,kodeartikel):
+    versiterakhirperbulan = (
+                models.Penyusun.objects.filter(
+                    KodeArtikel__KodeArtikel=kodeartikel, versi__lte=tanggal, Lokasi__NamaLokasi="FG"
+                )
+                .values_list("versi", flat=True)
+                .distinct()
+                .order_by("versi")
+                .last()
+            )
+    if versiterakhirperbulan is None:
+        versiterakhirperbulan = (
+                    models.Penyusun.objects.filter(
+                        KodeArtikel__KodeArtikel=kodeartikel, versi__gte=tanggal, Lokasi__NamaLokasi="FG"
+                    )
+                    .values_list("versi", flat=True)
+                    .distinct()
+                    .order_by("-versi")
+                    .last()
+                )
+    penyusunversiterpilih = models.Penyusun.objects.filter(
+                KodeArtikel__KodeArtikel=kodeartikel,
+                versi=versiterakhirperbulan,
+                Lokasi__NamaLokasi="FG",
+            )
+    datakonversimaster = models.KonversiMaster.objects.filter(KodePenyusun__in = penyusunversiterpilih)
 
+    datapenyusun = datakonversimaster.values('KodePenyusun__KodeProduk__KodeProduk').annotate(total = Sum('Allowance'))
+    print(datapenyusun)
+
+    return datapenyusun
+def getstokfg(tanggal,hargapurchasing):
+    awaltahun = date(tanggal.year,1,1)
+    akhirtahun = date(tanggal.year,12,31)
+    print(tanggal)
+
+    '''
+    LOGIKA 
+    1. Hitung Jumlah mutasi perartikel/display dari WIP ke FG
+    2. Hitung Jumlah mutasi perartikel/display dari FG keluar (SPPB)
+    4. Ambil Data produk yang diminta ke gudang dari awal tahun - sekarang
+    3. Hitung kumulasi jumlah permintaan gudang ke FG
+    '''
+    # Mengambil Saldo Awal Artikel pada FG
+    datasaldoawalartikel = models.SaldoAwalArtikel.objects.filter(Tanggal__range=(awaltahun,akhirtahun),IDLokasi__NamaLokasi="FG")
+    jumlahdatasaldoawal = datasaldoawalartikel.values("IDArtikel__KodeArtikel").annotate(total = Sum('Jumlah'))
+
+    # Mengambil Saldo Awal Bahan Baku pada FG
+    datasaldoawalbahanbaku = models.SaldoAwalBahanBaku.objects.filter(Tanggal__range=(awaltahun,akhirtahun),IDLokasi__NamaLokasi = "FG")
+    jumlahdatasaldoawalbahanbaku = datasaldoawalbahanbaku.values("IDBahanBaku__KodeProduk").annotate(total = Sum('Jumlah'))
+
+    #  Mengambil total data transaksi mutasi WIP ke FG
+    datamutasiartikel = models.TransaksiProduksi.objects.filter(Lokasi__NamaLokasi="WIP",Tanggal__range =(awaltahun,tanggal),Jenis = "Mutasi" )
+    jumlahmutasiartikel = datamutasiartikel.values('KodeArtikel__KodeArtikel').annotate(total = Sum('Jumlah'))
+    print(jumlahmutasiartikel)
+    
+
+    # Mengambil total data transaksi pengeluaran barang dari FG
+    datapengeluaranartikel = models.DetailSPPB.objects.filter(NoSPPB__Tanggal__range = (awaltahun,tanggal),DetailSPK__isnull=False)
+    jumlahpengirimanartikel = datapengeluaranartikel.values('DetailSPK__KodeArtikel__KodeArtikel').annotate(total = Sum('Jumlah'))
+    
+    # Mengambil total permintaan transaksi bahan baku 
+    datapermintaanbahanbaku = models.TransaksiGudang.objects.filter(Lokasi__NamaLokasi = "FG",tanggal__range=(awaltahun,tanggal))
+    totalpermintaanbahanbaku = datapermintaanbahanbaku.values("KodeProduk__KodeProduk").annotate(total = Sum('jumlah'))
+    datajenisproduk = datapermintaanbahanbaku.values_list("KodeProduk__KodeProduk",flat=True).distinct()
+    # print(totalpermintaanbahanbaku)
+
+    # Mengurangi Antara jumlah Mutasi dan SPPB
+    mutasi_dict = {item['KodeArtikel__KodeArtikel']: item['total'] for item in jumlahmutasiartikel}
+    pengiriman_dict = {item['DetailSPK__KodeArtikel__KodeArtikel']: item['total'] for item in jumlahpengirimanartikel}
+    saldoawal_dict = {item['IDArtikel__KodeArtikel']: item['total'] for item in jumlahdatasaldoawal}
+    permintaanbahanbaku_dict = {item['KodeProduk__KodeProduk']: item['total'] for item in totalpermintaanbahanbaku}
+    saldoawalbahanbaku_dict = {item['IDBahanBaku__KodeProduk']: item['total'] for item in jumlahdatasaldoawalbahanbaku}
+    
+    all_kode_artikel = set(mutasi_dict.keys()).union(set(pengiriman_dict.keys()))
+
+    all_kode_artikel = models.Artikel.objects.all().values_list("KodeArtikel",flat=True)
+    
+    result = []
+    resultdengansaldoawal = []
+    totalpenggunaanbahanbaku = {}
+    for kode_artikel in all_kode_artikel:
+        total_mutasi = mutasi_dict.get(kode_artikel, 0)
+        total_pengiriman = pengiriman_dict.get(kode_artikel, 0)
+        total_saldoawal = saldoawal_dict.get(kode_artikel, 0)
+        konversibahanbaku = getpenyusunartikelpertanggal(tanggal,kode_artikel)
+        
+        if total_mutasi != 0 and konversibahanbaku.exists():
+            for i in konversibahanbaku:
+                print(i)
+                penggunaanbahanbakufg = i['total'] * total_mutasi
+                if i['KodePenyusun__KodeProduk__KodeProduk'] in totalpenggunaanbahanbaku:
+                    totalpenggunaanbahanbaku[i['KodePenyusun__KodeProduk__KodeProduk']] += penggunaanbahanbakufg
+                else:
+                    totalpenggunaanbahanbaku[i['KodePenyusun__KodeProduk__KodeProduk']] = penggunaanbahanbakufg
+            print(total_mutasi,kode_artikel,konversibahanbaku)
+
+        result.append({'KodeArtikel': kode_artikel, 'total': total_mutasi - total_pengiriman,"penyusunfg":konversibahanbaku})
+        resultdengansaldoawal.append({'KodeArtikel': kode_artikel, 'total':total_saldoawal + total_mutasi - total_pengiriman,"penyusunfg":konversibahanbaku})
+    print(totalpenggunaanbahanbaku)
+    print(asd)
+
+    # Mencari sisa bahan baku 
+    # bahanbakukonversi = 
+    kodebahanbakurequestdankonversi = set(permintaanbahanbaku_dict.keys()).union(set(saldoawalbahanbaku_dict.keys()))
+    print(kodebahanbakurequestdankonversi)
+    bahanbakuall = models.Produk.objects.all().values_list('KodeProduk',flat=True)
+    # for i in bahanbakuall :
+
+    
+    '''
+    Sisa Bahan Baku 
+    Jumlah penggunaan Bahan Baku FG = Total Request FG - Total Mutasi WIP FG konversi bahan FG
+    '''
+    
+
+        
+        
+    print(result)
+    print(permintaanbahanbaku_dict)
+    print(saldoawalbahanbaku_dict)
+    print(asd)
 def detaillaporanstokfg(request):
     if len(request.GET) > 0:
         print(request.GET)
@@ -1686,6 +1813,10 @@ def detaillaporanstokfg(request):
             last_days.append(date(waktuobj.year, month, last_day))
         # print(last_days)
         # print(last_days[:index+1])
+        hargaakhirbulanperproduk = gethargapurchasingperbulan(
+        last_days, index, awaltahun
+    )
+        tes = getstokfg(last_days[index-1],hargaakhirbulanperproduk)
         datastokgudang, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
         return render(
             request,
@@ -1697,49 +1828,6 @@ def detaillaporanstokfg(request):
             },
         )
 
-
-# def cekmutasifgterakhir2(artikel, tanggaltes):
-#     mutasifg = (
-#         models.DetailSPPB.objects.filter(
-#             DetailSPK__KodeArtikel=artikel, NoSPPB__Tanggal__lte=tanggaltes
-#         )
-#         .values_list("NoSPPB__Tanggal", flat=True)
-#         .distinct()
-#         .order_by("-NoSPPB__Tanggal")
-#         .first()
-#     )
-
-#     # print(asd)
-
-#     if mutasifg:
-#         if (
-#             f"{mutasifg.month}-{mutasifg.year}"
-#             == f"{tanggaltes.month}-{tanggaltes.year}"
-#         ):
-#             print(True, "Terdapat Mutasi FG")
-#             if cekmutasiwip:
-#                 print("Mutasi FG Ada, Mutasi WIP Ada")
-#                 print("Menggunakan data harga Bulan ini")
-#                 return 1
-#             else:
-#                 print("Mutasi FG Ada, Mutasi WIP Tidak ada")
-#                 print(
-#                     "Harga WIP = Mutasi Harga WIP Terakhir, Harga FG = Harga WIP Terakhir"
-#                 )
-#                 return 2
-#         else:
-#             print("Mutasi FG Gaada")
-#             print(
-#                 "Harga WIP = Mutasi Harga WIP Paling terakhir, Harga FG = Harga FG mutasi terakhir"
-#             )
-#             return 3
-#     else:
-#         print("Tidak ada data mutasi terekam pada database")
-#         print("Pakai Harga WIP")
-#         datapenyusunwip = perhitunganmutasiwipterakhir(artikel, tanggaltes)
-#         print("\n\n", datapenyusunwip)
-#         print(asd)
-#         return False
 
 
 def cekmutasifgterakhir(artikel, tanggaltes):

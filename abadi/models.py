@@ -129,7 +129,7 @@ class TransaksiGudang(models.Model):
     )
 
     def __str__(self):
-        return f"{self.tanggal} - {self.KodeProduk}"
+        return f"{self.tanggal} - {self.Lokasi} - {self.KodeProduk} - {self.jumlah}"
 
 
 class Penyusun(models.Model):
