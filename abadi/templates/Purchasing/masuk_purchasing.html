@@ -27,6 +27,24 @@
             <button type="submit" class="btn btn-primary mr-2">Cek</button>
           </form>
         </div>
+        <div class="form-group">
+          <form class="form-inline" action="" method="POST">
+            {% csrf_token %}
+              <label class="col-form-label" for="">PPN(%)</label>
+              <input type="number" class="form-control mb-2 mr-sm-2 ml-2" name="input_ppn" id="input_ppn" value="{{valueppn}}" required>
+              <button type="submit" class="btn btn-primary mr-2">Cek</button>
+          </form> 
+        </div>
+
+        <form id="exportButton" action="{% url 'export_excel' %}" method="get">
+          <input type="hidden" name="input_ppn" value="{{ valueppn }}">
+          <input type="hidden" name="input_awal" value="{{ input_awal }}">
+          <input type="hidden" name="input_terakhir" value="{{ input_terakhir }}">
+          <div class="template-demo">
+              <input type="submit" value="Export Excel" class="btn btn-success">
+          </div>
+      </form>
+      
         {% if sjball %}
         <div class="row">
           <div class="col-lg-12 grid-margin stretch-card">
@@ -45,6 +63,8 @@
                         <th>Kuantitas</th>
                         <th>Harga</th>
                         <th>Harga Total</th>
+                        <th>Harga PPN ({{valueppn}}%)</th>
+                        <th>Harga Total (PPN)</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
@@ -59,6 +79,8 @@
                         <td>{{i.Jumlah}}</td>
                         <td>{{i.Harga|floatformat:2|intcomma}}</td>
                         <td>{{i.harga_total|floatformat:2|intcomma}}</td>
+                        <td>{{i.harga_ppn|floatformat:2|intcomma}}</td>
+                        <td>{{i.harga_total_ppn|floatformat:2|intcomma}}</td>
                         <td>
                           <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                           <div class="template-demo">
@@ -97,6 +119,8 @@
                         <th>Kuantitas</th>
                         <th>Harga</th>
                         <th>Harga Total</th>
+                        <th>Harga PPN ({{valueppn}}%)</th>
+                        <th>Harga Total (PPN)</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
@@ -108,8 +132,10 @@
                         <td>{{i.KodeProduk}}</td>
                         <td>{{i.KodeProduk.NamaProduk}}</td>
                         <td>{{i.Jumlah}}</td>
-                        <td>{{i.Harga}}</td>
-                        <td>{{i.harga_total}}</td>
+                        <td>{{i.Harga|floatformat:2|intcomma}}</td>
+                        <td>{{i.harga_total|floatformat:2|intcomma}}</td>
+                        <td>{{i.harga_ppn_1|floatformat:2|intcomma}}</td>
+                        <td>{{i.harga_total_ppn_1|floatformat:2|intcomma}}</td>
                         <td>
                           <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                           <div class="template-demo">

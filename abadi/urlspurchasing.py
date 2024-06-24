@@ -21,6 +21,7 @@ urlpatterns = [
     # path("kebutuhan_barang/",viewspurchasing.kebutuhan_barang,name="kebutuhan_barang"),
     # barang_masuk
     path("barang_masuk", viewspurchasing.barang_masuk, name="barang_masuk"),
+    path("export_excel",viewspurchasing.exportbarang_excel, name="export_excel"),
     path(
         "update_barang_masuk/<str:id>",
         viewspurchasing.update_barang_masuk,
@@ -49,6 +50,7 @@ urlpatterns = [
     ),
     # R PO
     path("read_po", viewspurchasing.read_po, name="read_po"),
+    path("update_po/<str:id>",viewspurchasing.update_po,name="update_po"),
     # R SPK
     path("read_spk", viewspurchasing.read_spk, name="read_spk"),
     path("trackspk/<str:id>", viewspurchasing.track_spk, name="trackspk"),
@@ -57,9 +59,56 @@ urlpatterns = [
     path("acc_spk2/<str:id>", viewspurchasing.accspk2, name="acc_spk2"),
     path('upload_excel', viewspurchasing.bulk_createproduk, name='upload_excel'),
     # CRUD Purchasing
+    # Saldo awal bb
     path('saldoawalbahanbaku',viewspurchasing.read_saldoawal,name="saldobahanbakupurchasing"),
+    path("addsaldobahan", viewspurchasing.add_saldobahan, name="add_saldobahan"),
     path('updatesaldoawalbahanbaku/<str:id>',viewspurchasing.update_saldoawal,name="updatesaldobahanbakupurchasing"),
+    path(
+        "deletesaldobahan/<str:id>",
+        viewspurchasing.delete_saldobahan,
+        name="delete_saldobahan",
+    ),
+    # Saldo awal b.a
     path('saldoawalartikel',viewspurchasing.view_saldoartikel,name="saldoartikelpurchasing"),
-    path('updatesaldoawalartikel/<str:id>',viewspurchasing.update_saldoartikel,name='updatesaldoartikelpurchasing')
-
+    path('updatesaldoawalartikel/<str:id>',viewspurchasing.update_saldoartikel,name='updatesaldoartikelpurchasing'),
+    path("addsaldoartikel", viewspurchasing.add_saldoartikel, name="add_saldoartikel"),
+    path(
+        "deletesaldoartikel/<str:id>",
+        viewspurchasing.delete_saldoartikel,
+        name="delete_saldoartikel",
+    ),
+    # Saldo awal b.sub
+    path(
+        "viewsaldobahansubkon",
+        viewspurchasing.view_saldobahansubkon,
+        name="view_saldobahansubkon",
+    ),
+     path(
+        "addsaldobahansubkon",
+        viewspurchasing.add_saldobahansubkon,
+        name="add_saldobahansubkon",
+    ),
+    path(
+        "updatesaldobahansubkon/<str:id>",
+        viewspurchasing.update_saldobahansubkon,
+        name="update_saldobahansubkon",
+    ),
+    path(
+        "deletesaldobahansubkon/<str:id>",
+        viewspurchasing.delete_saldobahansubkon,
+        name="delete_saldobahansubkon",
+    ),
+    # Saldo produk subkon
+    path("viewsaldosubkon", viewspurchasing.view_saldosubkon, name="view_saldosubkon"),
+    path("addsaldosubkon", viewspurchasing.add_saldosubkon, name="add_saldosubkon"),
+    path(
+        "updatesaldosubkon/<str:id>",
+        viewspurchasing.update_saldosubkon,
+        name="update_saldosubkon",
+    ),
+    path(
+        "deletesaldosubkon/<str:id>",
+        viewspurchasing.delete_saldosubkon,
+        name="delete_saldosubkon",
+    ),
 ]

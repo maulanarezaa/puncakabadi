@@ -13,7 +13,11 @@ from django.contrib.auth.decorators import login_required
 from .viewsproduksi import calculate_KSBB
 from django.http import HttpResponse
 from django.db.models.functions import Coalesce
-
+import openpyxl
+from openpyxl.styles import PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+from django.core.exceptions import ValidationError
+from django.utils.dateparse import parse_date
 """PURCHASING"""
 
 
@@ -309,32 +313,233 @@ def acc_notif_spk(request, id):
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
+def exportbarang_excel(request):
+    valueppn = request.GET.get("input_ppn", 11)
+    try:
+        valueppn = int(valueppn)
+        if valueppn < 0:
+            valueppn = 11
+            messages.error(request, "Nilai Persentase Minus!")
+    except ValueError:
+        valueppn = 11
+        messages.error(request, "Nilai PPN tidak valid!")
+
+    inputppn = valueppn / 100
+    print("INPUT PPN NI BANGG", inputppn)
+
+    # Ambil nilai input_awal dan input_terakhir dari query string
+    input_awal = request.GET.get("input_awal")
+    input_terakhir = request.GET.get("input_terakhir")
+    print("Ini input awal ama akhir", input_awal, input_terakhir)
+
+    # Validasi format tanggal
+    date_awal = parse_date(input_awal) if input_awal else None
+    date_terakhir = parse_date(input_terakhir) if input_terakhir else None
+
+    if date_awal is None or date_terakhir is None:
+        sjball = models.DetailSuratJalanPembelian.objects.all().order_by("NoSuratJalan__Tanggal")
+        print("len = 0, sjb all =", sjball)
+    else:
+        sjball = models.DetailSuratJalanPembelian.objects.filter(
+            NoSuratJalan__Tanggal__range=(date_awal, date_terakhir)
+        ).order_by("NoSuratJalan__Tanggal")
+
+    print('TES SJB BANG', sjball)
+
+    # Buat Workbook baru
+    workbook = openpyxl.Workbook()
+    worksheet = workbook.active
+    worksheet.title = 'Barang Masuk'
+
+    # Definisikan header untuk worksheet
+    headers = ['Tanggal','Suppliers','Kode Bahan Baku','Nama Bahan Baku', 'Kuantitas', 'Harga', 'Harga Total', f'Harga PPN {valueppn}%', 'Harga Total PPN']
+    worksheet.append(headers)
+
+    # Tambahkan data ke worksheet
+    for item in sjball:
+        harga_total = item.Jumlah * item.Harga
+        harga_ppn = harga_total * inputppn
+        harga_total_ppn = harga_total + harga_ppn
+        row = [
+            item.NoSuratJalan.Tanggal.strftime("%Y-%m-%d"),
+            item.NoSuratJalan.supplier,
+            item.KodeProduk.KodeProduk,
+            item.KodeProduk.NamaProduk,
+            item.Jumlah,
+            item.Harga,
+            harga_total,
+            harga_ppn,
+            harga_total_ppn
+        ]
+        worksheet.append(row)
+
+    # Menyesuaikan lebar kolom
+    for col in worksheet.columns:
+        max_length = 0
+        column = col[0].column_letter  # Get the column name
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        worksheet.column_dimensions[column].width = adjusted_width
+
+    # Menambahkan warna pada header
+    header_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+    for cell in worksheet[1]:
+        cell.fill = header_fill
+
+        # Menambahkan border pada semua sel
+    thin_border = Border(left=Side(style='thin'),
+                         right=Side(style='thin'),
+                         top=Side(style='thin'),
+                         bottom=Side(style='thin'))
+
+    for row in worksheet.iter_rows():
+        for cell in row:
+            cell.border = thin_border
+    # Atur response untuk mengunduh file Excel
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=barang_masuk.xlsx'
+    workbook.save(response)
+
+    return response
+    # # Ambil nilai input_ppn dari query string, default ke 11 jika tidak ada
+    # valueppn = request.GET.get("input_ppn", 11)
+    # try:
+    #     valueppn = int(valueppn)
+    #     if valueppn < 0:
+    #         valueppn = 11
+    #         messages.error(request, "Nilai Persentase Minus!")
+    # except ValueError:
+    #     valueppn = 11
+    #     messages.error(request, "Nilai PPN tidak valid!")
+
+    # inputppn = valueppn / 100
+    # print("INPUT PPN NI BANGG", inputppn)
+
+    # # Ambil nilai input_awal dan input_terakhir dari query string
+    # # try :
+    # #     input_awal = request.GET.get("input_awal")
+    # #     input_terakhir = request.GET.get("input_terakhir")
+    # #     print("Ini input awal ama akhir", input_awal, input_terakhir)
+    # #     sjball = models.DetailSuratJalanPembelian.objects.filter(
+    # #         NoSuratJalan__Tanggal__range=(input_awal, input_terakhir)
+    # #     ).order_by("NoSuratJalan__Tanggal")
+    # # except Val :
+    # #     sjball = models.DetailSuratJalanPembelian.objects.all().order_by("NoSuratJalan__Tanggal")
+    # # print("len = 0, sjb all =", sjball)
+
+    # if input_awal is None or input_terakhir is None:
+    #     sjball = models.DetailSuratJalanPembelian.objects.all().order_by("NoSuratJalan__Tanggal")
+    #     print("len = 0, sjb all =", sjball)
+    # else:
+    #     sjball = models.DetailSuratJalanPembelian.objects.filter(
+    #         NoSuratJalan__Tanggal__range=(input_awal, input_terakhir)
+    #     ).order_by("NoSuratJalan__Tanggal")
+
+    # print('TES SJB BANG', sjball)
+
+    # # Buat Workbook baru
+    # workbook = openpyxl.Workbook()
+    # worksheet = workbook.active
+    # worksheet.title = 'Barang Masuk'
+
+    # # Definisikan header untuk worksheet
+    # headers = ['Tanggal','Suppliers','Kode Bahan Baku','Nama Bahan Baku', 'Kuantitas', 'Harga', 'Harga Total', f'Harga PPN {valueppn}% ', 'Harga Total PPN']
+    # # headers = ['No Surat Jalan', 'Tanggal', 'Jumlah', 'Harga', 'Harga Total', 'Harga PPN', 'Harga Total PPN']
+    # worksheet.append(headers)
+
+
+    # # Tambahkan data ke worksheet
+    # for item in sjball:
+    #     harga_total = item.Jumlah * item.Harga
+    #     harga_ppn = harga_total * inputppn
+    #     harga_total_ppn = harga_total + harga_ppn
+    #     row = [
+    #         item.NoSuratJalan.Tanggal.strftime("%Y-%m-%d"),
+    #         item.NoSuratJalan.supplier,
+    #         item.KodeProduk.KodeProduk,
+    #         item.KodeProduk.NamaProduk,
+    #         item.Jumlah,
+    #         item.Harga,
+    #         harga_total,
+    #         harga_ppn,
+    #         harga_total_ppn
+    #     ]
+    #     worksheet.append(row)
+ 
+    # response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    # response['Content-Disposition'] = 'attachment; filename=barang_masuk.xlsx'
+    # workbook.save(response)
+
+    # return response
+
+   
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def barang_masuk(request):
+    # if request.method ==  'POST' :
+    if len(request.POST) == 0 :
+        valueppn = 11
+    else :
+        valueppn = request.POST["input_ppn"]
+        if int(valueppn) < 0 :
+            valueppn = 11
+            messages.error(request,"Nilai Persentase Minus!") 
+        else :
+            pass
+
+    inputppn = int(valueppn)/100
+
+    print("inputppn",inputppn)
+ 
+
     if len(request.GET) == 0:
         list_harga_total1 = []
-
+        list_ppn = []
+        list_total_ppn = []
         sjball = models.DetailSuratJalanPembelian.objects.all().order_by(
             "NoSuratJalan__Tanggal"
         )
         print(sjball)
         if len(sjball) > 0:
-
+            # inputppn = request.GET["input_ppn"]
+            # if len(inputppn) <= 0 :
+            # inputppn = 0.11
+            # else :
+            #     inputppn = inputppn/100
+            # ppn = 0.11
             for x in sjball:
                 harga_total = x.Jumlah * x.Harga
                 x.NoSuratJalan.Tanggal = x.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
                 print(harga_total)
                 list_harga_total1.append(harga_total)
+            for item in list_harga_total1:
+                harga_ppn = item*inputppn
+                harga_total_ppn = item+harga_ppn
+                list_ppn.append(harga_ppn)
+                list_total_ppn.append(harga_total_ppn)
             i = 0
             for item in sjball:
                 item.harga_total = list_harga_total1[i]
+                item.harga_ppn = list_ppn[i]
+                item.harga_total_ppn = list_total_ppn[i]
                 i += 1
-
+            print("list hartot", list_harga_total1)
+            
+        
             return render(
                 request,
                 "Purchasing/masuk_purchasing.html",
                 {
                     "sjball": sjball,
                     "harga_total": harga_total,
+                    "harga_ppn" : harga_ppn,
+                    "harga_total_ppn" : harga_total_ppn,
+                    "valueppn" : valueppn
                 },
             )
         else:
@@ -342,23 +547,41 @@ def barang_masuk(request):
             return render(
                 request,
                 "Purchasing/masuk_purchasing.html",
-)
+            )
     else:
+        # if request.method == "POST": 
+            
+        # else :
         input_awal = request.GET["awal"]
         input_terakhir = request.GET["akhir"]
+        # valueppn = request.POST["input_ppn"]
+        # inputppn = request.POST["input_ppn"]
         list_harga_total = []
-
+        list_ppn_1 = []
+        list_total_ppn_1 = []
         filtersjb = models.DetailSuratJalanPembelian.objects.filter(
             NoSuratJalan__Tanggal__range=(input_awal, input_terakhir)
         ).order_by("NoSuratJalan__Tanggal")
         if len(filtersjb) > 0:
-
+            # if len(inputppn) <= 0 :
+            #     inputppn = 0.11
+            # else :
+            #     inputppn = inputppn/100
+            # ppn = 0.11
             for x in filtersjb:
                 harga_total = x.Jumlah * x.Harga
                 list_harga_total.append(harga_total)
+            for item in list_harga_total:
+                harga_ppn_1 = item*inputppn
+                harga_total_ppn_1 = item+harga_ppn_1
+                list_ppn_1.append(harga_ppn_1)
+                list_total_ppn_1.append(harga_total_ppn_1)
+
             i = 0
             for item in filtersjb:
                 item.harga_total = list_harga_total[i]
+                item.harga_ppn_1 = list_ppn_1[i]
+                item.harga_total_ppn_1 = list_total_ppn_1[i]
                 i += 1
             return render(
                 request,
@@ -366,8 +589,11 @@ def barang_masuk(request):
                 {
                     "data_hasil_filter": filtersjb,
                     "harga_total": harga_total,
+                    "harga_ppn_1" :harga_ppn_1,
+                    "harga_total_ppn_1" : harga_total_ppn_1,
                     "input_awal": input_awal,
                     "input_terakhir": input_terakhir,
+                    "valueppn" : valueppn
                 },
             )
         else:
@@ -805,7 +1031,34 @@ def read_po(request):
                 "Purchasing/read_po.html",
                 {"po_obj": po_obj, "input_po": input_po},
             )
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
+def update_po(request,id) :
+    po_obj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
+    if request.method == "GET" :
+        return render(
+            request,
+            "Purchasing/update_po.html",
+            {
+                "po_obj" : po_obj
+            }
+        )
+    else :
+        harga_barang = request.POST["harga_barang"]
+        supplier = request.POST["supplier"]
+        po_barang = request.POST["po_barang"]
+        po_obj.NoSuratJalan.PO =po_barang
+        po_obj.Harga = harga_barang
+        po_obj.NoSuratJalan.supplier = supplier
+        po_obj.save()
+        po_obj.NoSuratJalan.save()
+        models.transactionlog(
+            user="Purchasing",
+            waktu=datetime.now(),
+            jenis="Update",
+            pesan=f"No Surat Jalan{po_obj.NoSuratJalan} sudah di Update",
+        ).save()
+        return redirect("read_po")
 
 # def read_po(request):
 
@@ -2057,6 +2310,73 @@ def update_saldoawal(request,id):
         return redirect("saldobahanbakupurchasing")
 
 
+# @login_required
+# @logindecorators.allowed_users(allowed_roles=['produksi'])
+def add_saldobahan(request):
+    databarang = models.Produk.objects.all()
+    datalokasi = models.Lokasi.objects.all()
+    if request.method == "GET":
+        return render(
+            request,
+            "purchasing/add_saldobahan.html",
+            {"nama_lokasi": datalokasi[:2], "databarang": databarang},
+        )
+    else:
+        kodeproduk = request.POST["produk"]
+        lokasi = request.POST["nama_lokasi"]
+        jumlah = request.POST["jumlah"]
+        harga = request.POST["harga"]
+        tanggal = request.POST["tanggal"]
+
+        # Ubah format tanggal menjadi YYYY-MM-DD
+        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
+        # Periksa apakah entri sudah ada
+        existing_entry = models.SaldoAwalBahanBaku.objects.filter(
+            Tanggal__year=tanggal_formatted.year,
+            IDBahanBaku__KodeProduk=kodeproduk,
+            IDLokasi=lokasi
+        ).exists()
+        if existing_entry:
+            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
+            messages.warning(request,f'Sudah ada Entry pada {kodeproduk} di {lokasi} pada tahun{tanggal_formatted.year}')
+            return redirect("add_saldobahan")
+        try :
+            produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
+        except :
+            messages.error(request,f'Bahan Baku {kodeproduk} tidak ditemukan dalam sistem')
+            return redirect("add_saldobahan")
+        lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
+
+        pemusnahanobj = models.SaldoAwalBahanBaku(
+            Tanggal=tanggal, Jumlah=jumlah, IDBahanBaku=produkobj, IDLokasi=lokasiobj, Harga=harga)
+        pemusnahanobj.save()
+
+        models.transactionlog(
+            user="purchasing",
+            waktu=datetime.now(),
+            jenis="Create",
+            pesan=f"Saldo Bahan Baku. Kode Bahan Baku : {produkobj.KodeProduk} Jumlah : {jumlah} Lokasi : {lokasiobj.NamaLokasi} Harga : {harga}",
+        ).save()
+
+        messages.success(request,"Data berhasil disimpan")
+        return redirect("saldoawalbahanbakupurchasing")
+
+
+# @login_required
+# @logindecorators.allowed_users(allowed_roles=['produksi'])
+def delete_saldobahan(request, id):
+    dataobj = models.SaldoAwalBahanBaku.objects.get(IDSaldoAwalBahanBaku=id)
+
+    dataobj.delete()
+
+    models.transactionlog(
+        user="Produksi",
+        waktu=datetime.now(),
+        jenis="Delete",
+        pesan=f"Saldo Bahan Baku. Kode Bahan Baku : {dataobj.IDBahanBaku.KodeProduk} Jumlah : {dataobj.Jumlah} Lokasi : {dataobj.IDLokasi.NamaLokasi} Harga : {dataobj.Harga}",
+    ).save()
+    
+    return redirect("saldoawalbahanbakupurchasing")
 
 def view_saldoartikel(request):
     dataartikel = models.SaldoAwalArtikel.objects.all().order_by("-Tanggal")
@@ -2121,8 +2441,314 @@ def update_saldoartikel(request, id):
             pesan=f"Saldo Artikel. Kode Bahan Baku : {artikelobj.KodeArtikel} Jumlah : {jumlah} Lokasi : {lokasiobj.NamaLokasi}",
         ).save()
         messages.success(request,'Data berhasil disimpan')
-        return redirect("view_saldoartikel")
+        return redirect("saldoartikelpurchasing")
+
+# @login_required
+# @logindecorators.allowed_users(allowed_roles=['produksi'])
+def add_saldoartikel(request):
+    dataartikel = models.Artikel.objects.all()
+    datalokasi = models.Lokasi.objects.all()
+    if request.method == "GET":
+        return render(
+            request,
+            "purchasing/add_saldoartikel.html",
+            {"nama_lokasi": datalokasi[:2], "dataartikel": dataartikel},
+        )
+    else:
+        artikel = request.POST["artikel"]
+        lokasi = request.POST["nama_lokasi"]
+        jumlah = request.POST["jumlah"]
+        tanggal = request.POST["tanggal"]
+
+        # Ubah format tanggal menjadi YYYY-MM-DD
+        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
+        # Periksa apakah entri sudah ada
+        existing_entry = models.SaldoAwalArtikel.objects.filter(
+            Tanggal__year=tanggal_formatted.year,
+            IDArtikel__KodeArtikel=artikel,
+            IDLokasi=lokasi
+        ).exists()
+        if existing_entry:
+            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
+            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
+            return redirect("add_saldoartikel")
+        try:
+            artikelobj = models.Artikel.objects.get(KodeArtikel=artikel)
+        except :
+            messages.error(request,f"Tidak ditemukan data artikel {artikel}")
+            return redirect('add_saldoartikel')
+        lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
+        pemusnahanobj = models.SaldoAwalArtikel(
+            Tanggal=tanggal, Jumlah=jumlah, IDArtikel=artikelobj, IDLokasi=lokasiobj
+        )
+        pemusnahanobj.save()
+
+        models.transactionlog(
+            user="Produksi",
+            waktu=datetime.now(),
+            jenis="Create",
+            pesan=f"Saldo Artikel. Kode Bahan Baku : {artikelobj.KodeArtikel} Jumlah : {jumlah} Lokasi : {lokasiobj.NamaLokasi}",
+        ).save()
+        messages.success(request,'Data berhasil disimpan')
+        return redirect("view_saldoartikelpurchasing")
+
+def delete_saldoartikel(request, id):
+    dataobj = models.SaldoAwalArtikel.objects.get(IDSaldoAwalBahanBaku=id)
+
+    dataobj.delete()
+
+    models.transactionlog(
+        user="Purchasing",
+        waktu=datetime.now(),
+        jenis="Delete",
+        pesan=f"Saldo Artikel. Kode Bahan Baku : {dataobj.IDArtikel.KodeArtikel} Jumlah : {dataobj.Jumlah} Lokasi : {dataobj.IDLokasi.NamaLokasi}",
+    ).save()
     
+    return redirect("view_saldoartikelpurchasing")
+
+# Saldo Awal Produk Subkon
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
+def view_saldosubkon(request):
+    datasubkon = models.SaldoAwalSubkon.objects.all().order_by("-Tanggal")
+    for i in datasubkon:
+        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
+
+    return render(
+        request, "produksi/view_saldosubkon.html", {"datasubkon": datasubkon}
+    )
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi'])
+def add_saldosubkon(request):
+    datasubkon = models.ProdukSubkon.objects.all()
+    if request.method == "GET":
+        return render(
+            request,
+            "produksi/add_saldosubkon.html",
+            { "datasubkon": datasubkon},
+        )
+    else:
+        kodeproduk = request.POST["kodebarangHidden"]
+        jumlah = request.POST["jumlah"]
+        tanggal = request.POST["tanggal"]
+
+        # Ubah format tanggal menjadi YYYY-MM-DD
+        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
+        # Periksa apakah entri sudah ada
+        existing_entry = models.SaldoAwalSubkon.objects.filter(
+            Tanggal__year=tanggal_formatted.year,
+            IDProdukSubkon__NamaProduk=kodeproduk,
+        ).exists()
+
+        if existing_entry:
+            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
+            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
+            return redirect("add_saldosubkon")
+        try:
+            produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=kodeproduk)
+        except:
+            messages.error(request,"Tidak ditemukan data Produk pada sistem")
+            return redirect('add_saldosubkon')
+
+        pemusnahanobj = models.SaldoAwalSubkon(
+            Tanggal=tanggal, Jumlah=jumlah, IDProdukSubkon=produkobj)
+        pemusnahanobj.save()
+
+        models.transactionlog(
+            user="Produksi",
+            waktu=datetime.now(),
+            jenis="Create",
+            pesan=f"Saldo Produk Subkon. Nama Produk : {produkobj.NamaProduk} Kode Artikel : {produkobj.KodeArtikel} Jumlah : {jumlah}",
+        ).save()
+        messages.success(request,'Data berhasil disimpan')
+        return redirect("view_saldosubkon")
+
+# @login_required
+# @logindecorators.allowed_users(allowed_roles=['produksi'])
+def update_saldosubkon(request, id):
+    dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
+    dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
+    datasubkon = models.ProdukSubkon.objects.all()
+    if request.method == "GET":
+        return render(
+            request,
+            "purchasing/update_saldosubkon.html",
+            {"data": dataobj,"datasubkon": datasubkon },
+        )
+
+    else:
+        kodeproduk = request.POST["kodebarangHidden"]
+        jumlah = request.POST["jumlah"]
+        tanggal = request.POST["tanggal"]
+
+        # Ubah format tanggal menjadi YYYY-MM-DD
+        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
+        # Periksa apakah entri sudah ada
+        existing_entry = models.SaldoAwalSubkon.objects.filter(
+            Tanggal__year=tanggal_formatted.year,
+            IDProdukSubkon__NamaProduk=kodeproduk,
+        ).exclude(IDSaldoAwalProdukSubkon=id).exists()
+          
+        if existing_entry:
+            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
+            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
+            return redirect("view_saldosubkon")
+        
+        produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=kodeproduk)
+
+        dataobj.Tanggal = tanggal
+        dataobj.Jumlah = jumlah
+        dataobj.IDProdukSubkon = produkobj
+        dataobj.save()
+
+        models.transactionlog(
+            user="Produksi",
+            waktu=datetime.now(),
+            jenis="Update",
+            pesan=f"Saldo Produk Subkon. Nama Produk : {produkobj.NamaProduk} Kode Artikel : {produkobj.KodeArtikel} Jumlah : {jumlah}",
+        ).save()
+
+        return redirect("view_saldosubkon")
+
+# @login_required
+# @logindecorators.allowed_users(allowed_roles=['produksi'])
+def delete_saldosubkon(request, id):
+    dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
+
+    dataobj.delete()
+
+    models.transactionlog(
+        user="Produksi",
+        waktu=datetime.now(),
+        jenis="Delete",
+        pesan=f"Saldo Produk Subkon. Nama Produk : {dataobj.IDProdukSubkon.NamaProduk}  Kode Artikel : {dataobj.IDProdukSubkon.KodeArtikel} Jumlah : {dataobj.Jumlah}",
+    ).save()
+    
+    return redirect("view_saldosubkon")
+
+# Saldo Bahan Subkon
+# @login_required
+# @logindecorators.allowed_users(allowed_roles=['produksi'])
+def view_saldobahansubkon(request):
+    datasubkon = models.SaldoAwalBahanBakuSubkon.objects.all().order_by("-Tanggal")
+    for i in datasubkon:
+        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
+
+    return render(
+        request, "purchasing/view_saldobahansubkon.html", {"datasubkon": datasubkon}
+    )
+
+# @login_required
+# @logindecorators.allowed_users(allowed_roles=['produksi'])
+def add_saldobahansubkon(request):
+    datasubkon = models.BahanBakuSubkon.objects.all()
+    if request.method == "GET":
+        return render(
+            request,
+            "purhasing/add_saldobahansubkon.html",
+            { "datasubkon": datasubkon},
+        )
+    else:
+        kodeproduk = request.POST["produk"]
+        jumlah = request.POST["jumlah"]
+        tanggal = request.POST["tanggal"]
+
+        # Ubah format tanggal menjadi YYYY-MM-DD
+        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
+        # Periksa apakah entri sudah ada
+        existing_entry = models.SaldoAwalBahanBakuSubkon.objects.filter(
+            Tanggal__year=tanggal_formatted.year,
+            IDBahanBakuSubkon__KodeProduk=kodeproduk,
+        ).exists()
+
+        if existing_entry:
+            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
+            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
+            return redirect("add_saldobahansubkon")
+        try:
+            produkobj = models.BahanBakuSubkon.objects.get(KodeProduk=kodeproduk)
+        except:
+            messages.error(request,f"Kode Bahan Baku Subkon {kodeproduk} tidak ditemukan dalam sistem")
+            return redirect("add_saldobahansubkon")
+        pemusnahanobj = models.SaldoAwalBahanBakuSubkon(
+            Tanggal=tanggal, Jumlah=jumlah, IDBahanBakuSubkon=produkobj)
+        pemusnahanobj.save()
+
+        models.transactionlog(
+            user="Produksi",
+            waktu=datetime.now(),
+            jenis="Create",
+            pesan=f"Saldo Bahan Baku Subkon. Kode Bahan Baku: {produkobj.KodeProduk} Jumlah : {jumlah}",
+        ).save()
+        messages.success(request,'Data berhasil disimpan')
+        return redirect("view_saldobahansubkon")
+
+# @login_required
+# @logindecorators.allowed_users(allowed_roles=['produksi'])
+def update_saldobahansubkon(request, id):
+    dataobj = models.SaldoAwalBahanBakuSubkon.objects.get(IDSaldoAwalBahanBakuSubkon=id)
+    dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
+    datasubkon = models.BahanBakuSubkon.objects.all()
+    if request.method == "GET":
+        return render(
+            request,
+            "purchasing/update_saldobahansubkon.html",
+            {"data": dataobj,"datasubkon": datasubkon },
+        )
+
+    else:
+        kodeproduk = request.POST["produk"]
+        jumlah = request.POST["jumlah"]
+        tanggal = request.POST["tanggal"]
+
+        # Ubah format tanggal menjadi YYYY-MM-DD
+        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
+        # Periksa apakah entri sudah ada
+        existing_entry = models.SaldoAwalBahanBakuSubkon.objects.filter(
+            Tanggal__year=tanggal_formatted.year,
+            IDBahanBakuSubkon__KodeProduk=kodeproduk,
+        ).exclude(IDSaldoAwalBahanBakuSubkon=id).exists()
+
+        if existing_entry:
+            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
+            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
+            return redirect("update_saldobahansubkon", id=id)
+        try:
+            produkobj = models.BahanBakuSubkon.objects.get(KodeProduk=kodeproduk)
+        except:
+            messages.error(request,f"Kode Bahan Baku Subkon {kodeproduk} tidak ditemukan dalam sistem")
+            return redirect("update_saldobahansubkon", id = id)
+
+        dataobj.Tanggal = tanggal
+        dataobj.Jumlah = jumlah
+        dataobj.IDBahanBakuSubkon = produkobj
+        dataobj.save()
+
+        models.transactionlog(
+            user="Produksi",
+            waktu=datetime.now(),
+            jenis="Update",
+            pesan=f"Saldo Bahan Baku Subkon. Kode Bahan Baku: {produkobj.KodeProduk} Jumlah : {jumlah}",
+        ).save()
+        messages.success(request,'Data berhasil disimpan')
+        return redirect("view_saldobahansubkon")
+
+# @login_rexs.allowed_users(allowed_roles=['produksi'])
+def delete_saldobahansubkon(request, id):
+    dataobj = models.SaldoAwalBahanBakuSubkon.objects.get(IDSaldoAwalBahanBakuSubkon=id)
+
+    dataobj.delete()
+
+    models.transactionlog(
+            user="Produksi",
+            waktu=datetime.now(),
+            jenis="Delete",
+            pesan=f"Saldo Bahan Baku Subkon. Kode Bahan Baku: {dataobj.IDBahanBakuSubkon.KodeProduk} Jumlah : {dataobj.Jumlah}",
+        ).save()
+    
+    return redirect("view_saldobahansubkon")
+
 def bulk_createproduk(request):
     if request.method == 'POST' and request.FILES['file']:
         file = request.FILES['file']
@@ -2159,3 +2785,4 @@ def bulk_createsjp(request):
         return HttpResponse("Berhasil Upload")
 
     return render(request, "Purchasing/bulk_createproduk.html")
+

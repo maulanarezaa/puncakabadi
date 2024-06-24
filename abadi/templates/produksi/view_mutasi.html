@@ -41,12 +41,12 @@
                 <td>{{i.Tanggal}}</td>
                 <td>{{i.Jenis}}</td>
                 <td>{{i.Lokasi.NamaLokasi}}</td>
-                {% if i.DetailSPPBDisplay == None %}
+                {% if i.KodeDisplay == None %}
                 <td>{{i.DetailSPK.NoSPK}} - {{i.DetailSPK.KodeArtikel}}</td>
                 <td>{{i.KodeArtikel}}</td>
                 {% else %}
                 <td>{{i.DetailSPPBDisplay.DetailSPKDisplay.NoSPK}}</td>
-                <td>{{i.DetailSPPBDisplay.DetailSPKDisplay.KodeDisplay}}</td>
+                <td>{{i.KodeDisplay}}</td>
 
                 {% endif %}
                 <td>{{i.Jumlah|intcomma}}</td>

@@ -31,73 +31,31 @@
               </div>
             </div>
           </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label for="" class="col-sm-3 col-form-label ">Tipe Transaksi</label>
+              <div class="col-sm-9">
+                <select id="jenisspk" class="form-control" onchange="toggleDiv()" name="jenisspk">
+                  <option selected disabled> Pilih Jenis Transaksi</option>
+                  <option value="spkartikel">Artikel</option>
+                  <option value="spkdisplay">Display</option>
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
         <h4 class="card-title">Detail Transaksi Mutasi</h4>
-        <div id="artikels">
-          <div class="artikel">
-            <div class="row">
-              <div class="col-md-6">
-                <div class="form-group row">
-                  <label class="col-sm-3 col-form-label">Artikel 1</label>
-                  <div class="col-sm-9">
-                    <input required type="text" class="form-control" name="kode_artikel[]" list="listartikel">
-                    <datalist id="listartikel">
-                      {% for i in kode_artikel %}
-                      <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
-                      {% endfor %}
-                    </datalist>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="form-group row">
-                  <label class="col-sm-3 col-form-label">Jumlah</label>
-                  <div class="col-sm-9">
-                    <input type="number" min="0" required class="form-control" name="jumlah[]" />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6">
-                <div class="form-group row">
-                  <label class="col-sm-3 col-form-label">Nomor SPK</label>
-                  <div class="col-sm-9">
-                    <select class="form-control" name="nomor_spk-1" id="nomor_spk-1" class="form-control"
-                      onchange="loadArtikelOptions(this)">
-                      <option value="">Masukkan Nomor SPK</option>
-                      {% for i in data_spk %}
-                      <option value="{{i.NoSPK}}">{{i.NoSPK}}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="form-group row">
-                  <label class="col-sm-3 col-form-label">Kode Artikel</label>
-                  <div class="col-sm-9" id="detail_spk_1">
-                    {% include 'produksi/opsi_spk.html' %}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6">
-                <div class="form-group row">
-                  <label class="col-sm-3 col-form-label">Keterangan</label>
-                  <div class="col-sm-9">
-                    <textarea class="form-control" name="keterangan[]" rows="3"></textarea>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <br><br>
+        <div id="spkartikel">
+          <div id="artikels">
+          </div>
+        </div>
+        <div id="spkdisplay">
+          <div id="displays">
           </div>
         </div>
         <div class="row">
           <div class="col-auto mr-auto">
-            <button type="button" class="btn btn-success" onclick="addProduct()">
+            <button type="button" class="btn btn-success" onclick="tambahitem()">
               <i class="typcn typcn-plus btn-icon-prepend"></i>
               Tambahkan Produk
             </button>
@@ -111,17 +69,29 @@
 
 {% block javascripts %}
 <script>
+  function tambahitem() {
+    var select = document.getElementById('jenisspk');
+    var value = select.value;
+    console.log(value)
+    if (value == "spkartikel") {
+      addProduct()
+    }
+    else if (value == "spkdisplay") {
+      addDisplay()
+    }
+  }
+
   function addProduct() {
-    var productCounter = document.querySelectorAll('.artikel').length + 1;
-    var productRow = document.createElement('div');
-    productRow.className = "artikel"; // Added class artikel
-    productRow.id = `produk_${productCounter}`;
+    let productCounter = document.querySelectorAll('.artikel').length + 1;
+    const productRow = document.createElement('div');
+    productRow.className = "col"; // Added class artikel
+    productRow.id = `artikel_${productCounter}`;
     productRow.innerHTML = `<div class="row">
                                 <div class="col-md-6">
                                   <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Artikel ${productCounter}</label>
                                     <div class="col-sm-9">
-                                      <input required type="text" class="form-control" name="kode_artikel[]" list="listartikel" >
+                                      <input required type="text" class="form-control artikel" name="kode_artikel[]" list="listartikel" >
                                         <datalist  id="listartikel">
                                           {% for i in kode_artikel %}
                                           <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
@@ -181,8 +151,78 @@
     document.getElementById('artikels').appendChild(productRow);
   }
 
+  function addDisplay() {
+    let productCounter = document.querySelectorAll('.display').length + 1;
+    const productRow = document.createElement('div');
+    productRow.className = "col"; // Added class artikel
+    productRow.id = `display_${productCounter}`;
+    productRow.innerHTML = `<div class="row">
+                                <div class="col-md-6">
+                                  <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Display ${productCounter}</label>
+                                    <div class="col-sm-9">
+                                      <input required type="text" class="form-control display" name="kode_display[]" list="listartikel" >
+                                        <datalist  id="listartikel">
+                                          {% for i in kode_display %}
+                                          <option value="{{i.KodeDisplay}}">{{i.KodeDisplay}}</option>
+                                          {% endfor %}
+                                        </datalist>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Jumlah</label>
+                                    <div class="col-sm-9">
+                                      <input type="number" class="form-control" name="jumlah[]"/>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="row">
+                                <div class="col-md-6">
+                                  <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Nomor SPK</label>
+                                    <div class="col-sm-9">
+                                      <select class="form-control" name="nomor_spk-${productCounter}" id="nomor_spk-${productCounter}" class="form-control" onchange="loadArtikelOptions(this)">
+                                        <option value="">Masukkan Nomor SPK</option>
+                                          {% for i in data_spk %}
+                                            <option value="{{i.NoSPK}}">{{i.NoSPK}}</option>
+                                          {% endfor %}
+                                      </select>
+                                    </div>              
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Kode Display</label>
+                                    <div class="col-sm-9" id="detail_spk_${productCounter}">
+                                      {% include 'produksi/opsi_spk.html' %} 
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="row">
+                                <div class="col-md-6">
+                                  <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Keterangan</label>
+                                    <div class="col-sm-9">
+                                        <textarea class="form-control" name="keterangan[]" rows="3"></textarea>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                <label for="hapus1"></label>
+                                <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
+                              </div>
+                              <br><br>`;
+
+    document.getElementById('displays').appendChild(productRow);
+  }
+
   function deleteRow(button) {
-    button.closest('.artikel').remove(); // Changed .col to .artikel
+    button.closest('.row').remove(); // Changed .col to .Display
   }
 
   function loadArtikelOptions(selectElement) {
@@ -206,6 +246,23 @@
       }
     });
   }
+
+  function toggleDiv() {
+    var select = document.getElementById('jenisspk');
+    var value = select.value;
+    console.log(value)
+    if (value === 'spkartikel') {
+      document.getElementById('artikels').innerHTML = '';
+      console.log(document.getElementById('artikels').innerHTML)
+      addProduct()
+      document.getElementById('displays').innerText = '';
+    } else if (value === 'spkdisplay') {
+      document.getElementById('displays').innerHTML = '';
+      document.getElementById('artikels').innerHTML = '';
+      addDisplay()
+    }
+  }
+
 </script>
 
 <script>

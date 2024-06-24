@@ -1000,15 +1000,16 @@ def view_produksi(request):
 def add_mutasi(request):
     if request.method == "GET":
         data_artikel = models.Artikel.objects.all()
+        data_display = models.Display.objects.all()
         data_lokasi = models.Lokasi.objects.all()
         data_spk = models.SPK.objects.filter(StatusAktif=True)
-
 
         return render(
             request,
             "produksi/add_mutasi.html",
             {
                 "kode_artikel": data_artikel,
+                "kode_display": data_display,
                 "nama_lokasi": data_lokasi,
                 "data_spk": data_spk,
             },
@@ -1016,50 +1017,95 @@ def add_mutasi(request):
 
     if request.method == "POST":
         listkode_artikel = request.POST.getlist("kode_artikel[]")
+        listkode_display = request.POST.getlist("kode_display[]")
         tanggal = request.POST["tanggal"]
         listjumlah = request.POST.getlist("jumlah[]")
         listketerangan = request.POST.getlist("keterangan[]")
         listdetail_spk = request.POST.getlist("detail_spk[]")
 
-        for kode, jumlah, keterangan, detail_spk in zip(
-            listkode_artikel, listjumlah, listketerangan, listdetail_spk
-        ):
-            try:
-                artikelref = models.Artikel.objects.get(KodeArtikel=kode)
-            except:
-                messages.error(request, "Kode Artikel tidak ditemukan")
-                return redirect("add_mutasi")
-            
-            try:
-                detailspkref = models.DetailSPK.objects.get(IDDetailSPK=detail_spk)
-            except:
-                detailspkref = None
+        if listkode_artikel:
+            print(True)
+            for kode, jumlah, keterangan, detail_spk in zip(
+                listkode_artikel, listjumlah, listketerangan, listdetail_spk
+            ):
+                try:
+                    artikelref = models.Artikel.objects.get(KodeArtikel=kode)
+                except:
+                    messages.error(request, "Kode Artikel tidak ditemukan")
+                    return redirect("add_mutasi")
+                
+                try:
+                    detailspkref = models.DetailSPK.objects.get(IDDetailSPK=detail_spk)
+                except:
+                    detailspkref = None
 
-            data_produksi = models.TransaksiProduksi(
-                KodeArtikel=artikelref,
-                Lokasi=models.Lokasi.objects.get(IDLokasi=1),
-                Tanggal=tanggal,
-                Jumlah=jumlah,
-                Keterangan=keterangan,
-                Jenis="Mutasi",
-                DetailSPK=detailspkref,
-            ).save()
-            messages.success(request, "Data berhasil disimpan")
+                data_produksi = models.TransaksiProduksi(
+                    KodeArtikel=artikelref,
+                    Lokasi=models.Lokasi.objects.get(IDLokasi=1),
+                    Tanggal=tanggal,
+                    Jumlah=jumlah,
+                    Keterangan=keterangan,
+                    Jenis="Mutasi",
+                    DetailSPK=detailspkref,
+                ).save()
+                messages.success(request, "Data berhasil disimpan")
 
-            if detailspkref:
-                models.transactionlog(
-                    user="Produksi",
-                    waktu=datetime.now(),
-                    jenis="Create",
-                    pesan=f"Transaksi Mutasi. Kode Artikel : {artikelref.KodeArtikel} Jumlah : {jumlah} No SPK : {detailspkref.NoSPK} Keterangan : {keterangan}",
+                if detailspkref:
+                    models.transactionlog(
+                        user="Produksi",
+                        waktu=datetime.now(),
+                        jenis="Create",
+                        pesan=f"Transaksi Mutasi. Kode Artikel : {artikelref.KodeArtikel} Jumlah : {jumlah} No SPK : {detailspkref.NoSPK} Keterangan : {keterangan}",
+                    ).save()
+                else:
+                    models.transactionlog(
+                        user="Produksi",
+                        waktu=datetime.now(),
+                        jenis="Create",
+                        pesan=f"Transaksi Mutasi. Kode Artikel : {artikelref.KodeArtikel} Jumlah : {jumlah} Keterangan : {keterangan}",
+                    ).save()
+
+        else:
+
+            for kode, jumlah, keterangan, detail_spk in zip(
+            listkode_display, listjumlah, listketerangan, listdetail_spk
+            ):
+                try:
+                    displayref = models.Display.objects.get(KodeDisplay=kode)
+                except:
+                    messages.error(request, "Kode Artikel tidak ditemukan")
+                    return redirect("add_mutasi")
+                
+                try:
+                    detailspkref = models.DetailSPKDisplay.objects.get(IDDetailSPK=detail_spk)
+                except:
+                    detailspkref = None
+
+                data_produksi = models.TransaksiProduksi(
+                    KodeDisplay=displayref,
+                    Lokasi=models.Lokasi.objects.get(IDLokasi=1),
+                    Tanggal=tanggal,
+                    Jumlah=jumlah,
+                    Keterangan=keterangan,
+                    Jenis="Mutasi",
+                    DetailSPKDisplay=detailspkref,
                 ).save()
-            else:
-                models.transactionlog(
-                    user="Produksi",
-                    waktu=datetime.now(),
-                    jenis="Create",
-                    pesan=f"Transaksi Mutasi. Kode Artikel : {artikelref.KodeArtikel} Jumlah : {jumlah} Keterangan : {keterangan}",
-                ).save()
+                messages.success(request, "Data berhasil disimpan")
+
+                if detailspkref:
+                    models.transactionlog(
+                        user="Produksi",
+                        waktu=datetime.now(),
+                        jenis="Create",
+                        pesan=f"Transaksi Mutasi. Kode Display : {displayref.KodeDisplay} Jumlah : {jumlah} No SPK : {detailspkref.NoSPK} Keterangan : {keterangan}",
+                    ).save()
+                else:
+                    models.transactionlog(
+                        user="Produksi",
+                        waktu=datetime.now(),
+                        jenis="Create",
+                        pesan=f"Transaksi Mutasi. Kode Display : {displayref.KodeDisplay} Jumlah : {jumlah} Keterangan : {keterangan}",
+                    ).save()
 
         return redirect("view_mutasi")
 
@@ -1161,17 +1207,10 @@ def update_produksi(request, id):
 def update_mutasi(request, id):
     produksiobj = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
     data_artikel = models.Artikel.objects.all()
-    data_spk = models.SPK.objects.filter(StatusAktif=True)
-
-    if produksiobj.DetailSPPBDisplay is  None:
-        try:
-            data_detailspk = models.DetailSPK.objects.filter(
-            NoSPK=produksiobj.DetailSPK.NoSPK.id
-        )
-        except:
-            data_detailspk = None
-    else:
-        data_detailspk = models.DetailSPKDisplay.objects.filter(NoSPK =produksiobj.DetailSPPBDisplay.DetailSPKDisplay.NoSPK)
+    data_display = models.Display.objects.all()
+    data_spk = models.SPK.objects.all()
+    datadetail_spk = models.DetailSPK.objects.all()
+    datadetail_spkdisplay = models.DetailSPKDisplay.objects.all()
 
     if request.method == "GET":
         tanggal = datetime.strftime(produksiobj.Tanggal, "%Y-%m-%d")
@@ -1182,45 +1221,76 @@ def update_mutasi(request, id):
                 "produksi": produksiobj,
                 "tanggal": tanggal,
                 "kode_artikel": data_artikel,
+                "kode_display": data_display,
                 "data_spk": data_spk,
-                "data_detailspk": data_detailspk,
+                "datadetail_spk" : datadetail_spk,
+                "datadetail_spkdisplay" : datadetail_spkdisplay
             },
         )
 
     elif request.method == "POST":
-        kode_artikel = request.POST["kode_artikel"]
-        getartikel = models.Artikel.objects.get(KodeArtikel=kode_artikel)
         tanggal = request.POST["tanggal"]
         jumlah = request.POST["jumlah"]
         keterangan = request.POST["keterangan"]
-        try:
-            detail_spk = request.POST["detail_spk"]
-            detspkobj = models.DetailSPK.objects.get(IDDetailSPK=detail_spk)
-        except:
-            detspkobj = None
 
-        produksiobj.KodeArtikel = getartikel
+        if produksiobj.KodeArtikel:
+            kode_artikel = request.POST["kode_artikel"]
+            getartikel = models.Artikel.objects.get(KodeArtikel=kode_artikel)
+            try:
+                detail_spk = request.POST["detail_spk"]
+                detspkobj = models.DetailSPK.objects.get(IDDetailSPK=detail_spk)
+            except:
+                detspkobj = None
+            produksiobj.KodeArtikel = getartikel
+            produksiobj.DetailSPK = detspkobj
+
+            if detspkobj:
+                models.transactionlog(
+                    user="Produksi",
+                    waktu=datetime.now(),
+                    jenis="Update",
+                    pesan=f"Transaksi Mutasi. Kode Artikel : {getartikel.KodeArtikel} Jumlah : {jumlah} No SPK : {detspkobj.NoSPK} Keterangan : {keterangan}",
+                ).save()
+            else:
+                models.transactionlog(
+                    user="Produksi",
+                    waktu=datetime.now(),
+                    jenis="Update",
+                    pesan=f"Transaksi Mutasi. Kode Artikel : {getartikel.KodeArtikel} Jumlah : {jumlah}  Keterangan : {keterangan}",
+                ).save()
+
+        else:
+            kode_display = request.POST["kode_display"]
+            getdisplay = models.Display.objects.get(KodeDisplay=kode_display)
+            try:
+                detail_spk = request.POST["detail_spk"]
+                detspkobj = models.DetailSPKDisplay.objects.get(IDDetailSPK=detail_spk)
+            except:
+                detspkobj = None
+            produksiobj.KodeDisplay = getdisplay
+            produksiobj.DetailSPKDisplay = detspkobj
+
+            if detspkobj:
+                models.transactionlog(
+                    user="Produksi",
+                    waktu=datetime.now(),
+                    jenis="Update",
+                    pesan=f"Transaksi Mutasi. Kode Artikel : {getdisplay.KodeDisplay} Jumlah : {jumlah} No SPK : {detspkobj.NoSPK} Keterangan : {keterangan}",
+                ).save()
+            else:
+                models.transactionlog(
+                    user="Produksi",
+                    waktu=datetime.now(),
+                    jenis="Update",
+                    pesan=f"Transaksi Mutasi. Kode Artikel : {getdisplay.KodeDisplay} Jumlah : {jumlah}  Keterangan : {keterangan}",
+                ).save()
+        
         produksiobj.Tanggal = tanggal
         produksiobj.Jumlah = jumlah
         produksiobj.Keterangan = keterangan
-        produksiobj.DetailSPK = detspkobj
         produksiobj.save()
-        messages.success(request, "Data berhasil diupdate")
 
-        if detspkobj:
-            models.transactionlog(
-                user="Produksi",
-                waktu=datetime.now(),
-                jenis="Update",
-                pesan=f"Transaksi Mutasi. Kode Artikel : {getartikel.KodeArtikel} Jumlah : {jumlah} No SPK : {detspkobj.NoSPK} Keterangan : {keterangan}",
-            ).save()
-        else:
-            models.transactionlog(
-                user="Produksi",
-                waktu=datetime.now(),
-                jenis="Update",
-                pesan=f"Transaksi Mutasi. Kode Artikel : {getartikel.KodeArtikel} Jumlah : {jumlah}  Keterangan : {keterangan}",
-            ).save()
+        messages.success(request, "Data berhasil diupdate")
 
         return redirect("view_mutasi")
 
@@ -2457,6 +2527,8 @@ def add_pemusnahan(request):
         lokasi = request.POST["nama_lokasi"]
         jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
+        keterangan = request.POST["keterangan"]
+
         try:
             artikelobj = models.Artikel.objects.get(KodeArtikel=kodeartikel)
         except:
@@ -2465,7 +2537,7 @@ def add_pemusnahan(request):
 
         lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
         pemusnahanobj = models.PemusnahanArtikel(
-            Tanggal=tanggal, Jumlah=jumlah, KodeArtikel=artikelobj, lokasi=lokasiobj
+            Tanggal=tanggal, Jumlah=jumlah, KodeArtikel=artikelobj, lokasi=lokasiobj, Keterangan=keterangan
         )
         pemusnahanobj.save()
 
@@ -2497,6 +2569,8 @@ def update_pemusnahan(request, id):
         lokasi = request.POST["nama_lokasi"]
         jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
+        keterangan = request.POST["keterangan"]
+        
         try:
             artikelobj = models.Artikel.objects.get(KodeArtikel=kodeartikel)
         except:
@@ -2508,6 +2582,7 @@ def update_pemusnahan(request, id):
         dataobj.Jumlah = jumlah
         dataobj.KodeArtikel = artikelobj
         dataobj.lokasi = lokasiobj
+        dataobj.Keterangan = keterangan
 
         dataobj.save()
 
@@ -2567,6 +2642,8 @@ def add_pemusnahanbarang(request):
         jumlah = float(request.POST["jumlah"])
         tanggal = request.POST["tanggal"]
         lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
+        keterangan = request.POST["keterangan"]
+
         try:
             produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
         except:
@@ -2574,7 +2651,7 @@ def add_pemusnahanbarang(request):
             return redirect("add_pemusnahanbarang")
         
         pemusnahanobj = models.PemusnahanBahanBaku(
-            Tanggal=tanggal, Jumlah=jumlah, KodeBahanBaku=produkobj, lokasi=lokasiobj
+            Tanggal=tanggal, Jumlah=jumlah, KodeBahanBaku=produkobj, lokasi=lokasiobj, Keterangan=keterangan
         )
         pemusnahanobj.save()
 
@@ -2585,6 +2662,7 @@ def add_pemusnahanbarang(request):
             pesan=f"Pemusnahan Bahan Baku. Kode Bahan Baku : {produkobj.KodeProduk} Jumlah : {jumlah} Lokasi : {lokasiobj.NamaLokasi}",
         ).save()
         messages.success(request, "Data berhasil disimpan")
+
         return redirect("view_pemusnahanbarang")
 
 @login_required
@@ -2607,6 +2685,8 @@ def update_pemusnahanbarang(request, id):
         lokasi = request.POST["nama_lokasi"]
         jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
+        keterangan = request.POST["keterangan"]
+
         try:
             produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
         except:
@@ -2618,7 +2698,7 @@ def update_pemusnahanbarang(request, id):
         dataobj.Jumlah = jumlah
         dataobj.KodeBahanBaku = produkobj
         dataobj.lokasi = lokasiobj
-
+        dataobj.Keterangan = keterangan
         dataobj.save()
 
         models.transactionlog(
