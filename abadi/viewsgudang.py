@@ -11,7 +11,7 @@ from django.db.models.functions import ExtractYear
 from . import logindecorators
 from django.contrib.auth.decorators import login_required
 import pandas as pd
-
+from django.db.models import FloatField
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
@@ -320,8 +320,10 @@ def rekap_gudang(request):
                 Tanggal__range=(mulai, datenow), IDBahanBaku=i, IDLokasi="3"
             ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0)))
             pemusnahan = models.PemusnahanBahanBaku.objects.filter(
-                Tanggal__range=(mulai, datenow), KodeBahanBaku=i, lokasi="3"
-            ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0)))
+    Tanggal__range=(mulai, datenow), KodeBahanBaku=i, lokasi="3"
+).aggregate(
+    kuantitas=Coalesce(Sum("Jumlah"), Value(0,output_field=FloatField()))
+)
 
         stokakhir = (
             datasjp["kuantitas"]
@@ -1000,7 +1002,7 @@ def addsaldo(request):
         kodeproduk = request.POST["produk"]
         lokasi = request.POST["nama_lokasi"]
         jumlah = request.POST["jumlah"]
-        harga = request.POST["harga"]
+        harga = 0
         tanggal = request.POST["tanggal"]
 
         # Ubah format tanggal menjadi YYYY-MM-DD
@@ -1043,6 +1045,7 @@ def addsaldo(request):
         ).save()
 
         pemusnahanobj.save()
+        messages.success(request,"Data berhasil ditambah")
         return redirect("read_saldoawalbahan")
 
 

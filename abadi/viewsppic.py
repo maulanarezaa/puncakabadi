@@ -1758,32 +1758,50 @@ def getstokfg(tanggal,hargapurchasing):
                 else:
                     totalpenggunaanbahanbaku[i['KodePenyusun__KodeProduk__KodeProduk']] = penggunaanbahanbakufg
             print(total_mutasi,kode_artikel,konversibahanbaku)
+            print(totalpenggunaanbahanbaku)
+            # print(asd)
+        hargaterakhir = gethargafgterakhirberdasarkanmutasi(models.Artikel.objects.get(KodeArtikel = kode_artikel),tanggal,hargapurchasing)
+        total = total_saldoawal + total_mutasi - total_pengiriman
+        resultdengansaldoawal.append({'KodeArtikel': kode_artikel, 'total':total,"penyusunfg":konversibahanbaku,'hargafg':hargaterakhir[0],'totalsaldo':total * hargaterakhir[0]})
 
-        result.append({'KodeArtikel': kode_artikel, 'total': total_mutasi - total_pengiriman,"penyusunfg":konversibahanbaku})
-        resultdengansaldoawal.append({'KodeArtikel': kode_artikel, 'total':total_saldoawal + total_mutasi - total_pengiriman,"penyusunfg":konversibahanbaku})
-    print(totalpenggunaanbahanbaku)
-    print(asd)
+    
+
+
+        # print(asd)
+
 
     # Mencari sisa bahan baku 
-    # bahanbakukonversi = 
-    kodebahanbakurequestdankonversi = set(permintaanbahanbaku_dict.keys()).union(set(saldoawalbahanbaku_dict.keys()))
-    print(kodebahanbakurequestdankonversi)
-    bahanbakuall = models.Produk.objects.all().values_list('KodeProduk',flat=True)
-    # for i in bahanbakuall :
+    # # bahanbakukonversi = 
+    # kodebahanbakurequestdankonversi = set(permintaanbahanbaku_dict()).union(set(saldoawalbahanbaku_dict()))
+    # print(kodebahanbakurequestdankonversi)
+    # print(asd)
+    sisabahanbaku = []
+    bahanbakuall = models.Produk.objects.all()
+    for item in bahanbakuall:
+        total_permintaanbarang = permintaanbahanbaku_dict.get(item.KodeProduk, 0)
+        total_saldoawalbahanbaku = saldoawalbahanbaku_dict.get(item.KodeProduk,0)
+        print(total_permintaanbarang,total_saldoawalbahanbaku,item)
 
-    
-    '''
-    Sisa Bahan Baku 
-    Jumlah penggunaan Bahan Baku FG = Total Request FG - Total Mutasi WIP FG konversi bahan FG
-    '''
-    
+        totalbahanbaku = total_permintaanbarang + total_saldoawalbahanbaku
+        if item.KodeProduk in totalpenggunaanbahanbaku.keys():
+            print(f"item {item} ada di penggunaanbahanbaku")
+            jumlahpenggunaan = totalpenggunaanbahanbaku[item.KodeProduk]
+            totalbahanbaku -= jumlahpenggunaan
+        permintaanterakhir = models.TransaksiGudang.objects.filter(Lokasi__NamaLokasi = "FG",tanggal__range=(awaltahun,tanggal),KodeProduk = item).order_by('-tanggal').first()
+        hargaterakhir = 0
+        if permintaanterakhir:
+            hargaterakhir = gethargapurchasingperbulanperproduk(permintaanterakhir.tanggal,item)
+        sisabahanbaku.append({'KodeProduk':item,'total':totalbahanbaku,'hargasatuan':hargaterakhir,"hargatotal":hargaterakhir*totalbahanbaku})
+        # cekmutasi terakhir 
+        # print(total_permintaanbarang,total_saldoawalbahanbaku,item,totalbahanbaku)
 
-        
-        
+    print(sisabahanbaku)        
     print(result)
-    print(permintaanbahanbaku_dict)
-    print(saldoawalbahanbaku_dict)
-    print(asd)
+    print(sisabahanbaku)
+    # print(asd)
+    data = {'Artikel':resultdengansaldoawal,"BahanBaku":sisabahanbaku}
+    print(data)
+    return data
 def detaillaporanstokfg(request):
     if len(request.GET) > 0:
         print(request.GET)
@@ -1817,13 +1835,13 @@ def detaillaporanstokfg(request):
         last_days, index, awaltahun
     )
         tes = getstokfg(last_days[index-1],hargaakhirbulanperproduk)
-        datastokgudang, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
+        # datastokgudang, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
         return render(
             request,
             "ppic/detaillaporanstokfg.html",
             {
-                "stokfg": datastokgudang[index - 1],
-                "sisabahafg": bahanbakusisafg[index - 1],
+                "artikelfg": tes['Artikel'],
+                "sisabahanfg": tes['BahanBaku'],
                 "bulan": bulan,
             },
         )

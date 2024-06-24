@@ -19,29 +19,27 @@
 
 
                 <div class="table-responsive pt-3">
-                    {% if stokfg %}
-
+                    {% if artikelfg %}
+                    <h5>Stok Artikel</h5>
                     <table class="table">
                         <thead>
                             <tr>
                                 <td>No</td>
                                 <td>Kode Artikel</td>
                                 <td>Jumlah</td>
-                                <td>Harga WIP</td>
                                 <td>Harga FG</td>
                                 <td>Biaya</td>
 
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item,values in stokfg.data.items %}
+                            {% for item in artikelfg %}
                             <tr>
                                 <td>{{forloop.counter}}</td>
-                                <td>{{item}}</td>
-                                <td>{{values.jumlah}}</td>
-                                <td>{{values.hargawip}}</td>
-                                <td>{{values.hargafg}}</td>
-                                <td>{{values.biaya}}</td>
+                                <td>{{item.KodeArtikel}}</td>
+                                <td>{{item.total}}</td>
+                                <td>{{item.hargafg|floatformat:2|intcomma}}</td>
+                                <td>{{item.totalsaldo|floatformat:2|intcomma}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -57,9 +55,23 @@
 
                     {% endif %}
                 </div>
-                <div class="table-responsive pt-3">
-                    {% if stokfg %}
+                
+            </div>
+        </div>
+    </div>
+</div>
 
+<div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Detail Stok FG Periode : {{bulan}} </h4>
+
+
+
+                <div class="table-responsive pt-3">
+                    <h5>Stok Bahan Baku</h5>
+                    {{sisabahanfg}}
                     <table class="table">
                         <thead>
                             <tr>
@@ -68,22 +80,22 @@
                                 <td>Nama Bahan Baku</td>
                                 <td>Unit</td>
                                 <td>Harga Satuan</td>
-                                <td>Jumlah</td>
+                                <td>Saldo</td>
                                 <td>Total Biaya</td>
-
+                
                             </tr>
                         </thead>
                         <tbody>
-
-                            {% for item,values in sisabahafg.items %}
+                
+                            {% for item in sisabahanfg %}
                             <tr>
                                 <td>{{forloop.counter}}</td>
-                                <td>{{item}}</td>
-                                <td>{{item.NamaProduk}}</td>
-                                <td>{{item.unit}}</td>
-                                <td>{{values.Hargasatuan}}</td>
-                                <td>{{values.stok}}</td>
-                                <td>{{values.Hargatotal}}</td>
+                                <td>{{item.KodeProduk}}</td>
+                                <td>{{item.KodeProduk.NamaProduk}}</td>
+                                <td>{{item.KodeProduk.unit}}</td>
+                                <td>{{item.hargasatuan|floatformat:2|intcomma}}</td>
+                                <td>{{item.total|floatformat:2|intcomma}}</td>
+                                <td>{{item.hargatotal|floatformat:2|intcomma}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -97,8 +109,8 @@
                     </table>
 
 
-                    {% endif %}
                 </div>
+                
             </div>
         </div>
     </div>
