@@ -218,8 +218,8 @@ class DetailSPPB(models.Model):
 
 class TransaksiProduksi(models.Model):
     idTransaksiProduksi = models.AutoField(primary_key=True)
-    KodeArtikel = models.ForeignKey(Artikel, on_delete=models.CASCADE, null=True)
-    KodeDisplay = models.ForeignKey(Display, on_delete=models.CASCADE, null= True)
+    KodeArtikel = models.ForeignKey(Artikel, on_delete=models.CASCADE, null=True,blank=True)
+    KodeDisplay = models.ForeignKey(Display, on_delete=models.CASCADE, null= True,blank=True)
     Lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
     Tanggal = models.DateField()
     Jumlah = models.IntegerField()

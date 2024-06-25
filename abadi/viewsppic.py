@@ -1705,6 +1705,7 @@ def getstokfg(tanggal,hargapurchasing):
     4. Ambil Data produk yang diminta ke gudang dari awal tahun - sekarang
     3. Hitung kumulasi jumlah permintaan gudang ke FG
     '''
+
     # Mengambil Saldo Awal Artikel pada FG
     datasaldoawalartikel = models.SaldoAwalArtikel.objects.filter(Tanggal__range=(awaltahun,akhirtahun),IDLokasi__NamaLokasi="FG")
     jumlahdatasaldoawal = datasaldoawalartikel.values("IDArtikel__KodeArtikel").annotate(total = Sum('Jumlah'))
@@ -1714,15 +1715,24 @@ def getstokfg(tanggal,hargapurchasing):
     jumlahdatasaldoawalbahanbaku = datasaldoawalbahanbaku.values("IDBahanBaku__KodeProduk").annotate(total = Sum('Jumlah'))
 
     #  Mengambil total data transaksi mutasi WIP ke FG
-    datamutasiartikel = models.TransaksiProduksi.objects.filter(Lokasi__NamaLokasi="WIP",Tanggal__range =(awaltahun,tanggal),Jenis = "Mutasi" )
+    datamutasiartikel = models.TransaksiProduksi.objects.filter(Lokasi__NamaLokasi="WIP",Tanggal__range =(awaltahun,tanggal),Jenis = "Mutasi", KodeArtikel__isnull = False )
     jumlahmutasiartikel = datamutasiartikel.values('KodeArtikel__KodeArtikel').annotate(total = Sum('Jumlah'))
     print(jumlahmutasiartikel)
-    
+
+    # Mengambil data transaksi display
+    datamutasidisplay = models.TransaksiProduksi.objects.filter(Lokasi__NamaLokasi="WIP",Tanggal__range =(awaltahun,tanggal),Jenis = "Mutasi", KodeDisplay__isnull = False )
+    jumlahmutasidisplay = datamutasidisplay.values('KodeDisplay__KodeDisplay').annotate(total = Sum('Jumlah'))
+    print(jumlahmutasidisplay)
 
     # Mengambil total data transaksi pengeluaran barang dari FG
     datapengeluaranartikel = models.DetailSPPB.objects.filter(NoSPPB__Tanggal__range = (awaltahun,tanggal),DetailSPK__isnull=False)
     jumlahpengirimanartikel = datapengeluaranartikel.values('DetailSPK__KodeArtikel__KodeArtikel').annotate(total = Sum('Jumlah'))
     
+    datapengeluarandisplay = models.DetailSPPB.objects.filter(NoSPPB__Tanggal__range = (awaltahun,tanggal),DetailSPKDisplay__isnull=False)
+    jumlahpengirimandisplay = datapengeluarandisplay.values('DetailSPKDisplay__KodeDisplay__KodeDisplay').annotate(total = Sum('Jumlah'))
+    print(jumlahpengirimandisplay)
+    # print(asd)
+
     # Mengambil total permintaan transaksi bahan baku 
     datapermintaanbahanbaku = models.TransaksiGudang.objects.filter(Lokasi__NamaLokasi = "FG",tanggal__range=(awaltahun,tanggal))
     totalpermintaanbahanbaku = datapermintaanbahanbaku.values("KodeProduk__KodeProduk").annotate(total = Sum('jumlah'))
@@ -1735,14 +1745,16 @@ def getstokfg(tanggal,hargapurchasing):
     saldoawal_dict = {item['IDArtikel__KodeArtikel']: item['total'] for item in jumlahdatasaldoawal}
     permintaanbahanbaku_dict = {item['KodeProduk__KodeProduk']: item['total'] for item in totalpermintaanbahanbaku}
     saldoawalbahanbaku_dict = {item['IDBahanBaku__KodeProduk']: item['total'] for item in jumlahdatasaldoawalbahanbaku}
-    
+    mutasidisplay_dict = {item['KodeDisplay__KodeDisplay']: item['total'] for item in jumlahmutasidisplay}
+    pengirimandisplay_dict = {item['DetailSPKDisplay__KodeDisplay__KodeDisplay']: item['total'] for item in jumlahpengirimandisplay}
     all_kode_artikel = set(mutasi_dict.keys()).union(set(pengiriman_dict.keys()))
 
     all_kode_artikel = models.Artikel.objects.all().values_list("KodeArtikel",flat=True)
-    
+    all_kode_display = models.Display.objects.all()
     result = []
     resultdengansaldoawal = []
     totalpenggunaanbahanbaku = {}
+    totalsaldoartikel = 0
     for kode_artikel in all_kode_artikel:
         total_mutasi = mutasi_dict.get(kode_artikel, 0)
         total_pengiriman = pengiriman_dict.get(kode_artikel, 0)
@@ -1762,20 +1774,22 @@ def getstokfg(tanggal,hargapurchasing):
             # print(asd)
         hargaterakhir = gethargafgterakhirberdasarkanmutasi(models.Artikel.objects.get(KodeArtikel = kode_artikel),tanggal,hargapurchasing)
         total = total_saldoawal + total_mutasi - total_pengiriman
-        resultdengansaldoawal.append({'KodeArtikel': kode_artikel, 'total':total,"penyusunfg":konversibahanbaku,'hargafg':hargaterakhir[0],'totalsaldo':total * hargaterakhir[0]})
+        totalsaldo = hargaterakhir[0] * total
+        totalsaldoartikel += totalsaldo
+        resultdengansaldoawal.append({'KodeArtikel': kode_artikel, 'total':total,"penyusunfg":konversibahanbaku,'hargafg':hargaterakhir[0],'totalsaldo':totalsaldo})
 
-    
+    # BELUM MASUK SALDO AWAL DISPLAY
+    resultdisplay = []
+    for kode_display in all_kode_display:
+        total_mutasi = mutasidisplay_dict.get(kode_display.KodeDisplay, 0)
+        total_pengiriman = pengirimandisplay_dict.get(kode_display.KodeDisplay, 0)
+        total = total_mutasi - total_pengiriman
+        print(kode_display,total_mutasi,total_pengiriman,total)
+        resultdisplay.append({'KodeDisplay': kode_display, 'total':total})
+    print(resultdisplay)
 
-
-        # print(asd)
-
-
-    # Mencari sisa bahan baku 
-    # # bahanbakukonversi = 
-    # kodebahanbakurequestdankonversi = set(permintaanbahanbaku_dict()).union(set(saldoawalbahanbaku_dict()))
-    # print(kodebahanbakurequestdankonversi)
-    # print(asd)
     sisabahanbaku = []
+    totalsaldobahanbaku = 0
     bahanbakuall = models.Produk.objects.all()
     for item in bahanbakuall:
         total_permintaanbarang = permintaanbahanbaku_dict.get(item.KodeProduk, 0)
@@ -1791,15 +1805,16 @@ def getstokfg(tanggal,hargapurchasing):
         hargaterakhir = 0
         if permintaanterakhir:
             hargaterakhir = gethargapurchasingperbulanperproduk(permintaanterakhir.tanggal,item)
-        sisabahanbaku.append({'KodeProduk':item,'total':totalbahanbaku,'hargasatuan':hargaterakhir,"hargatotal":hargaterakhir*totalbahanbaku})
-        # cekmutasi terakhir 
-        # print(total_permintaanbarang,total_saldoawalbahanbaku,item,totalbahanbaku)
+        totalsaldo = totalbahanbaku * hargaterakhir
+        totalsaldobahanbaku += totalsaldo
+        sisabahanbaku.append({'KodeProduk':item,'total':totalbahanbaku,'hargasatuan':hargaterakhir,"hargatotal":totalsaldo})
 
-    print(sisabahanbaku)        
-    print(result)
-    print(sisabahanbaku)
+    # print(sisabahanbaku)        
+    # print(result)
+    # print(sisabahanbaku)
     # print(asd)
-    data = {'Artikel':resultdengansaldoawal,"BahanBaku":sisabahanbaku}
+    total_saldofg = totalsaldoartikel + totalsaldobahanbaku
+    data = {'Artikel':resultdengansaldoawal,"BahanBaku":sisabahanbaku,"Display":resultdisplay,"totalsaldo":total_saldofg}
     print(data)
     return data
 def detaillaporanstokfg(request):
@@ -1842,6 +1857,8 @@ def detaillaporanstokfg(request):
             {
                 "artikelfg": tes['Artikel'],
                 "sisabahanfg": tes['BahanBaku'],
+                'displayfg' : tes['Display'],
+                'totalsaldofg' : tes['totalsaldo'],
                 "bulan": bulan,
             },
         )
@@ -2433,8 +2450,8 @@ def perhitunganpersediaan(
     stockgudang,
     bahanbakumasuk,
     barangkeluar,
-    barangfg,
-    sisabahanproduksifg,
+    saldofg,
+
 ):
     listbulan = [
         "Januari",
@@ -2500,9 +2517,7 @@ def perhitunganpersediaan(
         except KeyError:
             jumlahsaldoakhirgudang = 0
         try:
-            jumlahstokfg = (
-                barangfg[index]["total"] + sisabahanproduksifg[index]["total"]
-            )
+            jumlahstokfg = saldofg
         except KeyError:
             jumlahstokfg = 0
         try:
@@ -2570,10 +2585,12 @@ def laporanpersediaan(request):
         barangmasuk = getbarangmasuk(last_days, index, awaltahun)
         """SECTION STOCK GUDANG"""
         baranggudang = saldogudang(last_days, index, awaltahun)
-        barangfg, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
         """SECTION FG"""
-        print(bahanbakusisafg[0])
-        # print(asda)
+        barangfg, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
+        hargapurchasing = gethargapurchasingperbulan(last_days,index,awaltahun)
+        saldofg = getstokfg(last_days[index-1],hargapurchasing)
+        # print(saldofg[0['totalsaldo']])
+
         """SECTION WIP (Skip dulu)"""
 
         dataperhitunganpersediaan = perhitunganpersediaan(
@@ -2583,8 +2600,7 @@ def laporanpersediaan(request):
             baranggudang,
             barangmasuk,
             totalbiayakeluar,
-            barangfg,
-            bahanbakusisafg,
+            saldofg['totalsaldo']
         )
 
         # print(asd)
