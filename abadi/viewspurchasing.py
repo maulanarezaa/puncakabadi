@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.db.models import F
+from django.db.models import F,FloatField
 from django.db.models import Sum,Value
 from . import models
 from datetime import datetime
@@ -842,8 +842,10 @@ def rekap_gudang(request):
                 Tanggal__range=(mulai, datenow), IDBahanBaku=i, IDLokasi="3"
             ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0)))
             pemusnahan = models.PemusnahanBahanBaku.objects.filter(
-                Tanggal__range=(mulai, datenow), KodeBahanBaku=i, lokasi="3"
-            ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0)))
+    Tanggal__range=(mulai, datenow), KodeBahanBaku=i, lokasi="3"
+).aggregate(
+    kuantitas=Coalesce(Sum("Jumlah"), Value(0,output_field=FloatField()))
+)
 
         stokakhir = (
             datasjp["kuantitas"]
@@ -2038,19 +2040,25 @@ def views_rekapharga(request):
                 request, "Purchasing/views_ksbb.html", {"kodeprodukobj": kodeprodukobj}
             )
         masukobj = models.DetailSuratJalanPembelian.objects.filter(
-            KodeProduk=produkobj.KodeProduk, NoSuratJalan__Tanggal__gte=awaltahun
+            KodeProduk=produkobj.KodeProduk, NoSuratJalan__Tanggal__range=(awaltahun,akhirtahun)
         )
 
         tanggalmasuk = masukobj.values_list("NoSuratJalan__Tanggal", flat=True)
 
         keluarobj = models.TransaksiGudang.objects.filter(
-            jumlah__gte=0, KodeProduk=produkobj.KodeProduk, tanggal__gte=awaltahun
+            jumlah__gte=0, KodeProduk=produkobj.KodeProduk, tanggal__range=(awaltahun,akhirtahun)
         )
         returobj = models.TransaksiGudang.objects.filter(
-            jumlah__lt=0, KodeProduk=produkobj.KodeProduk, tanggal__gte=awaltahun
+            jumlah__lt=0, KodeProduk=produkobj.KodeProduk, tanggal__range=(awaltahun,akhirtahun)
         )
+        pemusnahanobj = models.PemusnahanBahanBaku.objects.filter(
+            lokasi__NamaLokasi = 'Gudang',KodeBahanBaku = produkobj.KodeProduk, Tanggal__range = (awaltahun,akhirtahun)
+        )
+        # print(pemusnahanobj)
+        # print(asd)
         tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
         tanggalretur = returobj.values_list("tanggal", flat=True)
+        tanggalpemusnahan = pemusnahanobj.values_list("Tanggal",flat=True)
         print("ini kode bahan baku", keluarobj)
         saldoawalobj = (
             models.SaldoAwalBahanBaku.objects.filter(
@@ -2095,7 +2103,7 @@ def views_rekapharga(request):
         print(tanggalmasuk)
         print(tanggalkeluar)
         listtanggal = sorted(
-            list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalretur)))
+            list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalretur).union(tanggalpemusnahan)))
         )
         print(listtanggal)
         statusmasuk = False
@@ -2145,16 +2153,22 @@ def views_rekapharga(request):
             hargamasuktotalperhari = 0
             jumlahmasukperhari = 0
             hargamasuksatuanperhari = 0
-
             transaksigudangobj = keluarobj.filter(tanggal=i)
-            print(transaksigudangobj)
+            transaksipemusnahan = pemusnahanobj.filter(Tanggal=i)
+
+
             if transaksigudangobj.exists():
                 for j in transaksigudangobj:
                     jumlahkeluarperhari += j.jumlah
                     hargakeluartotalperhari += j.jumlah * hargasatuanawal
-                hargakeluarsatuanperhari += (
-                    hargakeluartotalperhari / jumlahkeluarperhari
-                )
+
+            if transaksipemusnahan.exists():
+                for j in transaksipemusnahan:
+                    jumlahkeluarperhari += j.Jumlah
+                    hargakeluartotalperhari += j.Jumlah * hargasatuanawal
+
+            if jumlahkeluarperhari > 0:
+                hargakeluarsatuanperhari = hargakeluartotalperhari / jumlahkeluarperhari
             else:
                 if statusmasuk:
                     statusmasuk = False
@@ -2162,6 +2176,40 @@ def views_rekapharga(request):
                 hargakeluartotalperhari = 0
                 hargakeluarsatuanperhari = 0
                 jumlahkeluarperhari = 0
+
+            # transaksigudangobj = keluarobj.filter(tanggal=i)
+            # print(transaksigudangobj)
+            # if transaksigudangobj.exists():
+            #     for j in transaksigudangobj:
+            #         jumlahkeluarperhari += j.jumlah
+            #         hargakeluartotalperhari += j.jumlah * hargasatuanawal
+            #     hargakeluarsatuanperhari += (
+            #         hargakeluartotalperhari / jumlahkeluarperhari
+            #     )
+            # else:
+            #     if statusmasuk:
+            #         statusmasuk = False
+            #         continue
+            #     hargakeluartotalperhari = 0
+            #     hargakeluarsatuanperhari = 0
+            #     jumlahkeluarperhari = 0
+
+            # transaksipemusnahan = pemusnahanobj.filter(Tanggal=i)
+            # print(transaksipemusnahan)
+            # if transaksipemusnahan.exists():
+            #     for j in transaksipemusnahan:
+            #         jumlahkeluarperhari += j.Jumlah
+            #         hargakeluartotalperhari += j.Jumlah * hargasatuanawal
+            #     hargakeluarsatuanperhari += (
+            #         hargakeluartotalperhari / jumlahkeluarperhari
+            #     )
+            # else:
+            #     if statusmasuk:
+            #         statusmasuk = False
+            #         continue
+            #     hargakeluartotalperhari = 0
+            #     hargakeluarsatuanperhari = 0
+            #     jumlahkeluarperhari = 0
 
             transaksireturobj = returobj.filter(tanggal=i)
             if transaksireturobj.exists():
@@ -2173,6 +2221,7 @@ def views_rekapharga(request):
                 hargamasuktotalperhari = 0
                 hargamasuksatuanperhari = 0
                 jumlahmasukperhari = 0
+
 
             print("Tanggal : ", i)
             print("Sisa Stok Hari Sebelumnya : ", saldoawal)
@@ -2248,6 +2297,120 @@ def views_rekapharga(request):
                 "tahun": tahun_period,
             },
         )
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
+def views_rekaphargasubkon(request):
+    # if request.method ==  'POST' :
+    if len(request.POST) == 0 :
+        valueppn = 2
+    else :
+        valueppn = request.POST["input_ppn"]
+        if int(valueppn) < 0 :
+            valueppn = 2
+            messages.error(request,"Nilai Persentase Minus!") 
+        else :
+            pass
+
+    inputppn = int(valueppn)/100
+
+    print("inputppn",inputppn)
+ 
+
+    if len(request.GET) == 0:
+        list_harga_total1 = []
+        list_ppn = []
+        list_total_ppn = []
+        sjball = models.DetailSuratJalanPenerimaanProdukSubkon.objects.all().order_by(
+            "NoSuratJalan__Tanggal"
+        )
+        print(sjball)
+        # print(asd)
+        if len(sjball) > 0:
+       
+            for x in sjball:
+                harga_total = x.Jumlah * x.Harga
+                x.NoSuratJalan.Tanggal = x.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
+                print(harga_total)
+                list_harga_total1.append(harga_total)
+            for item in list_harga_total1:
+                harga_ppn = item*inputppn
+                harga_total_ppn = item-harga_ppn
+                list_ppn.append(harga_ppn)
+                list_total_ppn.append(harga_total_ppn)
+            i = 0
+            for item in sjball:
+                item.harga_total = list_harga_total1[i]
+                item.harga_ppn = list_ppn[i]
+                item.harga_total_ppn = list_total_ppn[i]
+                i += 1
+            print("list hartot", list_harga_total1)
+            
+        
+            return render(
+                request,
+                "Purchasing/masuk_subkon.html",
+                {
+                    "sjball": sjball,
+                    "harga_total": harga_total,
+                    "harga_ppn" : harga_ppn,
+                    "harga_total_ppn" : harga_total_ppn,
+                    "valueppn" : valueppn
+                },
+            )
+        else:
+            messages.error(request, "Data tidak ditemukan")
+            return render(
+                request,
+                "Purchasing/masuk_subkon.html",
+            )
+    else:
+        # if request.method == "POST": 
+            
+        # else :
+        input_awal = request.GET["awal"]
+        input_terakhir = request.GET["akhir"]
+        # valueppn = request.POST["input_ppn"]
+        # inputppn = request.POST["input_ppn"]
+        list_harga_total = []
+        list_ppn_1 = []
+        list_total_ppn_1 = []
+        filtersjb = models.DetailSuratJalanPenerimaanProdukSubkon.objects.filter(
+            NoSuratJalan__Tanggal__range=(input_awal, input_terakhir)
+        ).order_by("NoSuratJalan__Tanggal")
+        if len(filtersjb) > 0:
+
+            for x in filtersjb:
+                harga_total = x.Jumlah * x.Harga
+                list_harga_total.append(harga_total)
+            for item in list_harga_total:
+                harga_ppn_1 = item*inputppn
+                harga_total_ppn_1 = item-harga_ppn_1
+                list_ppn_1.append(harga_ppn_1)
+                list_total_ppn_1.append(harga_total_ppn_1)
+
+            i = 0
+            for item in filtersjb:
+                item.harga_total = list_harga_total[i]
+                item.harga_ppn_1 = list_ppn_1[i]
+                item.harga_total_ppn_1 = list_total_ppn_1[i]
+                i += 1
+            return render(
+                request,
+                "Purchasing/masuk_subkon.html",
+                {
+                    "data_hasil_filter": filtersjb,
+                    "harga_total": harga_total,
+                    "harga_ppn_1" :harga_ppn_1,
+                    "harga_total_ppn_1" : harga_total_ppn_1,
+                    "input_awal": input_awal,
+                    "input_terakhir": input_terakhir,
+                    "valueppn" : valueppn
+                },
+            )
+        else:
+            messages.error(request, "Data tidak ditemukan")
+            return redirect("barang_masuk")
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])

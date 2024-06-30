@@ -56,6 +56,7 @@ urlpatterns = [
     path("trackspk/<str:id>", viewspurchasing.track_spk, name="trackspk"),
     # R REKAP HARGA
     path("rekap_harga", viewspurchasing.views_rekapharga, name="rekapharga"),
+    path("rekap_hargasubkon", viewspurchasing.views_rekaphargasubkon, name="rekaphargasubkon"),
     path("acc_spk2/<str:id>", viewspurchasing.accspk2, name="acc_spk2"),
     path('upload_excel', viewspurchasing.bulk_createproduk, name='upload_excel'),
     # CRUD Purchasing

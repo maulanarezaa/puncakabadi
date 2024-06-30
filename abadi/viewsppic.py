@@ -7,6 +7,7 @@ from django.db.models import Sum, Max
 from io import BytesIO
 import pandas as pd
 from openpyxl import Workbook, load_workbook
+from openpyxl.styles import Border,Side
 from openpyxl.utils import get_column_letter
 from datetime import datetime, date
 import calendar
@@ -2762,6 +2763,7 @@ def exportlaporanbulananexcel(request):
         datatransaksilainlain,
         detailtransaksigold,
         detailbiaya,
+        datatransaksikeluar
     ) = getbarangkeluar(last_days, index, awaltahun)
     """SECTION BARANG MASUK"""
     barangmasuk = getbarangmasuk(last_days, index, awaltahun)
@@ -2782,7 +2784,7 @@ def exportlaporanbulananexcel(request):
         barangmasuk,
         totalbiayakeluar,
         barangfg,
-        bahanbakusisafg,
+
     )
     print(barangmasuk)
 
@@ -2841,6 +2843,7 @@ def exportlaporanbulananexcel(request):
     print(datamodelkeluar)
     totalbiayakeluar = sum(datamodelkeluar["Total Biaya"])
     dfdatakeluar = pd.DataFrame(datamodelkeluar)
+    
 
     datamodelstransaksigold = {
         "Kode Produk": [],
@@ -2908,24 +2911,87 @@ def exportlaporanbulananexcel(request):
     buffer = BytesIO()
 
     # Use pandas to write DataFrame to the BytesIO buffer
+    thin_border = Border(left=Side(style='thin'),
+                         right=Side(style='thin'),
+                         top=Side(style='thin'),
+                         bottom=Side(style='thin'))
     num_cols_dfstokawalwip = dfdatakeluar.shape[1]
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        # Laporan Persediaan Section
         df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+
+        # Laporan Barang masuk Section
         df2.to_excel(writer, index=False, startrow=1, sheet_name="Barang Masuk")
+        maxrow = len(df2)+1
+        maxcol = len(df2.columns)
+        writer.sheets["Barang Masuk"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
+
+        writer.sheets["Barang Masuk"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
+        writer.sheets["Barang Masuk"].cell(row=maxrow+2, column = 1).value = "Total Harga"
+        writer.sheets["Barang Masuk"].cell(row=maxrow+2, column = maxcol,value = totalbiayamasuk)
+
+        # Laporan Barang keluar section
         dfdatakeluar.to_excel(
             writer, index=False, startrow=1, sheet_name="Barang Keluar"
         )
+        maxrow = len(dfdatakeluar)+1
+        maxcol = len(dfdatakeluar.columns)
+        writer.sheets["Barang Keluar"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
+
+        writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
+        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = 1).value = "Total Harga"
+        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluar)
+
+        dftransaksigold.to_excel(
+                        writer, index=False, startrow=maxrow+3, sheet_name="Barang Keluar"
+        )
+        # Laporan stok gudang section
         dfstokgudang.to_excel(
             writer, index=False, startrow=1, sheet_name="Saldo Awal Gudang"
         )
-        dfstokawalwip.to_excel(writer, index=False, startrow=1, sheet_name="Saldo WIP")
+        maxrow = len(dfstokgudang)+1
+        maxcol = len(dfstokgudang.columns)
+        writer.sheets["Saldo Awal Gudang"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
 
-        dftransaksigold.to_excel(
-            writer,
-            index=False,
-            startrow=1,
-            startcol=num_cols_dfstokawalwip + 1,
-        )
+        writer.sheets["Saldo Awal Gudang"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
+        writer.sheets["Saldo Awal Gudang"].cell(row=maxrow+2, column = 1).value = "Total Harga"
+        writer.sheets["Saldo Awal Gudang"].cell(row=maxrow+2, column = maxcol,value = totalbiayamasuk)
+
+        # Laporan stok Produksi Section
+        dfstokawalwip.to_excel(writer, index=False, startrow=1, sheet_name="Saldo WIP")
+        maxrow = len(dfstokawalwip)+1
+        maxcol = len(dfstokawalwip.columns)
+        writer.sheets["Saldo WIP"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
+
+        writer.sheets["Saldo WIP"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
+        writer.sheets["Saldo WIP"].cell(row=maxrow+2, column = 1).value = "Total Harga"
+        writer.sheets["Saldo WIP"].cell(row=maxrow+2, column = maxcol,value = totalbiayamasuk)
+        
+        workbook = writer.book
+        for sheet_name in writer.sheets:
+            worksheet = writer.sheets[sheet_name]
+            # Get the DataFrame corresponding to this sheet
+            if sheet_name == "Laporan Persediaan":
+                df_temp = df
+            elif sheet_name == "Barang Masuk":
+                df_temp = df2
+            elif sheet_name == "Barang Keluar":
+                df_temp = dfdatakeluar
+            elif sheet_name == "Saldo Awal Gudang":
+                df_temp = dfstokgudang
+            elif sheet_name == "Saldo WIP":
+                df_temp = dfstokawalwip
+            else:
+                df_temp = dftransaksigold
+
+            # Iterate over the columns and set the width
+            for i, col in enumerate(df_temp.columns):
+                max_length = max(df_temp[col].astype(str).map(len).max(), len(col))
+                worksheet.column_dimensions[chr(65 + i)].width = max_length + 2  # Adjust the column width
+            for row in worksheet.iter_rows(min_row=2, max_row=worksheet.max_row, min_col=1, max_col=worksheet.max_column):
+                for cell in row:
+                    cell.border = thin_border
+
     # Load the workbook from the buffer
     buffer.seek(0)
     wb = load_workbook(buffer)
@@ -2939,22 +3005,22 @@ def exportlaporanbulananexcel(request):
     ws3["A1"] = listbulan[waktuobj.month - 1]
 
     # Custom WS Barang Keluar
-    baristerakhirws3 = ws3.max_row
-    kolomterakhirws3 = ws3.max_column
-    hurufkolomws3 = get_column_letter(kolomterakhirws3)
-    print("Baris Terakhir : ", baristerakhirws3)
-    print("Kolom Terakhir : ", kolomterakhirws3)
-    print("Huruf Terakhir : ", hurufkolomws3)
-    ws3.cell(row=baristerakhirws3 + 1, column=kolomterakhirws3 - 1, value="Total Biaya")
-    ws3.cell(row=baristerakhirws3 + 1, column=kolomterakhirws3, value=totalbiayakeluar)
+    # baristerakhirws3 = ws3.max_row
+    # kolomterakhirws3 = ws3.max_column
+    # hurufkolomws3 = get_column_letter(kolomterakhirws3)
+    # print("Baris Terakhir : ", baristerakhirws3)
+    # print("Kolom Terakhir : ", kolomterakhirws3)
+    # print("Huruf Terakhir : ", hurufkolomws3)
+    # ws3.cell(row=baristerakhirws3 + 1, column=kolomterakhirws3 - 1, value="Total Biaya")
+    # ws3.cell(row=baristerakhirws3 + 1, column=kolomterakhirws3, value=totalbiayakeluar)
     # print(asdas)
 
     # Custom ws barang masuk
-    baristerakhirws2 = ws2.max_row
-    kolomterakhirws2 = ws2.max_column
-    hurufkolomws3 = get_column_letter(kolomterakhirws2)
-    ws2.cell(row=baristerakhirws2 + 1, column=kolomterakhirws2 - 1, value="Total Biaya")
-    ws2.cell(row=baristerakhirws2 + 1, column=kolomterakhirws2, value=totalbiayamasuk)
+    # baristerakhirws2 = ws2.max_row
+    # kolomterakhirws2 = ws2.max_column
+    # hurufkolomws3 = get_column_letter(kolomterakhirws2)
+    # ws2.cell(row=baristerakhirws2 + 1, column=kolomterakhirws2 - 1, value="Total Biaya")
+    # ws2.cell(row=baristerakhirws2 + 1, column=kolomterakhirws2, value=totalbiayamasuk)
 
     # Save the workbook back to the buffer
     buffer = BytesIO()

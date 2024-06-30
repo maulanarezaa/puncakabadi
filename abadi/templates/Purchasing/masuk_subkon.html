@@ -31,7 +31,7 @@
         <div class="form-group">
           <form class="form-inline" action="" method="POST">
             {% csrf_token %}
-              <label class="col-form-label" for="">PPN(%)</label>
+              <label class="col-form-label" for="">Potongan(%)</label>
               <input type="number" class="form-control mb-2 mr-sm-2 ml-2" name="input_ppn" id="input_ppn" value="{{valueppn}}" required>
               <button type="submit" class="btn btn-primary mr-2">Cek</button>
           </form> 
@@ -90,19 +90,19 @@
                           {% else %}
                           {{i.TanggalInvoice}}
                           {% endif %}
-                        </td>
                         <td>
                           {% if i.NoInvoice == None %}
                           -
                           {% else %}
-
+                          
                           {{i.NoInvoice}}
                           {% endif %}
                         </td>
+                        
                         <td>
                           <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                           <div class="template-demo">
-                            <a href="{% url 'update_barang_masuk' i.IDDetailSJPembelian %}">
+                            <a href="">
                               <button type="button" class="btn btn-warning">
                                 <i class="typcn typcn-edit"></i>
                               </button>
@@ -137,8 +137,8 @@
                         <th>Kuantitas</th>
                         <th>Harga</th>
                         <th>Harga Total</th>
-                        <th>Harga PPN ({{valueppn}}%)</th>
-                        <th>Harga Total (PPN)</th>
+                        <th>Harga Potongan ({{valueppn}}%)</th>
+                        <th>Harga Total (Potongan)</th>
                         <th>Tanggal Invoice</th>
                         <th>No Invoice</th>
                         <th>Actions</th>
@@ -162,20 +162,17 @@
                           {% else %}
                           {{i.TanggalInvoice}}
                           {% endif %}
-                        </td>
                         <td>
                           {% if i.NoInvoice == None %}
                           -
                           {% else %}
-
                           {{i.NoInvoice}}
                           {% endif %}
                         </td>
                         <td>
-                          
                           <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                           <div class="template-demo">
-                            <a href="{% url 'update_barang_masuk' i.IDDetailSJPembelian  %}">
+                            <a href="">
                               <button type="button" class="btn btn-warning">
                                 <i class="typcn typcn-edit"></i>
                               </button>

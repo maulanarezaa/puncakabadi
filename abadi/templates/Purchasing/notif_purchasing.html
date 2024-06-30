@@ -1,5 +1,6 @@
 {% extends "Purchasing/base.html" %}
 {% load static %}
+{% load customfilter %}
 
 
 <!-- Page content  -->
@@ -28,7 +29,7 @@
                 <td>{{key}}</td>
                 <td>{{value.0}}</td>
                 <td>{{value.2}}</td>
-                <td>{{value.1}}</td>
+                <td>{{value.1|separator_ribuan}}</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -63,8 +64,8 @@
                 <td>{{item.Kode_Produk}}</td>
                 <td>{{item.Nama_Produk}}</td>
                 <td>{{item.Satuan}}</td>
-                <td>{{item.Jumlah_minimal}}</td>
-                <td>{{item.Jumlah_aktual}}</td>
+                <td>{{item.Jumlah_minimal|separator_ribuan}}</td>
+                <td>{{item.Jumlah_aktual|separator_ribuan}}</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -103,7 +104,7 @@
                 <td>{{i.NoSuratJalan}}</td>
                 <td>{{i.KodeProduk}}</td>
                 <td>{{i.KodeProduk.NamaProduk}}</td>
-                <td>{{i.Jumlah}}</td>
+                <td>{{i.Jumlah|separator_ribuan}}</td>
                 <td>{{i.KodeProduk.unit}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->

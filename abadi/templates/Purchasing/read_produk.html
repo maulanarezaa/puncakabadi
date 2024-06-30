@@ -1,5 +1,6 @@
 {% extends "Purchasing/base.html" %}
 {% load static %}
+{% load customfilter %}
 
 <!-- Page content  -->
 {% block content %}
@@ -37,7 +38,7 @@
                                 <td>{{i.KodeProduk}}</td>
                                 <td>{{i.NamaProduk}}</td>
                                 <td>{{i.unit}}</td>
-                                <td>{{i.Jumlahminimal}}</td>
+                                <td>{{i.Jumlahminimal|separator_ribuan}}</td>
                                 <td>{{i.keteranganPurchasing}}</td>
                                 <td>
                                     <div class="template-demo">

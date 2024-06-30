@@ -402,9 +402,12 @@ class DetailSuratJalanPenerimaanProdukSubkon(models.Model):
     KodeProduk = models.ForeignKey(ProdukSubkon, on_delete=models.CASCADE, null=True)
     Jumlah = models.IntegerField()
     Keterangan = models.CharField(max_length=255, null=True, blank=True, default="")
+    Harga = models.FloatField(default=0)
+    NoInvoice = models.CharField(max_length=255,null=True,blank=True)
+    TanggalInvoice = models.DateField(blank=True,null=True)
 
     def __str__(self):
-        return f"{self.NoSuratJalan} - {self.KodeDisplay} - {self.Jumlah}"
+        return f"{self.NoSuratJalan} - {self.KodeProduk} - {self.Jumlah}"
 
 
 # Untuk Transaksi Keluar Produk SUBKON ke area Produksi
