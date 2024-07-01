@@ -1784,7 +1784,7 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
         konversi = models.KonversiMaster.objects.filter(
             KodePenyusun__KodeArtikel=artikel, KodePenyusun__KodeProduk=produk
         ).order_by('KodePenyusun__versi')
-        # print(konversi)
+        print(konversi)
 
         
         tanggalversi = konversi.values_list('KodePenyusun__versi',flat=True).distinct()
@@ -1810,7 +1810,7 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
         artikelmaster.tanggalversi = tanggalversi
 
         # Data Penyesuaian 
-        penyesuaianobj  = models.Penyesuaian.objects.filter(KodePenyusun__KodeArtikel = artikel, TanggalMulai__range = (tanggal_mulai,tanggal_akhir))
+        penyesuaianobj  = models.Penyesuaian.objects.filter(KodeArtikel = artikel, TanggalMulai__range = (tanggal_mulai,tanggal_akhir))
         print(penyesuaianobj)
         # print(asd)
         if penyesuaianobj.exists:
@@ -1913,6 +1913,7 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
             indexartikel = listartikelmaster.index(artikelkeluarobj)
             filtered_data = [d for d in listartikelmaster[indexartikel].tanggalversi if d <= i]
             print(indexartikel, listartikelmaster,listartikelmaster[indexartikel].tanggalversi)
+            print(i, filtered_data)
             filtered_data.sort(reverse=True)
             print(filtered_data)
             # print(asd)
@@ -1921,8 +1922,9 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
             if not filtered_data:
                 # filtered_data = [d for d in listartikelmaster[indexartikel].tanggalversi]
                 filtered_data = 0
-                print(filtered_data)
+                # print(filtered_data)
                 # print(asd)
+
             if filtered_data != 0:
                 tanggalversiterdekat = max(filtered_data)
                 indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalversi).index(tanggalversiterdekat)
@@ -1930,31 +1932,48 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
             else:
                 tanggalversiterdekat = i
                 konversiterdekat = 0
-            print(tanggalversiterdekat,konversiterdekat)
+
+            # print(tanggalversiterdekat,konversiterdekat)
             # print(asd)
 
             if listartikelmaster[indexartikel].tanggalpenyesuaian  and filtered_data != 0:
-                # filtered_data = []
-                # for tanggalawal,tanggalakhir in zip(listartikelmaster[indexartikel].tanggalpenyesuaian, listartikelmaster[indexartikel].tanggalakhirpenyesuaian):
-                #     if tanggalawal <= i <= tanggalakhir:
-                #     print(f"Tanggal {i} berada dalam rentang {tanggalawal} dan {tanggalakhir}")
-                # else:
-                #     print(f"Tanggal {i} tidak berada dalam rentang {tanggalawal} dan {tanggalakhir}")
+                
+                cektanggal  = penyesuaianobj.filter(TanggalMulai__lte = i, TanggalMinus__gte = i).last()
+                print(cektanggal)
+                print(penyesuaianobj,i)
+                # print(asd)
+                if cektanggal:
+                    print('Ada data')
+                    filtered_data.sort(reverse=True)
+                    tanggalversiterdekat = cektanggal.TanggalMulai
+                    print(tanggalversiterdekat)
+                    indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalpenyesuaian).index(tanggalversiterdekat)
+                    konversiterdekat = listartikelmaster[indexartikel].listpenyesuaian[indextanggalterdekat]
+                    print(i,cektanggal,konversiterdekat)
+                    # print(asd)
+                else :
+                    filtered_data.sort(reverse=True)
+                    tanggalversiterdekat = max(filtered_data)
+                    print(tanggalversiterdekat)
+                    indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalversi).index(tanggalversiterdekat)
+                    konversiterdekat = listartikelmaster[indexartikel].listkonversi[indextanggalterdekat]
+                # print(asd)
+
 
                     
 
                 #     print(asd)
-                filtered_data = [d for d in listartikelmaster[indexartikel].tanggalpenyesuaian if d <= i]
-                print(i,filtered_data,listartikelmaster[indexartikel].tanggalpenyesuaian)
+                # filtered_data = [d for d in listartikelmaster[indexartikel].tanggalpenyesuaian if d <= i]
+                # print(i,filtered_data,listartikelmaster[indexartikel].tanggalpenyesuaian)
                 # print(asd)
 
-                if not filtered_data:
-                    konversiterdekat = konversiterdekat
-                else:
-                    filtered_data.sort(reverse=True)
-                    tanggalversiterdekat = max(filtered_data)
-                    indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalpenyesuaian).index(tanggalversiterdekat)
-                    konversiterdekat = listartikelmaster[indexartikel].listpenyesuaian[indextanggalterdekat]
+                # if not filtered_data:
+                #     konversiterdekat = konversiterdekat
+                # else:
+                #     filtered_data.sort(reverse=True)
+                #     tanggalversiterdekat = max(filtered_data)
+                #     indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalpenyesuaian).index(tanggalversiterdekat)
+                #     konversiterdekat = listartikelmaster[indexartikel].listpenyesuaian[indextanggalterdekat]
 
             konversiterdekat= (konversiterdekat)
             datamodelskonversi.append(konversiterdekat)
@@ -1971,23 +1990,46 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
             indexartikel = listartikelmaster.index(artikelkeluarobj)
             filtered_data = [d for d in listartikelmaster[indexartikel].tanggalversi if d <= i]
             filtered_data.sort(reverse=True)
+            print(filtered_data,i)
+            # print(asd)
+            
             if not filtered_data:
-                filtered_data = [d for d in listartikelmaster[indexartikel].tanggalversi]
+                filtered_data = 0
 
-            tanggalversiterdekat = max(filtered_data)
-            indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalversi).index(tanggalversiterdekat)
-            konversiterdekat = listartikelmaster[indexartikel].listkonversi[indextanggalterdekat]
+            if filtered_data !=  0:
+                tanggalversiterdekat = max(filtered_data)
+                indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalversi).index(tanggalversiterdekat)
+                konversiterdekat = listartikelmaster[indexartikel].listkonversi[indextanggalterdekat]
+            else:
+                tanggalversiterdekat = i
+                konversiterdekat = 0
+                
+            if listartikelmaster[indexartikel].tanggalpenyesuaian and filtered_data != 0 :
+                # filtered_data = [d for d in listartikelmaster[indexartikel].tanggalpenyesuaian if d <= i]
+                cektanggal  = penyesuaianobj.filter(TanggalMulai__lte = i, TanggalMinus__gte = i)
+                print(cektanggal)
+                if cektanggal:
+                    print('Ada data')
+                    tanggalversiterdekat = cektanggal.TanggalMulai
+                    print(tanggalversiterdekat)
+                    indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalpenyesuaian).index(tanggalversiterdekat)
+                    konversiterdekat = listartikelmaster[indexartikel].listpenyesuaian[indextanggalterdekat]
+                    print(i,cektanggal,konversiterdekat)
 
-            if listartikelmaster[indexartikel].tanggalpenyesuaian :
-                filtered_data = [d for d in listartikelmaster[indexartikel].tanggalpenyesuaian if d <= i]
+                else :
+                    filtered_data.sort(reverse=True)
+                    tanggalversiterdekat = max(filtered_data)
+                    print(tanggalversiterdekat)
+                    indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalversi).index(tanggalversiterdekat)
+                    konversiterdekat = listartikelmaster[indexartikel].listkonversi[indextanggalterdekat]
 
                 if not filtered_data:
                     konversiterdekat = konversiterdekat
                 else:
                     filtered_data.sort(reverse=True)
                     tanggalversiterdekat = max(filtered_data)
-                    indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalpenyesuaian).index(tanggalversiterdekat)
-                    konversiterdekat = listartikelmaster[indexartikel].listpenyesuaian[indextanggalterdekat]
+                    indextanggalterdekat = list(listartikelmaster[indexartikel].tanggalversi).index(tanggalversiterdekat)
+                    konversiterdekat = listartikelmaster[indexartikel].listkonversi[indextanggalterdekat]
 
             konversiterdekat= (konversiterdekat)
             datamodelskonversi.append(konversiterdekat)
@@ -2983,7 +3025,7 @@ def kalkulatorpenyesuaian2(request):
         sumproduct = 0
         jumlahkeluar = 0
         jumlahxkonversidictionary = {}
-        datapenyesuaian = models.Penyesuaian.objects.filter(KodePenyusun__KodeProduk = produk).values_list('TanggalMinus',flat=True).distinct()
+        datapenyesuaian = models.Penyesuaian.objects.filter(KodeProduk = produk).values_list('TanggalMinus',flat=True).distinct()
         print(datapenyesuaian)
         # print(asd)
         print(tanggalstokopname)

@@ -167,14 +167,15 @@ class KonversiMaster(models.Model):
 
 class Penyesuaian(models.Model):
     IDPenyesuaian = models.AutoField(primary_key=True)
-    KodePenyusun = models.ForeignKey(Penyusun, on_delete=models.CASCADE)
+    KodeProduk = models.ForeignKey(Produk,on_delete=models.CASCADE,null=True,blank=True)
+    KodeArtikel = models.ForeignKey(Artikel,on_delete=models.CASCADE,null=True,blank=True)
     TanggalMulai = models.DateField()
     TanggalMinus = models.DateField(null=True, blank=True)
 
     konversi = models.FloatField(blank=True, null=True)
 
     def __str__(self):
-        return str(self.KodePenyusun)
+        return f"{self.KodeArtikel} {self.KodeProduk} {self.TanggalMulai} - {self.TanggalMinus}"
 
 
 class SPPB(models.Model):
