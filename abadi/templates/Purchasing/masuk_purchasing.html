@@ -85,18 +85,18 @@
                         <td>{{i.harga_ppn|custom_thousands_separator}}</td>
                         <td>{{i.harga_total_ppn|custom_thousands_separator}}</td>
                         <td>
-                          {% if i.TanggalInvoice == None %}
+                          {% if i.NoSuratJalan.TanggalInvoice == None %}
                           -
                           {% else %}
-                          {{i.TanggalInvoice}}
+                          {{i.NoSuratJalan.TanggalInvoice}}
                           {% endif %}
                         </td>
                         <td>
-                          {% if i.NoInvoice == None %}
+                          {% if i.NoSuratJalan.NoInvoice == None %}
                           -
                           {% else %}
 
-                          {{i.NoInvoice}}
+                          {{i.NoSuratJalan.NoInvoice}}
                           {% endif %}
                         </td>
                         <td>
@@ -157,18 +157,18 @@
                         <td>{{i.harga_ppn_1|custom_thousands_separator}}</td>
                         <td>{{i.harga_total_ppn_1|custom_thousands_separator}}</td>
                         <td>
-                          {% if i.TanggalInvoice == None %}
+                          {% if i.NoSuratJalan.TanggalInvoice == None %}
                           -
                           {% else %}
-                          {{i.TanggalInvoice}}
+                          {{i.NoSuratJalan.TanggalInvoice}}
                           {% endif %}
                         </td>
                         <td>
-                          {% if i.NoInvoice == None %}
+                          {% if i.NoSuratJalan.NoInvoice == None %}
                           -
                           {% else %}
 
-                          {{i.NoInvoice}}
+                          {{i.NoSuratJalan.NoInvoice}}
                           {% endif %}
                         </td>
                         <td>

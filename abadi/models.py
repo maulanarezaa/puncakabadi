@@ -78,6 +78,7 @@ class DetailSuratJalanPembelian(models.Model):
     Jumlah = models.IntegerField()
     KeteranganACC = models.BooleanField()
     Harga = models.FloatField()
+    HargaDollar = models.FloatField(default=0)
 
     def __str__(self):
         return str(self.NoSuratJalan) + " " + str(self.KodeProduk)
@@ -389,6 +390,8 @@ class DetailSuratJalanPengirimanBahanBakuSubkon(models.Model):
 class SuratJalanPenerimaanProdukSubkon(models.Model):
     NoSuratJalan = models.CharField(max_length=255)
     Tanggal = models.DateField()
+    NoInvoice = models.CharField(max_length=255,null=True,blank=True)
+    TanggalInvoice = models.DateField(blank=True,null=True)
 
     def __str__(self):
         return f"{self.NoSuratJalan} - {self.Tanggal}"
@@ -403,8 +406,7 @@ class DetailSuratJalanPenerimaanProdukSubkon(models.Model):
     Jumlah = models.IntegerField()
     Keterangan = models.CharField(max_length=255, null=True, blank=True, default="")
     Harga = models.FloatField(default=0)
-    NoInvoice = models.CharField(max_length=255,null=True,blank=True)
-    TanggalInvoice = models.DateField(blank=True,null=True)
+
 
     def __str__(self):
         return f"{self.NoSuratJalan} - {self.KodeProduk} - {self.Jumlah}"

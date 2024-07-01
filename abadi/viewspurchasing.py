@@ -515,6 +515,8 @@ def barang_masuk(request):
             for x in sjball:
                 harga_total = x.Jumlah * x.Harga
                 x.NoSuratJalan.Tanggal = x.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
+                if x.NoSuratJalan.TanggalInvoice is not None:
+                    x.NoSuratJalan.TanggalInvoice = x.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d")
                 print(harga_total)
                 list_harga_total1.append(harga_total)
             for item in list_harga_total1:
@@ -570,7 +572,10 @@ def barang_masuk(request):
             # ppn = 0.11
             for x in filtersjb:
                 harga_total = x.Jumlah * x.Harga
+                x.NoSuratJalan.Tanggal = x.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
                 list_harga_total.append(harga_total)
+                if x.NoSuratJalan.TanggalInvoice is not None:
+                    x.NoSuratJalan.TanggalInvoice = x.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d")
             for item in list_harga_total:
                 harga_ppn_1 = item*inputppn
                 harga_total_ppn_1 = item+harga_ppn_1
@@ -2331,6 +2336,8 @@ def views_rekaphargasubkon(request):
             for x in sjball:
                 harga_total = x.Jumlah * x.Harga
                 x.NoSuratJalan.Tanggal = x.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
+                if x.NoSuratJalan.TanggalInvoice is not None:
+                    x.NoSuratJalan.TanggalInvoice = x.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d")
                 print(harga_total)
                 list_harga_total1.append(harga_total)
             for item in list_harga_total1:
@@ -2382,6 +2389,9 @@ def views_rekaphargasubkon(request):
 
             for x in filtersjb:
                 harga_total = x.Jumlah * x.Harga
+                x.NoSuratJalan.Tanggal = x.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
+                if x.NoSuratJalan.TanggalInvoice is not None:
+                    x.NoSuratJalan.TanggalInvoice = x.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d")
                 list_harga_total.append(harga_total)
             for item in list_harga_total:
                 harga_ppn_1 = item*inputppn
