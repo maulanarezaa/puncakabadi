@@ -28,8 +28,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Tanggal</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="tanggal_masuk" value="{{verifobj.NoSuratJalan.Tanggal}}"
-                  readonly />
+                <input type="text" class="form-control" name="tanggal_masuk" value="{{verifobj.NoSuratJalan.Tanggal}}" readonly />
               </div>
             </div>
           </div>
@@ -37,8 +36,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Kode Bahan Baku</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="nama_produk" value="{{verifobj.KodeProduk.NamaProduk}}"
-                  readonly />
+                <input type="text" class="form-control" name="nama_produk" value="{{verifobj.KodeProduk.NamaProduk}}" readonly />
               </div>
             </div>
           </div>
@@ -48,8 +46,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Nama Bahan Baku</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="nama_produk" value="{{verifobj.KodeProduk.NamaProduk}}"
-                  readonly />
+                <input type="text" class="form-control" name="nama_produk" value="{{verifobj.KodeProduk.NamaProduk}}" readonly />
               </div>
             </div>
           </div>
@@ -57,8 +54,38 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Kuantitas</label>
               <div class="col-sm-9">
-                <input type="number" class="form-control" name="kuantitas_masuk" id="kuantitas_masuk"
-                  value="{{verifobj.Jumlah}}" readonly />
+                <input type="number" class="form-control" name="kuantitas_masuk" id="kuantitas_masuk" value="{{verifobj.Jumlah}}" readonly />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Mata Uang</label>
+              <div class="col-sm-9">
+                <select class="form-control" name="mata_uang" id="mata_uang" onchange="toggle_konversi()">
+                  <option value="rupiah" selected>Rupiah</option>
+                  <option value="dollar">Dollar</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row" id="row_konversi" style="display: none;">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Harga Konversi (Rp/USD)</label>
+              <div class="col-sm-9">
+                <input type="number" class="form-control" name="harga_konversi" id="harga_konversi" value="16000" onchange="update_harga_total()" />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Harga Dollar</label>
+              <div class="col-sm-9">
+                <input min="0" type="number" step="any" class="form-control" name="harga_dollar" id="harga_dollar" onchange="update_harga_total()" />
               </div>
             </div>
           </div>
@@ -68,19 +95,15 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Harga Satuan</label>
               <div class="col-sm-9">
-                <input min="0" type="number" class="form-control" name="harga_barang" id="harga_barang"
-                  value="{{verifobj.Harga}}" onchange="update_harga_total()" required />
+                <input min="0" type="number" class="form-control" name="harga_barang" id="harga_barang" value="{{verifobj.Harga}}" readonly />
               </div>
             </div>
           </div>
-        </div>
-        <div class="row">
           <div class="col-md-6">
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Harga Total</label>
               <div class="col-sm-9">
-                <input type="number" class="form-control" name="harga_total" id="harga_total" value="{{harga_total}}"
-                  readonly />
+                <input type="number" class="form-control" name="harga_total" id="harga_total" value="{{harga_total}}" readonly />
               </div>
             </div>
           </div>
@@ -90,19 +113,15 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Supplier</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="supplier" value="{{verifobj.NoSuratJalan.supplier}}"
-                  required />
+                <input type="text" class="form-control" name="supplier" value="{{verifobj.NoSuratJalan.supplier}}" required />
               </div>
             </div>
           </div>
-        </div>
-        <div class="row">
           <div class="col-md-6">
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">PO</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="po_barang" value="{{verifobj.NoSuratJalan.PO}}"
-                  required />
+                <input type="text" class="form-control" name="po_barang" value="{{verifobj.NoSuratJalan.PO}}" required />
               </div>
             </div>
           </div>
@@ -113,16 +132,44 @@
   </div>
 </div>
 <script type="text/javascript">
+  function toggle_konversi() {
+    var mata_uang = $("#mata_uang").val();
+    if (mata_uang === "dollar") {
+      $("#row_konversi").show();
+      $("#harga_barang").prop("readonly", true);
+    } else {
+      $("#row_konversi").hide();
+      $("#harga_barang").prop("readonly", false);
+    }
+    update_harga_total();
+  }
+
   function update_harga_total() {
     var kuantitas = $("#kuantitas_masuk").val();
-    var harga_satuan = $("#harga_barang").val();
-    var harga_total_barang = kuantitas * harga_satuan;
+    var harga_satuan;
+    var mata_uang = $("#mata_uang").val();
+    var harga_total_barang;
+
+    if (mata_uang === "dollar") {
+      var harga_dollar = $("#harga_dollar").val();
+      var harga_konversi = $("#harga_konversi").val();
+      harga_satuan = harga_dollar * harga_konversi;
+      $("#harga_barang").val(harga_satuan);
+    } else {
+      harga_satuan = $("#harga_barang").val();
+    }
+
+    harga_total_barang = kuantitas * harga_satuan;
+
     $.ajax({
       success: function (data) {
-
         $("#harga_total").val(harga_total_barang);
       }
     });
   }
+
+  $(document).ready(function() {
+    toggle_konversi();
+  });
 </script>
 {% endblock content %}

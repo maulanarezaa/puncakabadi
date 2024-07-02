@@ -54,6 +54,36 @@
           </tbody>
         </table>
       </div>
+      <div class="table-responsive pt-3">
+
+        <h5>Barang retur ke Gudang</h5>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Jumlah</th>
+              <th>Lokasi</th>
+              <th>Keterangan</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if dataretur %}
+            {% for i in dataretur %}
+            <tr>
+              <td>{{i.tanggal}}</td>
+                            <td>{{i.jumlah}}</td>
+              <td>{{i.Lokasi}}</td>
+              <td>{{i.keterangan}}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="5">Tidak ada data</td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
       <div class="table-responsive pt-3 mt-3">
 
         <h5>Mutasi Barang ke FG</h5>

@@ -1723,7 +1723,10 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
     '''
     # Menceri data transaksi gudang dengan kode 
     datagudang = models.TransaksiGudang.objects.filter(
-        KodeProduk=produk, tanggal__range=(tanggal_mulai, tanggal_akhir)
+        KodeProduk=produk, tanggal__range=(tanggal_mulai, tanggal_akhir),Lokasi__NamaLokasi__in=('WIP',"FG"),jumlah__gte=0
+    )
+    dataretur = models.TransaksiGudang.objects.filter(
+        KodeProduk=produk, tanggal__range=(tanggal_mulai, tanggal_akhir),Lokasi__NamaLokasi__in=('WIP',"FG"),jumlah__lt=0
     )
     # Kode Artikel yang di susun oleh bahan baku 
     penyusun_produk = (
@@ -1737,10 +1740,10 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
     # Mencari data pemusnahan artikel yang disupport
     pemusnahanobj = models.PemusnahanArtikel.objects.filter(
         KodeArtikel__id__in=penyusun_produk,
-        Tanggal__range=(tanggal_mulai, tanggal_akhir),
+        Tanggal__range=(tanggal_mulai, tanggal_akhir),lokasi__NamaLokasi__in=('WIP',"FG")
     )
     # Mencari data pemusnahan bahan baku 
-    pemusnahanbahanbakuobj = models.PemusnahanBahanBaku.objects.filter(KodeBahanBaku = produk,Tanggal__range=(tanggal_mulai,tanggal_akhir))
+    pemusnahanbahanbakuobj = models.PemusnahanBahanBaku.objects.filter(KodeBahanBaku = produk,Tanggal__range=(tanggal_mulai,tanggal_akhir),lokasi__NamaLokasi__in=('WIP',"FG"))
 
     # print(dasdas)
     dataproduksi = models.TransaksiProduksi.objects.filter(
@@ -1832,6 +1835,7 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
         
     ''' TANGGAL SECTION '''
     tanggalmasuk = datagudang.values_list("tanggal", flat=True)
+    tanggalretur = dataretur.values_list('tanggal',flat=True)
     tanggalkeluar = dataproduksi.values_list("Tanggal", flat=True)
     tanggalpemusnahan = pemusnahanobj.values_list("Tanggal", flat=True)
     tanggalpemusnahanbahanbaku = pemusnahanbahanbakuobj.values_list('Tanggal',flat=True)
@@ -1840,7 +1844,7 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
     '''BELUM MEMPERTIMBANGKAN KELUAR DISPLAY'''
 
     listtanggal = sorted(
-        list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalpemusnahan).union(tanggalpemusnahanbahanbaku)))
+        list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalpemusnahan).union(tanggalpemusnahanbahanbaku).union(tanggalretur)))
     )
 
     ''' SALDO AWAL SECTION '''
@@ -1883,6 +1887,10 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
         masuk = 0
         masukdisplay = 0
         datamasuk = datagudang.filter(tanggal=i)
+        datakeluarretur = dataretur.filter(tanggal=i)
+        datakeluar = dataproduksi.filter(Tanggal = i)
+        datapemusnahan = pemusnahanobj.filter(Tanggal = i)
+        datapemusnahanbahanbaku = pemusnahanbahanbakuobj.filter(Tanggal = i)
 
         for k in datamasuk:
             masuk += k.jumlah
@@ -1895,17 +1903,14 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
         
         # Data Keluar
         data['Masuk'] = masuk
-        datakeluar = dataproduksi.filter(Tanggal = i)
-        datapemusnahan = pemusnahanobj.filter(Tanggal = i)
-        datapemusnahanbahanbaku = pemusnahanbahanbakuobj.filter(Tanggal = i)
 
         artikelkeluar = datakeluar.values_list('KodeArtikel',flat=True).distinct()
         artikelpemusnahan = datapemusnahan.values_list('KodeArtikel',flat=True).distinct()
-        # '''Belum Mempertimbangkan keluar Display''' DONE
+
         if masukdisplay != 0:
             datamodelskeluar.append(masukdisplay)
             sisa -=masukdisplay
-                # if display.DetailSPPBDisplay != None:
+
 
         for j in artikelkeluar:
             artikelkeluarobj = models.Artikel.objects.get(id = j)
@@ -1920,10 +1925,8 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
 
 
             if not filtered_data:
-                # filtered_data = [d for d in listartikelmaster[indexartikel].tanggalversi]
                 filtered_data = 0
-                # print(filtered_data)
-                # print(asd)
+
 
             if filtered_data != 0:
                 tanggalversiterdekat = max(filtered_data)
@@ -1932,9 +1935,6 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
             else:
                 tanggalversiterdekat = i
                 konversiterdekat = 0
-
-            # print(tanggalversiterdekat,konversiterdekat)
-            # print(asd)
 
             if listartikelmaster[indexartikel].tanggalpenyesuaian  and filtered_data != 0:
                 
@@ -2048,6 +2048,14 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
             sisa -= totalbahanbakurusak['total']
             datamodelssisa.append(sisa)
             datamodelskeluar.append(totalbahanbakurusak['total'])
+        # Barang retur
+        if datakeluarretur.exists():
+            # Mengagregat Jumlah Bahan Baku rusak
+            totalbahanbakuretur = datakeluarretur.aggregate(total=Sum('jumlah'))
+
+            sisa -= totalbahanbakuretur['total']*-1
+            datamodelssisa.append(sisa)
+            datamodelskeluar.append(totalbahanbakuretur['total']*-1)
             # print(asdasd)
 
         if not datamodelssisa :
@@ -2109,7 +2117,10 @@ def detailksbb(request, id, tanggal):
     tanggal = tanggal.strftime("%Y-%m-%d")
 
     # Transaksi Gudang
-    datagudang = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk=id)
+    datagudang = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk=id,Lokasi__NamaLokasi__in=('WIP','FG'),jumlah__gte=0)
+    dataretur = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk=id,Lokasi__NamaLokasi__in=('WIP','FG'),jumlah__lt=0)
+    for item in dataretur:
+        item.jumlah = item.jumlah * -1
     listartikel = (
         models.Penyusun.objects.filter(KodeProduk__KodeProduk=id)
         .values_list("KodeArtikel__KodeArtikel", flat=True)
@@ -2124,11 +2135,12 @@ def detailksbb(request, id, tanggal):
 
     # Transaksi Pemusnahan
     datapemusnahan = models.PemusnahanArtikel.objects.filter(
-        KodeArtikel__KodeArtikel__in=listartikel, Tanggal=tanggal
+        KodeArtikel__KodeArtikel__in=listartikel, Tanggal=tanggal,
     )
     # Transaksi Pemusnahan Bahan Baku
-    datapemusnahanbahanbaku  =models.PemusnahanBahanBaku.objects.filter(Tanggal = tanggal,KodeBahanBaku = id)
+    datapemusnahanbahanbaku  =models.PemusnahanBahanBaku.objects.filter(Tanggal = tanggal,KodeBahanBaku = id,lokasi__NamaLokasi__in=('WIP','FG'))
     print(datapemusnahanbahanbaku)
+    print(datagudang)
     return render(
         request,
         "produksi/view_detailksbb.html",
@@ -2136,7 +2148,8 @@ def detailksbb(request, id, tanggal):
             "datagudang": datagudang,
             "dataproduksi": dataproduksi,
             "datapemusnahan": datapemusnahan,
-            'datapemusnahanbahanbaku' : datapemusnahanbahanbaku
+            'datapemusnahanbahanbaku' : datapemusnahanbahanbaku,
+            "dataretur" : dataretur
         },
     )
 

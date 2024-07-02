@@ -271,9 +271,14 @@ def verifikasi_data(request, id):
             },
         )
     else:
+        print(request.POST)
+        # print(asd)
+        matauang = request.POST['mata_uang']
         harga_barang = request.POST["harga_barang"]
         supplier = request.POST["supplier"]
         po_barang = request.POST["po_barang"]
+        if matauang == "dollar":
+            verifobj.HargaDollar = request.POST['harga_dollar']
         verifobj.KeteranganACC = True
         verifobj.Harga = harga_barang
         verifobj.NoSuratJalan.supplier = supplier
@@ -610,8 +615,14 @@ def barang_masuk(request):
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_barang_masuk(request, id):
     updateobj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
+    if updateobj.HargaDollar > 0:
+        updateobj.hargakonversi = updateobj.Harga / updateobj.HargaDollar
+    else:
+        updateobj.hargakonversi = 16000
+
     if request.method == "GET":
         harga_total = updateobj.Jumlah * updateobj.Harga
+        updateobj.NoSuratJalan.TanggalInvoice =updateobj.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d")
         return render(
             request,
             "Purchasing/update_barang_masuk.html",
@@ -621,9 +632,25 @@ def update_barang_masuk(request, id):
             },
         )
     else:
+        print(request.POST)
+        # print(asd)
         harga_barang = request.POST["harga_barang"]
         supplier = request.POST["supplier"]
         po_barang = request.POST["po_barang"]
+        matauang = request.POST['mata_uang']
+        noinvoice = request.POST['noinvoice']
+        tanggalinvoice = request.POST['tanggalinvoice']
+        if noinvoice != "":
+            updateobj.NoSuratJalan.NoInvoice = noinvoice
+        else :
+            updateobj.NoSuratJalan.NoInvoice = None
+        
+        if tanggalinvoice != "":
+            updateobj.NoSuratJalan.TanggalInvoice = tanggalinvoice
+        else:
+            updateobj.NoSuratJalan.TanggalInvoice = None
+        if matauang == "dollar" :
+            updateobj.HargaDollar = request.POST['harga_dollar'] 
         updateobj.Harga = harga_barang
         updateobj.NoSuratJalan.supplier = supplier
         updateobj.NoSuratJalan.PO = po_barang
@@ -636,7 +663,59 @@ def update_barang_masuk(request, id):
             jenis="Update",
             pesan=f"No Surat Jalan{updateobj.NoSuratJalan} sudah di Update",
         ).save()
+        messages.success(request,'Data berhasil disimpan')
         return redirect("barang_masuk")
+        # return JsonResponse({'harga_total': harga_total})
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
+def update_barangsubkon_masuk(request, id):
+    updateobj = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPengirimanSubkon=id)
+    # if updateobj.HargaDollar > 0:
+    #     updateobj.hargakonversi = updateobj.Harga / updateobj.HargaDollar
+    # else:
+    #     updateobj.hargakonversi = 16000
+
+    if request.method == "GET":
+        harga_total = updateobj.Jumlah * updateobj.Harga
+        return render(
+            request,
+            "Purchasing/update_barangsubkon_masuk.html",
+            {
+                "updateobj": updateobj,
+                "harga_total": harga_total,
+            },
+        )
+    else:
+        print(request.POST)
+
+        harga_barang = request.POST["harga_barang"]
+        matauang = request.POST['mata_uang']
+        noinvoice = request.POST['noinvoice']
+        tanggalinvoice = request.POST['tanggalinvoice']
+        if noinvoice != "":
+            updateobj.NoSuratJalan.NoInvoice = noinvoice
+        else :
+            updateobj.NoSuratJalan.NoInvoice = None
+        
+        if tanggalinvoice != "":
+            updateobj.NoSuratJalan.TanggalInvoice = tanggalinvoice
+        else:
+            updateobj.NoSuratJalan.TanggalInvoice = None
+
+        if matauang == "dollar" :
+            updateobj.HargaDollar = request.POST['harga_dollar'] 
+        updateobj.Harga = harga_barang
+        updateobj.save()
+        updateobj.NoSuratJalan.save()
+        models.transactionlog(
+            user="Purchasing",
+            waktu=datetime.now(),
+            jenis="Update",
+            pesan=f"No Surat Jalan{updateobj.NoSuratJalan} sudah di Update",
+        ).save()
+        messages.success(request,'Data berhasil disimpan')
+        return redirect("rekaphargasubkon")
         # return JsonResponse({'harga_total': harga_total})
 
 

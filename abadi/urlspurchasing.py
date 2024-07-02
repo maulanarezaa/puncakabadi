@@ -27,6 +27,7 @@ urlpatterns = [
         viewspurchasing.update_barang_masuk,
         name="update_barang_masuk",
     ),
+    path('update_barangsubkon_masuk/<str:id>',viewspurchasing.update_barangsubkon_masuk,name='updatebarangsubkonmasuk'),
     # rekap purchasing(gudang+produksi)
     path("rekap_purchasing", viewspurchasing.rekap_purchasing, name="rekap_purchasing"),
     path("rekapgudang2", viewspurchasing.rekap_gudang, name="rekapgudang2"),
