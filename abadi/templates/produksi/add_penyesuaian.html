@@ -12,9 +12,7 @@
         <div class="card-body">
             <h4 class="card-title">Form Input Penyesuaian</h4>
             <div class="template-demo">
-                <a href="/produksi/viewspk">
-
-                </a>
+                <a href="/produksi/viewspk"></a>
             </div>
             <br>
             <form class="form-sample" action="" method="post">
@@ -36,22 +34,18 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
                 <div id="listartikels">
-
-
                     <div class="row" id="artikel_1">
                         <div class="col-md-3">
                             <div class="form-group ">
                                 <label class="">Artikel</label>
                                 <div class="">
-                                    <input type="text" name="artikel" class="form-control artikel" list="Artikel"
-                                        required placeholder="Pilih Artikel" onchange="loadVersiOptions(this)"
-                                        id="kodeartikel_1">
+                                    <input type="text" name="artikel_display" class="form-control artikel" list="Artikel" required placeholder="Pilih Artikel" onchange="setArtikelId(this)" id="kodeartikel_1">
+                                    <input type="hidden" name="artikel" id="hidden_kodeartikel_1">
                                     <datalist id="Artikel">
                                         {% for i in Artikel %}
-                                        <option value="{{i.id}}">{{i.KodeArtikel}}</option>
+                                        <option value="{{i.KodeArtikel}}" data-id="{{i.id}}">{{i.KodeArtikel}}</option>
                                         {% endfor %}
                                     </datalist>
                                 </div>
@@ -59,18 +53,21 @@
                         </div>
                         <div class="col-md-3">
                             <div class="form-group">
-                                <label class="">Versi</label>
+                                <label class="">Kode Bahan Baku</label>
                                 <div class="" id="versi_1">
-                                    {% include 'produksi/opsi_versi.html' %}
+                                    <input class="form-control" type="text" name="kodebahanbaku" list="kodebahanbaku" required placeholder="Masukkan Kode Bahan Baku" onchange="updateNamaBahanBaku(this)">
+                                    <datalist id="kodebahanbaku">
+                                        {% for i in kodebahanbaku %}
+                                        <option value="{{i.KodeProduk}}" data-namaproduk="{{i.NamaProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
+                                        {% endfor %}
+                                    </datalist>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="form-group">
-                                <label class="">Penyusun</label>
-                                <div class="" id="penyusun_1">
-                                    {% include 'produksi/opsi_penyusun.html' %}
-                                </div>
+                                <label class="">Nama Bahan Baku</label>
+                                <input type="text" disabled name="namabahanbaku" class="form-control namabahanbaku" value="">
                             </div>
                         </div>
                         <div class="col-md-2">
@@ -83,9 +80,6 @@
                         </div>
                     </div>
                 </div>
-
-
-
                 <button type="button" class="btn btn-success" onclick="addProduct()">
                     <i class="typcn typcn-plus btn-icon-prepend"></i>
                     Tambahkan Data
@@ -107,12 +101,11 @@
                             <div class="form-group ">
                                 <label class="">Artikel</label>
                                 <div class="">
-                                    <input type="text" name="artikel" class="form-control artikel"
-                                        list="Artikel" placeholder="Pilih Artikel" onchange="loadVersiOptions(this)"
-                                        required id="kodeartikel_${productCounter}">
+                                    <input type="text" name="artikel_display" class="form-control artikel" list="Artikel" required placeholder="Pilih Artikel" onchange="setArtikelId(this)" id="kodeartikel_${productCounter}">
+                                    <input type="hidden" name="artikel" id="hidden_kodeartikel_${productCounter}">
                                     <datalist id="Artikel">
                                         {% for i in Artikel %}
-                                        <option value="{{i.id}}">{{i.KodeArtikel}}</option>
+                                        <option value="{{i.KodeArtikel}}" data-id="{{i.id}}">{{i.KodeArtikel}}</option>
                                         {% endfor %}
                                     </datalist>
                                 </div>
@@ -120,18 +113,21 @@
                         </div>
                         <div class="col-md-3">
                             <div class="form-group">
-                                <label class="">Versi</label>
+                                <label class="">Kode Bahan Baku</label>
                                 <div class="" id="versi_${productCounter}">
-                                    {% include 'produksi/opsi_versi.html' %}
+                                    <input class="form-control" type="text" name="kodebahanbaku" list="kodebahanbaku" required placeholder="Masukkan Kode Bahan Baku" onchange="updateNamaBahanBaku(this)">
+                                    <datalist id="kodebahanbaku">
+                                        {% for i in kodebahanbaku %}
+                                        <option value="{{i.KodeProduk}}" data-namaproduk="{{i.NamaProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
+                                        {% endfor %}
+                                    </datalist>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="form-group">
-                                <label class="">Penyusun</label>
-                                <div class="" id="penyusun_${productCounter}">
-                                    {% include 'produksi/opsi_penyusun.html' %}
-                                </div>
+                                <label class="">Nama Bahan Baku</label>
+                                <input type="text" disabled name="namabahanbaku" class="form-control namabahanbaku" value="">
                             </div>
                         </div>
                         <div class="col-md-2">
@@ -149,6 +145,7 @@
     function deleteRow(button) {
         button.closest('.row').remove();
     }
+
     function loadVersiOptions(selectElement) {
         var artikel = selectElement.value;
         var productCounter = selectElement.id.split('_')[1];
@@ -171,6 +168,7 @@
             }
         });
     }
+
     function loadPenyusunOptions(selectElement) {
         var versi = selectElement.value;
 
@@ -197,6 +195,40 @@
                 detailSpkDiv.innerHTML = data;
             }
         });
+    }
+
+    function updateNamaBahanBaku(selectElement) {
+        const datalist = selectElement.list;
+        const options = datalist.options;
+        let namaBahanBaku = '';
+        
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === selectElement.value) {
+                namaBahanBaku = options[i].dataset.namaproduk;
+                break;
+            }
+        }
+
+        const parentRow = selectElement.closest('.row');
+        const namaBahanBakuInput = parentRow.querySelector('.namabahanbaku');
+        namaBahanBakuInput.value = namaBahanBaku;
+    }
+
+    function setArtikelId(selectElement) {
+        const datalist = selectElement.list;
+        const options = datalist.options;
+        let artikelId = '';
+        
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === selectElement.value) {
+                artikelId = options[i].dataset.id;
+                break;
+            }
+        }
+
+        const productCounter = selectElement.id.split('_')[1];
+        const hiddenInput = document.getElementById(`hidden_kodeartikel_${productCounter}`);
+        hiddenInput.value = artikelId;
     }
 </script>
 {% endblock javascripts %}

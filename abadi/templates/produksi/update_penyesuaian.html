@@ -8,9 +8,7 @@
         <div class="card-body">
             <h4 class="card-title">Form Input Penyesuaian</h4>
             <div class="template-demo">
-                <a href="/produksi/viewspk">
-
-                </a>
+                <a href="/produksi/viewspk"></a>
             </div>
             <br>
             <form class="form-sample" action="" method="post">
@@ -40,39 +38,35 @@
                         <div class="form-group">
                             <label class="">Artikel</label>
                             <div class="">
-                                <input type="text" name="artikel" class="form-control artikel" list="Artikel" required
-                                    placeholder="Pilih Artikel" onchange="loadVersiOptions(this)"
-                                    value="{{dataobj.KodePenyusun.KodeArtikel.KodeArtikel}}" id="kodeartikel_1">
+                                <input type="text" name="artikel_display" class="form-control artikel" list="Artikel" required
+                                    placeholder="Pilih Artikel" onchange="setArtikelId(this); loadVersiOptions(this);"
+                                    value="{{dataobj.KodeArtikel.KodeArtikel}}" id="kodeartikel_1">
+                                <input type="hidden" name="artikel" id="hidden_kodeartikel_1" value="{{dataobj.KodeArtikel.id}}">
                                 <datalist id="Artikel">
                                     {% for i in Artikel %}
-                                    <option value="{{i.id}}">{{i.KodeArtikel}}</option>
+                                    <option value="{{i.KodeArtikel}}" data-id="{{i.id}}">{{i.KodeArtikel}}</option>
                                     {% endfor %}
                                 </datalist>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="form-group ">
-                            <label class="">Versi</label>
+                        <div class="form-group">
+                            <label class="">Kode Bahan Baku</label>
                             <div class="" id="versi_1">
-                                <select class="form-control" name="versi">
-                                    <option value="{{dataobj.KodePenyesuaian.KodePenyusun.KodeProduk.KodeProduk}}"
-                                        selected> {{dataobj.KodePenyusun.versi}}
-                                    </option>
-                                </select>
+                                <input class="form-control" value="{{dataobj.KodeProduk}}" type="text" name="kodebahanbaku" list="kodebahanbaku" required placeholder="Masukkan Kode Bahan Baku" onchange="updateNamaBahanBaku(this)">
+                                <datalist id="kodebahanbaku">
+                                    {% for i in kodebahanbaku %}
+                                    <option value="{{i.KodeProduk}}" data-namaproduk="{{i.NamaProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
+                                    {% endfor %}
+                                </datalist>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="form-group ">
-                            <label class="">Bahan Baku</label>
-                            <div class="" id="penyusun_1">
-                                <select class="form-control" name="penyusun">
-                                    <option value=" {{dataobj.KodePenyusun.IDKodePenyusun}}" selected>
-                                        {{dataobj.KodePenyusun.KodeProduk.KodeProduk}}
-                                    </option>
-                                </select>
-                            </div>
+                        <div class="form-group">
+                            <label class="">Nama Bahan Baku</label>
+                            <input type="text" disabled name="namabahanbaku" class="form-control namabahanbaku" value="{{dataobj.KodeProduk.NamaProduk}}">
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -80,19 +74,12 @@
                             <label class="">Kuantitas</label>
                             <div class="" id="produk">
                                 <input type="text" class="form-control" name="kuantitas" value="{{dataobj.konversi}}">
-
-
                             </div>
                         </div>
                     </div>
                     <input type="text" hidden name="idpenyesuaian" value="{{dataobj.IDPenyesuaian}}">
                 </div>
-
                 <input type="text" value="{{dataobj.IDDetailKonversiProduksi}}" hidden name="id">
-
-
-
-
                 <button type="submit" class="btn btn-primary mr-2">Submit</button>
             </form>
         </div>
@@ -100,10 +87,26 @@
 </div>
 
 {% block javascripts %}
-
 <script>
+    function setArtikelId(selectElement) {
+        const datalist = selectElement.list;
+        const options = datalist.options;
+        let artikelId = '';
+
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === selectElement.value) {
+                artikelId = options[i].dataset.id;
+                break;
+            }
+        }
+
+        const productCounter = selectElement.id.split('_')[1];
+        const hiddenInput = document.getElementById(`hidden_kodeartikel_${productCounter}`);
+        hiddenInput.value = artikelId;
+    }
+
     function loadVersiOptions(selectElement) {
-        var artikel = selectElement.value;
+        var artikel = document.getElementById(`hidden_kodeartikel_${selectElement.id.split('_')[1]}`).value;
         var productCounter = selectElement.id.split('_')[1];
         var detailSpkDiv = document.getElementById('versi_' + productCounter);
 
@@ -127,10 +130,9 @@
 
     function loadPenyusunOptions(selectElement) {
         var versi = selectElement.value;
-
-        var productCounter = selectElement.parentNode.id.split('_')[1]
+        var productCounter = selectElement.parentNode.id.split('_')[1];
         var detailSpkDiv = document.getElementById('penyusun_' + productCounter);
-        var artikel = document.getElementById('kodeartikel_' + productCounter)
+        var artikel = document.getElementById('hidden_kodeartikel_' + productCounter).value;
 
         var url = "{% url 'load_penyusun' %}";
 
@@ -142,7 +144,7 @@
             url: url,
             data: {
                 'versi': versi,
-                'artikel': artikel.value
+                'artikel': artikel
             },
             dataType: 'html',
             success: function (data) {
@@ -151,6 +153,22 @@
         });
     }
 
+    function updateNamaBahanBaku(selectElement) {
+        const datalist = selectElement.list;
+        const options = datalist.options;
+        let namaBahanBaku = '';
+
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === selectElement.value) {
+                namaBahanBaku = options[i].dataset.namaproduk;
+                break;
+            }
+        }
+
+        const parentRow = selectElement.closest('.row');
+        const namaBahanBakuInput = parentRow.querySelector('.namabahanbaku');
+        namaBahanBakuInput.value = namaBahanBaku;
+    }
 </script>
 {% endblock javascripts %}
 {% endblock content %}
