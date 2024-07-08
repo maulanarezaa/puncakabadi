@@ -61,7 +61,7 @@ urlpatterns = [
     ),
     path("viewksbb", viewsproduksi.view_ksbb3, name="view_ksbb"),
     path(
-        "viewksbb/<str:id>/<str:tanggal>", viewsproduksi.detailksbb, name="detail_ksbb"
+        "viewksbb/<str:id>/<str:tanggal>/<str:lokasi>", viewsproduksi.detailksbb, name="detail_ksbb"
     ),
     path("viewksbj", viewsproduksi.view_ksbj2, name="view_ksbj"),
     path("viewrekapbarang", viewsproduksi.view_rekapbarang, name="view_rekapbarang"),
@@ -228,7 +228,7 @@ urlpatterns = [
         viewsproduksi.kalkulatorpenyesuaian2,
         name="kalkulatorpenyesuaian",
     ),
-    path("viewsaldobahanbaku", viewsproduksi.view_saldobahan, name="view_saldobahan"),
+    path("viewsaldobahanbaku", viewsproduksi.view_saldobahan, name="view_saldobahanproduksi"),
     path("viewsaldoartikel", viewsproduksi.view_saldoartikel, name="view_saldoartikel"),
     path(
         "viewsaldobahansubkon",

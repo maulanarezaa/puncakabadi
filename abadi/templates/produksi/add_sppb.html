@@ -56,7 +56,7 @@
             <div class="col-md-4">
               <div class="form-group">
                 <label for="bahan_1">Bahan Baku 1:</label>
-                <input required type="text" class="form-control bahan" name="kode_bahan[]" id="kode_bahan-1" list="listbahan">
+                <input  type="text" class="form-control bahan" name="kode_bahan[]" id="kode_bahan-1" list="listbahan">
                 <datalist id="listbahan">
                   {% for item in bahan %}
                   <option value="{{ item.KodeProduk }}">{{ item.NamaProduk }}</option>

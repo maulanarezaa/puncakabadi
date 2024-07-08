@@ -8,6 +8,8 @@
 {% block javascripts %}
 {% endblock javascripts %}
 
+{% load customfilter %}
+
 <!-- Page content  -->
 {% block content %}
 <div class="row">
@@ -43,8 +45,8 @@
                 <td>{{i.IDBahanBaku.KodeProduk}}</td>
                 <td>{{i.IDBahanBaku.NamaProduk}}</td>
                 <td>{{i.IDLokasi}}</td>
-                <td>{{i.Jumlah|intcomma}}</td>
-                <td>Rp{{i.Harga|intcomma}}</td>
+                <td>{{i.Jumlah|separator_ribuan}}</td>
+                <td>Rp{{i.Harga|custom_thousands_separator}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   <div class="template-demo">

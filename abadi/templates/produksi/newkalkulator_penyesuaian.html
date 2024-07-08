@@ -20,7 +20,8 @@
                 <form action="" method="get">
                     {% if kodebarang %}
                     <div class="row">
-                        <div class="col-lg-4">
+                        <div class="col-lg-3">
+                            <label for="">Kode Bahan Baku</label>
                             <div class="form-group">
                                 <div class="input-group">
                                     <input type="text" class="form-control" placeholder="Masukkan Kode Barang"
@@ -30,6 +31,22 @@
                         </div>
                         <div class="col-lg-3">
                             <div class="form-group">
+                                <label for="">Tanggal Awal </label>
+                                <div class="input-group">
+                                    
+                                    {% if tanggalstokopname %}
+                                    <input type="date" class="form-control" placeholder="Masukkan Kode Barang"
+                                        aria-label="Masukkan Kode Barang" name="tanggalawal" value="{{tanggalstokopname}}">
+                                        {% else %}
+                                        <input type="date" class="form-control" placeholder="Masukkan Kode Barang"
+                                            aria-label="Masukkan Kode Barang" name="tanggalawal">
+                                    {%  endif%}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label for="">Tanggal Akhir </label>
                                 <div class="input-group">
                                     
                                     {% if tanggalstokopname %}
@@ -42,8 +59,9 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-4">
+                        <div class="col-lg-3">
                             <div class="form-group">
+                                <label for="">Jumlah Aktual</label>
                                 <div class="input-group">
                                     {% if dataaktual %}
                                     <input type="number" class="form-control" placeholder="Jumlah Kotak Aktual" min="0"

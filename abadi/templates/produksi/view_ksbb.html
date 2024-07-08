@@ -19,6 +19,8 @@
                         {{nama}}</span></h4>
                 <h4 class="card-title">Satuan : <span style="font-weight: lighter;">
                         {{satuan}}</span></h4>
+                <h4 class="card-title">Lokasi : <span style="font-weight: lighter;">
+                        {{lokasi}}</span></h4>
                 <form action="" method="get">
                     {% if kodebarang %}
                     <div class="row">
@@ -31,6 +33,19 @@
                                     <option value="{{i.KodeProduk}}">{{i.NamaProduk}} - {{i.unit}}</option>
                                     {% endfor %}
                                 </datalist>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <select name="lokasi" id="" class="form-control">
+                                    {% if lokasi == "WIP" %}
+                                        <option value="WIP" selected>WIP</option>
+                                        <option value="FG">FG</option>
+                                        {% else %}
+                                        <option value="WIP" >WIP</option>
+                                        <option value="FG" selected>FG</option>
+                                        {% endif %}
+                                </select>
                             </div>
                         </div>
                         <div class="col-lg-4">
@@ -57,6 +72,7 @@
                                         <option value="{{i.KodeProduk}}">{{i.NamaProduk}}</option>
                                         {% endfor %}
                                     </datalist>
+                                    <input type="text" name="lokasi" value="WIP" hidden>
                                     <div class="input-group-append">
                                         <button class="btn btn-sm btn-primary" type="submit">Search</button>
                                     </div>
@@ -73,10 +89,11 @@
                         <thead>
                             <tr>
                                 <td>Tanggal</td>
+                                <td>Artikel Peruntukan</td>
+                                <td>Masuk</td>
                                 <td>Artikel</td>
                                 <td>Per Kotak</td>
                                 <td>Konversi</td>
-                                <td>Masuk</td>
                                 <td>Keluar</td>
                                 <td style="text-align:center;">Saldo</td>
                             </tr>
@@ -99,15 +116,36 @@
 
                             </tr>
                             {% for i in data %}
+                            {{i}}
                             <tr>
+                                
                                 <td>
 
-                                    <a href="{% url 'detail_ksbb'  id=kodebarang tanggal=i.Tanggal %}"
+                                    <a href="{% url 'detail_ksbb'  id=kodebarang tanggal=i.Tanggal lokasi=lokasi %}"
                                         style="color: black;">
                                         {{i.Tanggal}}
                                 </td>
-                                </a>
+                                
                                 <td>
+                                    <ul>
+                                        {% for keluar in i.detailmasuk %}
+                                        <li>
+                                            {{keluar.DetailSPK.KodeArtikel}}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>
+
+                                    <ul>
+                                        {% for keluar in i.detailmasuk %}
+                                        <li>
+                                            {{keluar.jumlah|floatformat:2|intcomma}}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                                            <td>
                                     <ul>
 
                                         {% for artikel in i.Artikel %}
@@ -129,9 +167,8 @@
                                         {% endfor %}
                                     </ul>
                                 </td>
-                                <td>
-                                    {{i.Masuk|floatformat:2|intcomma}}
-                                </td>
+                                
+                                
                                 <td>
                                     <ul>
                                         {% for keluar in i.Keluar %}

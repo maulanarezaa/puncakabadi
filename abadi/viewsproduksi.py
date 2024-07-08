@@ -1703,7 +1703,7 @@ def delete_gudangretur(request, id):
 
 
 # Rekapitulasi
-def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
+def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi):
     '''
     Perhitungan KSBB : 
     1. Jumlah Transaksi Gudang dalam rentang 1 tahun per produk 
@@ -1713,14 +1713,14 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
     '''
     # Menceri data transaksi gudang dengan kode 
     datagudang = models.TransaksiGudang.objects.filter(
-        KodeProduk=produk, tanggal__range=(tanggal_mulai, tanggal_akhir),Lokasi__NamaLokasi__in=('WIP',"FG"),jumlah__gte=0
+        KodeProduk=produk, tanggal__range=(tanggal_mulai, tanggal_akhir),Lokasi__NamaLokasi=(lokasi),jumlah__gte=0
     )
     dataretur = models.TransaksiGudang.objects.filter(
-        KodeProduk=produk, tanggal__range=(tanggal_mulai, tanggal_akhir),Lokasi__NamaLokasi__in=('WIP',"FG"),jumlah__lt=0
+        KodeProduk=produk, tanggal__range=(tanggal_mulai, tanggal_akhir),Lokasi__NamaLokasi=(lokasi),jumlah__lt=0
     )
     # Kode Artikel yang di susun oleh bahan baku 
     penyusun_produk = (
-        models.Penyusun.objects.filter(KodeProduk=produk)
+        models.Penyusun.objects.filter(KodeProduk=produk,Lokasi__NamaLokasi = lokasi)
         .values_list("KodeArtikel", flat=True)
         .distinct()
     )
@@ -1730,17 +1730,22 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
     # Mencari data pemusnahan artikel yang disupport
     pemusnahanobj = models.PemusnahanArtikel.objects.filter(
         KodeArtikel__id__in=penyusun_produk,
-        Tanggal__range=(tanggal_mulai, tanggal_akhir),lokasi__NamaLokasi__in=('WIP',"FG")
+        Tanggal__range=(tanggal_mulai, tanggal_akhir),lokasi__NamaLokasi=lokasi
     )
     # Mencari data pemusnahan bahan baku 
-    pemusnahanbahanbakuobj = models.PemusnahanBahanBaku.objects.filter(KodeBahanBaku = produk,Tanggal__range=(tanggal_mulai,tanggal_akhir),lokasi__NamaLokasi__in=('WIP',"FG"))
+    pemusnahanbahanbakuobj = models.PemusnahanBahanBaku.objects.filter(KodeBahanBaku = produk,Tanggal__range=(tanggal_mulai,tanggal_akhir),lokasi__NamaLokasi=(lokasi))
 
-    # print(dasdas)
     dataproduksi = models.TransaksiProduksi.objects.filter(
         KodeArtikel__id__in=penyusun_produk,
         Jenis="Mutasi",
         Tanggal__range=(tanggal_mulai, tanggal_akhir),
     )
+    datasppb = models.DetailSPPB.objects.filter(
+        NoSPPB__Tanggal__range = (tanggal_mulai,tanggal_akhir),DetailSPK__KodeArtikel__id__in=penyusun_produk
+    ).exclude(DetailSPKDisplay__isnull = False)
+    print(datasppb)
+    print(dataproduksi)
+    # print(asd)
 
     # Mencari data Bahan Display. Transaksi Produksi-->SPPBDisplay-->SPK-->FIlter TransaksiGudang by SPK
     datadisplay = datagudang.filter(DetailSPKDisplay__NoSPK__StatusDisplay =1).values_list('DetailSPKDisplay__NoSPK',flat=True).distinct()
@@ -1775,7 +1780,7 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
 
 
         konversi = models.KonversiMaster.objects.filter(
-            KodePenyusun__KodeArtikel=artikel, KodePenyusun__KodeProduk=produk
+            KodePenyusun__KodeArtikel=artikel, KodePenyusun__KodeProduk=produk, KodePenyusun__Lokasi__NamaLokasi = lokasi
         ).order_by('KodePenyusun__versi')
         print(konversi)
 
@@ -1822,26 +1827,33 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
         print(penyesuaiandataperartikel, tanggalpenyesuaianperartikel,tanggalakhirpenyesuaian)
         # print(asdas)
         # print(asdas)
-        
+    print(listartikelmaster)
+    # print(asd)
     ''' TANGGAL SECTION '''
     tanggalmasuk = datagudang.values_list("tanggal", flat=True)
     tanggalretur = dataretur.values_list('tanggal',flat=True)
     tanggalkeluar = dataproduksi.values_list("Tanggal", flat=True)
     tanggalpemusnahan = pemusnahanobj.values_list("Tanggal", flat=True)
     tanggalpemusnahanbahanbaku = pemusnahanbahanbakuobj.values_list('Tanggal',flat=True)
+    tanggalpengirimanbarang = datasppb.values_list('NoSPPB__Tanggal',flat=True)
     # Belum Mempertimbangkan SPK Display
 
     '''BELUM MEMPERTIMBANGKAN KELUAR DISPLAY'''
-
-    listtanggal = sorted(
+    if lokasi == 'WIP':
+        listtanggal = sorted(
         list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalpemusnahan).union(tanggalpemusnahanbahanbaku).union(tanggalretur)))
     )
+    else:
+            listtanggal = sorted(
+        list(set(tanggalmasuk.union(tanggalpemusnahan).union(tanggalpemusnahanbahanbaku).union(tanggalretur).union(tanggalpengirimanbarang)))
+    )
+
 
     ''' SALDO AWAL SECTION '''
     try:
         saldoawal = models.SaldoAwalBahanBaku.objects.get(
             IDBahanBaku=produk,
-            IDLokasi=1,
+            IDLokasi__NamaLokasi=lokasi,
             Tanggal__range=(tanggal_mulai, tanggal_akhir),
         )
         saldo = saldoawal.Jumlah
@@ -1855,6 +1867,8 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
 
     ''' PENGOLAHAN DATA '''
     listdata =[]
+    print(listtanggal)
+    # print(asd)
     for i in listtanggal:
         # Data Models
         datamodelsartikel = []
@@ -1862,12 +1876,14 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
         datamodelskonversi = []
         datamodelskeluar = []
         datamodelssisa = []
+        datadetailmasuk = []
         data = {
             'Tanggal': None,
             'Artikel': datamodelsartikel,
             'Perkotak' : datamodelsperkotak,
             "Konversi" : datamodelskonversi,
             'Masuk' : None,
+            'detailmasuk' :datadetailmasuk,
             'Keluar' : datamodelskeluar,
             'Sisa' : datamodelssisa
             
@@ -1877,10 +1893,12 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
         masuk = 0
         masukdisplay = 0
         datamasuk = datagudang.filter(tanggal=i)
+        data
         datakeluarretur = dataretur.filter(tanggal=i)
         datakeluar = dataproduksi.filter(Tanggal = i)
         datapemusnahan = pemusnahanobj.filter(Tanggal = i)
         datapemusnahanbahanbaku = pemusnahanbahanbakuobj.filter(Tanggal = i)
+        datapengiriman = datasppb.filter(NoSPPB__Tanggal = i)
 
         for k in datamasuk:
             masuk += k.jumlah
@@ -1888,6 +1906,8 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
             if k.DetailSPKDisplay != None and k.DetailSPKDisplay.NoSPK.StatusDisplay == True:
                 masukdisplay +=k.jumlah
                 print(masukdisplay)
+            else:
+                datadetailmasuk.append(k)
 
         sisa  += masuk
         
@@ -1896,6 +1916,11 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
 
         artikelkeluar = datakeluar.values_list('KodeArtikel',flat=True).distinct()
         artikelpemusnahan = datapemusnahan.values_list('KodeArtikel',flat=True).distinct()
+        artikelkirim = datapengiriman.values_list('DetailSPK__KodeArtikel',flat=True).distinct()
+        if lokasi == 'FG':
+            artikelkeluar = artikelkirim
+            print(artikelkeluar)
+            # print(asd)
 
         if masukdisplay != 0:
             datamodelskeluar.append(masukdisplay)
@@ -1905,7 +1930,12 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
         for j in artikelkeluar:
             artikelkeluarobj = models.Artikel.objects.get(id = j)
             penyesuaianobj = models.Penyesuaian.objects.filter( KodeProduk = produk ,KodeArtikel = artikelkeluarobj, TanggalMulai__range = (tanggal_mulai,tanggal_akhir)).order_by('TanggalMulai')
-            total = datakeluar.filter(KodeArtikel__id = j).aggregate(total = Sum('Jumlah'))
+            if lokasi == 'FG':
+                total = datapengiriman.filter(DetailSPK__KodeArtikel__id = j).aggregate(total = Sum('Jumlah'))
+            else:
+                total = datakeluar.filter(KodeArtikel__id = j).aggregate(total = Sum('Jumlah'))
+            print(listartikelmaster)
+            print(artikelkeluarobj)
             indexartikel = listartikelmaster.index(artikelkeluarobj)
             filtered_data = [d for d in listartikelmaster[indexartikel].tanggalversi if d <= i]
             print(indexartikel, listartikelmaster,listartikelmaster[indexartikel].tanggalversi)
@@ -1958,6 +1988,11 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
 
             konversiterdekat= (konversiterdekat)
             datamodelskonversi.append(konversiterdekat)
+            print(konversiterdekat)
+            print(total)
+            print(listartikelmaster)
+            # print(asd)
+
             datamodelskeluar.append(konversiterdekat*total['total'])
             datamodelsartikel.append(artikelkeluarobj)
             datamodelsperkotak.append(total['total'])
@@ -2045,8 +2080,8 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir):
 
         data['Sisa'] = datamodelssisa
         listdata.append(data)
-        print(listdata)
-        # print(asd)
+    print(listdata)
+    # print(asd)
         # Indikasi salah di bagian konversi penyusun yang mencari nilai atasnya. Kalau gaada bisa di set 0 
 
     return listdata,saldoawal
@@ -2072,13 +2107,19 @@ def view_ksbb3(request):
             tahun = int(request.GET["periode"])
         else:
             tahun = sekarang
+        
+        
+        lokasi = request.GET['lokasi']
+        print(lokasi)
 
         tanggal_mulai = datetime(year=tahun, month=1, day=1)
         tanggal_akhir = datetime(year=tahun, month=12, day=31)
 
-        listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, tanggal_akhir)
+        listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, tanggal_akhir,lokasi)
 
         print(tahun)
+        print(listdata)
+        # print(asd)
 
         return render(request, "produksi/view_ksbb.html", {
             'data': listdata,
@@ -2087,19 +2128,20 @@ def view_ksbb3(request):
             "nama": nama,
             "satuan": satuan,
             'kodeprodukobj': kodeproduk,
-            'tahun': tahun
+            'tahun': tahun,
+            'lokasi' : lokasi
         })
 
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi'])
-def detailksbb(request, id, tanggal):
+def detailksbb(request, id, tanggal,lokasi):
     tanggal = datetime.strptime(tanggal, "%Y-%m-%d")
     tanggal = tanggal.strftime("%Y-%m-%d")
 
     # Transaksi Gudang
-    datagudang = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk=id,Lokasi__NamaLokasi__in=('WIP','FG'),jumlah__gte=0)
-    dataretur = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk=id,Lokasi__NamaLokasi__in=('WIP','FG'),jumlah__lt=0)
+    datagudang = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk=id,Lokasi__NamaLokasi=(lokasi),jumlah__gte=0)
+    dataretur = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk=id,Lokasi__NamaLokasi=(lokasi),jumlah__lt=0)
     for item in dataretur:
         item.jumlah = item.jumlah * -1
     listartikel = (
@@ -2119,7 +2161,7 @@ def detailksbb(request, id, tanggal):
         KodeArtikel__KodeArtikel__in=listartikel, Tanggal=tanggal,
     )
     # Transaksi Pemusnahan Bahan Baku
-    datapemusnahanbahanbaku  =models.PemusnahanBahanBaku.objects.filter(Tanggal = tanggal,KodeBahanBaku = id,lokasi__NamaLokasi__in=('WIP','FG'))
+    datapemusnahanbahanbaku  =models.PemusnahanBahanBaku.objects.filter(Tanggal = tanggal,KodeBahanBaku = id,lokasi__NamaLokasi=lokasi)
     print(datapemusnahanbahanbaku)
     print(datagudang)
     return render(
@@ -2163,7 +2205,7 @@ def view_ksbj2(request):
         lokasi = request.GET['lokasi']
         lokasiobj = models.Lokasi.objects.get(NamaLokasi = lokasi)
 
-        getbahanbakuutama = models.Penyusun.objects.filter(KodeArtikel=artikel.id, Status=1)
+        getbahanbakuutama = models.Penyusun.objects.filter(KodeArtikel=artikel.id, Status=1,versi__range=(tanggal_mulai,tanggal_akhir)).first()
 
         if not getbahanbakuutama :
             messages.error(request, "Bahan Baku utama belum di set")
@@ -2219,11 +2261,22 @@ def view_ksbj2(request):
                     penyusunfiltertanggal = models.Penyusun.objects.filter(KodeArtikel = artikel.id, Status = 1, versi__gte = i).order_by('versi').first()
 
                 konversimasterobj = models.KonversiMaster.objects.get(KodePenyusun=penyusunfiltertanggal.IDKodePenyusun)
+                konversi =konversimasterobj.Allowance
+                # except:
+                #     konversi = round(0)
+                #     messages.error(request,'Data allowance belum di set')
+                print(getbahanbakuutama)
+                # print(asd)d
+                penyesuaiaanfilter = models.Penyesuaian.objects.filter(KodeArtikel = artikel.id, KodeProduk = getbahanbakuutama.KodeProduk,TanggalMulai__lte = i, TanggalMinus__gte = i).first()
+                print(penyesuaiaanfilter)
+                if penyesuaiaanfilter:
+                    konversi= penyesuaiaanfilter.konversi
+                    print(konversi,penyesuaiaanfilter,i)
+                    # print(asd)
                 try:
-                    masukpcs = round(jumlahmasuk/((konversimasterobj.Allowance)))
+                    masukpcs = jumlahmasuk*konversi
                 except:
-                    masukpcs = round(0)
-                    messages.error(request,'Data allowance belum di set')
+                    masukpcs = 0
                 saldoawal = saldoawal - jumlahmutasi + masukpcs
 
                 datamodels['Tanggal'] = i.strftime("%Y-%m-%d")
@@ -2962,14 +3015,7 @@ def kalkulatorpenyesuaian2(request):
         tanggal_akhir = datetime(year=tahun, month=12, day=31)
 
         listdata,saldoawal = calculate_KSBB(produk,tanggal_mulai,tanggal_akhir)
-        print(listdata)
-        # print(asd)
-        # print(asd)
-        # Perhitungan penyesuaian\
-        # print(listdata)
-        # print('\n',sum(listdata[-1]['Sisa']))
-        # print(asdas)
-        
+        print(listdata)     
 
         datasisaminus = 0
         datajumlah = 0
@@ -2992,6 +3038,7 @@ def kalkulatorpenyesuaian2(request):
         print(request.GET)
         # print(asd)
         tanggalstokopname = request.GET['tanggalstokopname']
+        tanggalawalperhitungan = request.GET['tanggalawal']
         for item in listdata:
             sisa = item['Sisa']
             for j in sisa:
@@ -3041,17 +3088,40 @@ def kalkulatorpenyesuaian2(request):
         sumproduct = 0
         jumlahkeluar = 0
         jumlahxkonversidictionary = {}
-        datapenyesuaian = models.Penyesuaian.objects.filter(KodeProduk = produk).values_list('TanggalMinus',flat=True).distinct()
+        datapenyesuaian = models.Penyesuaian.objects.filter(KodeProduk = produk).values_list('TanggalMinus',flat=True).distinct().order_by('-TanggalMinus')
         print(datapenyesuaian)
         # print(asd)
         print(tanggalstokopname)
         print(tanggalminus)
 
         if tanggalstokopname != "":
-            tanggalminus = tanggalstokopname
-        # print(tanggalminus)
-        # print(asd)
+            enddate = tanggalstokopname
+        else:
+            enddate = tanggalminus
+        enddate = datetime.strptime(enddate,"%Y-%m-%d")
 
+        if tanggalawalperhitungan != "":
+            tanggalawalperhitungan = datetime.strptime(tanggalawalperhitungan,"%Y-%m-%d")
+            print('masuk')
+            startdate = tanggalawalperhitungan
+            if datapenyesuaian.exists():
+                datapenyesuaianawal = datetime.strptime(str(datapenyesuaian[0]),"%Y-%m-%d")
+                print(tanggalawalperhitungan, datapenyesuaian.first())
+                if tanggalawalperhitungan < datapenyesuaianawal:
+                    print('tidak valid menggunakan data penyesuaian saat ini') 
+                    startdate = datapenyesuaianawal
+        else:
+            if datapenyesuaian.exists():
+                datapenyesuaian = datapenyesuaian.filter(TanggalMinus__lte = enddate)
+                print(datapenyesuaian)
+                if datapenyesuaian:
+                    startdate =datetime.strptime(str(datapenyesuaian[0]),"%Y-%m-%d")
+                else:
+                    startdate = tanggal_mulai
+            else:
+                startdate = tanggal_mulai
+        print(startdate,enddate)
+        # print(asd)
         for item in listdata:
             print(item)
             # print(asd)
@@ -3060,10 +3130,11 @@ def kalkulatorpenyesuaian2(request):
             tanggal = item['Tanggal']
 
             datetimetanggal = datetime.strptime(tanggal,"%Y-%m-%d")
-            datetimetanggalminus = datetime.strptime(tanggalminus,"%Y-%m-%d")
 
-            if datetimetanggal > datetimetanggalminus:
+            if datetimetanggal > enddate:
                 break
+            elif datetimetanggal < startdate:
+                continue
             if item['Artikel']:
                 for artikel,jumlah,konversi in zip(item['Artikel'],item['Perkotak'],item['Konversi']):
                     sumproduct += jumlah * konversi
@@ -3073,6 +3144,7 @@ def kalkulatorpenyesuaian2(request):
                         jumlahxkonversidictionary[artikel]['jumlah'] += jumlah 
                     else:
                         jumlahxkonversidictionary[artikel] = {'jumlahxkonversi': jumlah*konversi,'jumlah':jumlah}
+            
             jumlahkeluar += sum(item['Keluar'])
             # if datapenyesuaian:
             #     print(datapenyesuaian)
@@ -3123,7 +3195,7 @@ def kalkulatorpenyesuaian2(request):
         saldodata = sisa[0]
         datakuantitasperhitungan["datakeluar"] = jumlahkeluar
         datakuantitasperhitungan["saldodata"] = saldodata
-        datakuantitasperhitungan['Tanggalminus'] = tanggalminus
+        datakuantitasperhitungan['Tanggalminus'] = enddate.strftime("%Y-%m-%d")
         print(datasisaminus)
         # print(adasd)
         try:
@@ -3220,7 +3292,6 @@ def add_saldobahan(request):
         kodeproduk = request.POST["produk"]
         lokasi = request.POST["nama_lokasi"]
         jumlah = request.POST["jumlah"]
-        harga = request.POST["harga"]
         tanggal = request.POST["tanggal"]
 
         # Ubah format tanggal menjadi YYYY-MM-DD
@@ -3243,18 +3314,18 @@ def add_saldobahan(request):
         lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
 
         pemusnahanobj = models.SaldoAwalBahanBaku(
-            Tanggal=tanggal, Jumlah=jumlah, IDBahanBaku=produkobj, IDLokasi=lokasiobj, Harga=harga)
+            Tanggal=tanggal, Jumlah=jumlah, IDBahanBaku=produkobj, IDLokasi=lokasiobj, Harga=0)
         pemusnahanobj.save()
 
         models.transactionlog(
             user="Produksi",
             waktu=datetime.now(),
             jenis="Create",
-            pesan=f"Saldo Bahan Baku. Kode Bahan Baku : {produkobj.KodeProduk} Jumlah : {jumlah} Lokasi : {lokasiobj.NamaLokasi} Harga : {harga}",
+            pesan=f"Saldo Bahan Baku. Kode Bahan Baku : {produkobj.KodeProduk} Jumlah : {jumlah} Lokasi : {lokasiobj.NamaLokasi} Harga : {0}",
         ).save()
 
         messages.success(request,"Data berhasil disimpan")
-        return redirect("view_saldobahan")
+        return redirect("view_saldobahanproduksi")
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi'])
