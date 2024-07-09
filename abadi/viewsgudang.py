@@ -280,6 +280,7 @@ def delete_gudang(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def rekap_gudang(request):
+    sekarang = datetime.now().strftime('%Y-%m-%d')
     listproduk = []
     listnama = []
     satuan = []
@@ -358,6 +359,7 @@ def rekap_gudang(request):
             "kodeproduk": listproduk,
             "date": date,
             "dict_semua": produk_dict,
+            'waktu' : sekarang
         },
     )
 
@@ -588,9 +590,6 @@ def detail_barang(request):
                 totalretur = abs(returobj["total"])
             totalmasuk = totalsjp + totalretur
 
-            # Keluar
-            # Transaksi keluar
-            # Pemusnahan
             datakeluar = datagudang2.filter(tanggal=i).aggregate(total=Sum("jumlah"))
             jumlahkeluar = datakeluar["total"]
             if jumlahkeluar is None:
@@ -622,8 +621,33 @@ def detail_barang(request):
                 "datasjp": datasjp,
                 "dictdata": dictdata,
                 "datasaldoawal": datasaldoawal,
+                'lokasi' : 'Gudang'
             },
         )
+
+def detailksbb(request, id, tanggal,lokasi):
+    tanggal = datetime.strptime(tanggal, "%Y-%m-%d")
+    tanggal = tanggal.strftime("%Y-%m-%d")
+    # SJP
+    datamasuk = models.DetailSuratJalanPembelian.objects.filter(KodeProduk__KodeProduk = id, NoSuratJalan__Tanggal = tanggal)
+    # Transaksi Gudang
+    datagudang = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk=id,jumlah__gte=0)
+    dataretur = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk=id,jumlah__lt=0)
+    for item in dataretur:
+        item.jumlah = item.jumlah *-1
+    print(datagudang,dataretur)
+    # Transaksi Pemusnahan Bahan Baku
+    datapemusnahanbahanbaku  =models.PemusnahanBahanBaku.objects.filter(Tanggal = tanggal,KodeBahanBaku = id,lokasi__NamaLokasi=lokasi)
+    return render(
+        request,
+        "Purchasing/view_detailksbb.html",
+        {
+            "datagudang": datagudang,
+            'datapemusnahanbahanbaku' : datapemusnahanbahanbaku,
+            "dataretur" : dataretur,
+            'datamasuk':datamasuk
+        },
+    )
 
 
 @login_required

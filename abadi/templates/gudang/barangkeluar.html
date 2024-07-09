@@ -4,6 +4,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
+{% load customfilter %}
 
 
 
@@ -66,7 +67,7 @@
                                     <td>{{i.tanggal}}</td>
                                     <td>{{i.KodeProduk}}</td>
                                     <td>{{i.KodeProduk.NamaProduk}}</td>
-                                    <td>{{i.jumlah}}</td>
+                                    <td>{{i.jumlah|separator_ribuan}}</td>
                                     <td>{{i.KodeProduk.unit}}</td>
                                     <td>{{i.Lokasi}}</td>
                                     <td>{{i.keterangan}}</td>

@@ -1,6 +1,6 @@
 {% extends "gudang/base.html" %}
 {% load static %}
-
+{% load customfilter %}
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
@@ -66,10 +66,15 @@
                             </tr>
                             {% for tanggal,value in dictdata.items %}
                             <tr>
-                                <td>{{tanggal}}</td>
-                                <td>{{value.masuk}}</td>
-                                <td>{{value.keluar}}</td>
-                                <td>{{value.saldo}}</td>
+                                <td>
+                                    <a style="color: black;" href="{% url 'detailksbbgudang' datasjp.0.KodeProduk tanggal lokasi %}">
+
+                                        {{tanggal}}
+                                    </a>
+                                </td>
+                                <td>{{value.masuk|separator_ribuan}}</td>
+                                <td>{{value.keluar|separator_ribuan}}</td>
+                                <td>{{value.saldo|separator_ribuan}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

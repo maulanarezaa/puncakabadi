@@ -4,6 +4,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
+{% load customfilter %}
 
 
 
@@ -70,7 +71,7 @@
                                 <td>{{i.NoSuratJalan.NoSuratJalan}}</td>
                                 <td>{{i.KodeProduk}}</td>
                                 <td>{{i.KodeProduk.NamaProduk}}</td>
-                                <td>{{i.Jumlah}}</td>
+                                <td>{{i.Jumlah|separator_ribuan}}</td>
                                 <td>{{i.KodeProduk.unit}}</td>
                                 {% if i.KeteranganACC %}
                                 <td>Sudah ACC</td>

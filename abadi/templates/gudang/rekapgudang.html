@@ -4,6 +4,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
+{% load customfilter %}
 
 
 
@@ -13,7 +14,7 @@
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Rekap Barang</h4>
+                <h4 class="card-title">Rekap Barang - {{waktu}}</h4>
                 <form class="form-inline" method="get">
                     <div class="form-group">
 
@@ -40,12 +41,13 @@
                                 <tr>
                                     <td>{{i}}</td>
                                     <td>{{detail.NamaProduk}}</td>
-                                    {% if detail.StokAkhir < 0 %} <td style="background-color: red;">
+                                    {% if detail.StokAkhir < 0 %} 
+                                    <td style="background-color: red;">
                                         {{detail.StokAkhir}}</td>
                                         {% elif detail.StokAkhir == 0 %}
                                         <td style="background-color: yellow;">{{detail.StokAkhir}}</td>
                                         {% else %}
-                                        <td>{{detail.StokAkhir}}</td>
+                                        <td>{{detail.StokAkhir|separator_ribuan}}</td>
                                         {% endif %}
                                         <td>{{detail.Satuan}}</td>
                                 </tr>

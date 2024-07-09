@@ -10,6 +10,7 @@ urlpatterns = [
     path("addgudang", viewsgudang.add_gudang, name="addgudang"),
     path("addgudang2", viewsgudang.add_gudang2, name="addgudang2"),
     path("detailbarang", viewsgudang.detail_barang, name="detailbarang"),
+    path("detailbarang/<str:id>/<str:tanggal>/<str:lokasi>", viewsgudang.detailksbb, name="detailksbbgudang"),
     path("rekapgudang", viewsgudang.rekap_gudang, name="rekapgudang"),
     path("barangkeluar", viewsgudang.barang_keluar, name="barangkeluar"),
     path("barangretur", viewsgudang.barang_retur, name="barangretur"),

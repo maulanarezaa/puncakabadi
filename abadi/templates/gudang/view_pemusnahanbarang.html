@@ -4,9 +4,8 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
+{% load customfilter %}
 
-{% block javascripts %}
-{% endblock javascripts %}
 
 <!-- Page content  -->
 {% block content %}
@@ -40,7 +39,7 @@
                 <td>{{i.Tanggal}}</td>
                 <td>{{i.KodeBahanBaku}}</td>
                 <td>{{i.lokasi.NamaLokasi}}</td>
-                <td>{{i.Jumlah}}</td>
+                <td>{{i.Jumlah|separator_desimal}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   <div class="template-demo">

@@ -4,6 +4,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
+{% load customfilter %}
 
 
 
@@ -34,7 +35,7 @@
                                 <td>{{i.KodeProduk}}</td>
                                 <td>{{i.KodeProduk.NamaProduk}}</td>
                                 <td>{{i.DetailSPK}}</td>
-                                <td>{{i.jumlah}}</td>
+                                <td>{{i.jumlah|separator_ribuan}}</td>
                                 <td>{{i.Lokasi}}</td>
                                 <td>
                                     <button onclick="uhuy({{i.IDDetailTransaksiGudang}})" type="button"
@@ -79,7 +80,7 @@
                                 <td>{{i.KodeProduk}}</td>
                                 <td>{{i.KodeProduk.NamaProduk}}</td>
                                 <td>{{i.DetailSPK}}</td>
-                                <td>{{i.jumlah}}</td>
+                                <td>{{i.jumlah|separator_ribuan}}</td>
                                 <td>{{i.Lokasi}}</td>
                                 <td>
                                     <button onclick="uhuy({{i.IDDetailTransaksiGudang}})" type="button"
@@ -123,7 +124,7 @@
                                 <td>{{i.NoSPK.Tanggal}}</td>
                                 <td>{{i.NoSPK}}</td>
                                 <td>{{i.KodeArtikel}}</td>
-                                <td>{{i.Jumlah}}</td>
+                                <td>{{i.Jumlah|separator_ribuan}}</td>
                                 <td>{{i.Keterangan}}</td>
                             </tr>
                             {% endfor %}
