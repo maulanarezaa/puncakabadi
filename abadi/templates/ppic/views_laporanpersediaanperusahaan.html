@@ -5,7 +5,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
-
+{% load customfilter %}
 
 
 <!-- Page content  -->
@@ -90,11 +90,11 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>{{data.barangkeluar}}</td>
-                                <td>{{data.barangmasuk}}</td>
-                                <td>{{data.saldoawalgudang}}</td>
-                                <td>{{data.stokawalproduksi}}</td>
-                                <td>{{data.totalsaldo}}</td>
+                                <td>{{data.barangkeluar|custom_thousands_separator}}</td>
+                                <td>{{data.barangmasuk|custom_thousands_separator}}</td>
+                                <td>{{data.saldoawalgudang|custom_thousands_separator}}</td>
+                                <td>{{data.stokawalproduksi|custom_thousands_separator}}</td>
+                                <td>{{data.totalsaldo|custom_thousands_separator}}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -122,9 +122,9 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>{{data.saldoakhirgudang}}</td>
-                                <td>{{data.saldowip}}</td>
-                                <td>{{data.stokfg}}</td>
+                                <td>{{data.saldoakhirgudang|custom_thousands_separator}}</td>
+                                <td>{{data.saldowip|custom_thousands_separator}}</td>
+                                <td>{{data.stokfg|custom_thousands_separator}}</td>
                                 <td></td>
                             </tr>
                         </tbody>

@@ -1720,7 +1720,7 @@ def getstokfg(lastdays, stopindex,awaltahun):
             #  Mengambil total data transaksi mutasi WIP ke FG
             datamutasiartikel = models.TransaksiProduksi.objects.filter(Lokasi__NamaLokasi="WIP",Tanggal__range =(awaltahun,hari),Jenis = "Mutasi", KodeArtikel__isnull = False )
             # Mengambil data transaksi display
-            datamutasidisplay = models.TransaksiProduksi.objects.filter(Lokasi__NamaLokasi="WIP",Tanggal__range =(awaltahun,hari),Jenis = "Mutasi", KodeDisplay__isnull = False )
+            datamutasidisplay = models.TransaksiProduksi.objects.filter(Lokasi__NamaLokasi="WIP",Tanggal__range =(awaltahun,hari),Jenis = "Mutasi", KodeDisplay__isnull = False ).order_by('Tanggal')
             # Mengambil total data transaksi pengeluaran barang dari FG Artikel
             datapengeluaranartikel = models.DetailSPPB.objects.filter(NoSPPB__Tanggal__range = (awaltahun,hari),DetailSPK__isnull=False)
             # Mengambil total data transaksi pengeluaran barang dari FG Display
@@ -1731,7 +1731,7 @@ def getstokfg(lastdays, stopindex,awaltahun):
             #  Mengambil total data transaksi mutasi WIP ke FG
             datamutasiartikel = models.TransaksiProduksi.objects.filter(Lokasi__NamaLokasi="WIP",Tanggal__range =(awaltahun,hari),Jenis = "Mutasi", KodeArtikel__isnull = False )
             # Mengambil data transaksi display
-            datamutasidisplay = models.TransaksiProduksi.objects.filter(Lokasi__NamaLokasi="WIP",Tanggal__range =(awaltahun,hari),Jenis = "Mutasi", KodeDisplay__isnull = False )
+            datamutasidisplay = models.TransaksiProduksi.objects.filter(Lokasi__NamaLokasi="WIP",Tanggal__range =(awaltahun,hari),Jenis = "Mutasi", KodeDisplay__isnull = False ).order_by('Tanggal')
             # Mengambil total data transaksi pengeluaran barang dari FG Artikel
             datapengeluaranartikel = models.DetailSPPB.objects.filter(NoSPPB__Tanggal__range = (awaltahun,hari),DetailSPK__isnull=False)
             # Mengambil total data transaksi pengeluaran barang dari FG Display
@@ -1765,8 +1765,11 @@ def getstokfg(lastdays, stopindex,awaltahun):
         mutasidisplay_dict = {item['KodeDisplay__KodeDisplay']: item['total'] for item in jumlahmutasidisplay}
         pengirimandisplay_dict = {item['DetailSPKDisplay__KodeDisplay__KodeDisplay']: item['total'] for item in jumlahpengirimandisplay}
         all_kode_artikel = set(mutasi_dict.keys()).union(set(pengiriman_dict.keys()))
-
+        print(permintaanbahanbaku_dict)
+        print(pengiriman_dict)
+        # print(asd)
         all_kode_artikel = models.Artikel.objects.all().values_list("KodeArtikel",flat=True)
+        # all_kode_artikel = models.Artikel.objects.filter(KodeArtikel = "penyusun display AC Medium").values_list("KodeArtikel",flat=True)
         all_kode_display = models.Display.objects.all()
         result = []
         resultdengansaldoawal = []
@@ -1777,16 +1780,22 @@ def getstokfg(lastdays, stopindex,awaltahun):
             total_pengiriman = pengiriman_dict.get(kode_artikel, 0)
             total_saldoawal = saldoawal_dict.get(kode_artikel, 0)
             konversibahanbaku = getpenyusunartikelpertanggal(hari,kode_artikel)
+            print(konversibahanbaku)
+            print(total_pengiriman)
+            # print(asd)
             
-            if total_mutasi != 0 and konversibahanbaku.exists():
+            if (total_mutasi != 0) and konversibahanbaku.exists():
                 for i in konversibahanbaku:
                     print(i)
-                    penggunaanbahanbakufg = i['total'] * total_mutasi
+                    # print(asd)
+                    total_artikeljadi = abs(total_mutasi)
+                    penggunaanbahanbakufg = i['total'] * total_artikeljadi
+                    print(penggunaanbahanbakufg)
                     if i['KodePenyusun__KodeProduk__KodeProduk'] in totalpenggunaanbahanbaku:
                         totalpenggunaanbahanbaku[i['KodePenyusun__KodeProduk__KodeProduk']] += penggunaanbahanbakufg
                     else:
                         totalpenggunaanbahanbaku[i['KodePenyusun__KodeProduk__KodeProduk']] = penggunaanbahanbakufg
-                print(total_mutasi,kode_artikel,konversibahanbaku)
+                print(total_artikeljadi,kode_artikel,konversibahanbaku)
                 print(totalpenggunaanbahanbaku)
                 # print(asd)
             hargaterakhir = gethargafgterakhirberdasarkanmutasi(models.Artikel.objects.get(KodeArtikel = kode_artikel),hari,hargapurchasing)
@@ -1794,24 +1803,81 @@ def getstokfg(lastdays, stopindex,awaltahun):
             totalsaldo = hargaterakhir[0] * total
             totalsaldoartikel += totalsaldo
             resultdengansaldoawal.append({'KodeArtikel': kode_artikel, 'total':total,"penyusunfg":konversibahanbaku,'hargafg':hargaterakhir[0],'totalsaldo':totalsaldo})
+        print(resultdengansaldoawal)
+        # print(asd)
 
-        # BELUM MASUK SALDO AWAL DISPLAY
         resultdisplay = []
         for kode_display in all_kode_display:
             total_mutasi = mutasidisplay_dict.get(kode_display.KodeDisplay, 0)
             total_pengiriman = pengirimandisplay_dict.get(kode_display.KodeDisplay, 0)
             total = total_mutasi - total_pengiriman
             print(kode_display,total_mutasi,total_pengiriman,total)
-            resultdisplay.append({'KodeDisplay': kode_display, 'total':total})
+            nilaijumlahkirim = total_pengiriman
+            valid = False
+            print(datamutasidisplay)
+            for num,datadetailmutasidisplay in enumerate(datamutasidisplay):
+                sisapermintaan = datadetailmutasidisplay.Jumlah - nilaijumlahkirim
+                if sisapermintaan < 0 :
+                    nilaijumlahkirim = abs(sisapermintaan)
+                    continue
+                else:
+                    datamutasidisplay = datamutasidisplay[num:]
+                    sisapermintaan = sisapermintaan
+                    valid = True
+                    break
+            print(datamutasidisplay)
+            # print(asd)
+            if valid : 
+                stokxhargaperspk = 0
+                jumlahspk = 0
+                weightedaverage = 0
+
+                for num,datadetailmutasidisplay in enumerate(datamutasidisplay):
+                    hargafgdisplay = 0
+                    if num == 0 :
+                       jumlahstokdisplay = sisapermintaan
+                       print(sisapermintaan)
+                    #    print(asd)
+                    else:
+                        jumlahstokdisplay = datadetailmutasidisplay.Jumlah
+                        print(jumlahstokdisplay)
+                        # print(asd)
+                    spkpermintaanproduk = datadetailmutasidisplay.DetailSPKDisplay
+                    permintaanproduk = models.TransaksiGudang.objects.filter(DetailSPKDisplay = spkpermintaanproduk).values("KodeProduk").annotate(total=Sum('jumlah'))
+                    print(permintaanproduk,spkpermintaanproduk,spkpermintaanproduk.Jumlah)
+                    for k in permintaanproduk:
+                        hargaterakhir = gethargapurchasingperbulanperproduk(hari,k['KodeProduk'])
+                        print(hargaterakhir,k,jumlahstokdisplay)
+                        jumlahkonversispk = k['total']/spkpermintaanproduk.Jumlah
+                        jumlahhargakonversifgperbahanbaku = hargaterakhir * jumlahkonversispk * jumlahstokdisplay
+                        hargafgdisplay += jumlahhargakonversifgperbahanbaku
+                    stokxhargaperspk += hargafgdisplay
+                    jumlahspk += jumlahstokdisplay
+                    print('ini jumlah',jumlahstokdisplay)
+
+                    print(hargafgdisplay)
+                    
+                weightedaverage = stokxhargaperspk / jumlahspk
+                print(stokxhargaperspk,jumlahspk)
+                print(weightedaverage)
+                # print(asd)
+                    
+
+            resultdisplay.append({'KodeDisplay': kode_display, 'total':jumlahspk,'hargafg':weightedaverage,'totalsaldo':stokxhargaperspk})
         print(resultdisplay)
+        # print(asd)
 
         sisabahanbaku = []
         totalsaldobahanbaku = 0
         bahanbakuall = models.Produk.objects.all()
+        bahanbakuall = models.Produk.objects.filter(KodeProduk = "tesbahanbaku")
         for item in bahanbakuall:
             total_permintaanbarang = permintaanbahanbaku_dict.get(item.KodeProduk, 0)
             total_saldoawalbahanbaku = saldoawalbahanbaku_dict.get(item.KodeProduk,0)
             print(total_permintaanbarang,total_saldoawalbahanbaku,item)
+            print(totalpenggunaanbahanbaku)
+            
+            # print(asd)
 
             totalbahanbaku = total_permintaanbarang + total_saldoawalbahanbaku
             if item.KodeProduk in totalpenggunaanbahanbaku.keys():

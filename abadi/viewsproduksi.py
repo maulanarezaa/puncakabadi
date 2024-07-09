@@ -2397,10 +2397,11 @@ def view_rekapbarang(request):
     tanggal_mulai = datetime(year=tahun, month=1, day=1)
 
     dataproduk = models.Produk.objects.all()
+    lokasi ='WIP'
 
     if tanggal_akhir:
         for produk in dataproduk:
-            listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, tanggal_akhir)
+            listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, tanggal_akhir,lokasi)
 
             if listdata:
                 produk.kuantitas = listdata[-1]["Sisa"][0]
@@ -2408,7 +2409,7 @@ def view_rekapbarang(request):
                 produk.kuantitas = 0
     else:
         for produk in dataproduk:
-            listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, sekarang)
+            listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, sekarang,lokasi)
 
             if listdata:
                 produk.kuantitas = listdata[-1]["Sisa"][0]
@@ -3013,8 +3014,8 @@ def kalkulatorpenyesuaian2(request):
 
         tanggal_mulai = datetime(year=tahun, month=1, day=1)
         tanggal_akhir = datetime(year=tahun, month=12, day=31)
-
-        listdata,saldoawal = calculate_KSBB(produk,tanggal_mulai,tanggal_akhir)
+        lokasi = 'WIP'
+        listdata,saldoawal = calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi)
         print(listdata)     
 
         datasisaminus = 0

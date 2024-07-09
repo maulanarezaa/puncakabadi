@@ -1,12 +1,13 @@
 {% extends "Purchasing/base.html" %}
 {% load static %}
+{% load customfilter %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
 
 
-{% load humanize %}
+
 <!-- Page content  -->
 {% block content %}
 <div class="row">
@@ -89,23 +90,23 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td>{{Saldoawal.saldoawal}}</td>
-                                <td>{{Saldoawal.hargasatuanawal}}</td>
-                                <td>{{Saldoawal.hargatotalawal}}</td>
+                                <td>{{Saldoawal.saldoawal|separator_ribuan}}</td>
+                                <td>{{Saldoawal.hargasatuanawal|custom_thousands_separator}}</td>
+                                <td>{{Saldoawal.hargatotalawal|custom_thousands_separator}}</td>
                             </tr>
                             {% if data %}
                             {% for i in data %}
                             <tr>
                                 <td>{{i.Tanggal}}</td>
-                                <td>{{i.Jumlahmasuk}}</td>
-                                <td>{{i.Hargamasuksatuan|floatformat:2|intcomma}}</td>
-                                <td>{{i.Hargamasuktotal|floatformat:2|intcomma}}</td>
-                                <td>{{i.Jumlahkeluar}}</td>
-                                <td>{{i.Hargakeluarsatuan|floatformat:2|intcomma}}</td>
-                                <td>{{i.Hargakeluartotal|floatformat:2|intcomma}}</td>
-                                <td>{{i.Sisahariini}}</td>
-                                <td>{{i.Hargasatuansisa|floatformat:2|intcomma}}</td>
-                                <td>{{i.Hargatotalsisa|floatformat:2|intcomma}}</td>
+                                <td>{{i.Jumlahmasuk|separator_ribuan}}</td>
+                                <td>{{i.Hargamasuksatuan|custom_thousands_separator}}</td>
+                                <td>{{i.Hargamasuktotal|custom_thousands_separator}}</td>
+                                <td>{{i.Jumlahkeluar|separator_ribuan}}</td>
+                                <td>{{i.Hargakeluarsatuan|custom_thousands_separator}}</td>
+                                <td>{{i.Hargakeluartotal|custom_thousands_separator}}</td>
+                                <td>{{i.Sisahariini|separator_ribuan}}</td>
+                                <td>{{i.Hargasatuansisa|custom_thousands_separator}}</td>
+                                <td>{{i.Hargatotalsisa|custom_thousands_separator}}</td>
 
                             </tr>
                             {% endfor %}

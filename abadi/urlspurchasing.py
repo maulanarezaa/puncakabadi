@@ -13,6 +13,8 @@ urlpatterns = [
         viewspurchasing.verifikasi_data,
         name="update_verif_purchasing",
     ),
+   
+    
     path("acc_spk/<str:id>", viewspurchasing.acc_notif_spk, name="acc_spk"),
     # R penyusun
     path("penyusun", viewspurchasing.views_penyusun, name="penyusun"),
@@ -58,8 +60,12 @@ urlpatterns = [
     # R REKAP HARGA
     path("rekap_harga", viewspurchasing.views_rekapharga, name="rekapharga"),
     path("barangsubkon", viewspurchasing.views_rekaphargasubkon, name="rekaphargasubkon"),
+    
+    path("acc_subkon/<str:id>", viewspurchasing.acc_subkon, name="acc_subkon"),
+    path("export_excel2",viewspurchasing.exportbarangsubkon_excel, name="export_excel2"),
     path("acc_spk2/<str:id>", viewspurchasing.accspk2, name="acc_spk2"),
     path('upload_excel', viewspurchasing.bulk_createproduk, name='upload_excel'),
+
     # CRUD Purchasing
     # Saldo awal bb
     path('saldoawalbahanbaku',viewspurchasing.read_saldoawal,name="saldobahanbakupurchasing"),

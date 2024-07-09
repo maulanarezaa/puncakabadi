@@ -389,17 +389,19 @@ class DetailSuratJalanPengirimanBahanBakuSubkon(models.Model):
 
 # Untuk Surat Jalan Penerimaan Produk Subkon
 class SuratJalanPenerimaanProdukSubkon(models.Model):
+    
     NoSuratJalan = models.CharField(max_length=255)
     Tanggal = models.DateField()
     NoInvoice = models.CharField(max_length=255,null=True,blank=True)
     TanggalInvoice = models.DateField(blank=True,null=True)
+    Supplier = models.CharField(max_length=255,null=True,blank=True)
 
     def __str__(self):
         return f"{self.NoSuratJalan} - {self.Tanggal}"
 
 
 class DetailSuratJalanPenerimaanProdukSubkon(models.Model):
-    IDDetailSJPengirimanSubkon = models.AutoField(primary_key=True)
+    IDDetailSJPenerimaanSubkon = models.AutoField(primary_key=True)
     NoSuratJalan = models.ForeignKey(
         SuratJalanPenerimaanProdukSubkon, on_delete=models.CASCADE
     )
@@ -407,6 +409,7 @@ class DetailSuratJalanPenerimaanProdukSubkon(models.Model):
     Jumlah = models.IntegerField()
     Keterangan = models.CharField(max_length=255, null=True, blank=True, default="")
     Harga = models.FloatField(default=0)
+    KeteranganACC = models.BooleanField(default=False)
 
 
     def __str__(self):

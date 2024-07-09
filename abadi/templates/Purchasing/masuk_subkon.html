@@ -37,7 +37,7 @@
           </form> 
         </div>
 
-        <form id="exportButton" action="{% url 'export_excel' %}" method="get">
+        <form id="exportButton" action="{% url 'export_excel2' %}" method="get">
           <input type="hidden" name="input_ppn" value="{{ valueppn }}">
           <input type="hidden" name="input_awal" value="{{ input_awal }}">
           <input type="hidden" name="input_terakhir" value="{{ input_terakhir }}">
@@ -64,8 +64,8 @@
                         <th>Kuantitas</th>
                         <th>Harga</th>
                         <th>Harga Total</th>
-                        <th>Harga PPN ({{valueppn}}%)</th>
-                        <th>Harga Total (PPN)</th>
+                        <th>Harga Potongan ({{valueppn}}%)</th>
+                        <th>Harga Total (potongan)</th>
                         <th>Tanggal Invoice</th>
                         <th>No Invoice</th>
                         <th>Actions</th>
@@ -75,10 +75,10 @@
                       {% for i in sjball %}
                       <tr>
                         <td>{{i.NoSuratJalan.Tanggal}}</td>
-                        <td>{{i.NoSuratJalan.supplier}}</td>
+                        <td>{{i.NoSuratJalan.Supplier}}</td>
                         <td>{{i.KodeProduk}}</td>
                         <td>{{i.KodeProduk.NamaProduk}}</td>
-                        <td>{{i.KodeProduk.unit}}</td>
+                        <td>{{i.KodeProduk.Unit}}</td>
                         <td>{{i.Jumlah|separator_ribuan}}</td>
                         <td>{{i.Harga|custom_thousands_separator}}</td>
                         <td>{{i.harga_total|custom_thousands_separator}}</td>
@@ -102,7 +102,7 @@
                         <td>
                           <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                           <div class="template-demo">
-                            <a href="{% url 'updatebarangsubkonmasuk' i.IDDetailSJPengirimanSubkon %}">
+                            <a href="{% url 'updatebarangsubkonmasuk' i.IDDetailSJPenerimaanSubkon %}">
                               <button type="button" class="btn btn-warning">
                                 <i class="typcn typcn-edit"></i>
                               </button>
