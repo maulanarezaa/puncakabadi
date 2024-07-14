@@ -1677,6 +1677,7 @@ def getstokfg(lastdays, stopindex,awaltahun):
         # print(asd)
 
         resultdisplay = []
+        totalsaldodisplay = 0
         for kode_display in all_kode_display:
             total_mutasi = mutasidisplay_dict.get(kode_display.KodeDisplay, 0)
             total_pengiriman = pengirimandisplay_dict.get(kode_display.KodeDisplay, 0)
@@ -1731,8 +1732,9 @@ def getstokfg(lastdays, stopindex,awaltahun):
                 print(stokxhargaperspk,jumlahspk)
                 print(weightedaverage)
                 # print(asd)
+                
                     
-
+            totalsaldodisplay += stokxhargaperspk
             resultdisplay.append({'KodeDisplay': kode_display, 'total':jumlahspk,'hargafg':weightedaverage,'totalsaldo':stokxhargaperspk})
         print(resultdisplay)
         # print(asd)
@@ -1765,8 +1767,12 @@ def getstokfg(lastdays, stopindex,awaltahun):
         # print(sisabahanbaku)        
         # print(result)
         # print(sisabahanbaku)
+        total_saldofg = totalsaldoartikel + totalsaldobahanbaku + totalsaldodisplay
+        print(totalsaldoartikel)
+        print(totalsaldodisplay)
+        print(totalsaldobahanbaku)
+        print(total_saldofg)
         # print(asd)
-        total_saldofg = totalsaldoartikel + totalsaldobahanbaku
         data.append({'Artikel':resultdengansaldoawal,"BahanBaku":sisabahanbaku,"Display":resultdisplay,"totalsaldo":total_saldofg})
         print(data)
     return data
@@ -2690,7 +2696,6 @@ def exportlaporanbulananexcel(request):
     print(request.GET["bulan"])
     bulan = request.GET["bulan"]
     waktuobj = datetime.strptime(bulan, "%Y-%m")
-    print(waktuobj.month)
     awaltahun = datetime(waktuobj.year, 1, 1)
     listbulan = [
         "Januari",
@@ -2724,10 +2729,6 @@ def exportlaporanbulananexcel(request):
         baranggudang = datacache['baranggudang']
         barangmasuk = datacache['barangmasuk']
         datawip = datacache['stokbahanproduksi']
-        # print(databarangkeluar[0])
-        # print(databarangkeluar[1])
-        # print(databarangkeluar[5])
-        # print(datacache['barangkeluar'])
         print('ADA CACHE')
         # print(asd)
     else:
@@ -2746,7 +2747,8 @@ def exportlaporanbulananexcel(request):
         """SECTION STOCK GUDANG"""
         baranggudang = saldogudang(last_days, index, awaltahun)
         """SECTION FG"""
-        barangfg, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
+        # barangfg, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
+        stokfg = getstokfg(last_days,index,awaltahun)
         """SECTION STOK AWAL PRODUKSI"""
         datawip, datastokwiponly, datastokfgonly = getstokbahanproduksi(
             last_days, index, awaltahun
@@ -2759,7 +2761,7 @@ def exportlaporanbulananexcel(request):
             baranggudang,
             barangmasuk,
             totalbiayakeluar,
-            barangfg,
+            stokfg,
 
         )
         print(barangmasuk)
@@ -2937,6 +2939,7 @@ def exportlaporanbulananexcel(request):
     dfstokgudang = pd.DataFrame(datamodelstockawalgudang)
 
     """5. Sheet Stock Awal Produksi"""
+    # data wip
     datamodelstockawalwip = {
         "Kode Produk": [],
         "Nama Produk": [],
@@ -2944,8 +2947,13 @@ def exportlaporanbulananexcel(request):
         "Harga Satuan": [],
         "Jumlah": [],
         "Total Biaya": [],
+        
     }
-    for stokawal in datawip[0]["data"]:
+    print(datastokwiponly)
+    print(datastokfgonly)
+    print(datawip)
+    # print(asd)
+    for stokawal in datastokwiponly[0]["data"]:
         print(stokawal)
         datamodelstockawalwip["Harga Satuan"].append(stokawal.hargasatuanawal)
         datamodelstockawalwip["Jumlah"].append(stokawal.jumlahawal)
@@ -2955,7 +2963,115 @@ def exportlaporanbulananexcel(request):
         datamodelstockawalwip["Unit"].append(stokawal.unit)
     print(datawip)
     dfstokawalwip = pd.DataFrame(datamodelstockawalwip)
+    totalsaldoawalwip = datastokwiponly[0]['total']
+    datamodelstockawalwip = {
+        "Kode Produk": [],
+        "Nama Produk": [],
+        "Unit": [],
+        "Harga Satuan": [],
+        "Jumlah": [],
+        "Total Biaya": [],
+        
+    }
+    for stokawal in datastokfgonly[0]["data"]:
+        print(stokawal)
+        datamodelstockawalwip["Harga Satuan"].append(stokawal.hargasatuanawal)
+        datamodelstockawalwip["Jumlah"].append(stokawal.jumlahawal)
+        datamodelstockawalwip["Kode Produk"].append(stokawal.KodeProduk)
+        datamodelstockawalwip["Nama Produk"].append(stokawal.NamaProduk)
+        datamodelstockawalwip["Total Biaya"].append(stokawal.totalbiayaawal)
+        datamodelstockawalwip["Unit"].append(stokawal.unit)
+    print(datawip)
+    dfstokawalfg = pd.DataFrame(datamodelstockawalwip)
+    totalsaldoawalfg = datastokfgonly[0]['total']
+
     # print(asdas)
+    '''STOK Gudang Sekarang'''
+    print(baranggudang)
+    # print(asd)
+    datamodelstockawalgudang = {
+        "Kode Produk": [],
+        "Nama Produk": [],
+        "Unit": [],
+        "Harga Satuan": [],
+        "Jumlah": [],
+        "Total Biaya": [],
+    }
+    for bahan,item in baranggudang["hargaakhirbulanperproduk"]['data'].items():
+        print(item)
+        datamodelstockawalgudang["Harga Satuan"].append(item['hargasatuan'])
+        datamodelstockawalgudang["Jumlah"].append(item['jumlah'])
+        datamodelstockawalgudang["Kode Produk"].append(bahan.KodeProduk)
+        datamodelstockawalgudang["Nama Produk"].append(bahan.NamaProduk)
+        datamodelstockawalgudang["Total Biaya"].append(item['hargatotal'])
+        datamodelstockawalgudang["Unit"].append(bahan.unit)
+
+    dfstokgudang = pd.DataFrame(datamodelstockawalgudang)
+    totalsaldogudang = baranggudang['hargaakhirbulanperproduk']['total']
+
+    '''STOK FG SEKARANG'''
+    # Stok Artikel
+    datamodelkeluar = {
+        "Kode Artikel": [],
+        "Jumlah": [],
+        "Harga FG": [],
+        "Total Biaya": [],
+    }
+    print(stokfg[-1]['Artikel'])
+    # print(asd)
+    for data in stokfg[-1]['Artikel']:
+        print(data)
+        datamodelkeluar["Jumlah"].append(data['total'])
+        datamodelkeluar["Kode Artikel"].append(data['KodeArtikel'])
+        datamodelkeluar["Harga FG"].append(data['hargafg'])
+        datamodelkeluar["Total Biaya"].append(data['totalsaldo'])
+
+    print(datamodelkeluar)
+    dfstokfgartikel = pd.DataFrame(datamodelkeluar)
+    totalsaldofgartikel = sum(datamodelkeluar["Total Biaya"])
+    
+    datamodelkeluar = {
+        "Kode Display": [],
+        "Jumlah": [],
+        "Harga FG": [],
+        "Total Biaya": [],
+    }
+    print(stokfg[-1])
+
+    # print(asd)
+    for data in stokfg[-1]['Display']:
+        print(data)
+        datamodelkeluar["Jumlah"].append(data['total'])
+        datamodelkeluar["Kode Display"].append(data['KodeDisplay'])
+        datamodelkeluar["Harga FG"].append(data['hargafg'])
+        datamodelkeluar["Total Biaya"].append(data['totalsaldo'])
+
+    print(datamodelkeluar)
+    dfstokfgdisplay = pd.DataFrame(datamodelkeluar)
+    totalsaldofgdisplay = sum(datamodelkeluar["Total Biaya"])
+
+    print(dfstokgudang)
+
+    datamodelkeluar = {
+        "Kode Bahan Baku": [],
+        "Jumlah": [],
+        "Harga Satuan": [],
+        "Total Biaya": [],
+    }
+    print(stokfg[-1]['BahanBaku'])
+    # print(asd)
+    for data in stokfg[-1]['BahanBaku']:
+        print(data)
+        datamodelkeluar["Jumlah"].append(data['total'])
+        datamodelkeluar["Kode Bahan Baku"].append(data['KodeProduk'])
+        datamodelkeluar["Harga Satuan"].append(data['hargasatuan'])
+        datamodelkeluar["Total Biaya"].append(data['hargatotal'])
+
+    print(datamodelkeluar)
+    dfstokfgbahanbaku = pd.DataFrame(datamodelkeluar)
+    totalsaldofgbahanbaku = sum(datamodelkeluar["Total Biaya"])
+
+    print(dfstokgudang)
 
     buffer = BytesIO()
 
@@ -3055,14 +3171,9 @@ def exportlaporanbulananexcel(request):
         writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluargold)
         apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
         adjust_column_width(writer.sheets['Barang Keluar'],dftransaksigold,1,maxcolprevdf+2)
-        
-        
-       
-        # print(asd)
-        
 
+        '''LAPORAN SALDO AWAL GUDANG'''
         # Stok Gudang
-        '''LAPORAN STOK GUDANG'''
         dfstokgudang.to_excel(
             writer, index=False, startrow=1, sheet_name="Saldo Awal Gudang"
         )
@@ -3071,21 +3182,101 @@ def exportlaporanbulananexcel(request):
         maxrow = len(dfstokgudang)+1
         maxcol = len(dfstokgudang.columns)
         writer.sheets["Saldo Awal Gudang"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
-
         writer.sheets["Saldo Awal Gudang"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
         writer.sheets["Saldo Awal Gudang"].cell(row=maxrow+2, column = 1).value = "Total Harga"
         writer.sheets["Saldo Awal Gudang"].cell(row=maxrow+2, column = maxcol,value = totalbiayamasuk)
+        apply_borders_thin(writer.sheets['Saldo Awal Gudang'],2,maxrow+2,maxcol )
+        adjust_column_width(writer.sheets['Saldo Awal Gudang'],dfstokgudang,1,1)
 
         # Laporan stok Produksi Section
-        dfstokawalwip.to_excel(writer, index=False, startrow=1, sheet_name="Saldo WIP")
+        '''LAPORAN SALDO AWAL WIP'''
+        # data stok awal WIP
+        dfstokawalwip.to_excel(writer, index=False, startrow=1, sheet_name="Saldo Awal WIP")
         maxrow = len(dfstokawalwip)+1
         maxcol = len(dfstokawalwip.columns)
-        writer.sheets["Saldo WIP"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
+        writer.sheets["Saldo Awal WIP"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
 
-        writer.sheets["Saldo WIP"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
-        writer.sheets["Saldo WIP"].cell(row=maxrow+2, column = 1).value = "Total Harga"
-        writer.sheets["Saldo WIP"].cell(row=maxrow+2, column = maxcol,value = totalbiayamasuk)
+        writer.sheets["Saldo Awal WIP"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
+        writer.sheets["Saldo Awal WIP"].cell(row=maxrow+2, column = 1).value = "Total Harga"
+        writer.sheets["Saldo Awal WIP"].cell(row=maxrow+2, column = maxcol,value = totalsaldoawalwip)
+        apply_borders_thin(writer.sheets['Saldo Awal WIP'],2,maxrow+2,maxcol )
+        adjust_column_width(writer.sheets['Saldo Awal WIP'],dfstokawalwip,1,1)
+
+        # data stok awal FG
+        dfstokawalfg.to_excel(
+                        writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Saldo Awal WIP"
+        )
+        maxcolprevdf = maxcol
+        writer.sheets["Saldo Awal WIP"].cell(row=1, column = maxcol+2,value ='Saldo awal FG')
+        maxrow = len(dfstokawalfg)+1
+        maxcol = len(dfstokawalfg.columns)+ maxcol + 1
+        writer.sheets["Saldo Awal WIP"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
+        writer.sheets["Saldo Awal WIP"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
+        writer.sheets["Saldo Awal WIP"].cell(row=maxrow+2, column = maxcol,value = totalsaldoawalfg)
+        apply_borders_thin(writer.sheets['Saldo Awal WIP'],2,maxrow+2,maxcol ,maxcolprevdf+2)
+        adjust_column_width(writer.sheets['Saldo Awal WIP'],dfstokawalfg,1,maxcolprevdf+2)
+
+        writer.sheets["Saldo Awal WIP"].cell(row=2, column = maxcol+2).value = "Total Harga Saldo Awal"
+        writer.sheets["Saldo Awal WIP"].cell(row=2, column = maxcol+3,value = totalsaldoawalfg+totalsaldoawalwip)
+        apply_borders_thin(writer.sheets['Saldo Awal WIP'],2,2,maxcol+3 ,maxcol+2)
+
+        '''LAPORAN STOK AWAL GUDANG'''
+        dfstokgudang.to_excel(writer, index=False, startrow=1, sheet_name="Saldo Gudang")
+        maxrow = len(dfstokgudang)+1
+        maxcol = len(dfstokgudang.columns)
+        writer.sheets["Saldo Gudang"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
+
+        writer.sheets["Saldo Gudang"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
+        writer.sheets["Saldo Gudang"].cell(row=maxrow+2, column = 1).value = "Total Harga"
+        writer.sheets["Saldo Gudang"].cell(row=maxrow+2, column = maxcol,value = totalsaldogudang)
+        apply_borders_thin(writer.sheets['Saldo Gudang'],2,maxrow+2,maxcol )
+        adjust_column_width(writer.sheets['Saldo Gudang'],dfstokgudang,1,1)
+
+        '''LAPORAN STOK FG '''
+        # Artikel
+        dfstokfgartikel.to_excel(writer, index=False, startrow=1, sheet_name="Saldo FG")
+        maxrow = len(dfstokfgartikel)+1
+        maxcol = len(dfstokfgartikel.columns)
+        writer.sheets["Saldo FG"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
+
+        writer.sheets["Saldo FG"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
+        writer.sheets["Saldo FG"].cell(row=maxrow+2, column = 1).value = "Total Harga"
+        writer.sheets["Saldo FG"].cell(row=maxrow+2, column = maxcol,value = totalsaldofgartikel)
+        apply_borders_thin(writer.sheets['Saldo FG'],2,maxrow+3,maxcol )
+        adjust_column_width(writer.sheets['Saldo FG'],dfstokfgartikel,1,1)
+        writer.sheets["Saldo FG"].merge_cells(start_row=maxrow+3, start_column=1,end_row = maxrow+3,end_column= maxcol-1)
+        writer.sheets["Saldo FG"].cell(row=maxrow+3, column = 1).value = "Total Harga"
+        writer.sheets["Saldo FG"].cell(row=maxrow+3, column = maxcol,value = totalsaldofgartikel+totalsaldofgbahanbaku+totalsaldofgdisplay)
+
+
+        # Display
+        dfstokfgdisplay.to_excel(
+                        writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Saldo FG"
+        )
+        maxcolprevdf = maxcol
+        writer.sheets["Saldo FG"].cell(row=1, column = maxcol+2,value ='Saldo Display FG')
+        maxrow = len(dfstokfgdisplay)+1
+        maxcol = len(dfstokfgdisplay.columns)+ maxcol + 1
+        writer.sheets["Saldo FG"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
+        writer.sheets["Saldo FG"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
+        writer.sheets["Saldo FG"].cell(row=maxrow+2, column = maxcol,value = totalsaldofgdisplay)
+        apply_borders_thin(writer.sheets['Saldo FG'],2,maxrow+2,maxcol ,maxcolprevdf+2)
+        adjust_column_width(writer.sheets['Saldo FG'],dfstokfgdisplay,1,maxcolprevdf+2)
         
+        # Bahan Baku
+        dfstokfgbahanbaku.to_excel(
+                        writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Saldo FG"
+        )
+        maxcolprevdf = maxcol
+        writer.sheets["Saldo FG"].cell(row=1, column = maxcol+2,value ='Saldo Bahan Baku FG')
+        maxrow = len(dfstokfgbahanbaku)+1
+        maxcol = len(dfstokfgbahanbaku.columns)+ maxcol + 1
+        writer.sheets["Saldo FG"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
+        writer.sheets["Saldo FG"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
+        writer.sheets["Saldo FG"].cell(row=maxrow+2, column = maxcol,value = totalsaldofgbahanbaku)
+        apply_borders_thin(writer.sheets['Saldo FG'],2,maxrow+2,maxcol ,maxcolprevdf+2)
+        adjust_column_width(writer.sheets['Saldo FG'],dfstokfgbahanbaku,1,maxcolprevdf+2)
+
         workbook = writer.book
         for sheet_name in writer.sheets:
             worksheet = writer.sheets[sheet_name]
