@@ -14,6 +14,7 @@ import calendar
 from . import logindecorators
 from django.contrib.auth.decorators import login_required
 import time
+from django.core.cache import cache
 
 # Create your views here.
 
@@ -409,137 +410,6 @@ def laporanbarangkeluar(request):
             },
         )
 
-
-def laporanpersediaanbarang(request):
-    if len(request.GET) == 0:
-        return render(request, "ppic/views_laporanpersediaan.html")
-    else:
-        tanggal_mulai = request.GET["tanggalawal"]
-        tanggal_akhir = request.GET["tanggalakhir"]
-        tanggal_obj = datetime.strptime(tanggal_akhir, "%Y-%m-%d").date()
-
-        # Ambil total harga barang keluar dulu
-        data = models.SPPB.objects.filter(
-            Tanggal__range=(tanggal_mulai, tanggal_akhir)
-        ).order_by("Tanggal")
-        if not data.exists():
-            messages.warning(
-                request, "Data SPPB Tidak ditemukan pada rentang tanggal tersebut"
-            )
-            return redirect("laporanpersediaanbarang")
-        listharga = []
-        for i in data:
-            detailsppb = models.DetailSPPB.objects.filter(NoSPPB=i.id)
-            a = detailsppb.values("DetailSPK__KodeArtikel").annotate(
-                total_jumlah=Sum("Jumlah")
-            )
-            for j in a:
-                penyusunfilterobj = models.Penyusun.objects.filter(
-                    KodeArtikel=j["DetailSPK__KodeArtikel"]
-                )
-                nilaiFG = 0
-                for penyusunobj in penyusunfilterobj:
-                    nilaiFG += gethargafg(penyusunobj)
-                j.update({"HargaFG": nilaiFG})
-                j.update({"TotalNilai": nilaiFG * j["total_jumlah"]})
-                j["DetailSPK__KodeArtikel"] = penyusunobj.KodeArtikel.KodeArtikel
-                listharga.append(j["TotalNilai"])
-        totalhargabarangkeluar = sum(listharga)
-
-        # Ambil data Bahan masuk
-        dataspk = models.SuratJalanPembelian.objects.filter(
-            Tanggal__range=(tanggal_mulai, tanggal_akhir)
-        ).order_by("Tanggal")
-        listdetailsjp = []
-        totalhargabarangmasuk = 0
-        for i in dataspk:
-            detailsjpembelianobj = models.DetailSuratJalanPembelian.objects.filter(
-                NoSuratJalan=i.NoSuratJalan
-            )
-            for j in detailsjpembelianobj:
-                j.supplier = i.supplier
-                j.totalharga = j.Jumlah * j.Harga
-                totalhargabarangmasuk += j.totalharga
-                listdetailsjp.append(j)
-
-        # Total Harga Stok Gudang
-        dataartikel = models.Artikel.objects.all()
-        totalhargabarangjadi = 0
-        for i in dataartikel:
-            mutasifilterobj = models.TransaksiProduksi.objects.filter(KodeArtikel=i.id)
-            saldomutasimasuktanggalakhir = mutasifilterobj.filter(
-                Lokasi=1, Tanggal__lte=(tanggal_akhir)
-            )
-            saldomutasikeluartanggalakhir = mutasifilterobj.filter(
-                Lokasi=2, Tanggal__lte=(tanggal_akhir)
-            )
-            print(mutasifilterobj)
-            jumlahmasuk = 0
-            jumlahkeluar = 0
-            for j in saldomutasimasuktanggalakhir:
-                jumlahmasuk += j.Jumlah
-            for k in saldomutasikeluartanggalakhir:
-                jumlahkeluar += k.Jumlah
-
-            i.Jumlahakumulasi = jumlahmasuk - jumlahkeluar
-            penyusunfilterobj = models.Penyusun.objects.filter(KodeArtikel=i.id)
-
-            nilaiFG = 0
-            for penyusunobj in penyusunfilterobj:
-                nilaiFG += gethargafg(penyusunobj)
-            i.Harga = nilaiFG
-            i.NilaiTotal = nilaiFG * i.Jumlahakumulasi
-            totalhargabarangjadi += i.NilaiTotal
-
-        # Saldo awal Belum dibuat
-        Saldoawal = 0
-        # Anggap dari
-        # Ambil data semua bahan baku di wip
-        databahanproduksi = models.Produk.objects.filter(KodeProduk__startswith="A")
-        print(databahanproduksi)
-        for i in databahanproduksi:
-            print("ini i", i)
-            datasaldoawaltahun = (
-                models.SaldoAwalBahanBaku.objects.filter(
-                    Tanggal__lte=tanggal_akhir, IDBahanBaku=i.KodeProduk
-                )
-                .order_by("-Tanggal")
-                .first()
-            )
-            if (
-                not datasaldoawaltahun
-                or datasaldoawaltahun.Tanggal.year != tanggal_obj.year
-            ):
-                print("data tidak ada")
-                hargasaldoawalbahanbaku = 0
-            else:
-                print(datasaldoawaltahun)
-                print("data ada")
-                hargasaldoawalbahanbaku = (
-                    datasaldoawaltahun.Harga * datasaldoawaltahun.Jumlah
-                )
-
-            Saldoawal += hargasaldoawalbahanbaku
-
-        #
-        saldototal = Saldoawal + totalhargabarangmasuk - totalhargabarangkeluar
-        saldowip = saldototal - totalhargabarangjadi
-
-        return render(
-            request,
-            "ppic/views_laporanpersediaan.html",
-            {
-                "tanggalawal": tanggal_mulai,
-                "tanggalakhir": tanggal_akhir,
-                "data": a,
-                "barangkeluar": round(totalhargabarangkeluar, 2),
-                "barangmasuk": round(totalhargabarangmasuk, 2),
-                "barangfg": round(totalhargabarangjadi, 2),
-                "saldoawal": round(Saldoawal, 2),
-                "saldototal": round(saldototal, 2),
-                "saldowip": round(saldowip, 2),
-            },
-        )
 
 
 """
@@ -2664,37 +2534,57 @@ def laporanpersediaan(request):
         for month in range(1, 13):
             last_day = calendar.monthrange(waktuobj.year, month)[1]
             last_days.append(date(waktuobj.year, month, last_day))
-        """SECTION BARANG KELUAR"""
-        totalbiayakeluar = (getbarangkeluar(last_days, index, awaltahun))[1]
-        """SECTION BARANG MASUK"""
-        barangmasuk = getbarangmasuk(last_days, index, awaltahun)
-        """SECTION STOCK GUDANG"""
-        baranggudang = saldogudang(last_days, index, awaltahun)
-        """SECTION FG"""
-        barangfg, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
-        hargapurchasing = gethargapurchasingperbulan(last_days,index,awaltahun)
-        saldofg = getstokfg(last_days,index,awaltahun)
-        # print(saldofg[0['totalsaldo']])
+        cache_key = f'laporan_{awaltahun}-{last_days[index-1]}'
+        cache_keyexcel = f'export_excel_{awaltahun}-{last_days[index-1]}'
+        dataperhitunganpersediaan = cache.get(cache_key)
+        if dataperhitunganpersediaan:
+            print(dataperhitunganpersediaan)
+            print('adadatacache')
+            # print(asd)
+        else:
+            """SECTION BARANG KELUAR"""
+            (totalbiayakeluar) = (getbarangkeluar(last_days, index, awaltahun))
+            """SECTION BARANG MASUK"""
+            barangmasuk = getbarangmasuk(last_days, index, awaltahun)
+            """SECTION STOCK GUDANG"""
+            baranggudang = saldogudang(last_days, index, awaltahun)
+            """SECTION FG"""
+            # barangfg, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
+            # hargapurchasing = gethargapurchasingperbulan(last_days,index,awaltahun)
+            saldofg = getstokfg(last_days,index,awaltahun)
+            # print(saldofg[0['totalsaldo']])
+            datawip, datastokwiponly, datastokfgonly = getstokbahanproduksi(
+        last_days, index, awaltahun
+    )
+            """SECTION WIP (Skip dulu)"""
 
-        """SECTION WIP (Skip dulu)"""
+            dataperhitunganpersediaan = perhitunganpersediaan(
+                last_days,
+                index,
+                awaltahun,
+                baranggudang,
+                barangmasuk,
+                totalbiayakeluar[1],
+                saldofg
+            )
 
-        dataperhitunganpersediaan = perhitunganpersediaan(
-            last_days,
-            index,
-            awaltahun,
-            baranggudang,
-            barangmasuk,
-            totalbiayakeluar,
-            saldofg
-        )
+            # print(asd)
 
-        # print(asd)
-
-        print("\n")
-        print(dataperhitunganpersediaan)
-        print("tes")
-        endtime = time.time()
-        print("Selisih waktu : ", endtime - starttime)
+            print("\n")
+            print(dataperhitunganpersediaan)
+            print("tes")
+            endtime = time.time()
+            print("Selisih waktu : ", endtime - starttime)
+            cache.set(cache_key, dataperhitunganpersediaan, timeout=60)
+            datacache = {
+                'barangkeluar':totalbiayakeluar,
+                'barangmasuk':barangmasuk,
+                'baranggudang':baranggudang,
+                'barangfg':saldofg,
+                'stokbahanproduksi':datawip,
+            }
+            cache.set(cache_keyexcel, datacache, timeout=500)
+        print(cache_keyexcel)
         return render(
             request,
             "ppic/views_laporanpersediaanperusahaan.html",
@@ -2821,44 +2711,66 @@ def exportlaporanbulananexcel(request):
     for month in range(1, 13):
         last_day = calendar.monthrange(waktuobj.year, month)[1]
         last_days.append(date(waktuobj.year, month, last_day))
-    (
-        datadetailsppb,
-        totalbiayakeluar,
-        datapenyusun,
-        datalistbarangkelua,
-        datatransaksilainlain,
-        detailtransaksigold,
-        detailbiaya,
-        datatransaksikeluar
-    ) = getbarangkeluar(last_days, index, awaltahun)
-    """SECTION BARANG MASUK"""
-    barangmasuk = getbarangmasuk(last_days, index, awaltahun)
-    """SECTION STOCK GUDANG"""
-    baranggudang = saldogudang(last_days, index, awaltahun)
-    """SECTION FG"""
-    barangfg, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
-    """SECTION STOK AWAL PRODUKSI"""
-    datawip, datastokwiponly, datastokfgonly = getstokbahanproduksi(
-        last_days, index, awaltahun
-    )
-    """SECTION WIP (Skip dulu)"""
-    dataperhitunganpersediaan = perhitunganpersediaan(
-        last_days,
-        index,
-        awaltahun,
-        baranggudang,
-        barangmasuk,
-        totalbiayakeluar,
-        barangfg,
+    
+    cache_keyexcel =  f'export_excel_{awaltahun}-{last_days[index-1]}'
+    datacache = cache.get(cache_keyexcel)
+    print(cache_keyexcel)
+    print(datacache)
+    # print(asd)
+    if datacache :
+        databarangkeluar = datacache['barangkeluar']
+        datadetailsppb = databarangkeluar[0]
+        detailtransaksigold = databarangkeluar[5]
+        baranggudang = datacache['baranggudang']
+        barangmasuk = datacache['barangmasuk']
+        datawip = datacache['stokbahanproduksi']
+        # print(databarangkeluar[0])
+        # print(databarangkeluar[1])
+        # print(databarangkeluar[5])
+        # print(datacache['barangkeluar'])
+        print('ADA CACHE')
+        # print(asd)
+    else:
+        (
+            datadetailsppb,
+            totalbiayakeluar,
+            datapenyusun,
+            datalistbarangkelua,
+            datatransaksilainlain,
+            detailtransaksigold,
+            detailbiaya,
+            datatransaksikeluar
+        ) = getbarangkeluar(last_days, index, awaltahun)
+        """SECTION BARANG MASUK"""
+        barangmasuk = getbarangmasuk(last_days, index, awaltahun)
+        """SECTION STOCK GUDANG"""
+        baranggudang = saldogudang(last_days, index, awaltahun)
+        """SECTION FG"""
+        barangfg, bahanbakusisafg = getstokartikelfg(last_days, index, awaltahun)
+        """SECTION STOK AWAL PRODUKSI"""
+        datawip, datastokwiponly, datastokfgonly = getstokbahanproduksi(
+            last_days, index, awaltahun
+        )
+        """SECTION WIP (Skip dulu)"""
+        dataperhitunganpersediaan = perhitunganpersediaan(
+            last_days,
+            index,
+            awaltahun,
+            baranggudang,
+            barangmasuk,
+            totalbiayakeluar,
+            barangfg,
 
-    )
-    print(barangmasuk)
+        )
+        print(barangmasuk)
+        # print(asd)
 
-    """PEMBUATAN EXCEL"""
-    """ 1. sheet untuk laporan persediaan"""
-    df = pd.DataFrame.from_dict(
-        dataperhitunganpersediaan[listbulan[waktuobj.month - 1]], orient="index"
-    ).T
+
+        """PEMBUATAN EXCEL"""
+        """ 1. sheet untuk laporan persediaan"""
+    # df = pd.DataFrame.from_dict(
+    #     dataperhitunganpersediaan[listbulan[waktuobj.month - 1]], orient="index"
+    # ).T
     """2. Sheet untuk laporan barang masuk"""
     datamodelmasuk = {
         "Tanggal Masuk": [],
@@ -2884,6 +2796,8 @@ def exportlaporanbulananexcel(request):
     print(datamodelmasuk)
     df2 = pd.DataFrame(datamodelmasuk)
     totalbiayamasuk = sum(datamodelmasuk["Harga Total"])
+    print(df2,totalbiayamasuk)
+    # print(asd)
     """3. Sheet untuk Barang Keluar"""
     print(datadetailsppb)
     datamodelkeluar = {
@@ -2896,7 +2810,7 @@ def exportlaporanbulananexcel(request):
         "Total Biaya": [],
     }
 
-    for data in datadetailsppb:
+    for data in datatransaksikeluar['SPPBArtikel']['SPPBArtikel']:
         print(data)
         datamodelkeluar["Jumlah"].append(data.Jumlah)
         datamodelkeluar["Artikel"].append(data.DetailSPK.KodeArtikel)
@@ -2910,7 +2824,6 @@ def exportlaporanbulananexcel(request):
     totalbiayakeluar = sum(datamodelkeluar["Total Biaya"])
     dfdatakeluar = pd.DataFrame(datamodelkeluar)
     
-
     datamodelstransaksigold = {
         "Kode Produk": [],
         "Nama Produk": [],
@@ -2920,7 +2833,7 @@ def exportlaporanbulananexcel(request):
         "Total Biaya": [],
     }
     print(baranggudang["datasaldoawal"])
-    for item in detailtransaksigold:
+    for item in datatransaksikeluar['Transaksigolongand']['datatransaksi']:
         datamodelstransaksigold["Kode Produk"].append(item.KodeProduk.KodeProduk)
         datamodelstransaksigold["Unit"].append(item.KodeProduk.unit)
         datamodelstransaksigold["Nama Produk"].append(item.KodeProduk.NamaProduk)
@@ -2928,9 +2841,79 @@ def exportlaporanbulananexcel(request):
         datamodelstransaksigold["Total Biaya"].append(item.hargatotal)
         datamodelstransaksigold["Harga Satuan"].append(item.harga)
 
-    print(datamodelstransaksigold)
+    # print(datamodelstransaksigold)
     dftransaksigold = pd.DataFrame(datamodelstransaksigold)
-    print(dftransaksigold)
+    totalbiayakeluargold = sum(datamodelstransaksigold["Total Biaya"])
+    # print(dftransaksigold)
+
+    print(datatransaksilainlain)
+    datamodelstransaksilainlain = {
+        "Kode Produk": [],
+        "Nama Produk": [],
+        "Unit": [],
+        "Harga Satuan": [],
+        "Jumlah": [],
+        "Total Biaya": [],
+    }
+
+    for item in datatransaksikeluar['Transaksilainlain']['datatransaksi']:
+        datamodelstransaksilainlain["Kode Produk"].append(item.KodeProduk.KodeProduk)
+        datamodelstransaksilainlain["Unit"].append(item.KodeProduk.unit)
+        datamodelstransaksilainlain["Nama Produk"].append(item.KodeProduk.NamaProduk)
+        datamodelstransaksilainlain["Jumlah"].append(item.jumlah)
+        datamodelstransaksilainlain["Total Biaya"].append(item.hargatotal)
+        datamodelstransaksilainlain["Harga Satuan"].append(item.harga)
+    
+    dftransaksilainlain = pd.DataFrame(datamodelstransaksilainlain)
+    print(dftransaksilainlain)
+    totalbiayakeluartransaksilainlain = sum(datamodelstransaksilainlain["Total Biaya"])
+    # Transaksi Bahan Baku
+    datamodelstransaksibahanbaku = {
+        "Kode Produk": [],
+        "Nama Produk": [],
+        "Unit": [],
+        "Harga Satuan": [],
+        "Jumlah": [],
+        "Total Biaya": [],
+    }
+
+    for item in datatransaksikeluar['Transaksibahanbaku']['datatransaksi']:
+        datamodelstransaksibahanbaku["Kode Produk"].append(item.DetailBahan.KodeProduk)
+        datamodelstransaksibahanbaku["Unit"].append(item.DetailBahan.unit)
+        datamodelstransaksibahanbaku["Nama Produk"].append(item.DetailBahan.NamaProduk)
+        datamodelstransaksibahanbaku["Jumlah"].append(item.Jumlah)
+        datamodelstransaksibahanbaku["Total Biaya"].append(item.hargatotal)
+        datamodelstransaksibahanbaku["Harga Satuan"].append(item.harga)
+    
+    dftransaksibahanbaku = pd.DataFrame(datamodelstransaksibahanbaku)
+    # print(dftransaksibahanbaku)
+    totalbiayakeluartransaksibahanbaku = sum(datamodelstransaksibahanbaku["Total Biaya"])
+    # Transaksi Display
+    datamodeldisplay = {
+        "Tanggal Keluar": [],
+        "No SPPB": [],
+        "NO SPK": [],
+        "Artikel": [],
+        "Jumlah": [],
+        "Harga FG": [],
+        "Total Biaya": [],
+    }
+
+    for data in datatransaksikeluar['SPPBDisplay']['SPPBDisplay']:
+        print(data)
+        datamodeldisplay["Jumlah"].append(data.Jumlah)
+        datamodeldisplay["Artikel"].append(data.DetailSPKDisplay.KodeDisplay)
+        datamodeldisplay["Harga FG"].append(data)
+        datamodeldisplay["NO SPK"].append(data.DetailSPKDisplay.NoSPK)
+        datamodeldisplay["No SPPB"].append(data.NoSPPB)
+        datamodeldisplay["Total Biaya"].append(data.totalbiaya)
+        datamodeldisplay["Tanggal Keluar"].append(data.NoSPPB.Tanggal)
+
+    print(datamodeldisplay)
+    dfdatakeluardisplay = pd.DataFrame(datamodeldisplay)
+    totalbiayakeluardisplay = sum(datamodelkeluar["Total Biaya"])
+
+    # print(asd)
 
     """4. Sheet Stock Awal Gudang"""
     datamodelstockawalgudang = {
@@ -2984,37 +2967,107 @@ def exportlaporanbulananexcel(request):
     num_cols_dfstokawalwip = dfdatakeluar.shape[1]
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         # Laporan Persediaan Section
-        df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+        # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
 
         # Laporan Barang masuk Section
+        '''LAPORAN BARANG MASUK'''
         df2.to_excel(writer, index=False, startrow=1, sheet_name="Barang Masuk")
         maxrow = len(df2)+1
         maxcol = len(df2.columns)
         writer.sheets["Barang Masuk"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
-
         writer.sheets["Barang Masuk"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
         writer.sheets["Barang Masuk"].cell(row=maxrow+2, column = 1).value = "Total Harga"
         writer.sheets["Barang Masuk"].cell(row=maxrow+2, column = maxcol,value = totalbiayamasuk)
+        apply_borders_thin(writer.sheets['Barang Masuk'],2,maxrow+2,maxcol)
+        
+        adjust_column_width(writer.sheets['Barang Masuk'],df2,1,1)
 
-        # Laporan Barang keluar section
+        '''LAPORAN BARANG KELUAR'''
+        # Artikel Keluar
         dfdatakeluar.to_excel(
             writer, index=False, startrow=1, sheet_name="Barang Keluar"
         )
         maxrow = len(dfdatakeluar)+1
         maxcol = len(dfdatakeluar.columns)
         writer.sheets["Barang Keluar"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
-
+        writer.sheets["Barang Keluar"].cell(row=1, column = 2,value ='Artikel Keluar')
         writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
         writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = 1).value = "Total Harga"
         writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluar)
+        writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+3, start_column=1,end_row = maxrow+3,end_column= maxcol-1)
+        writer.sheets["Barang Keluar"].cell(row=maxrow+3, column = 1).value = f"Total Harga Keluar Bulan {listbulan[waktuobj.month - 1]}"
+        writer.sheets["Barang Keluar"].cell(row=maxrow+3, column = maxcol,value = totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain)
+        apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+3,maxcol)
+        adjust_column_width(writer.sheets['Barang Keluar'],dfdatakeluar,1,1)
 
-        dftransaksigold.to_excel(
-                        writer, index=False, startrow=maxrow+3, sheet_name="Barang Keluar"
+        # Transaksi Display
+        dfdatakeluardisplay.to_excel(
+                        writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Barang Keluar"
         )
-        # Laporan stok gudang section
+        maxcolprevdf = maxcol
+        writer.sheets["Barang Keluar"].cell(row=1, column = maxcol+2,value ='Display Keluar')
+        maxrow = len(dfdatakeluardisplay)+1
+        maxcol = len(dfdatakeluardisplay.columns)+ maxcol + 1
+        writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
+        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
+        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluardisplay)
+        apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
+        adjust_column_width(writer.sheets['Barang Keluar'],dfdatakeluardisplay,1,maxcolprevdf+2)
+
+         # Transaksi Bahan Baku
+        dftransaksibahanbaku.to_excel(
+                        writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Barang Keluar"
+        )
+        maxcolprevdf = maxcol
+        writer.sheets["Barang Keluar"].cell(row=1, column = maxcol+2,value ='Transaksi Bahan Baku')
+        maxrow = len(dftransaksibahanbaku)+1
+        maxcol = len(dftransaksibahanbaku.columns)+ maxcol + 1
+        writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
+        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
+        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluartransaksibahanbaku)
+        apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
+        adjust_column_width(writer.sheets['Barang Keluar'],dftransaksibahanbaku,1,maxcolprevdf+2)
+        
+        # Transaksi Lain-Lain
+        dftransaksilainlain.to_excel(
+                        writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Barang Keluar"
+        )
+        maxcolprevdf = maxcol
+        writer.sheets["Barang Keluar"].cell(row=1, column = maxcol+2,value ='Lain-lain')
+        maxrow = len(dftransaksilainlain)+1
+        maxcol = len(dftransaksilainlain.columns)+ maxcol + 1
+        writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
+        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
+        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluartransaksilainlain)
+        apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
+        adjust_column_width(writer.sheets['Barang Keluar'],dftransaksilainlain,1,maxcolprevdf+2)
+
+        # Transaksi Golongan D
+        dftransaksigold.to_excel(
+                        writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Barang Keluar"
+        )
+        maxcolprevdf = maxcol
+        writer.sheets["Barang Keluar"].cell(row=1, column = maxcol+2,value ='Bahan Baku Golongan D Keluar')
+        maxrow = len(dftransaksigold)+1
+        maxcol = len(dftransaksigold.columns)+ maxcol + 1
+        writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
+        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
+        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluargold)
+        apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
+        adjust_column_width(writer.sheets['Barang Keluar'],dftransaksigold,1,maxcolprevdf+2)
+        
+        
+       
+        # print(asd)
+        
+
+        # Stok Gudang
+        '''LAPORAN STOK GUDANG'''
         dfstokgudang.to_excel(
             writer, index=False, startrow=1, sheet_name="Saldo Awal Gudang"
         )
+        
+        #  Transaksi lain lain belum masuk
         maxrow = len(dfstokgudang)+1
         maxcol = len(dfstokgudang.columns)
         writer.sheets["Saldo Awal Gudang"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
@@ -3051,24 +3104,24 @@ def exportlaporanbulananexcel(request):
                 df_temp = dftransaksigold
 
             # Iterate over the columns and set the width
-            for i, col in enumerate(df_temp.columns):
-                max_length = max(df_temp[col].astype(str).map(len).max(), len(col))
-                worksheet.column_dimensions[chr(65 + i)].width = max_length + 2  # Adjust the column width
-            for row in worksheet.iter_rows(min_row=2, max_row=worksheet.max_row, min_col=1, max_col=worksheet.max_column):
-                for cell in row:
-                    cell.border = thin_border
+            # for i, col in enumerate(df_temp.columns):
+            #     max_length = max(df_temp[col].astype(str).map(len).max(), len(col))
+            #     worksheet.column_dimensions[chr(65 + i)].width = max_length + 2  # Adjust the column width
+            # for row in worksheet.iter_rows(min_row=2, max_row=worksheet.max_row, min_col=1, max_col=worksheet.max_column):
+            #     for cell in row:
+            #         cell.border = thin_border
 
-    # Load the workbook from the buffer
+    # # Load the workbook from the buffer
     buffer.seek(0)
     wb = load_workbook(buffer)
-    ws = wb["Laporan Persediaan"]
-    ws2 = wb["Barang Masuk"]
-    ws3 = wb["Barang Keluar"]
+    # ws = wb["Laporan Persediaan"]
+    # ws2 = wb["Barang Masuk"]
+    # ws3 = wb["Barang Keluar"]
 
-    # Insert header "Januari" above the table
-    ws["A1"] = listbulan[waktuobj.month - 1]
-    ws2["A1"] = listbulan[waktuobj.month - 1]
-    ws3["A1"] = listbulan[waktuobj.month - 1]
+    # # Insert header "Januari" above the table
+    # ws["A1"] = listbulan[waktuobj.month - 1]
+    # ws2["A1"] = listbulan[waktuobj.month - 1]
+    # ws3["A1"] = listbulan[waktuobj.month - 1]
 
     # Custom WS Barang Keluar
     # baristerakhirws3 = ws3.max_row
@@ -3103,6 +3156,23 @@ def exportlaporanbulananexcel(request):
     )
 
     return response
+
+def adjust_column_width(worksheet, df, start_row, start_col):
+    for i, col in enumerate(df.columns):
+        max_length = max(df[col].astype(str).map(len).max(), len(col))
+        col_letter = get_column_letter(start_col + i)
+        worksheet.column_dimensions[col_letter].width = max_length + 2
+
+def apply_borders_thin(worksheet, start_row, end_row, max_col,min_col=1):
+    thin_border = Border(left=Side(style='thin'),
+                         right=Side(style='thin'),
+                         top=Side(style='thin'),
+                         bottom=Side(style='thin'))
+    print(start_row,end_row)
+    print(min_col,max_col)
+    for row in worksheet.iter_rows(min_row=start_row, max_row=end_row, min_col=min_col, max_col=max_col):
+        for cell in row:
+            cell.border = thin_border
 
 
 def create_dataframeproduksi(data):
