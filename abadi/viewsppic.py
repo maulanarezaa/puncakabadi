@@ -2773,6 +2773,22 @@ def exportlaporanbulananexcel(request):
     # df = pd.DataFrame.from_dict(
     #     dataperhitunganpersediaan[listbulan[waktuobj.month - 1]], orient="index"
     # ).T
+    print(dataperhitunganpersediaan)
+    datapersediaan = dataperhitunganpersediaan[listbulan[waktuobj.month - 1]]
+    datamodelpersediaan ={
+        "Barang Keluar" : [datapersediaan['barangkeluar']],
+        "Barang Masuk" : [datapersediaan['barangmasuk']],
+        "Saldo Awal Stock Gudang" : [datapersediaan['saldoawalgudang']],
+        "Saldo Awal Bahan Produksi" : [datapersediaan['stokawalproduksi']],
+        "Total Saldo":[datapersediaan['totalsaldo']],
+        "Saldo Akhir Gudang" : [datapersediaan['saldoakhirgudang']],
+        "Saldo AKhir FG" : [datapersediaan['stokfg']],
+        "Saldo Akhir WIP" : [datapersediaan['saldowip']],
+    }
+    dfpersediaan = pd.DataFrame(datamodelpersediaan)
+
+    print(dfpersediaan)
+    # print(ad)
     """2. Sheet untuk laporan barang masuk"""
     datamodelmasuk = {
         "Tanggal Masuk": [],
@@ -3084,93 +3100,108 @@ def exportlaporanbulananexcel(request):
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         # Laporan Persediaan Section
         # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+        dfpersediaan.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+        writer.sheets["Laporan Persediaan"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
+        maxrow = len(dfpersediaan)+1
+        maxcol = len(dfpersediaan.columns)
+        apply_borders_thin(writer.sheets['Laporan Persediaan'],2,maxrow+2,maxcol)
+        adjust_column_width(writer.sheets['Laporan Persediaan'],dfpersediaan,1,1)
 
         # Laporan Barang masuk Section
         '''LAPORAN BARANG MASUK'''
-        df2.to_excel(writer, index=False, startrow=1, sheet_name="Barang Masuk")
-        maxrow = len(df2)+1
-        maxcol = len(df2.columns)
-        writer.sheets["Barang Masuk"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
-        writer.sheets["Barang Masuk"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
-        writer.sheets["Barang Masuk"].cell(row=maxrow+2, column = 1).value = "Total Harga"
-        writer.sheets["Barang Masuk"].cell(row=maxrow+2, column = maxcol,value = totalbiayamasuk)
-        apply_borders_thin(writer.sheets['Barang Masuk'],2,maxrow+2,maxcol)
+        if not df2.empty : 
+            df2.to_excel(writer, index=False, startrow=1, sheet_name="Barang Masuk")
+            maxrow = len(df2)+1
+            maxcol = len(df2.columns)
+            writer.sheets["Barang Masuk"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
+            writer.sheets["Barang Masuk"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
+            writer.sheets["Barang Masuk"].cell(row=maxrow+2, column = 1).value = "Total Harga"
+            writer.sheets["Barang Masuk"].cell(row=maxrow+2, column = maxcol,value = totalbiayamasuk)
+            apply_borders_thin(writer.sheets['Barang Masuk'],2,maxrow+2,maxcol)
+            adjust_column_width(writer.sheets['Barang Masuk'],df2,1,1)
         
-        adjust_column_width(writer.sheets['Barang Masuk'],df2,1,1)
-
         '''LAPORAN BARANG KELUAR'''
+        if not dfdatakeluar.empty or not dfdatakeluardisplay.empty or not dftransaksibahanbaku.empty or not dftransaksigold.empty or not dftransaksilainlain.empty:
         # Artikel Keluar
-        dfdatakeluar.to_excel(
-            writer, index=False, startrow=1, sheet_name="Barang Keluar"
-        )
-        maxrow = len(dfdatakeluar)+1
-        maxcol = len(dfdatakeluar.columns)
-        writer.sheets["Barang Keluar"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
-        writer.sheets["Barang Keluar"].cell(row=1, column = 2,value ='Artikel Keluar')
-        writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
-        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = 1).value = "Total Harga"
-        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluar)
-        writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+3, start_column=1,end_row = maxrow+3,end_column= maxcol-1)
-        writer.sheets["Barang Keluar"].cell(row=maxrow+3, column = 1).value = f"Total Harga Keluar Bulan {listbulan[waktuobj.month - 1]}"
-        writer.sheets["Barang Keluar"].cell(row=maxrow+3, column = maxcol,value = totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain)
-        apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+3,maxcol)
-        adjust_column_width(writer.sheets['Barang Keluar'],dfdatakeluar,1,1)
+            maxcol = 0
+            maxrow = 0
+            maxcolprevdf = 0
+            if not dfdatakeluar.empty:
+                dfdatakeluar.to_excel(
+                    writer, index=False, startrow=1, sheet_name="Barang Keluar"
+                )
+                maxrow = len(dfdatakeluar)+1
+                maxcol = len(dfdatakeluar.columns)
+                writer.sheets["Barang Keluar"].cell(row=1, column = 1,value =listbulan[waktuobj.month - 1])
+                writer.sheets["Barang Keluar"].cell(row=1, column = 2,value ='Artikel Keluar')
+                writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
+                writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = 1).value = "Total Harga"
+                writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluar)
+                writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+3, start_column=1,end_row = maxrow+3,end_column= maxcol-1)
+                writer.sheets["Barang Keluar"].cell(row=maxrow+3, column = 1).value = f"Total Harga Keluar Bulan {listbulan[waktuobj.month - 1]}"
+                writer.sheets["Barang Keluar"].cell(row=maxrow+3, column = maxcol,value = totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain)
+                apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+3,maxcol)
+                adjust_column_width(writer.sheets['Barang Keluar'],dfdatakeluar,1,1)
 
-        # Transaksi Display
-        dfdatakeluardisplay.to_excel(
-                        writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Barang Keluar"
-        )
-        maxcolprevdf = maxcol
-        writer.sheets["Barang Keluar"].cell(row=1, column = maxcol+2,value ='Display Keluar')
-        maxrow = len(dfdatakeluardisplay)+1
-        maxcol = len(dfdatakeluardisplay.columns)+ maxcol + 1
-        writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
-        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
-        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluardisplay)
-        apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
-        adjust_column_width(writer.sheets['Barang Keluar'],dfdatakeluardisplay,1,maxcolprevdf+2)
+            if not dfdatakeluardisplay.empty:
+                # Transaksi Display
+                dfdatakeluardisplay.to_excel(
+                                writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Barang Keluar"
+                )
+                maxcolprevdf = maxcol
+                writer.sheets["Barang Keluar"].cell(row=1, column = maxcol+2,value ='Display Keluar')
+                maxrow = len(dfdatakeluardisplay)+1
+                maxcol = len(dfdatakeluardisplay.columns)+ maxcol + 1
+                writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
+                writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
+                writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluardisplay)
+                apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
+                adjust_column_width(writer.sheets['Barang Keluar'],dfdatakeluardisplay,1,maxcolprevdf+2)
 
-         # Transaksi Bahan Baku
-        dftransaksibahanbaku.to_excel(
-                        writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Barang Keluar"
-        )
-        maxcolprevdf = maxcol
-        writer.sheets["Barang Keluar"].cell(row=1, column = maxcol+2,value ='Transaksi Bahan Baku')
-        maxrow = len(dftransaksibahanbaku)+1
-        maxcol = len(dftransaksibahanbaku.columns)+ maxcol + 1
-        writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
-        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
-        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluartransaksibahanbaku)
-        apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
-        adjust_column_width(writer.sheets['Barang Keluar'],dftransaksibahanbaku,1,maxcolprevdf+2)
-        
-        # Transaksi Lain-Lain
-        dftransaksilainlain.to_excel(
-                        writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Barang Keluar"
-        )
-        maxcolprevdf = maxcol
-        writer.sheets["Barang Keluar"].cell(row=1, column = maxcol+2,value ='Lain-lain')
-        maxrow = len(dftransaksilainlain)+1
-        maxcol = len(dftransaksilainlain.columns)+ maxcol + 1
-        writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
-        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
-        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluartransaksilainlain)
-        apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
-        adjust_column_width(writer.sheets['Barang Keluar'],dftransaksilainlain,1,maxcolprevdf+2)
+            if not dftransaksibahanbaku.empty:
+            # Transaksi Bahan Baku
+                dftransaksibahanbaku.to_excel(
+                                writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Barang Keluar"
+                )
+                maxcolprevdf = maxcol
+                writer.sheets["Barang Keluar"].cell(row=1, column = maxcol+2,value ='Transaksi Bahan Baku')
+                maxrow = len(dftransaksibahanbaku)+1
+                maxcol = len(dftransaksibahanbaku.columns)+ maxcol + 1
+                writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
+                writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
+                writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluartransaksibahanbaku)
+                apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
+                adjust_column_width(writer.sheets['Barang Keluar'],dftransaksibahanbaku,1,maxcolprevdf+2)
+                
+            if not dftransaksilainlain.empty:
+                # Transaksi Lain-Lain
+                dftransaksilainlain.to_excel(
+                                writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Barang Keluar"
+                )
+                maxcolprevdf = maxcol
+                writer.sheets["Barang Keluar"].cell(row=1, column = maxcol+2,value ='Lain-lain')
+                maxrow = len(dftransaksilainlain)+1
+                maxcol = len(dftransaksilainlain.columns)+ maxcol + 1
+                writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
+                writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
+                writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluartransaksilainlain)
+                apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
+                adjust_column_width(writer.sheets['Barang Keluar'],dftransaksilainlain,1,maxcolprevdf+2)
 
-        # Transaksi Golongan D
-        dftransaksigold.to_excel(
-                        writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Barang Keluar"
-        )
-        maxcolprevdf = maxcol
-        writer.sheets["Barang Keluar"].cell(row=1, column = maxcol+2,value ='Bahan Baku Golongan D Keluar')
-        maxrow = len(dftransaksigold)+1
-        maxcol = len(dftransaksigold.columns)+ maxcol + 1
-        writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
-        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
-        writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluargold)
-        apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
-        adjust_column_width(writer.sheets['Barang Keluar'],dftransaksigold,1,maxcolprevdf+2)
+            if not dftransaksigold.empty:
+            # Transaksi Golongan D
+                dftransaksigold.to_excel(
+                                writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Barang Keluar"
+                )
+                maxcolprevdf = maxcol
+                writer.sheets["Barang Keluar"].cell(row=1, column = maxcol+2,value ='Bahan Baku Golongan D Keluar')
+                maxrow = len(dftransaksigold)+1
+                maxcol = len(dftransaksigold.columns)+ maxcol + 1
+                writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
+                writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
+                writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluargold)
+                apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
+                adjust_column_width(writer.sheets['Barang Keluar'],dftransaksigold,1,maxcolprevdf+2)
 
         '''LAPORAN SALDO AWAL GUDANG'''
         # Stok Gudang
@@ -3278,21 +3309,21 @@ def exportlaporanbulananexcel(request):
         adjust_column_width(writer.sheets['Saldo FG'],dfstokfgbahanbaku,1,maxcolprevdf+2)
 
         workbook = writer.book
-        for sheet_name in writer.sheets:
-            worksheet = writer.sheets[sheet_name]
-            # Get the DataFrame corresponding to this sheet
-            if sheet_name == "Laporan Persediaan":
-                df_temp = df
-            elif sheet_name == "Barang Masuk":
-                df_temp = df2
-            elif sheet_name == "Barang Keluar":
-                df_temp = dfdatakeluar
-            elif sheet_name == "Saldo Awal Gudang":
-                df_temp = dfstokgudang
-            elif sheet_name == "Saldo WIP":
-                df_temp = dfstokawalwip
-            else:
-                df_temp = dftransaksigold
+        # for sheet_name in writer.sheets:
+        #     worksheet = writer.sheets[sheet_name]
+        #     # Get the DataFrame corresponding to this sheet
+        #     if sheet_name == "Laporan Persediaan":
+        #         df_temp = df
+        #     elif sheet_name == "Barang Masuk":
+        #         df_temp = df2
+        #     elif sheet_name == "Barang Keluar":
+        #         df_temp = dfdatakeluar
+        #     elif sheet_name == "Saldo Awal Gudang":
+        #         df_temp = dfstokgudang
+        #     elif sheet_name == "Saldo WIP":
+        #         df_temp = dfstokawalwip
+        #     else:
+        #         df_temp = dftransaksigold
 
             # Iterate over the columns and set the width
             # for i, col in enumerate(df_temp.columns):
@@ -3301,10 +3332,19 @@ def exportlaporanbulananexcel(request):
             # for row in worksheet.iter_rows(min_row=2, max_row=worksheet.max_row, min_col=1, max_col=worksheet.max_column):
             #     for cell in row:
             #         cell.border = thin_border
+    print(df2)
+    print(dfdatakeluar)
+    print(dfdatakeluardisplay)
+    print(dftransaksibahanbaku)
+    print(dftransaksigold)
+    print(dftransaksilainlain)
 
     # # Load the workbook from the buffer
+    print(buffer.read())
     buffer.seek(0)
+    print('tes')
     wb = load_workbook(buffer)
+    print('tess')
     # ws = wb["Laporan Persediaan"]
     # ws2 = wb["Barang Masuk"]
     # ws3 = wb["Barang Keluar"]
