@@ -64,5 +64,13 @@
         <span class="menu-title">Pemusnahan Bahan Baku</span>
       </a>
     </li>
+    {% if user.groups.first.name == 'ppic' %}
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'dashboardppic' %}">
+        <i class=" typcn typcn-chevron-left menu-icon"></i>
+        <span class="menu-title">PPIC</span>
+      </a>
+    </li>
+    {% endif %}
   </ul>
 </nav>

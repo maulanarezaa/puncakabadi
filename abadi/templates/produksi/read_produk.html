@@ -33,6 +33,7 @@
                                 <td>{{i.Jumlahminimal|intcomma}}</td>
                                 <td>{{i.keteranganProduksi}}</td>
                                 <td>
+                                    {% if user.groups.first.name != 'ppic' %}
                                     <div class="template-demo">
                                         <a href="{% url 'update_produk_produksi' i.KodeProduk %}">
                                             <button type="button" class="btn btn-warning">
@@ -41,6 +42,7 @@
                                         </a>
 
                                     </div>
+                                    {% endif %}
 
                                 </td>
                             </tr>

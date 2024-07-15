@@ -16,12 +16,14 @@
       <div class="card-body">
         <h4 class="card-title">Track Penyesuaian</h4>
         <div class="template-demo">
+          {% if user.groups.first.name != 'ppic' %}
           <a href="{% url 'addpenyesuaian' %}">
             <button type="button" class="btn btn-success btn-icon-text">
               <i class="typcn typcn-plus btn-icon-prepend"></i>
               Tambah Data Penyesuaian
             </button>
           </a>
+          {% endif %}
           <a href="{% url 'kalkulatorpenyesuaian' %}">
             <button type="button" class="btn btn-success btn-icon-text">
               <i class="typcn typcn-plus btn-icon-prepend"></i>
@@ -51,6 +53,7 @@
                 <td>{{i.TanggalMinus}}</td>
                 <td>{{i.konversi}}</td>
                 <td>
+                  {% if user.groups.first.name != 'ppic' %}
                   <a href="{% url 'update_penyesuaian' i.IDPenyesuaian %}">
 
                     <button class="btn btn-warning">
@@ -62,7 +65,7 @@
                     <i class="typcn typcn-trash"></i>
 
                   </button>
-
+                  {% endif %}
                 </td>
 
               </tr>

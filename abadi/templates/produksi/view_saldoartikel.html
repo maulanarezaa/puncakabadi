@@ -16,6 +16,7 @@
     <div class="card">
       <div class="card-body">
         <h4 class="card-title">Saldo Awal Artikel</h4>
+        {% if user.groups.first.name != 'ppic' %}
         <div class="template-demo">
           <a href="/produksi/addsaldoartikel">
             <button type="button" class="btn btn-success btn-icon-text">
@@ -24,6 +25,7 @@
             </button>
           </a>
         </div>
+        {% endif %}
         <div class="table-responsive pt-3">
           <table class="table table-bordered" id="myTable">
             <thead>
@@ -44,6 +46,7 @@
                 <td>{{i.Jumlah|intcomma}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
+                  {% if user.groups.first.name != 'ppic' %}
                   <div class="template-demo">
                     <a href="{% url 'update_saldoartikel' i.IDSaldoAwalBahanBaku %}">
                       <button type="button" class="btn btn-warning">
@@ -57,6 +60,7 @@
                     </a>
 
                   </div>
+                  {% endif %}
                 </td>
               </tr>
               {% endfor %}
