@@ -475,6 +475,10 @@ def exportbarang_excel(request):
                 pass
         adjusted_width = (max_length + 2)
         worksheet.column_dimensions[column].width = adjusted_width
+    for row in worksheet.iter_rows(min_row=2, min_col=5, max_col=9):  # mulai dari baris 2 dan kolom 5 (Kuantitas)
+        for cell in row:
+            if cell.column in [5, 6, 7, 8, 9]:  # kolom Kuantitas dan Harga
+                cell.number_format = '#,##0.00'
 
     # Menambahkan warna pada header
     header_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
@@ -2592,6 +2596,10 @@ def exportbarangsubkon_excel(request):
     for row in worksheet.iter_rows():
         for cell in row:
             cell.border = thin_border
+    for row in worksheet.iter_rows(min_row=2, min_col=6, max_col=10):  # mulai dari baris 2 dan kolom 5 (Kuantitas)
+        for cell in row:
+            if cell.column in [6,7, 8, 9, 10]:  # kolom Kuantitas dan Harga
+                cell.number_format = '#,##0.00'
 
     # Atur response untuk mengunduh file Excel
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -2787,7 +2795,7 @@ def update_saldoawal(request,id):
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def add_saldobahan(request):
     databarang = models.Produk.objects.all()
     datalokasi = models.Lokasi.objects.all()
@@ -3044,7 +3052,7 @@ def add_saldosubkon(request):
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_saldosubkon(request, id):
     dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -3093,7 +3101,7 @@ def update_saldosubkon(request, id):
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def delete_saldosubkon(request, id):
     dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
 
@@ -3112,7 +3120,7 @@ def delete_saldosubkon(request, id):
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def view_saldobahansubkon(request):
     datasubkon = models.SaldoAwalBahanBakuSubkon.objects.all().order_by("-Tanggal")
     for i in datasubkon:
@@ -3125,7 +3133,7 @@ def view_saldobahansubkon(request):
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def add_saldobahansubkon(request):
     datasubkon = models.BahanBakuSubkon.objects.all()
     if request.method == "GET":
@@ -3172,7 +3180,7 @@ def add_saldobahansubkon(request):
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_saldobahansubkon(request, id):
     dataobj = models.SaldoAwalBahanBakuSubkon.objects.get(IDSaldoAwalBahanBakuSubkon=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -3223,7 +3231,7 @@ def update_saldobahansubkon(request, id):
 
 # @login_rexs.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def delete_saldobahansubkon(request, id):
     dataobj = models.SaldoAwalBahanBakuSubkon.objects.get(IDSaldoAwalBahanBakuSubkon=id)
 
@@ -3275,3 +3283,87 @@ def bulk_createsjp(request):
 
     return render(request, "Purchasing/bulk_createproduk.html")
 
+
+# Saldo Awal Artikel
+@login_required
+@logindecorators.allowed_users(allowed_roles=['purchasing'])
+def view_saldoartikel(request):
+    dataartikel = models.SaldoAwalArtikel.objects.all().order_by("-Tanggal")
+    for i in dataartikel:
+        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
+
+    return render(
+        request, "Purchasing/views_saldoartikel.html", {"dataartikel": dataartikel}
+    )
+
+# Saldo Bahan Subkon
+@login_required
+@logindecorators.allowed_users(allowed_roles=['purchasing'])
+def view_saldobahansubkon(request):
+    datasubkon = models.SaldoAwalBahanBakuSubkon.objects.all().order_by("-Tanggal")
+    for i in datasubkon:
+        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
+
+    return render(
+        request, "Purchasing/views_saldobahansubkon.html", {"datasubkon": datasubkon}
+    )
+
+# Saldo Awal Produk Subkon
+@login_required
+@logindecorators.allowed_users(allowed_roles=['purchasing'])
+def view_saldosubkon(request):
+    datasubkon = models.SaldoAwalSubkon.objects.all().order_by("-Tanggal")
+    for i in datasubkon:
+        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
+
+    return render(
+        request, "Purchasing/views_saldoproduksubkon.html", {"datasubkon": datasubkon}
+    )
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['purchasing'])
+def update_saldosubkon(request, id):
+    dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
+    dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
+    datasubkon = models.ProdukSubkon.objects.all()
+    if request.method == "GET":
+        return render(
+            request,
+            "Purchasing/update_saldoproduksubkon.html",
+            {"data": dataobj,"datasubkon": datasubkon },
+        )
+
+    else:
+        kodeproduk = request.POST["kodebarangHidden"]
+        jumlah = request.POST["jumlah"]
+        tanggal = request.POST["tanggal"]
+
+        # Ubah format tanggal menjadi YYYY-MM-DD
+        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
+        # Periksa apakah entri sudah ada
+        existing_entry = models.SaldoAwalSubkon.objects.filter(
+            Tanggal__year=tanggal_formatted.year,
+            IDProdukSubkon__NamaProduk=kodeproduk,
+        ).exclude(IDSaldoAwalProdukSubkon=id).exists()
+          
+        if existing_entry:
+            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
+            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
+            return redirect("view_produksubkon")
+        
+        produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=kodeproduk)
+
+        dataobj.Tanggal = tanggal
+        dataobj.Jumlah = jumlah
+        dataobj.IDProdukSubkon = produkobj
+        dataobj.save()
+
+        models.transactionlog(
+            user="Produksi",
+            waktu=datetime.now(),
+            jenis="Update",
+            pesan=f"Saldo Produk Subkon. Nama Produk : {produkobj.NamaProduk} Kode Artikel : {produkobj.KodeArtikel} Jumlah : {jumlah}",
+        ).save()
+
+        return redirect("view_produksubkon")
