@@ -38,6 +38,7 @@
                 <td>{{i.Jumlah|intcomma}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
+                  {% if user.groups.first.name != 'ppic' %}
                   <div class="template-demo">
                     <a href="{% url 'update_saldosubkon' i.IDSaldoAwalProdukSubkon %}">
                       <button type="button" class="btn btn-warning">
@@ -45,6 +46,7 @@
                       </button>
                     </a>
                   </div>
+                  {% endif %}
                 </td>
               </tr>
               {% endfor %}

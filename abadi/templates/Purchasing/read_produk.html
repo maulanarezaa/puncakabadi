@@ -10,6 +10,7 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Bahan Baku</h4>
+                {% if user.groups.first.name != 'ppic' %}
                 <div class="template-demo" style="margin-top: 30px;">
                     <a href="{% url 'create_produk' %}">
                         <button type="button" class="btn btn-success">
@@ -18,6 +19,7 @@
                         </button>
                     </a>
                 </div>
+                {% endif %}
                 <div class="table-responsive pt-3">
                     <table class="table table-bordered" id="dataproduk">
                         <thead>
@@ -41,6 +43,7 @@
                                 <td>{{i.Jumlahminimal|separator_ribuan}}</td>
                                 <td>{{i.keteranganPurchasing}}</td>
                                 <td>
+                                    {% if user.groups.first.name != 'ppic' %}
                                     <div class="template-demo">
                                         <a href="{% url 'update_produk' i.KodeProduk %}">
                                             <button type="button" class="btn btn-warning">
@@ -54,7 +57,7 @@
                                             </button>
                                         </a>
                                     </div>
-
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}

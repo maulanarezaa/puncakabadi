@@ -45,6 +45,7 @@
                 <td>{{i.Harga|floatformat:2|intcomma}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
+                  {% if user.groups.first.name != 'ppic' %}
                   <div class="template-demo">
                     <a href="{% url 'updatesaldobahanbakupurchasing' i.IDSaldoAwalBahanBaku %}">
                       <button type="button" class="btn btn-warning">
@@ -54,6 +55,7 @@
                     
 
                   </div>
+                  {% endif %}
                 </td>
               </tr>
               {% endfor %}

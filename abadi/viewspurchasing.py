@@ -23,7 +23,7 @@ from django.utils.dateparse import parse_date
 
 # # READ NOTIF BARANG MASUK PURCHASIN +SPK G+ACC
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def acc_subkon(request,id) :
     accobj = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPenerimaanSubkon=id)
     if request.method == "GET" :
@@ -342,7 +342,7 @@ def notif_barang_purchasing(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def verifikasi_data(request, id):
     verifobj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
     if request.method == "GET":
@@ -385,7 +385,7 @@ def verifikasi_data(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def acc_notif_spk(request, id):
 
     accobj = models.SPK.objects.get(pk=id)
@@ -704,7 +704,7 @@ def barang_masuk(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_barang_masuk(request, id):
     updateobj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
     if updateobj.HargaDollar > 0:
@@ -760,7 +760,7 @@ def update_barang_masuk(request, id):
         # return JsonResponse({'harga_total': harga_total})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_barangsubkon_masuk(request, id):
     updateobj = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPenerimaanSubkon=id)
     # if updateobj.HargaDollar > 0:
@@ -863,7 +863,7 @@ def read_produk(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def create_produk(request):
     if request.method == "GET":
         return render(request, "Purchasing/create_produk.html")
@@ -899,7 +899,7 @@ def create_produk(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_produk(request, id):
     produkobj = models.Produk.objects.get(pk=id)
     if request.method == "GET":
@@ -959,7 +959,7 @@ def update_produk(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def delete_produk(request, id):
     print(id)
     produkobj = models.Produk.objects.get(KodeProduk=id)
@@ -1238,27 +1238,6 @@ def update_po(request,id) :
         ).save()
         return redirect("read_po")
 
-# def read_po(request):
-
-#     po_objall = models.SuratJalanPembelian.objects.all()
-#     # po_objall = models.DetailSuratJalanPembelian.objects.all()
-#     if request.method == "GET":
-#         return render(request, "Purchasing/read_po.html", {"po_objall": po_objall})
-#     else:
-#         input_po = request.POST["input_po"]
-#         po_obj = models.DetailSuratJalanPembelian.objects.filter(
-#             NoSuratJalan__PO=input_po
-#         )
-#         if len(po_obj) == 0 :
-#             return redirect(read_po)
-#         else :
-#             return render(
-#                 request,
-#                 "Purchasing/read_po.html",
-#                 {"po_objall": po_objall, "po_obj": po_obj},
-#             )
-
-
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def read_spk(request):
@@ -1357,44 +1336,6 @@ def view_sppb(request):
     return render(request, "Purchasing/view_sppb2.html", {"datasppb": datasppb})
 
 
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
-def add_sppb(request):
-    datadetailspk = models.DetailSPK.objects.all()
-    if request.method == "GET":
-        return render(request, "Purchasing/add_sppb2.html", {"data": datadetailspk})
-
-    if request.method == "POST":
-        nomor_sppb = request.POST["nomor_sppb"]
-        tanggal = request.POST["tanggal"]
-        keterangan = request.POST["keterangan"]
-
-        datasppb = models.SPPB.objects.filter(NoSPPB=nomor_sppb).exists()
-        if datasppb:
-            messages.error(request, "Nomor SPPB sudah ada")
-            return redirect("add_sppb")
-        else:
-            messages.success(request, "Data berhasil disimpan")
-            data_sppb = models.SPPB(
-                NoSPPB=nomor_sppb, Tanggal=tanggal, Keterangan=keterangan
-            ).save()
-
-            artikel_list = request.POST.getlist("artikel[]")
-            jumlah_list = request.POST.getlist("quantity[]")
-            no_sppb = models.SPPB.objects.get(NoSPPB=nomor_sppb)
-
-            for artikel, jumlah in zip(artikel_list, jumlah_list):
-                # Pisahkan KodeArtikel dari jumlah dengan delimiter '/'
-                kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel)
-                jumlah_produk = jumlah
-
-                # Simpan data ke dalam model DetailSPK
-                datadetailspk = models.DetailSPPB(
-                    NoSPPB=no_sppb, DetailSPK=kode_artikel, Jumlah=jumlah_produk
-                )
-                datadetailspk.save()
-
-            return redirect("view_sppb2")
 
 
 @login_required
@@ -1456,26 +1397,6 @@ def detail_sppb(request, id):
                 pass
 
         return redirect("view_sppb2")
-
-
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
-def delete_sppb(request, id):
-    print(id)
-    datasppb = models.SPPB.objects.get(id=id)
-    datasppb.delete()
-    messages.success(request, "Data Berhasil dihapus")
-    return redirect("view_sppb2")
-
-
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
-def delete_detailsppb(request, id):
-    datadetailsppb = models.DetailSPPB.objects.get(IDDetailSPPB=id)
-    datasppb = models.SPPB.objects.get(NoSPPB=datadetailsppb.NoSPPB)
-    datadetailsppb.delete()
-    return redirect("detail_sppb2", id=datasppb.id)
-
 
 # Tinggal dibikin gimana biar kodenya yang terkirim pas di reload kode itu lagi yang muncul
 @login_required
@@ -2214,8 +2135,6 @@ def kebutuhan_barang(request):
             )
 
 
-# # Coba v2
-
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
@@ -2732,7 +2651,7 @@ def views_rekaphargasubkon(request):
             return redirect("rekaphargasubkon")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def accspk2(request, id):
 
     accobj = models.SPK.objects.get(pk=id)
@@ -2752,7 +2671,8 @@ def accspk2(request, id):
 REVISI 6/12/2024
 1. Update Harga Saldo Awal 
 '''
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def read_saldoawal(request):
     dataproduk = models.SaldoAwalBahanBaku.objects.all().order_by("-Tanggal")
     print(dataproduk)
@@ -2762,7 +2682,8 @@ def read_saldoawal(request):
     return render(
         request, "Purchasing/read_saldoawalbahan.html", {"dataproduk": dataproduk}
     )
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_saldoawal(request,id):
     databarang = models.Produk.objects.all()
     dataobj = models.SaldoAwalBahanBaku.objects.get(IDSaldoAwalBahanBaku=id)
@@ -2794,75 +2715,11 @@ def update_saldoawal(request,id):
 
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
-def add_saldobahan(request):
-    databarang = models.Produk.objects.all()
-    datalokasi = models.Lokasi.objects.all()
-    if request.method == "GET":
-        return render(
-            request,
-            "purchasing/add_saldobahan.html",
-            {"nama_lokasi": datalokasi[:2], "databarang": databarang},
-        )
-    else:
-        kodeproduk = request.POST["produk"]
-        lokasi = request.POST["nama_lokasi"]
-        jumlah = request.POST["jumlah"]
-        harga = request.POST["harga"]
-        tanggal = request.POST["tanggal"]
-
-        # Ubah format tanggal menjadi YYYY-MM-DD
-        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
-        # Periksa apakah entri sudah ada
-        existing_entry = models.SaldoAwalBahanBaku.objects.filter(
-            Tanggal__year=tanggal_formatted.year,
-            IDBahanBaku__KodeProduk=kodeproduk,
-            IDLokasi=lokasi
-        ).exists()
-        if existing_entry:
-            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
-            messages.warning(request,f'Sudah ada Entry pada {kodeproduk} di {lokasi} pada tahun{tanggal_formatted.year}')
-            return redirect("add_saldobahan")
-        try :
-            produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
-        except :
-            messages.error(request,f'Bahan Baku {kodeproduk} tidak ditemukan dalam sistem')
-            return redirect("add_saldobahan")
-        lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
-
-        pemusnahanobj = models.SaldoAwalBahanBaku(
-            Tanggal=tanggal, Jumlah=jumlah, IDBahanBaku=produkobj, IDLokasi=lokasiobj, Harga=harga)
-        pemusnahanobj.save()
-
-        models.transactionlog(
-            user="purchasing",
-            waktu=datetime.now(),
-            jenis="Create",
-            pesan=f"Saldo Bahan Baku. Kode Bahan Baku : {produkobj.KodeProduk} Jumlah : {jumlah} Lokasi : {lokasiobj.NamaLokasi} Harga : {harga}",
-        ).save()
-
-        messages.success(request,"Data berhasil disimpan")
-        return redirect("saldoawalbahanbakupurchasing")
-
 
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
-
-def delete_saldobahan(request, id):
-    dataobj = models.SaldoAwalBahanBaku.objects.get(IDSaldoAwalBahanBaku=id)
-
-    dataobj.delete()
-
-    models.transactionlog(
-        user="Produksi",
-        waktu=datetime.now(),
-        jenis="Delete",
-        pesan=f"Saldo Bahan Baku. Kode Bahan Baku : {dataobj.IDBahanBaku.KodeProduk} Jumlah : {dataobj.Jumlah} Lokasi : {dataobj.IDLokasi.NamaLokasi} Harga : {dataobj.Harga}",
-    ).save()
-    
-    return redirect("saldoawalbahanbakupurchasing")
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def view_saldoartikel(request):
     dataartikel = models.SaldoAwalArtikel.objects.all().order_by("-Tanggal")
     for i in dataartikel:
@@ -2871,7 +2728,8 @@ def view_saldoartikel(request):
     return render(
         request, "Purchasing/view_saldoartikel.html", {"dataartikel": dataartikel}
     )
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_saldoartikel(request, id):
     dataartikel = models.Artikel.objects.all()
     dataobj = models.SaldoAwalArtikel.objects.get(IDSaldoAwalBahanBaku=id)
@@ -2928,126 +2786,6 @@ def update_saldoartikel(request, id):
         messages.success(request,'Data berhasil disimpan')
         return redirect("saldoartikelpurchasing")
 
-# @login_required
-# @logindecorators.allowed_users(allowed_roles=['produksi'])
-def add_saldoartikel(request):
-    dataartikel = models.Artikel.objects.all()
-    datalokasi = models.Lokasi.objects.all()
-    if request.method == "GET":
-        return render(
-            request,
-            "purchasing/add_saldoartikel.html",
-            {"nama_lokasi": datalokasi[:2], "dataartikel": dataartikel},
-        )
-    else:
-        artikel = request.POST["artikel"]
-        lokasi = request.POST["nama_lokasi"]
-        jumlah = request.POST["jumlah"]
-        tanggal = request.POST["tanggal"]
-
-        # Ubah format tanggal menjadi YYYY-MM-DD
-        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
-        # Periksa apakah entri sudah ada
-        existing_entry = models.SaldoAwalArtikel.objects.filter(
-            Tanggal__year=tanggal_formatted.year,
-            IDArtikel__KodeArtikel=artikel,
-            IDLokasi=lokasi
-        ).exists()
-        if existing_entry:
-            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
-            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("add_saldoartikel")
-        try:
-            artikelobj = models.Artikel.objects.get(KodeArtikel=artikel)
-        except :
-            messages.error(request,f"Tidak ditemukan data artikel {artikel}")
-            return redirect('add_saldoartikel')
-        lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
-        pemusnahanobj = models.SaldoAwalArtikel(
-            Tanggal=tanggal, Jumlah=jumlah, IDArtikel=artikelobj, IDLokasi=lokasiobj
-        )
-        pemusnahanobj.save()
-
-        models.transactionlog(
-            user="Produksi",
-            waktu=datetime.now(),
-            jenis="Create",
-            pesan=f"Saldo Artikel. Kode Bahan Baku : {artikelobj.KodeArtikel} Jumlah : {jumlah} Lokasi : {lokasiobj.NamaLokasi}",
-        ).save()
-        messages.success(request,'Data berhasil disimpan')
-        return redirect("view_saldoartikelpurchasing")
-
-def delete_saldoartikel(request, id):
-    dataobj = models.SaldoAwalArtikel.objects.get(IDSaldoAwalBahanBaku=id)
-
-    dataobj.delete()
-
-    models.transactionlog(
-        user="Purchasing",
-        waktu=datetime.now(),
-        jenis="Delete",
-        pesan=f"Saldo Artikel. Kode Bahan Baku : {dataobj.IDArtikel.KodeArtikel} Jumlah : {dataobj.Jumlah} Lokasi : {dataobj.IDLokasi.NamaLokasi}",
-    ).save()
-    
-    return redirect("view_saldoartikelpurchasing")
-
-# Saldo Awal Produk Subkon
-@login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
-def view_saldosubkon(request):
-    datasubkon = models.SaldoAwalSubkon.objects.all().order_by("-Tanggal")
-    for i in datasubkon:
-        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
-
-    return render(
-        request, "produksi/view_saldosubkon.html", {"datasubkon": datasubkon}
-    )
-
-@login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
-def add_saldosubkon(request):
-    datasubkon = models.ProdukSubkon.objects.all()
-    if request.method == "GET":
-        return render(
-            request,
-            "produksi/add_saldosubkon.html",
-            { "datasubkon": datasubkon},
-        )
-    else:
-        kodeproduk = request.POST["kodebarangHidden"]
-        jumlah = request.POST["jumlah"]
-        tanggal = request.POST["tanggal"]
-
-        # Ubah format tanggal menjadi YYYY-MM-DD
-        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
-        # Periksa apakah entri sudah ada
-        existing_entry = models.SaldoAwalSubkon.objects.filter(
-            Tanggal__year=tanggal_formatted.year,
-            IDProdukSubkon__NamaProduk=kodeproduk,
-        ).exists()
-
-        if existing_entry:
-            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
-            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("add_saldosubkon")
-        try:
-            produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=kodeproduk)
-        except:
-            messages.error(request,"Tidak ditemukan data Produk pada sistem")
-            return redirect('add_saldosubkon')
-
-        pemusnahanobj = models.SaldoAwalSubkon(
-            Tanggal=tanggal, Jumlah=jumlah, IDProdukSubkon=produkobj)
-        pemusnahanobj.save()
-
-        models.transactionlog(
-            user="Produksi",
-            waktu=datetime.now(),
-            jenis="Create",
-            pesan=f"Saldo Produk Subkon. Nama Produk : {produkobj.NamaProduk} Kode Artikel : {produkobj.KodeArtikel} Jumlah : {jumlah}",
-        ).save()
-        messages.success(request,'Data berhasil disimpan')
-        return redirect("view_saldosubkon")
 
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
@@ -3101,7 +2839,7 @@ def update_saldosubkon(request, id):
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def delete_saldosubkon(request, id):
     dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
 
@@ -3120,7 +2858,7 @@ def delete_saldosubkon(request, id):
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def view_saldobahansubkon(request):
     datasubkon = models.SaldoAwalBahanBakuSubkon.objects.all().order_by("-Tanggal")
     for i in datasubkon:
@@ -3132,55 +2870,11 @@ def view_saldobahansubkon(request):
 
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
-def add_saldobahansubkon(request):
-    datasubkon = models.BahanBakuSubkon.objects.all()
-    if request.method == "GET":
-        return render(
-            request,
-            "purhasing/add_saldobahansubkon.html",
-            { "datasubkon": datasubkon},
-        )
-    else:
-        kodeproduk = request.POST["produk"]
-        jumlah = request.POST["jumlah"]
-        tanggal = request.POST["tanggal"]
-
-        # Ubah format tanggal menjadi YYYY-MM-DD
-        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
-        # Periksa apakah entri sudah ada
-        existing_entry = models.SaldoAwalBahanBakuSubkon.objects.filter(
-            Tanggal__year=tanggal_formatted.year,
-            IDBahanBakuSubkon__KodeProduk=kodeproduk,
-        ).exists()
-
-        if existing_entry:
-            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
-            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("add_saldobahansubkon")
-        try:
-            produkobj = models.BahanBakuSubkon.objects.get(KodeProduk=kodeproduk)
-        except:
-            messages.error(request,f"Kode Bahan Baku Subkon {kodeproduk} tidak ditemukan dalam sistem")
-            return redirect("add_saldobahansubkon")
-        pemusnahanobj = models.SaldoAwalBahanBakuSubkon(
-            Tanggal=tanggal, Jumlah=jumlah, IDBahanBakuSubkon=produkobj)
-        pemusnahanobj.save()
-
-        models.transactionlog(
-            user="Produksi",
-            waktu=datetime.now(),
-            jenis="Create",
-            pesan=f"Saldo Bahan Baku Subkon. Kode Bahan Baku: {produkobj.KodeProduk} Jumlah : {jumlah}",
-        ).save()
-        messages.success(request,'Data berhasil disimpan')
-        return redirect("view_saldobahansubkon")
 
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def update_saldobahansubkon(request, id):
     dataobj = models.SaldoAwalBahanBakuSubkon.objects.get(IDSaldoAwalBahanBakuSubkon=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -3230,21 +2924,6 @@ def update_saldobahansubkon(request, id):
         return redirect("view_saldobahansubkon")
 
 # @login_rexs.allowed_users(allowed_roles=['produksi'])
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
-def delete_saldobahansubkon(request, id):
-    dataobj = models.SaldoAwalBahanBakuSubkon.objects.get(IDSaldoAwalBahanBakuSubkon=id)
-
-    dataobj.delete()
-
-    models.transactionlog(
-            user="Produksi",
-            waktu=datetime.now(),
-            jenis="Delete",
-            pesan=f"Saldo Bahan Baku Subkon. Kode Bahan Baku: {dataobj.IDBahanBakuSubkon.KodeProduk} Jumlah : {dataobj.Jumlah}",
-        ).save()
-    
-    return redirect("view_saldobahansubkon")
 
 def bulk_createproduk(request):
     if request.method == 'POST' and request.FILES['file']:
@@ -3286,7 +2965,7 @@ def bulk_createsjp(request):
 
 # Saldo Awal Artikel
 @login_required
-@logindecorators.allowed_users(allowed_roles=['purchasing'])
+@logindecorators.allowed_users(allowed_roles=['purchasing','ppic'])
 def view_saldoartikel(request):
     dataartikel = models.SaldoAwalArtikel.objects.all().order_by("-Tanggal")
     for i in dataartikel:
@@ -3298,7 +2977,7 @@ def view_saldoartikel(request):
 
 # Saldo Bahan Subkon
 @login_required
-@logindecorators.allowed_users(allowed_roles=['purchasing'])
+@logindecorators.allowed_users(allowed_roles=['purchasing','ppic'])
 def view_saldobahansubkon(request):
     datasubkon = models.SaldoAwalBahanBakuSubkon.objects.all().order_by("-Tanggal")
     for i in datasubkon:
@@ -3310,7 +2989,7 @@ def view_saldobahansubkon(request):
 
 # Saldo Awal Produk Subkon
 @login_required
-@logindecorators.allowed_users(allowed_roles=['purchasing'])
+@logindecorators.allowed_users(allowed_roles=['purchasing','ppic'])
 def view_saldosubkon(request):
     datasubkon = models.SaldoAwalSubkon.objects.all().order_by("-Tanggal")
     for i in datasubkon:
