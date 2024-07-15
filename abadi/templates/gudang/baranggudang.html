@@ -40,7 +40,7 @@
                         </div>
                     </div>
                 </form>
-
+                {% if user.groups.first.name != 'ppic' %}
                 <div class="template-demo">
                     <a href="{% url 'addgudang' %}">
                         <button type="button" class="btn btn-success btn-icon-text btn-sm">
@@ -49,6 +49,7 @@
                         </button>
                     </a>
                 </div>
+                {% endif %}
                 <br>
                 <div class="table-responsive pt-3">
                     <table class="table table-bordered table-light" id="baranggudang">
@@ -79,6 +80,7 @@
                                 <td>Belum ACC</td>
                                 {% endif %}
                                 <td>
+                                    {% if user.groups.first.name != 'ppic' %}
                                     <a href="{% url 'updategudang' i.IDDetailSJPembelian %}">
                                         <button type="button" class="btn btn-warning">
                                             <i class="typcn typcn-edit"></i>
@@ -88,6 +90,7 @@
                                         class="btn btn-danger">
                                         <i class="typcn typcn typcn-trash"></i>
                                     </button>
+                                    {% endif %}
 
                                 </td>
                             </tr>

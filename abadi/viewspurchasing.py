@@ -23,7 +23,7 @@ from django.utils.dateparse import parse_date
 
 # # READ NOTIF BARANG MASUK PURCHASIN +SPK G+ACC
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def acc_subkon(request,id) :
     accobj = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPenerimaanSubkon=id)
     if request.method == "GET" :
@@ -70,7 +70,7 @@ def acc_subkon(request,id) :
         messages.success(request,'Jangan lupa cek barang subkon')
         return redirect("notif_purchasing")
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def notif_barang_purchasing(request):
     filtersubkonobj = models.DetailSuratJalanPenerimaanProdukSubkon.objects.filter(KeteranganACC = False).order_by("NoSuratJalan__Tanggal")
     for x in filtersubkonobj :
@@ -342,7 +342,7 @@ def notif_barang_purchasing(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def verifikasi_data(request, id):
     verifobj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
     if request.method == "GET":
@@ -385,7 +385,7 @@ def verifikasi_data(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def acc_notif_spk(request, id):
 
     accobj = models.SPK.objects.get(pk=id)
@@ -402,7 +402,7 @@ def acc_notif_spk(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def exportbarang_excel(request):
     valueppn = request.GET.get("input_ppn", 11)
     try:
@@ -569,7 +569,7 @@ def exportbarang_excel(request):
 
    
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def barang_masuk(request):
     # if request.method ==  'POST' :
     if len(request.POST) == 0 :
@@ -700,7 +700,7 @@ def barang_masuk(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def update_barang_masuk(request, id):
     updateobj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
     if updateobj.HargaDollar > 0:
@@ -756,7 +756,7 @@ def update_barang_masuk(request, id):
         # return JsonResponse({'harga_total': harga_total})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def update_barangsubkon_masuk(request, id):
     updateobj = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPenerimaanSubkon=id)
     # if updateobj.HargaDollar > 0:
@@ -808,13 +808,13 @@ def update_barangsubkon_masuk(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def rekap_purchasing(request):
     return render(request, "Purchasing/rekap_purchasing.html")
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def view_rekapbarang(request):
     tanggal_akhir = request.GET.get("periode")
 
@@ -852,14 +852,14 @@ def view_rekapbarang(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def read_produk(request):
     produkobj = models.Produk.objects.all()
     return render(request, "Purchasing/read_produk.html", {"produkobj": produkobj})
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def create_produk(request):
     if request.method == "GET":
         return render(request, "Purchasing/create_produk.html")
@@ -895,7 +895,7 @@ def create_produk(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def update_produk(request, id):
     produkobj = models.Produk.objects.get(pk=id)
     if request.method == "GET":
@@ -955,7 +955,7 @@ def update_produk(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def delete_produk(request, id):
     print(id)
     produkobj = models.Produk.objects.get(KodeProduk=id)
@@ -972,7 +972,7 @@ def delete_produk(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def rekap_gudang(request):
     listproduk = []
     listnama = []
@@ -1183,7 +1183,7 @@ def rekap_gudang(request):
 
 # Tinggal dibikin gimana biar kodenya yang terkirim pas di reload kode itu lagi yang muncul
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def read_po(request):
     print(request.GET)
     if len(request.GET) == 0:
@@ -1206,7 +1206,7 @@ def read_po(request):
                 {"po_obj": po_obj, "input_po": input_po},
             )
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def update_po(request,id) :
     po_obj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
     if request.method == "GET" :
@@ -1256,7 +1256,7 @@ def update_po(request,id) :
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def read_spk(request):
     dataspk = models.SPK.objects.all()
     for spk in dataspk:
@@ -1270,7 +1270,7 @@ def read_spk(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def track_spk(request, id):
     dataartikel = models.Artikel.objects.all()
     datadisplay = models.Display.objects.all()
@@ -1344,7 +1344,7 @@ def track_spk(request, id):
 
 # SPPB
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def view_sppb(request):
     datasppb = models.SPPB.objects.all().order_by("-Tanggal")
     for i in datasppb:
@@ -1354,7 +1354,7 @@ def view_sppb(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def add_sppb(request):
     datadetailspk = models.DetailSPK.objects.all()
     if request.method == "GET":
@@ -1394,7 +1394,7 @@ def add_sppb(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def detail_sppb(request, id):
     datadetailspk = models.DetailSPK.objects.all()
     datasppb = models.SPPB.objects.get(id=id)
@@ -1455,7 +1455,7 @@ def detail_sppb(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def delete_sppb(request, id):
     print(id)
     datasppb = models.SPPB.objects.get(id=id)
@@ -1465,7 +1465,7 @@ def delete_sppb(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def delete_detailsppb(request, id):
     datadetailsppb = models.DetailSPPB.objects.get(IDDetailSPPB=id)
     datasppb = models.SPPB.objects.get(NoSPPB=datadetailsppb.NoSPPB)
@@ -1475,7 +1475,7 @@ def delete_detailsppb(request, id):
 
 # Tinggal dibikin gimana biar kodenya yang terkirim pas di reload kode itu lagi yang muncul
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def rekap_harga(request):
     """KALAU UNTUK PERHITUNGAN HARGA AVERAGE JANGAN PAKE FILTER TANGGAL, KALAU BUAT DATA DI MASUK BARU PAKE TANGGAL"""
     kodeprodukobj = models.Produk.objects.all()
@@ -1662,7 +1662,7 @@ def rekap_harga(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def views_penyusun(request):
     print(request.GET)
     data = request.GET
@@ -1965,7 +1965,7 @@ def views_penyusun(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def kebutuhan_barang(request):
     list_q_gudang = []
     list_hasil_conv = []
@@ -2214,7 +2214,7 @@ def kebutuhan_barang(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def views_rekapharga(request):
     kodeprodukobj = models.Produk.objects.all()
     if len(request.GET) == 0:
@@ -2501,7 +2501,7 @@ def views_rekapharga(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def exportbarangsubkon_excel(request):
     valueppn = request.GET.get("input_ppn", 2)
     try:
@@ -2602,7 +2602,7 @@ def exportbarangsubkon_excel(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def views_rekaphargasubkon(request):
     # if request.method ==  'POST' :
     if len(request.POST) == 0 :
@@ -2724,7 +2724,7 @@ def views_rekaphargasubkon(request):
             return redirect("rekaphargasubkon")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def accspk2(request, id):
 
     accobj = models.SPK.objects.get(pk=id)
@@ -2787,7 +2787,7 @@ def update_saldoawal(request,id):
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def add_saldobahan(request):
     databarang = models.Produk.objects.all()
     datalokasi = models.Lokasi.objects.all()
@@ -3044,7 +3044,7 @@ def add_saldosubkon(request):
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def update_saldosubkon(request, id):
     dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -3093,7 +3093,7 @@ def update_saldosubkon(request, id):
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def delete_saldosubkon(request, id):
     dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
 
@@ -3112,7 +3112,7 @@ def delete_saldosubkon(request, id):
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def view_saldobahansubkon(request):
     datasubkon = models.SaldoAwalBahanBakuSubkon.objects.all().order_by("-Tanggal")
     for i in datasubkon:
@@ -3125,7 +3125,7 @@ def view_saldobahansubkon(request):
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def add_saldobahansubkon(request):
     datasubkon = models.BahanBakuSubkon.objects.all()
     if request.method == "GET":
@@ -3172,7 +3172,7 @@ def add_saldobahansubkon(request):
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def update_saldobahansubkon(request, id):
     dataobj = models.SaldoAwalBahanBakuSubkon.objects.get(IDSaldoAwalBahanBakuSubkon=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -3223,7 +3223,7 @@ def update_saldobahansubkon(request, id):
 
 # @login_rexs.allowed_users(allowed_roles=['produksi'])
 @login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def delete_saldobahansubkon(request, id):
     dataobj = models.SaldoAwalBahanBakuSubkon.objects.get(IDSaldoAwalBahanBakuSubkon=id)
 

@@ -18,7 +18,7 @@ from urllib.parse import urlencode, quote
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def gethargafg(penyusunobj):
     konversiobj = models.KonversiMaster.objects.get(
         KodePenyusun=penyusunobj.IDKodePenyusun
@@ -43,7 +43,7 @@ def gethargafg(penyusunobj):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def dashboard(request):
     tanggalsekarang = date.today()
     selisihwaktu = timedelta(days=30)
@@ -77,7 +77,7 @@ def dashboard(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def views_artikel(request):
     datakirim = []
     data = models.Artikel.objects.all()
@@ -93,7 +93,7 @@ def views_artikel(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def tambahdataartikel(request):
     if request.method == "GET":
         return render(request, "rnd/tambah_artikel.html")
@@ -121,7 +121,7 @@ def tambahdataartikel(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def updatedataartikel(request, id):
     data = models.Artikel.objects.get(id=id)
     if request.method == "GET":
@@ -155,7 +155,7 @@ def updatedataartikel(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def deleteartikel(request, id):
     dataobj = models.Artikel.objects.get(id=id)
     models.transactionlog(
@@ -170,7 +170,7 @@ def deleteartikel(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def views_penyusun(request):
     print(request.GET)
     data = request.GET
@@ -340,7 +340,7 @@ def views_penyusun(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def updatepenyusun(request, id):
     data = models.Penyusun.objects.get(IDKodePenyusun=id)
     if request.method == "GET":
@@ -388,7 +388,7 @@ def updatepenyusun(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def delete_penyusun(request, id):
     penyusunobj = models.Penyusun.objects.get(IDKodePenyusun=id)
     kodeartikel = penyusunobj.KodeArtikel.KodeArtikel
@@ -402,7 +402,7 @@ def delete_penyusun(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def konversi(request):
     data = request.GET
     if len(data) == 0:
@@ -434,7 +434,7 @@ def konversi(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def konversimaster_update(request, id):
     dataobj = models.Penyusun.objects.get(IDKodePenyusun=id)
     if request.method == "GET":
@@ -448,7 +448,7 @@ def konversimaster_update(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def konversimaster_delete(request, id):
     dataobj = models.KonversiMaster.objects.get(IDKodeKonversiMaster=id)
     dataobj.Kuantitas = 0
@@ -457,7 +457,7 @@ def konversimaster_delete(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def views_sppb(request):
     data = models.SPPB.objects.all()
     for sppb in data:
@@ -467,7 +467,7 @@ def views_sppb(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def view_spk(request):
     dataspk = models.SPK.objects.all().order_by("-Tanggal")
 
@@ -483,7 +483,7 @@ def view_spk(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def hariterakhirdatetime(tahun):
     next_year = datetime(tahun + 1, 1, 1)
     last_day = next_year - timedelta(days=1)
@@ -491,7 +491,7 @@ def hariterakhirdatetime(tahun):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def views_ksbj(request):
     dataartikel = models.Artikel.objects.all()
     if len(request.GET) == 0:
@@ -746,7 +746,7 @@ def views_ksbj(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def uploadexcel(request):
     if request.method == "POST":
         excel_file = request.FILES["excel_file"]
@@ -772,7 +772,7 @@ def uploadexcel(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def views_rekapharga(request):
     kodeprodukobj = models.Produk.objects.all()
     if len(request.GET) == 0:
@@ -1007,7 +1007,7 @@ def views_rekapharga(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def tambahversi(request, id):
     data = models.Artikel.objects.get(id=id)
     tanggal = date.today().strftime("%Y-%m-%d")
@@ -1056,7 +1056,7 @@ REVISI
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def read_produk(request):
     produkobj = models.Produk.objects.all()
     print(produkobj[1].keteranganRND)
@@ -1064,7 +1064,7 @@ def read_produk(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def views_penyusun(request):
     print(request.GET)
     data = request.GET
@@ -1403,7 +1403,7 @@ def views_penyusun(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def tambahversi(request, id):
     data = models.Artikel.objects.get(id=id)
     bahanbaku = models.Produk.objects.all()
@@ -1455,7 +1455,7 @@ def tambahversi(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def tambahdatapenyusun(request, id, versi):
     dataartikelobj = models.Artikel.objects.get(id=id)
     print(versi, "asdas")
@@ -1532,7 +1532,7 @@ def tambahdatapenyusun(request, id, versi):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def updatepenyusun(request, id):
     data = models.Penyusun.objects.get(IDKodePenyusun=id)
     if request.method == "GET":
@@ -1607,7 +1607,7 @@ def updatepenyusun(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def track_spk(request, id):
     dataartikel = models.Artikel.objects.all()
     datadisplay = models.Display.objects.all()
@@ -1659,7 +1659,7 @@ def track_spk(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["rnd"])
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def update_produk_rnd(request, id):
     produkobj = models.Produk.objects.get(pk=id)
     if request.method == "GET":

@@ -14,7 +14,7 @@ import pandas as pd
 from django.db.models import FloatField
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def view_gudang(request):
     getretur = (
         models.TransaksiGudang.objects.filter(KeteranganACC=False)
@@ -72,7 +72,7 @@ def view_gudang(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def masuk_gudang(request):
     datasjb = models.DetailSuratJalanPembelian.objects.all().order_by(
         "NoSuratJalan__Tanggal"
@@ -99,7 +99,7 @@ def masuk_gudang(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def add_gudang(request):
     if request.method == "GET":
         detailsjp = models.DetailSuratJalanPembelian.objects.all()
@@ -171,7 +171,7 @@ def add_gudang(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def add_gudang2(request):
     if request.method == "GET":
         detailsjb = models.SuratJalanPembelian.objects.all()
@@ -278,7 +278,7 @@ def delete_gudang(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def rekap_gudang(request):
     sekarang = datetime.now().strftime('%Y-%m-%d')
     listproduk = []
@@ -309,7 +309,7 @@ def rekap_gudang(request):
             ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0)))
             pemusnahan = models.PemusnahanBahanBaku.objects.filter(
                 Tanggal__range=(mulai, date), KodeBahanBaku=i, lokasi="3"
-            ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0)))
+            ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0,output_field=FloatField())))
         else:
             datagudang = models.TransaksiGudang.objects.filter(
                 tanggal__range=(mulai, datenow), KodeProduk=i
@@ -364,148 +364,8 @@ def rekap_gudang(request):
     )
 
 
-# @login_required
-# @logindecorators.allowed_users(allowed_roles=["gudang"])
-# def detail_barang(request):
-#     datagudang = models.TransaksiGudang.objects.all()
-#     dataproduk = models.Produk.objects.all()
-#     if len(request.GET) == 0:
-#         return render(
-#             request,
-#             "gudang/detailbarang.html",
-#             {
-#                 "datagudang": datagudang,
-#                 "dataproduk": dataproduk,
-#             },
-#         )
-
-#     else:
-#         dict_semua = []
-#         list_masuk = []
-#         list_keluar = []
-#         list_sisa = []
-#         input_kode = request.GET.get("input_kode")
-#         input_tahun = request.GET.get("input_tahun")
-#         pemusnahan = (
-#             models.PemusnahanBahanBaku.objects.filter(KodeBahanBaku=input_kode)
-#             .filter(Tanggal__year=input_tahun)
-#             .order_by("Tanggal")
-#         )
-#         datagudang2 = (
-#             models.TransaksiGudang.objects.filter(KodeProduk=input_kode)
-#             .filter(tanggal__year=input_tahun)
-#             .order_by("tanggal")
-#         )
-#         saldo_awal = (
-#             models.SaldoAwalBahanBaku.objects.filter(IDBahanBaku=input_kode)
-#             .filter(Tanggal__year=input_tahun)
-#             .order_by("Tanggal")
-#         )
-#         datasjp = (
-#             models.DetailSuratJalanPembelian.objects.filter(KodeProduk=input_kode)
-#             .filter(NoSuratJalan__Tanggal__year=input_tahun)
-#             .order_by("NoSuratJalan__Tanggal")
-#         )
-#         tanggalgudang = list(datagudang2.values_list("tanggal", flat=True).distinct())
-#         tanggalgudang2 = list(
-#             datasjp.values_list("NoSuratJalan__Tanggal", flat=True).distinct()
-#         )
-#         tanggalgudang3 = list(saldo_awal.values_list("Tanggal", flat=True).distinct())
-
-#         tanggaltotal = tanggalgudang + tanggalgudang2
-#         tanggaltotal = sorted(list(set(tanggaltotal)))
-
-#         if len(tanggaltotal) == 0:
-#             messages.error(
-#                 request, "Tidak ada barang masuk ke gudang, keluar, dan retur"
-#             )
-#         pemusnahanint = 0
-#         saldo_awal = 0
-#         data_saldoawal = models.SaldoAwalBahanBaku.objects.filter(
-#             IDBahanBaku=input_kode, Tanggal__year=input_tahun
-#         )
-#         pemusnahan = models.PemusnahanBahanBaku.objects.filter(
-#             KodeBahanBaku=input_kode, Tanggal__year=input_tahun
-#         )
-#         for i in data_saldoawal:
-#             print(i.Jumlah)
-#             saldo_awal += i.Jumlah
-
-#         for i in pemusnahan:
-#             pemusnahanint += i.Jumlah
-
-#         saldo_dummy = saldo_awal - pemusnahanint
-#         for i in tanggaltotal:
-#             keluar = 0
-#             masuk = 0
-
-#             data_gudangobj = models.TransaksiGudang.objects.filter(tanggal=i).filter(
-#                 KodeProduk=input_kode
-#             )
-#             data_sjp = models.DetailSuratJalanPembelian.objects.filter(
-#                 NoSuratJalan__Tanggal=i
-#             ).filter(KodeProduk=input_kode)
-#             data_saldoawal = models.SaldoAwalBahanBaku.objects.filter(Tanggal=i).filter(
-#                 IDBahanBaku=input_kode
-#             )
-
-#             if len(data_gudangobj) > 0:
-#                 for j in data_gudangobj:
-#                     if j.jumlah > 0:
-#                         keluar += j.jumlah
-#                     else:
-#                         masuk += j.jumlah * -1
-
-#             if len(data_sjp) > 0:
-#                 for j in data_sjp:
-#                     masuk += j.Jumlah
-
-#             saldo_dummy += masuk - keluar
-
-#             if saldo_dummy + masuk - keluar < 0:
-#                 messages.warning(
-#                     request,
-#                     "Sisa stok menjadi negatif pada tanggal {}.\nCek kembali mutasi barang".format(
-#                         i
-#                     ),
-#                 )
-
-#             list_keluar.append(keluar)
-#             list_masuk.append(masuk)
-#             list_sisa.append(saldo_dummy)
-
-#         for tanggal, masuk, keluar, sisa in zip(
-#             tanggaltotal, list_masuk, list_keluar, list_sisa
-#         ):
-#             tanggal = tanggal.strftime("%Y-%m-%d")
-#             dict_semua.append(
-#                 {
-#                     "tanggaltotal": tanggal,
-#                     "masuk": masuk,
-#                     "keluar": keluar,
-#                     "sisa": sisa,
-#                 }
-#             )
-
-#         return render(
-#             request,
-#             "gudang/detailbarang.html",
-#             {
-#                 "datagudang2": datagudang2,
-#                 "dataproduk": dataproduk,
-#                 "list_keluar": list_keluar,
-#                 "dict_semua": dict_semua,
-#                 "kodeproduk": input_kode,
-#                 "saldoawal": saldo_awal,
-#                 "input_tahun": input_tahun,
-#                 "datasjp": datasjp,
-#                 "pemusnahan": pemusnahanint,
-#             },
-#         )
-
-
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def detail_barang(request):
     datagudang = models.TransaksiGudang.objects.all()
     dataproduk = models.Produk.objects.all()
@@ -651,7 +511,7 @@ def detailksbb(request, id, tanggal,lokasi):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def barang_keluar(request):
     datalokasi = models.Lokasi.objects.filter(NamaLokasi__in=("WIP", "FG","Lain-Lain"))
     data = models.TransaksiGudang.objects.filter(jumlah__gt=0).order_by("tanggal")
@@ -696,7 +556,7 @@ def barang_keluar(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def barang_retur(request):
     datalokasi = models.Lokasi.objects.all()
     data = models.TransaksiGudang.objects.filter(jumlah__lt=0).order_by("tanggal")
@@ -770,7 +630,7 @@ def accgudang3(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def spk(request):
     dataspk = models.SPK.objects.all().order_by("-Tanggal")
     for i in dataspk:
@@ -779,7 +639,7 @@ def spk(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def tracking_spk(request, id):
     dataartikel = models.Artikel.objects.all()
     dataspk = models.SPK.objects.get(id=id)
@@ -853,7 +713,7 @@ def tracking_spk(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def cobaform(request):
     databahanbaku = models.Produk.objects.all()
     if request.method == "POST":
@@ -969,7 +829,7 @@ def deletetransaksilainlain(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def read_produk(request):
     produkobj = models.Produk.objects.all()
     return render(request, "gudang/read_produk.html", {"produkobj": produkobj})
@@ -998,7 +858,7 @@ def update_produk_gudang(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def read_saldoawal(request):
     dataproduk = models.SaldoAwalBahanBaku.objects.filter(
         IDLokasi__NamaLokasi="Gudang"
@@ -1208,7 +1068,7 @@ def update_gudang(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def load_produk(request):
     print(request.GET)
     artikel = request.GET.get("artikel")
@@ -1344,7 +1204,7 @@ def bulk_createtransaksigudang(request):
     return render(request, "Purchasing/bulk_createproduk.html")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def view_pemusnahanbarang(request):
     dataproduksi = models.PemusnahanBahanBaku.objects.filter(
         lokasi__NamaLokasi="Gudang"

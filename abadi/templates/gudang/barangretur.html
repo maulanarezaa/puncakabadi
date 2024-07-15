@@ -63,17 +63,21 @@
                                     {% if i.KeteranganACC %}
                                     <td>Sudah ACC</td>
                                     <td>
+                                        {% if user.groups.first.name != 'ppic' %}
                                         <button class="btn btn-success">
                                             <i class="typcn typcn typcn-tick"></i>
                                         </button>
+                                        {% endif %}
                                     </td>
                                     {% else %}
                                     <td>Belum ACC
                                     <td>
+                                        {% if user.groups.first.name != 'ppic' %}
                                         <button onclick="uhuy({{i.IDDetailTransaksiGudang}})" type="button"
                                             class="btn btn-danger">
                                             <i class="typcn typcn typcn-times"></i>
                                         </button>
+                                        {% endif %}
                                     </td>
                                     </td>
                                     {% endif %}

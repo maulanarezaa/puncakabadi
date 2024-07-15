@@ -2730,6 +2730,7 @@ def exportlaporanbulananexcel(request):
         barangmasuk = datacache['barangmasuk']
         datawip = datacache['stokbahanproduksi']
         print('ADA CACHE')
+        print(datacache.keys())
         # print(asd)
     else:
         (
@@ -2773,7 +2774,7 @@ def exportlaporanbulananexcel(request):
     # df = pd.DataFrame.from_dict(
     #     dataperhitunganpersediaan[listbulan[waktuobj.month - 1]], orient="index"
     # ).T
-    print(dataperhitunganpersediaan)
+    # print(dataperhitunganpersediaan)
     datapersediaan = dataperhitunganpersediaan[listbulan[waktuobj.month - 1]]
     datamodelpersediaan ={
         "Barang Keluar" : [datapersediaan['barangkeluar']],
@@ -2929,7 +2930,7 @@ def exportlaporanbulananexcel(request):
 
     print(datamodeldisplay)
     dfdatakeluardisplay = pd.DataFrame(datamodeldisplay)
-    totalbiayakeluardisplay = sum(datamodelkeluar["Total Biaya"])
+    totalbiayakeluardisplay = sum(datamodeldisplay["Total Biaya"])
 
     # print(asd)
 
@@ -3140,6 +3141,7 @@ def exportlaporanbulananexcel(request):
                 writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+3, start_column=1,end_row = maxrow+3,end_column= maxcol-1)
                 writer.sheets["Barang Keluar"].cell(row=maxrow+3, column = 1).value = f"Total Harga Keluar Bulan {listbulan[waktuobj.month - 1]}"
                 writer.sheets["Barang Keluar"].cell(row=maxrow+3, column = maxcol,value = totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain)
+                print(totalbiayakeluar,totalbiayakeluargold,totalbiayakeluardisplay,totalbiayakeluartransaksibahanbaku,totalbiayakeluartransaksilainlain)
                 apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+3,maxcol)
                 adjust_column_width(writer.sheets['Barang Keluar'],dfdatakeluar,1,1)
 
@@ -3332,19 +3334,19 @@ def exportlaporanbulananexcel(request):
             # for row in worksheet.iter_rows(min_row=2, max_row=worksheet.max_row, min_col=1, max_col=worksheet.max_column):
             #     for cell in row:
             #         cell.border = thin_border
-    print(df2)
-    print(dfdatakeluar)
-    print(dfdatakeluardisplay)
-    print(dftransaksibahanbaku)
-    print(dftransaksigold)
-    print(dftransaksilainlain)
+    # print(df2)
+    # print(dfdatakeluar)
+    # print(dfdatakeluardisplay)
+    # print(dftransaksibahanbaku)
+    # print(dftransaksigold)
+    # print(dftransaksilainlain)
 
     # # Load the workbook from the buffer
-    print(buffer.read())
+    # print(buffer.read())
     buffer.seek(0)
-    print('tes')
+    # print('tes')
     wb = load_workbook(buffer)
-    print('tess')
+    # print('tess')
     # ws = wb["Laporan Persediaan"]
     # ws2 = wb["Barang Masuk"]
     # ws3 = wb["Barang Keluar"]

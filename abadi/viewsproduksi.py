@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 
 # Dashboard Produksi
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def dashboard(request):
     data = models.Artikel.objects.all()
     alldata = []
@@ -129,7 +129,7 @@ def dashboard(request):
 
 #Load dropdown
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])    
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])    
 def load_detailspk(request):
     no_spk = request.GET.get("nomor_spk")
     id_spk = models.SPK.objects.get(NoSPK=no_spk)
@@ -141,7 +141,7 @@ def load_detailspk(request):
     return render(request, "produksi/opsi_spk.html", {"detailspk": detailspk})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def load_htmx(request):
     no_spk = request.GET.get("nomor_spk")
     id_spk = models.SPK.objects.get(NoSPK=no_spk)
@@ -150,7 +150,7 @@ def load_htmx(request):
     return render(request, "produksi/opsi_htmx.html", {"detailspk": detailspk})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def load_artikel(request):
     kode_artikel = request.GET.get("kode_artikel")
     artikelobj = models.Artikel.objects.get(KodeArtikel=kode_artikel)
@@ -159,7 +159,7 @@ def load_artikel(request):
     return render(request, "produksi/opsi_artikel.html", {"detailspk": detailspk})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def load_penyusun(request):
     kodeartikel = request.GET.get("artikel")
     penyusun = models.Penyusun.objects.filter(KodeArtikel=kodeartikel)
@@ -167,7 +167,7 @@ def load_penyusun(request):
     return render(request, "produksi/opsi_penyusun.html", {"penyusun": penyusun})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def load_display(request):
     print(request.GET)
     kode_display = request.GET.get("kode_artikel")
@@ -178,7 +178,7 @@ def load_display(request):
     return render(request, "produksi/opsi_spkdisplay.html", {"detailspk": detailspk})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def load_versi(request):
     kodeartikel = request.GET.get("artikel")
     print(request.GET)
@@ -188,7 +188,7 @@ def load_versi(request):
     return render(request, "produksi/opsi_versi.html", {"penyusun": penyusun,'kodeartikel':kodeartikel})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def load_penyusun2(request):
     print(request.GET)
     kodeartikel = request.GET.get("artikel")
@@ -204,7 +204,7 @@ def load_penyusun2(request):
 
 # SPK
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_spk(request):
     dataspk = models.SPK.objects.all().order_by("-Tanggal")
 
@@ -225,7 +225,7 @@ def view_spk(request):
     return render(request, "produksi/view_spk.html", {"dataspk": dataspk})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_spk(request):
     dataartikel = models.Artikel.objects.all()
     datadisplay = models.Display.objects.all()
@@ -307,7 +307,7 @@ def add_spk(request):
             return redirect("view_spk")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def detail_spk(request, id):
     dataartikel = models.Artikel.objects.all()
     datadisplay =models.Display.objects.all()
@@ -431,7 +431,7 @@ def detail_spk(request, id):
         return redirect("detail_spk", id=id)
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_spk(request, id):
     dataspk = models.SPK.objects.get(id=id)
     dataspk.delete()
@@ -446,7 +446,7 @@ def delete_spk(request, id):
     return redirect("view_spk")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_detailspk(request, id):
     datadetailspk = models.DetailSPK.objects.get(IDDetailSPK=id)
     dataspk = models.SPK.objects.get(NoSPK=datadetailspk.NoSPK)
@@ -462,7 +462,7 @@ def delete_detailspk(request, id):
     return redirect("detail_spk", id=dataspk.id)
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_detailspkdisplay(request, id):
     datadetailspk = models.DetailSPKDisplay.objects.get(IDDetailSPK=id)
     dataspk = models.SPK.objects.get(NoSPK=datadetailspk.NoSPK)
@@ -478,7 +478,7 @@ def delete_detailspkdisplay(request, id):
     return redirect("detail_spk", id=dataspk.id)
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def track_spk(request, id):
     dataartikel = models.Artikel.objects.all()
     datadisplay =models.Display.objects.all()
@@ -545,7 +545,7 @@ def track_spk(request, id):
 
 # SPPB   
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_sppb(request):
     datasppb = models.SPPB.objects.all().order_by("-Tanggal")
     for i in datasppb:
@@ -554,7 +554,7 @@ def view_sppb(request):
     return render(request, "produksi/view_sppb.html", {"datasppb": datasppb})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_sppb(request):
     databahan = models.Produk.objects.all()
     dataartikel = models.Artikel.objects.all()
@@ -696,7 +696,7 @@ def add_sppb(request):
                 return redirect("add_sppb")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def detail_sppb(request, id):
     databahan = models.Produk.objects.all()
     dataartikel = models.Artikel.objects.all()
@@ -914,7 +914,7 @@ def detail_sppb(request, id):
         return redirect("detail_sppb", id=id)
     
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_sppb(request, id):
     datasppb = models.SPPB.objects.get(id=id)
     datasppb.delete()
@@ -929,7 +929,7 @@ def delete_sppb(request, id):
     return redirect("view_sppb")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_detailsppb(request, id):
     datadetailsppb = models.DetailSPPB.objects.get(IDDetailSPPB=id)
     datasppb = models.SPPB.objects.get(NoSPPB=datadetailsppb.NoSPPB)
@@ -962,7 +962,7 @@ def delete_detailsppb(request, id):
 
 #Transaksi Produksi
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_mutasi(request):
     dataproduksi = models.TransaksiProduksi.objects.filter(Jenis="Mutasi").order_by(
         "-Tanggal", "KodeArtikel"
@@ -973,7 +973,7 @@ def view_mutasi(request):
     return render(request, "produksi/view_mutasi.html", {"dataproduksi": dataproduksi})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_produksi(request):
     dataproduksi = models.TransaksiProduksi.objects.filter(Jenis="Produksi").order_by(
         "-Tanggal", "KodeArtikel"
@@ -986,7 +986,7 @@ def view_produksi(request):
     )
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_mutasi(request):
     if request.method == "GET":
         data_artikel = models.Artikel.objects.all()
@@ -1100,7 +1100,7 @@ def add_mutasi(request):
         return redirect("view_mutasi")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_produksi(request):
     if request.method == "GET":
         data_artikel = models.Artikel.objects.all()
@@ -1143,7 +1143,7 @@ def add_produksi(request):
         return redirect("view_produksi")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_produksi(request, id):
     produksiobj = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
     data_artikel = models.Artikel.objects.all()
@@ -1193,7 +1193,7 @@ def update_produksi(request, id):
         return redirect("view_produksi")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_mutasi(request, id):
     produksiobj = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
     data_artikel = models.Artikel.objects.all()
@@ -1285,7 +1285,7 @@ def update_mutasi(request, id):
         return redirect("view_mutasi")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_produksi(request, id):
     dataproduksi = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
     dataproduksi.delete()
@@ -1294,7 +1294,7 @@ def delete_produksi(request, id):
     return redirect("view_produksi")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_mutasi(request, id):
     dataproduksi = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
     dataproduksi.delete()
@@ -1320,7 +1320,7 @@ def delete_mutasi(request, id):
 
 # Transaksi Gudang
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_gudang(request):
     datagudang = models.TransaksiGudang.objects.filter(jumlah__gt=0).order_by(
         "-tanggal", "KodeProduk"
@@ -1331,7 +1331,7 @@ def view_gudang(request):
     return render(request, "produksi/view_gudang.html", {"datagudang": datagudang})
 
 @login_required  
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_gudangretur(request):
     datagudang = models.TransaksiGudang.objects.filter(jumlah__lt=0).order_by(
         "-tanggal", "KodeProduk"
@@ -1344,7 +1344,7 @@ def view_gudangretur(request):
     return render(request, "produksi/view_gudangretur.html", {"datagudang": datagudang})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_gudang(request):
     if request.method == "GET":
         data_produk = models.Produk.objects.all()
@@ -1437,7 +1437,7 @@ def add_gudang(request):
         return redirect("view_gudang")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_gudangretur(request):
     if request.method == "GET":
         data_produk = models.Produk.objects.all()
@@ -1491,7 +1491,7 @@ def add_gudangretur(request):
         return redirect("view_gudangretur")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_gudang(request, id):
     gudangobj = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     data_produk = models.Produk.objects.all()
@@ -1617,7 +1617,7 @@ def update_gudang(request, id):
         return redirect("view_gudang")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_gudangretur(request, id):
     gudangobj = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     data_produk = models.Produk.objects.all()
@@ -1670,7 +1670,7 @@ def update_gudangretur(request, id):
         return redirect("view_gudangretur")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_gudang(request, id):
     datagudang = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     datagudang.delete()
@@ -1686,7 +1686,7 @@ def delete_gudang(request, id):
     return redirect("view_gudang")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_gudangretur(request, id):
     datagudang = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     datagudang.delete()
@@ -2087,7 +2087,7 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi):
     return listdata,saldoawal
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_ksbb3(request):
     kodeproduk = models.Produk.objects.all()
     sekarang = datetime.now().year
@@ -2134,7 +2134,7 @@ def view_ksbb3(request):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def detailksbb(request, id, tanggal,lokasi):
     tanggal = datetime.strptime(tanggal, "%Y-%m-%d")
     tanggal = tanggal.strftime("%Y-%m-%d")
@@ -2177,7 +2177,7 @@ def detailksbb(request, id, tanggal,lokasi):
     )
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_ksbj2(request):
     dataartikel = models.Artikel.objects.all()
     if len(request.GET) == 0:
@@ -2386,7 +2386,7 @@ def view_ksbj2(request):
             )
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_rekapbarang(request):
 
     tanggal_akhir = request.GET.get("periode")
@@ -2419,7 +2419,7 @@ def view_rekapbarang(request):
     return render(request, "produksi/rekap_barang.html", {'data':dataproduk , 'tanggal_akhir':tanggal_akhir})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_rekaprusak(request):
 
     tanggal_akhir = request.GET.get("periode")
@@ -2449,7 +2449,7 @@ def view_rekaprusak(request):
     return render(request, "produksi/rekap_rusak.html", {"databarang": databarang, "dataartikel": dataartikel, "lokasi":lokasi,'tanggal_akhir':tanggal_akhir})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_rekapproduksi(request):
     if len(request.GET) == 0:
         return render(request, "produksi/rekap_produksi.html")
@@ -2631,7 +2631,7 @@ def view_rekapproduksi(request):
 
 # Pemusnahan Artikel
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_pemusnahan(request):
     dataproduksi = models.PemusnahanArtikel.objects.all().order_by("-Tanggal")
     for i in dataproduksi:
@@ -2642,7 +2642,7 @@ def view_pemusnahan(request):
     )
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_pemusnahan(request):
     dataartikel = models.Artikel.objects.all()
     datalokasi = models.Lokasi.objects.all()
@@ -2682,7 +2682,7 @@ def add_pemusnahan(request):
         return redirect("view_pemusnahan")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_pemusnahan(request, id):
     dataartikel = models.Artikel.objects.all()
     dataobj = models.PemusnahanArtikel.objects.get(IDPemusnahanArtikel=id)
@@ -2727,7 +2727,7 @@ def update_pemusnahan(request, id):
         return redirect("view_pemusnahan")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_pemusnahan(request, id):
     dataobj = models.PemusnahanArtikel.objects.get(IDPemusnahanArtikel=id)
     dataobj.delete()
@@ -2744,7 +2744,7 @@ def delete_pemusnahan(request, id):
 
 # Pemusnahan Barang
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_pemusnahanbarang(request):
     dataproduksi = models.PemusnahanBahanBaku.objects.filter(lokasi__NamaLokasi__in=("WIP","FG")).order_by("-Tanggal")
     for i in dataproduksi:
@@ -2755,7 +2755,7 @@ def view_pemusnahanbarang(request):
     )
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_pemusnahanbarang(request):
     databarang = models.Produk.objects.all()
     datalokasi = models.Lokasi.objects.all()
@@ -2797,7 +2797,7 @@ def add_pemusnahanbarang(request):
         return redirect("view_pemusnahanbarang")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_pemusnahanbarang(request, id):
     databarang = models.Produk.objects.all()
     dataobj = models.PemusnahanBahanBaku.objects.get(IDPemusnahanBahanBaku=id)
@@ -2842,7 +2842,7 @@ def update_pemusnahanbarang(request, id):
         return redirect("view_pemusnahanbarang")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_pemusnahanbarang(request, id):
     dataobj = models.PemusnahanBahanBaku.objects.get(IDPemusnahanBahanBaku=id)
 
@@ -2860,7 +2860,7 @@ def delete_pemusnahanbarang(request, id):
 
 # Penyesuaian
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def penyesuaian(request):
     datapenyesuaian = models.Penyesuaian.objects.all()
     return render(
@@ -2868,7 +2868,7 @@ def penyesuaian(request):
     )
     
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def addpenyesuaian(request):
     dataartikel = models.Artikel.objects.all()
     kodebahanbaku = models.Produk.objects.all()
@@ -2912,7 +2912,7 @@ def addpenyesuaian(request):
         return redirect("view_penyesuaian")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_penyesuaian(request, id):
     
     dataartikel = models.Artikel.objects.all()
@@ -2970,7 +2970,7 @@ def update_penyesuaian(request, id):
         return redirect("view_penyesuaian")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_penyesuaian(request, id):
     datapenyesuaianobj = models.Penyesuaian.objects.get(IDPenyesuaian=id)
     datapenyesuaianobj.delete()
@@ -2985,7 +2985,7 @@ def delete_penyesuaian(request, id):
     return redirect("view_penyesuaian")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def kalkulatorpenyesuaian2(request):
     kodeproduk = models.Produk.objects.all()
     if len(request.GET) == 0:
@@ -3268,7 +3268,7 @@ def kalkulatorpenyesuaian2(request):
 
 # Saldo Awal Bahan Baku
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_saldobahan(request):
     dataproduk = models.SaldoAwalBahanBaku.objects.filter(IDLokasi__NamaLokasi__in=("WIP","FG")).order_by("-Tanggal")
     for i in dataproduk:
@@ -3279,7 +3279,7 @@ def view_saldobahan(request):
     )
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_saldobahan(request):
     databarang = models.Produk.objects.all()
     datalokasi = models.Lokasi.objects.all()
@@ -3329,7 +3329,7 @@ def add_saldobahan(request):
         return redirect("view_saldobahanproduksi")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_saldobahan(request, id):
     databarang = models.Produk.objects.all()
     dataobj = models.SaldoAwalBahanBaku.objects.get(IDSaldoAwalBahanBaku=id)
@@ -3386,7 +3386,7 @@ def update_saldobahan(request, id):
         return redirect("view_saldobahan")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_saldobahan(request, id):
     dataobj = models.SaldoAwalBahanBaku.objects.get(IDSaldoAwalBahanBaku=id)
 
@@ -3404,7 +3404,7 @@ def delete_saldobahan(request, id):
 
 # Saldo Awal Artikel
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_saldoartikel(request):
     dataartikel = models.SaldoAwalArtikel.objects.all().order_by("-Tanggal")
     for i in dataartikel:
@@ -3415,7 +3415,7 @@ def view_saldoartikel(request):
     )
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_saldoartikel(request):
     dataartikel = models.Artikel.objects.all()
     datalokasi = models.Lokasi.objects.all()
@@ -3464,7 +3464,7 @@ def add_saldoartikel(request):
         return redirect("view_saldoartikel")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_saldoartikel(request, id):
     dataartikel = models.Artikel.objects.all()
     dataobj = models.SaldoAwalArtikel.objects.get(IDSaldoAwalBahanBaku=id)
@@ -3522,7 +3522,7 @@ def update_saldoartikel(request, id):
         return redirect("view_saldoartikel")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_saldoartikel(request, id):
     dataobj = models.SaldoAwalArtikel.objects.get(IDSaldoAwalBahanBaku=id)
 
@@ -3540,7 +3540,7 @@ def delete_saldoartikel(request, id):
 
 # Saldo Awal Produk Subkon
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_saldosubkon(request):
     datasubkon = models.SaldoAwalSubkon.objects.all().order_by("-Tanggal")
     for i in datasubkon:
@@ -3551,7 +3551,7 @@ def view_saldosubkon(request):
     )
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_saldosubkon(request):
     datasubkon = models.ProdukSubkon.objects.all()
     if request.method == "GET":
@@ -3597,7 +3597,7 @@ def add_saldosubkon(request):
         return redirect("view_saldosubkon")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_saldosubkon(request, id):
     dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -3644,7 +3644,7 @@ def update_saldosubkon(request, id):
         return redirect("view_saldosubkon")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_saldosubkon(request, id):
     dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
 
@@ -3662,7 +3662,7 @@ def delete_saldosubkon(request, id):
 
 # Saldo Bahan Subkon
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_saldobahansubkon(request):
     datasubkon = models.SaldoAwalBahanBakuSubkon.objects.all().order_by("-Tanggal")
     for i in datasubkon:
@@ -3673,7 +3673,7 @@ def view_saldobahansubkon(request):
     )
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_saldobahansubkon(request):
     datasubkon = models.BahanBakuSubkon.objects.all()
     if request.method == "GET":
@@ -3718,7 +3718,7 @@ def add_saldobahansubkon(request):
         return redirect("view_saldobahansubkon")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_saldobahansubkon(request, id):
     dataobj = models.SaldoAwalBahanBakuSubkon.objects.get(IDSaldoAwalBahanBakuSubkon=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -3768,7 +3768,7 @@ def update_saldobahansubkon(request, id):
         return redirect("view_saldobahansubkon")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_saldobahansubkon(request, id):
     dataobj = models.SaldoAwalBahanBakuSubkon.objects.get(IDSaldoAwalBahanBakuSubkon=id)
 
@@ -3786,13 +3786,13 @@ def delete_saldobahansubkon(request, id):
 
 # Keterangan Bahan Baku
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def read_bahanbaku(request):
     produkobj = models.Produk.objects.all()
     return render(request, "produksi/read_produk.html", {"produkobj": produkobj})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_produk_produksi(request, id):
     produkobj = models.Produk.objects.get(pk=id)
     if request.method == "GET":
@@ -3815,13 +3815,13 @@ def update_produk_produksi(request, id):
 '''SUBKON SECTION'''
 # Bahan Baku SUBKON
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def read_bahansubkon(request):
     produkobj = models.BahanBakuSubkon.objects.all()
     return render(request, "produksi/read_bahansubkon.html", {"produkobj": produkobj})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def create_bahansubkon(request):
     if request.method == "GET":
         return render(
@@ -3854,7 +3854,7 @@ def create_bahansubkon(request):
             return redirect("read_bahansubkon")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_bahansubkon(request, id):
     produkobj = models.BahanBakuSubkon.objects.get(pk=id)
 
@@ -3891,7 +3891,7 @@ def update_bahansubkon(request, id):
         return redirect("read_bahansubkon")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_bahansubkon(request, id):
     produkobj = models.BahanBakuSubkon.objects.get(id=id)
     produkobj.delete()
@@ -3909,13 +3909,13 @@ def delete_bahansubkon(request, id):
 
 # Produk SUBKON
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def read_produksubkon(request):
     produkobj = models.ProdukSubkon.objects.all()
     return render(request, "produksi/read_produksubkon.html", {"produkobj": produkobj})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def create_produksubkon(request):
     kodeartikel = models.Artikel.objects.all()
     if request.method == "GET":
@@ -3964,7 +3964,7 @@ def create_produksubkon(request):
             return redirect("read_produksubkon")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_produksubkon(request, id):
     produkobj = models.ProdukSubkon.objects.get(pk=id)
     dataartikel = models.Artikel.objects.all()
@@ -4014,7 +4014,7 @@ def update_produksubkon(request, id):
         return redirect("read_produksubkon")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_produksubkon(request, id):
     produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=id)
     produkobj.delete()
@@ -4032,7 +4032,7 @@ def delete_produksubkon(request, id):
 
 # Surat Jalan Kirim Subkon
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_subkonbahankeluar(request):
     datasubkon = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.all().order_by("NoSuratJalan__Tanggal")
     for i in datasubkon:
@@ -4041,7 +4041,7 @@ def view_subkonbahankeluar(request):
     return render(request, "produksi/view_subkonbahankeluar.html", {"datasubkon": datasubkon})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_subkonbahankeluar(request):
     if request.method == "GET":
         subkonkirim = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.all()
@@ -4102,7 +4102,7 @@ def add_subkonbahankeluar(request):
             return redirect("view_subkonbahankeluar")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_subkonbahankeluar(request, id):
     datasjp = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.get(IDDetailSJPengirimanSubkon=id)
 
@@ -4187,7 +4187,7 @@ def update_subkonbahankeluar(request, id):
             return redirect("view_subkonbahankeluar")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_subkonbahankeluar(request, id):
     dataskk = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.get(IDDetailSJPengirimanSubkon=id)
     dataskk.delete()
@@ -4204,7 +4204,7 @@ def delete_subkonbahankeluar(request, id):
 
 # Surat Jalan Terima Subkon
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_subkonprodukmasuk(request):
     datasubkon = models.DetailSuratJalanPenerimaanProdukSubkon.objects.all().order_by("NoSuratJalan__Tanggal")
     for i in datasubkon:
@@ -4213,7 +4213,7 @@ def view_subkonprodukmasuk(request):
     return render(request, "produksi/view_subkonprodukmasuk.html", {"datasubkon": datasubkon})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_subkonprodukmasuk(request):
     if request.method == "GET":
         subkonkirim = models.DetailSuratJalanPenerimaanProdukSubkon.objects.all()
@@ -4291,7 +4291,7 @@ def add_subkonprodukmasuk(request):
             return redirect("view_subkonprodukmasuk")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_subkonprodukmasuk(request, id):
     datasjp = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPengirimanSubkon=id)
 
@@ -4389,7 +4389,7 @@ def update_subkonprodukmasuk(request, id):
             return redirect("view_subkonprodukmasuk")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_subkonprodukmasuk(request, id):
     dataskk = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPengirimanSubkon=id)
     dataskk.delete()
@@ -4406,7 +4406,7 @@ def delete_subkonprodukmasuk(request, id):
 
 # Transaksi subkon bahan baku masuk
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def transaksi_subkonbahan_masuk(request):
     produkobj = models.TransaksiBahanBakuSubkon.objects.all().order_by("-Tanggal")
     for i in produkobj:
@@ -4416,7 +4416,7 @@ def transaksi_subkonbahan_masuk(request):
     )
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def create_transaksi_subkonbahan_masuk(request):
     produksubkon = models.BahanBakuSubkon.objects.all()
     if request.method == "GET":
@@ -4458,7 +4458,7 @@ def create_transaksi_subkonbahan_masuk(request):
         return redirect("transaksi_subkonbahan_masuk")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_transaksi_subkonbahan_masuk(request, id):
     produkobj = models.TransaksiBahanBakuSubkon.objects.get(pk=id)
     produkobj.Tanggal = produkobj.Tanggal.strftime("%Y-%m-%d")
@@ -4496,7 +4496,7 @@ def update_transaksi_subkonbahan_masuk(request, id):
         return redirect("transaksi_subkonbahan_masuk")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_transaksi_subkonbahan_masuk(request, id):
     produkobj = models.TransaksiBahanBakuSubkon.objects.get(IDTransaksiBahanBakuSubkon=id)
     produkobj.delete()
@@ -4514,7 +4514,7 @@ def delete_transaksi_subkonbahan_masuk(request, id):
 
 # Transaksi subkon produk keluar
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def transaksi_subkon_terima(request):
     produkobj = models.TransaksiSubkon.objects.all().order_by("-Tanggal")
     for i in produkobj:
@@ -4524,7 +4524,7 @@ def transaksi_subkon_terima(request):
     )
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def create_transaksi_subkon_terima(request):
     produksubkon = models.ProdukSubkon.objects.all()
     if request.method == "GET":
@@ -4567,7 +4567,7 @@ def create_transaksi_subkon_terima(request):
         return redirect("transaksi_subkon_terima")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_transaksi_subkon_terima(request, id):
     produkobj = models.TransaksiSubkon.objects.get(pk=id)
     produkobj.Tanggal = produkobj.Tanggal.strftime("%Y-%m-%d")
@@ -4609,7 +4609,7 @@ def update_transaksi_subkon_terima(request, id):
         return redirect("transaksi_subkon_terima")
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_transaksi_subkon_terima(request, id):
     produkobj = models.TransaksiSubkon.objects.get(IDTransaksiProdukSubkon=id)
     produkobj.delete()
@@ -4627,7 +4627,7 @@ def delete_transaksi_subkon_terima(request, id):
 
 # KSBB KSBJ Subkon
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_ksbjsubkon(request):
     kodeproduk = models.ProdukSubkon.objects.all()
     print(kodeproduk)
@@ -4728,7 +4728,7 @@ def view_ksbjsubkon(request):
         return render(request, "produksi/view_ksbjsubkon.html",{"data":listdata,'saldo':saldoawal,"nama": nama,"satuan": satuan,"artikel":artikel,"kodeprodukobj": kodeproduk, 'produk':produk})
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=['produksi'])
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_ksbbsubkon(request):
     kodeproduk = models.BahanBakuSubkon.objects.all()
     if len(request.GET) == 0:

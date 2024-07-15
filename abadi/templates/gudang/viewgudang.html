@@ -38,10 +38,12 @@
                                 <td>{{i.jumlah|separator_ribuan}}</td>
                                 <td>{{i.Lokasi}}</td>
                                 <td>
+                                    {% if user.groups.first.name != 'ppic' %}
                                     <button onclick="uhuy({{i.IDDetailTransaksiGudang}})" type="button"
                                         class="btn btn-success">
                                         <i class="typcn typcn typcn-tick"></i>
                                     </button>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -83,10 +85,12 @@
                                 <td>{{i.jumlah|separator_ribuan}}</td>
                                 <td>{{i.Lokasi}}</td>
                                 <td>
+                                    {% if user.groups.first.name != 'ppic' %}
                                     <button onclick="uhuy({{i.IDDetailTransaksiGudang}})" type="button"
                                         class="btn btn-success">
                                         <i class="typcn typcn typcn-tick"></i>
                                     </button>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}

@@ -33,6 +33,7 @@
                             <button type="submit" class="btn btn-primary btn-sm mb-2 mr-sm-2 ml-2">Submit</button>
                         </form>
                     </div>
+                    {% if user.groups.first.name != 'ppic' %}
                     <div class="row">
                         <div class="col-lg-4">
                             <div class="template-demo">
@@ -45,6 +46,7 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                     <div class="table-responsive pt-3">
                         {% if data %}
                         <table class="table table-bordered" id="barangkeluar">
@@ -74,6 +76,7 @@
                                     {% if i.KeteranganACC %}
                                     <td>Sudah ACC</td>
                                     <td>
+                                        {% if user.groups.first.name != 'ppic' %}
                                         <button class="btn btn-success">
                                             <i class="typcn typcn typcn-tick"></i>
                                         </button>
@@ -91,14 +94,17 @@
                                         </a>
                                         {% else %}
                                         {% endif %}
+                                        {% endif %}
                                     </td>
                                     {% else %}
                                     <td>Belum ACC
                                     <td>
+                                        {% if user.groups.first.name != 'ppic' %}
                                         <button onclick="uhuy({{i.IDDetailTransaksiGudang}})" type="button"
                                             class="btn btn-danger">
                                             <i class="typcn typcn typcn-times"></i>
                                         </button>
+                                        {% endif %}
                                     </td>
                                     </td>
                                     {% endif %}

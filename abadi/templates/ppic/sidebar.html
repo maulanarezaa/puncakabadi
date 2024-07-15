@@ -66,6 +66,21 @@
         <span class="menu-title">Transaction Log</span>
       </a>
     </li>
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#laporan-dropdown" aria-expanded="false" aria-controls="laporan-dropdown">
+        <i class="typcn typcn-document menu-icon"></i>
+        <span class="menu-title">Data Stakeholder</span>
+        <i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="laporan-dropdown">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="{% url 'viewgudang' %}">Gudang</a></li>
+          <li class="nav-item"> <a class="nav-link" href="{% url 'dashboardproduksi' %}">Produksi</a></li>
+          <li class="nav-item"> <a class="nav-link" href="{% url 'notif_purchasing' %}">Purchasing</a></li>
+          <li class="nav-item"> <a class="nav-link" href="{% url 'dashboardrnd' %}">RND</a></li>
+        </ul>
+      </div>
+    </li>
     <!-- <li class="nav-item">
       <a class="nav-link" href="{% url 'laporanpersediaanbarang' %}" aria-expanded="false" aria-controls="tables">
         <i class="typcn typcn-th-small-outline menu-icon"></i>

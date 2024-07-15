@@ -16,6 +16,7 @@
     <div class="card">
       <div class="card-body">
         <h4 class="card-title">Saldo Awal Bahan Baku</h4>
+        {% if user.groups.first.name != 'ppic' %}
         <div class="template-demo">
           <a href="/gudang/addsaldobahan">
             <button type="button" class="btn btn-success btn-icon-text">
@@ -24,6 +25,7 @@
             </button>
           </a>
         </div>
+        {% endif %}
         <div class="table-responsive pt-3">
           <table class="table table-bordered" id="saldo">
             <thead>
@@ -49,6 +51,7 @@
                 <td>{{i.Jumlah|separator_ribuan}}</td>
                 <td>{{i.Harga|custom_thousands_separator}}</td>
                 <td>
+                  {% if user.groups.first.name != 'ppic' %}
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   <div class="template-demo">
                     <a href="{% url 'updatesaldobahan' i.IDSaldoAwalBahanBaku %}">
@@ -63,6 +66,7 @@
                     </a>
 
                   </div>
+                  {% endif %}
                 </td>
               </tr>
               {% endfor %}

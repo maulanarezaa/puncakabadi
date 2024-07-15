@@ -14,6 +14,7 @@
     <div class="card">
       <div class="card-body">
         <h4 class="card-title">Pemusnahan Bahan Baku</h4>
+        {% if user.groups.first.name != 'ppic' %}
         <div class="template-demo">
           <a href="{% url 'add_pemusnahangudang' %}">
             <button type="button" class="btn btn-success btn-icon-text">
@@ -22,6 +23,7 @@
             </button>
           </a>
         </div>
+        {% endif %}
         <div class="table-responsive pt-3">
           <table class="table table-bordered" id="pemusnahantabel">
             <thead>
@@ -41,6 +43,7 @@
                 <td>{{i.lokasi.NamaLokasi}}</td>
                 <td>{{i.Jumlah|separator_desimal}}</td>
                 <td>
+                  {% if user.groups.first.name != 'ppic' %}
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   <div class="template-demo">
                     <a href="{% url 'update_pemusnahanbaranggudang' i.IDPemusnahanBahanBaku %}">
@@ -56,6 +59,7 @@
                     </a>
 
                   </div>
+                  {% endif %}
                 </td>
               </tr>
               {% endfor %}
