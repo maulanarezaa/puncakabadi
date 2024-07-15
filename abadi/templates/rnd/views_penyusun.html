@@ -42,6 +42,7 @@
 
                 <form action="" method="get">
                     <div class="row">
+                        {% if user.groups.first.name != 'ppic' %}
                         <div class="col-lg-3">
                             <a href="{% url 'add_versi' kodeartikel.id %}">
 
@@ -54,7 +55,7 @@
                         {% if versiterpilih %}
                         <div class="col-lg-3">
                             <a href="{% url 'tambah_data_penyusun' id=kodeartikel.id versi=versiterpilih %}">
-
+                                
                                 <button type="button" class="btn btn-success btn-icon-text">
                                     <i class="typcn typcn-plus btn-icon-prepend"></i>
                                     Tambah Data
@@ -62,7 +63,8 @@
                             </a>
                         </div>
                         {% endif %}
-
+                        
+                        {% endif %}
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
@@ -121,6 +123,7 @@
                                 <td>{{i.HargaSatuan|floatformat:2|intcomma}}</td>
                                 <td>{{i.Hargakotak|floatformat:2|intcomma}}</td>
                                 <td>
+                                    {% if user.groups.first.name != 'ppic' %}
                                     <div class="template-demo">
                                         <a>
                                             <!-- Buat Modal di JS bawah -->
@@ -134,6 +137,7 @@
                                                 <i class="typcn typcn-edit"></i>
                                             </button>
                                         </a>
+                                        {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}

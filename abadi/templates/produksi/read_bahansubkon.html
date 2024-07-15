@@ -9,6 +9,7 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Bahan Baku Subkon</h4>
+                {% if user.groups.first.name != 'ppic' %}
                 <div class="template-demo" style="margin-top: 30px;">
                     <a href="{% url 'create_bahansubkon' %}">
                         <button type="button" class="btn btn-success btn-icon-text">
@@ -17,6 +18,7 @@
                         </button>
                     </a>
                 </div>
+                {% endif %}
                 <div class="table-responsive pt-3">
                     <table class="table table-bordered" id="myTable">
                         <thead>
@@ -36,6 +38,7 @@
                                 <td>{{i.NamaProduk}}</td>
                                 <td>{{i.unit}}</td>
                                 <td>
+                                    {% if user.groups.first.name != 'ppic' %}
                                     <div class="template-demo">
                                         <a href="{% url 'update_bahansubkon' i.id %}">
                                             <button type="button" class="btn btn-warning">
@@ -49,7 +52,7 @@
                                             </button>
                                         </a>
                                     </div>
-
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}

@@ -12,6 +12,7 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Surat Jalan Kirim Bahan Baku Subkon</h4>
+                {% if user.groups.first.name != 'ppic' %}
                 <div class="template-demo">
                     <a href="/produksi/addsubkonbahankeluar">
                         <button type="button" class="btn btn-success btn-icon-text">
@@ -20,6 +21,7 @@
                         </button>
                     </a>
                 </div>
+                {% endif %}
                 <div class="table-responsive pt-3">
                     <table class="table table-bordered" id="myTable">
                         <thead>
@@ -43,6 +45,7 @@
                                 <td>{{i.Jumlah|intcomma}}</td>
                                 <td>{{i.Keterangan}}</td>
                                 <td>
+                                    {% if user.groups.first.name != 'ppic' %}
                                     <a href="{% url 'update_subkonbahankeluar' i.IDDetailSJPengirimanSubkon %}">
                                         <button type="button" class="btn btn-warning">
                                             <i class="typcn typcn-edit"></i>
@@ -52,7 +55,9 @@
                                         class="btn btn-danger">
                                         <i class="typcn typcn typcn-trash"></i>
                                     </button>
+                                    {% endif %}
                                 </td>
+
                             </tr>
                             {% endfor %}
                         </tbody>

@@ -12,6 +12,7 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Surat Jalan Terima Produk Subkon</h4>
+                {% if user.groups.first.name != 'ppic' %}
                 <div class="template-demo">
                     <a href="/produksi/addsubkonprodukmasuk">
                         <button type="button" class="btn btn-success btn-icon-text">
@@ -20,6 +21,7 @@
                         </button>
                     </a>
                 </div>
+                {% endif %}
                 <div class="table-responsive pt-3">
                     <table class="table table-bordered" id="myTable">
                         <thead>
@@ -43,15 +45,17 @@
                                 <td>{{i.Jumlah|intcomma}}</td>
                                 <td>{{i.Keterangan}}</td>
                                 <td>
-                                    <a href="{% url 'update_subkonprodukmasuk' i.IDDetailSJPengirimanSubkon %}">
+                                    {% if user.groups.first.name != 'ppic' %}
+                                    <a href="{% url 'update_subkonprodukmasuk' i.pk %}">
                                         <button type="button" class="btn btn-warning">
                                             <i class="typcn typcn-edit"></i>
                                         </button>
                                     </a>
-                                    <button onclick="confirmDelete({{i.IDDetailSJPengirimanSubkon}})" type="button"
+                                    <button onclick="confirmDelete({{i.pk}})" type="button"
                                         class="btn btn-danger">
                                         <i class="typcn typcn typcn-trash"></i>
                                     </button>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}

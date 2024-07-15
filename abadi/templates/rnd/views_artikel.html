@@ -14,6 +14,7 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Rekapitulasi Artikel</h4>
+                {% if user.groups.first.name != 'ppic' %}
                 <div class="template-demo">
                     <a href="{% url 'tambahdataartikel' %}">
                         <button type="button" class="btn btn-success btn-icon-text">
@@ -22,6 +23,7 @@
                         </button>
                     </a>
                 </div>
+                {% endif %}
                 <div class="table-responsive pt-3">
                     <table class="table table-bordered" id="artikel">
                         <thead>
@@ -43,6 +45,7 @@
                                 {% endif %}
                                 <td>{{i.0.keterangan}}</td>
                                 <td>
+                                    {% if user.groups.first.name != 'ppic' %}
                                     <div class="template-demo">
                                         <a>
                                             <!-- Buat Modal di JS bawah -->
@@ -56,6 +59,7 @@
                                                 <i class="typcn typcn-edit"></i>
                                             </button>
                                         </a>
+                                        {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}

@@ -12,6 +12,7 @@
     <div class="card">
       <div class="card-body">
         <h4 class="card-title">Surat Perintah Kerja</h4>
+        {% if user.groups.first.name != 'ppic' %}
         <div class="template-demo">
           <a href="/produksi/addspk">
             <button type="button" class="btn btn-success btn-icon-text">
@@ -20,6 +21,7 @@
             </button>
           </a>
         </div>
+        {% endif %}
         <div class="table-responsive pt-3">
 
           <table class="table table-bordered" id="myTable">
@@ -73,6 +75,7 @@
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   <div class="template-demo">
+                    {% if user.groups.first.name != 'ppic' %}
                     <a href="{% url 'detail_spk' i.id %}">
                       <button type="button" class="btn btn-warning">
                         <i class="typcn typcn-edit"></i>
@@ -83,6 +86,7 @@
                         <i class="typcn typcn typcn-trash"></i>
                       </button>
                     </a>
+                    {% endif %}
                     <a href="{% url 'tracking_spk' i.id %}">
                       <button type="button" class="btn btn-primary">
                         <i class="typcn typcn-th-list"></i>
