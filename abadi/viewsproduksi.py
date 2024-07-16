@@ -2877,6 +2877,8 @@ def addpenyesuaian(request):
         # Add Penyesuaian
         tanggalmulai = request.POST["tanggalmulai"]
         tanggalminus = request.POST['tanggalminus']
+        lokasi = request.POST['lokasi']
+        lokasi = models.Lokasi.objects.get(NamaLokasi = lokasi)
         
         listidartikel = request.POST.getlist('artikel_display')
         listkuantitas = request.POST.getlist("kuantitas")
@@ -2889,6 +2891,7 @@ def addpenyesuaian(request):
             penyesuaianobj = models.Penyesuaian(
                 TanggalMulai=tanggalmulai,
                 TanggalMinus = tanggalminus,
+                lokasi = lokasi,
 
                 KodeProduk = bahanbaku,
                 KodeArtikel = kodeartikel,
@@ -2931,6 +2934,7 @@ def update_penyesuaian(request, id):
         kuantitas = request.POST['kuantitas']
         kodeartikel = request.POST['artikel']
         kodebahanbaku = request.POST['kodebahanbaku']
+        lokasi = request.POST['lokasi']
 
         try:
             artikelobj=models.Artikel.objects.get(id = kodeartikel)
@@ -2951,6 +2955,7 @@ def update_penyesuaian(request, id):
         penyesuaianobj.TanggalMulai = tanggalmulai
         penyesuaianobj.KodeArtikel = artikelobj
         penyesuaianobj.KodeProduk = produkobj
+        penyesuaianobj.lokasi = models.Lokasi.objects.get(NamaLokasi = lokasi)
 
         penyesuaianobj.konversi = kuantitas
         penyesuaianobj.save()

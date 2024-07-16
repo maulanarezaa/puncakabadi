@@ -14,7 +14,7 @@
             <form class="form-sample" action="" method="post">
                 {% csrf_token %}
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Tanggal Mulai</label>
                             <div class="col-sm-9">
@@ -23,12 +23,28 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Tanggal Minus</label>
                             <div class="col-sm-9">
                                 <input type="date" class="form-control" name="tanggalminus" required
                                     value="{{dataobj.TanggalMinus}}" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Lokasi</label>
+                            <div class="col-sm-9">
+                                <select name="lokasi" class="form-control" id="">
+                                    {% if dataobj.lokasi.NamaLokasi == 'WIP' %}
+                                    <option value="WIP" selected>WIP</option>
+                                    <option value="FG">FG</option>
+                                    {% else %}
+                                    <option value="WIP">WIP</option>
+                                    <option value="FG" selected>FG</option>
+                                    {% endif %}
+                                </select>
                             </div>
                         </div>
                     </div>

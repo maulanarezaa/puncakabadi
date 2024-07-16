@@ -18,7 +18,7 @@
             <form class="form-sample" action="" method="post">
                 {% csrf_token %}
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Tanggal Mulai</label>
                             <div class="col-sm-9">
@@ -26,11 +26,22 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Tanggal Minus</label>
                             <div class="col-sm-9">
                                 <input type="date" class="form-control" name="tanggalminus" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Lokasi</label>
+                            <div class="col-sm-9">
+                                <select name="lokasi" class="form-control" id="">
+                                    <option value="WIP" selected>WIP</option>
+                                    <option value="FG">FG</option>
+                                </select>
                             </div>
                         </div>
                     </div>

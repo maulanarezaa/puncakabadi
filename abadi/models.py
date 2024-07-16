@@ -173,6 +173,7 @@ class Penyesuaian(models.Model):
     TanggalMinus = models.DateField(null=True, blank=True)
 
     konversi = models.FloatField(blank=True, null=True)
+    lokasi = models.ForeignKey(Lokasi,on_delete=models.CASCADE, default=1)
 
     def __str__(self):
         return f"{self.KodeArtikel} {self.KodeProduk} {self.TanggalMulai} - {self.TanggalMinus}"
