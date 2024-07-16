@@ -25,11 +25,32 @@
                             <div class="form-group">
                                 <div class="input-group">
                                     <input type="text" class="form-control" placeholder="Masukkan Kode Barang"
-                                        aria-label="Masukkan Kode Barang" name="kodebarang" value="{{kodebarang}}">
+                                        aria-label="Masukkan Kode Barang" name="kodebarang" value="{{kodebarang}}" list="listbahanbaku">
+                                        <datalist id="listbahanbaku">
+                                            {% for item in kodeproduk %}
+                                            <option value="{{item.pk}}">{{item.NamaProduk}}</option>
+                                            {% endfor %}
+                                        </datalist>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-3">
+                        <div class="col-lg-2">
+                            <label for="">Lokasi</label>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <select name="lokasi" id="" class="form-control">
+                                        {% if lokasi == 'WIP' %}
+                                        <option value="WIP" selected>WIP</option>
+                                        <option value="FG">FG</option>
+                                        {% else %}
+                                        <option value="WIP">WIP</option>
+                                        <option value="FG" selected>FG</option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2">
                             <div class="form-group">
                                 <label for="">Tanggal Awal </label>
                                 <div class="input-group">
@@ -44,7 +65,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-3">
+                        <div class="col-lg-2">
                             <div class="form-group">
                                 <label for="">Tanggal Akhir </label>
                                 <div class="input-group">
