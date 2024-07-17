@@ -102,4 +102,12 @@
 
 </script>
 
+<script>
+  document.getElementById('jumlah').addEventListener('input', function(event) {
+      let value = event.target.value;
+      value = value.replace(',', '.');
+      event.target.value = value;
+  });
+  </script>
+
 {% endblock content %}

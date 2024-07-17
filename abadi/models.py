@@ -7,7 +7,7 @@ class Produk(models.Model):
     KodeProduk = models.CharField(max_length=20, primary_key=True)
     NamaProduk = models.CharField(max_length=20)
     unit = models.CharField(max_length=20)
-    TanggalPembuatan = models.DateField(auto_now_add=True)
+    TanggalPembuatan = models.DateField(default=datetime.datetime.now())
     Jumlahminimal = models.IntegerField(default=0)
     keteranganPurchasing = models.CharField(
         max_length=255, null=True, blank=True, default=""

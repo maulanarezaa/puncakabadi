@@ -8,7 +8,6 @@ urlpatterns = [
     path("updategudang/<str:id>", viewsgudang.update_gudang, name="updategudang"),
     path("deletegudang/<str:id>", viewsgudang.delete_gudang, name="deletegudang"),
     path("addgudang", viewsgudang.add_gudang, name="addgudang"),
-    path("addgudang2", viewsgudang.add_gudang2, name="addgudang2"),
     path("detailbarang", viewsgudang.detail_barang, name="detailbarang"),
     path("detailbarang/<str:id>/<str:tanggal>/<str:lokasi>", viewsgudang.detailksbb, name="detailksbbgudang"),
     path("rekapgudang", viewsgudang.rekap_gudang, name="rekapgudang"),

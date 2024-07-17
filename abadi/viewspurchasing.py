@@ -714,7 +714,9 @@ def update_barang_masuk(request, id):
 
     if request.method == "GET":
         harga_total = updateobj.Jumlah * updateobj.Harga
-        updateobj.NoSuratJalan.TanggalInvoice =updateobj.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d")
+        if updateobj.NoSuratJalan.TanggalInvoice :
+            updateobj.NoSuratJalan.TanggalInvoice =updateobj.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d")
+        
         return render(
             request,
             "Purchasing/update_barang_masuk.html",
@@ -901,7 +903,7 @@ def create_produk(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_produk(request, id):
-    produkobj = models.Produk.objects.get(pk=id)
+    produkobj = models.Produk.objects.get(KodeProduk=id)
     if request.method == "GET":
         return render(
             request, "Purchasing/update_produk.html", {"produkobj": produkobj}
@@ -913,41 +915,23 @@ def update_produk(request, id):
         unit_produk = request.POST["unit_produk"]
         keterangan_produk = request.POST["keterangan_produk"]
         jumlah_minimal = request.POST["jumlah_minimal"]
-        namaproduk = models.Produk.objects.filter(KodeProduk=kode_produk)
-        # if len(nama_produk) > 0 :
-        #     messages.error(request, "Kode Produk sudah ada")
-        #     return redirect("update_produk")
-        if produkobj.KodeProduk != kode_produk:
-            print("post kode :", kode_produk)
-            if len(namaproduk) > 0:
-                # if kode_produk ==
-                messages.error(request, "Kode Produk sudah ada")
-                return redirect("read_produk")
-                # return redirect("update_produk",id=id)
+        namaproduk = models.Produk.objects.filter(KodeProduk=kode_produk).exists()
+        print(namaproduk)
+        print(request.POST)
+        print(id)
+        # print(asd)
 
-            else:
-                new_produk = models.Produk(
-                    KodeProduk=kode_produk,
-                    NamaProduk=nama_produk,
-                    unit=unit_produk,
-                    keteranganPurchasing=keterangan_produk,
-                    TanggalPembuatan=datetime.now(),
-                    Jumlahminimal=jumlah_minimal,
-                )
-                new_produk.save()
-                models.transactionlog(
-                    user="Purchasing",
-                    waktu=datetime.now(),
-                    jenis="Create",
-                    pesan=f"Kode Produk {kode_produk} sudah di Create",
-                ).save()
-        else:
-            produkobj.KodeProduk = kode_produk
-            produkobj.NamaProduk = nama_produk
-            produkobj.unit = unit_produk
-            produkobj.keteranganPurchasing = keterangan_produk
-            produkobj.Jumlahminimal = jumlah_minimal
-            produkobj.save()
+        if namaproduk and kode_produk != id:
+            messages.error(request,f'Kode Produk {kode_produk} sudah ada pada sistem')
+            return redirect('update_produk',id = id)
+        produkbaru = models.Produk.objects.get(KodeProduk=id)
+        produkbaru.pk = kode_produk
+        produkbaru.NamaProduk = nama_produk
+        produkbaru.unit = unit_produk
+        produkbaru.keteranganPurchasing = keterangan_produk
+        produkbaru.Jumlahminimal = jumlah_minimal
+        # print(asd)
+        produkbaru.save()
         models.transactionlog(
             user="Purchasing",
             waktu=datetime.now(),

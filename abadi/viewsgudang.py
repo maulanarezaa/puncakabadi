@@ -35,7 +35,8 @@ def view_gudang(request):
     allspk = models.SPK.objects.filter(
         Tanggal__range=(mulai, akhir), StatusAktif=True
     ).order_by("Tanggal")
-
+    # print(allspk)
+    # print(asd)
     for i in allspk:
         if i.StatusDisplay == 0:
             detailspk = models.DetailSPK.objects.filter(NoSPK=i.id)
@@ -59,7 +60,7 @@ def view_gudang(request):
         messages.info(request, "Tidak ada barang keluar yang belum ACC")
     if len(allspk) == 0:
         messages.warning(request, "Tidak ada SPK selama 30 hari terakhir")
-
+    print(allspk)
     return render(
         request,
         "gudang/viewgudang.html",
@@ -114,8 +115,6 @@ def add_gudang(request):
     if request.method == "POST":
         print(request.POST)
         kode = request.POST.getlist("kodeproduk")
-        # print(kode[1])
-        # print(type(request.POST['kodeproduk']))
         nosuratjalan = request.POST["nosuratjalan"]
         tanggal = request.POST["tanggal"]
         supplier = request.POST["supplier"]
@@ -124,6 +123,14 @@ def add_gudang(request):
             nomorpo = "-"
         if supplier == "":
             supplier = "-"
+    #     existing_entry = models.SuratJalanPembelian.objects.filter
+    # (NoSuratJalan=nosuratjalan).exists()
+    #     print(existing_entry)
+    #     # print(asd)
+    #     if existing_entry:
+    #         messages.warning(request,(f'No Surat Jalan {nosuratjalan} sudah terdaftar pada sistem'))
+    #         return redirect("addgudang")
+
         nosuratjalanobj = models.SuratJalanPembelian(
             NoSuratJalan=nosuratjalan, Tanggal=tanggal, supplier=supplier, PO=nomorpo
         )
@@ -531,10 +538,14 @@ def barang_keluar(request):
         date = request.GET.get("mulai")
         date2 = request.GET.get("akhir")
         lok = request.GET.get("lokasi")
-        if date is not None:
-            data = data.filter(
-                tanggal__range=(date, date2), Lokasi__NamaLokasi=lok, jumlah__gt=0
-            ).order_by("tanggal")
+        if date == '':
+            date = datetime.min
+        if date2 == "":
+            date2 = datetime.max
+
+        data = data.filter(
+            tanggal__range=(date, date2), Lokasi__NamaLokasi=lok, jumlah__gt=0
+        ).order_by("tanggal")
 
         for i in data:
             i.tanggal = i.tanggal.strftime("%Y-%m-%d")
@@ -576,10 +587,15 @@ def barang_retur(request):
         date = request.GET.get("mulai")
         date2 = request.GET.get("akhir")
         lok = request.GET.get("lokasi")
-        if date is not None:
-            data = data.filter(
-                tanggal__range=(date, date2), Lokasi__NamaLokasi=lok, jumlah__lt=0
-            ).order_by("tanggal")
+        if date == '':
+            date = datetime.min
+        if date2 == "":
+            date2 = datetime.max
+
+        data = data.filter(
+            tanggal__range=(date, date2), Lokasi__NamaLokasi=lok, jumlah__lt=0
+        ).order_by("tanggal")
+
 
         for i in data:
             i.jumlah = i.jumlah * -1
@@ -962,10 +978,10 @@ def update_saldo(request, id):
         )
 
     else:
+        print(request.POST)
         kodeproduk = request.POST["produk"]
         lokasi = request.POST["nama_lokasi"]
         jumlah = request.POST["jumlah"]
-        harga = request.POST["harga"]
         tanggal = request.POST["tanggal"]
         try:
             produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
@@ -998,12 +1014,11 @@ def update_saldo(request, id):
         dataobj.Jumlah = jumlah
         dataobj.IDBahanBaku = produkobj
         dataobj.IDLokasi_id = lokasi
-        dataobj.Harga = harga
         models.transactionlog(
             user="Gudang",
             waktu=datetime.now(),
             jenis="Update",
-            pesan=f"Kode Barang Lama : {dataobj.IDBahanBaku} Jumlah Lama : {dataobj.Jumlah} Harga Lama : {dataobj.Harga} Kode Barang Baru : {kodeproduk} Jumlah Baru : {jumlah} Harga Baru : {harga}",
+            pesan=f"Kode Barang Lama : {dataobj.IDBahanBaku} Jumlah Lama : {dataobj.Jumlah} Harga Lama : {dataobj.Harga} Kode Barang Baru : {kodeproduk} Jumlah Baru : {jumlah}",
         ).save()
         dataobj.save()
         messages.success(request, "Data berhasil disimpan")
@@ -1230,10 +1245,10 @@ def add_pemusnahanbarang(request):
     else:
 
         kodeproduk = request.POST["produk"]
-        lokasi = request.POST["nama_lokasi"]
+        lokasi = "Gudang"
         jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
-        lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
+        lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
         try:
             produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
         except:
@@ -1271,7 +1286,7 @@ def update_pemusnahanbarang(request, id):
 
     else:
         kodeproduk = request.POST["produk"]
-        lokasi = request.POST["nama_lokasi"]
+        lokasi = "Gudang"
         jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
         try:
@@ -1279,7 +1294,7 @@ def update_pemusnahanbarang(request, id):
         except:
             messages.error(request, "Kode Bahan Baku tidak ditemukan")
             return redirect("update_pemusnahanbaranggudang", id=id)
-        lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
+        lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
         dataobj.Tanggal = tanggal
         dataobj.Jumlah = jumlah
         dataobj.KodeBahanBaku = produkobj

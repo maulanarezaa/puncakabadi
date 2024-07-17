@@ -21,15 +21,14 @@
                         <form action="{% url 'barangretur' %}" method="GET">
                             <label for="tanggal">Pilih Tanggal mulai :</label>
                             <input value="{{date}}" type="date" name="mulai" class="form-control mb-2 mr-sm-2 ml-2"
-                                required>
+                                >
                             <label for="tanggal">Pilih Tanggal akhir :</label>
                             <input value="{{date2}}" type="date" name="akhir" class="form-control mb-2 mr-sm-2 ml-2"
-                                required>
+                                >
                             <label for="lokasi">Pilih Lokasi :</label>
                             <select class="form-control mb-2 mr-sm-2 ml-2" name="lokasi" id="lokasi" required>
-                                {% for i in datalokasi %}
-                                <option value="{{i.NamaLokasi}}">{{i.NamaLokasi}}</option>
-                                {% endfor %}
+                                <option value="WIP">WIP</option>
+                                <option value="FG">FG</option>
                             </select>
                             <button type="submit" class="btn btn-primary btn-sm mb-2 mr-sm-2 ml-2">Submit</button>
                         </form>
