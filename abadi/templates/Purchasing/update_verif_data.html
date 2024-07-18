@@ -160,16 +160,29 @@
     }
 
     harga_total_barang = kuantitas * harga_satuan;
-
-    $.ajax({
-      success: function (data) {
-        $("#harga_total").val(harga_total_barang);
-      }
-    });
+    $("#harga_total").val(harga_total_barang);
   }
 
   $(document).ready(function() {
     toggle_konversi();
+
+    // Memantau perubahan pada #harga_barang
+    $("#harga_barang").on("input", function() {
+      update_harga_total();
+    });
+
+    // Memantau perubahan pada #harga_dollar
+    $("#harga_dollar").on("input", function() {
+      update_harga_total();
+    });
+
+    // Memantau perubahan pada #harga_konversi
+    $("#harga_konversi").on("input", function() {
+      update_harga_total();
+    });
+
+    // Jika ingin memanggil fungsi update_harga_total() saat halaman dimuat, Anda bisa memanggilnya di sini.
+    // update_harga_total();
   });
 </script>
 {% endblock content %}

@@ -76,33 +76,9 @@
             </div>
           </div>
         </div>
+        
         <div class="row">
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Potongan (%)</label>
-              <div class="col-sm-9">
-                <input type="number" class="form-control" name="input_ppn" id="input_ppn" value="2" onchange="update_harga_total()" required />
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Harga Potongan</label>
-              <div class="col-sm-9">
-                <input type="number" class="form-control" name="harga_potongan" id="harga_potongan" value="{{harga_potongan}}" readonly />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Harga Total Setelah Potongan</label>
-              <div class="col-sm-9">
-                <input type="number" class="form-control" name="harga_total_setelah_potongan" id="harga_total_setelah_potongan" value="{{harga_total_potongan}}" readonly />
-              </div>
-            </div>
-          </div>
+         
           <div class="col-md-6">
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Supplier</label>
@@ -117,7 +93,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Tanggal Invoice</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="tanggal_invoice" value="{{accobj.NoSuratJalan.TanggalInvoice}}" readonly />
+                <input type="date" class="form-control" name="tanggal_invoice" value="{{accobj.NoSuratJalan.TanggalInvoice}}"  />
               </div>
             </div>
           </div>
@@ -125,7 +101,8 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">No Invoice</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="no_invoice" value="{{accobj.NoSuratJalan.NoInvoice}}" readonly />
+                
+                <input type="text" class="form-control" name="no_invoice"  />
               </div>
             </div>
           </div>

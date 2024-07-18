@@ -81,7 +81,9 @@
                                 <td>Lokasi</td>
                                 <td>Utama</td>
                                 <td>Konversi</td>
-                                <td>Konversi </td>
+                                <td>Allowance </td>
+                                <td>Harga (Rp)</td>
+                                <td>Harga konversi (Rp)</td>
 
 
                             </tr>
@@ -97,6 +99,8 @@
                                 <td>{{i.Penyusunobj.Status}}</td>
                                 <td>{{i.Konversi|floatformat:5}}</td>
                                 <td>{{i.Allowance|floatformat:5}}</td>
+                                <td>{{i.HargaSatuan|floatformat:2|intcomma}}</td>
+                                <td>{{i.Hargakotak|floatformat:2|intcomma}}</td>
 
 
                             </tr>

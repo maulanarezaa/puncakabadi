@@ -4,7 +4,8 @@ import datetime
 
 # Create your models here.
 class Produk(models.Model):
-    KodeProduk = models.CharField(max_length=20, primary_key=True)
+    id = models.AutoField(primary_key=True)
+    KodeProduk = models.CharField(max_length=20,unique=True)
     NamaProduk = models.CharField(max_length=20)
     unit = models.CharField(max_length=20)
     TanggalPembuatan = models.DateField(default=datetime.datetime.now())

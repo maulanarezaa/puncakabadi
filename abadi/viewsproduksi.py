@@ -47,7 +47,7 @@ def dashboard(request):
                 tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
                 saldoawalobj = (
                     models.SaldoAwalBahanBaku.objects.filter(
-                        IDBahanBaku=item.KodeProduk.KodeProduk
+                        IDBahanBaku__KodeProduk=item.KodeProduk.KodeProduk
                     )
                     .order_by("-Tanggal")
                     .first()

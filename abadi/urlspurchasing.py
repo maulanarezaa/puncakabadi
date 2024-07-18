@@ -21,7 +21,7 @@ urlpatterns = [
     
     path("acc_spk/<str:id>", viewspurchasing.acc_notif_spk, name="acc_spk"),
     # R penyusun
-    path("penyusun", viewspurchasing.views_penyusun, name="penyusun"),
+    path("penyusun", viewspurchasing.views_penyusun, name="penyusunpurchasing"),
     # CR kebutuhan barang
     path("kebutuhan_barang", viewspurchasing.kebutuhan_barang, name="kebutuhan_barang"),
     # path("kebutuhan_barang/",viewspurchasing.kebutuhan_barang,name="kebutuhan_barang"),

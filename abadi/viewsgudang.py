@@ -395,19 +395,19 @@ def detail_barang(request):
         input_kode = request.GET.get("input_kode")
         input_tahun = request.GET.get("input_tahun")
         pemusnahan = models.PemusnahanBahanBaku.objects.filter(
-            KodeBahanBaku=input_kode,
+            KodeBahanBaku__KodeProduk=input_kode,
             Tanggal__year=input_tahun,
             lokasi__NamaLokasi="Gudang",
         ).order_by("Tanggal")
         datagudang2 = models.TransaksiGudang.objects.filter(
-            KodeProduk=input_kode, tanggal__year=input_tahun, jumlah__gte=0
+            KodeProduk__KodeProduk=input_kode, tanggal__year=input_tahun, jumlah__gte=0
         ).order_by("tanggal")
         dataretur = models.TransaksiGudang.objects.filter(
-            KodeProduk=input_kode, tanggal__year=input_tahun, jumlah__lt=0
+            KodeProduk__KodeProduk=input_kode, tanggal__year=input_tahun, jumlah__lt=0
         ).order_by("tanggal")
 
         saldo_awal = (
-            models.SaldoAwalBahanBaku.objects.filter(IDBahanBaku=input_kode)
+            models.SaldoAwalBahanBaku.objects.filter(IDBahanBaku__KodeProduk=input_kode)
             .filter(Tanggal__year=input_tahun, IDLokasi__NamaLokasi="Gudang")
             .first()
         )
@@ -419,7 +419,7 @@ def detail_barang(request):
             datasaldoawal = 0
             sisa = 0
         datasjp = (
-            models.DetailSuratJalanPembelian.objects.filter(KodeProduk=input_kode)
+            models.DetailSuratJalanPembelian.objects.filter(KodeProduk__KodeProduk=input_kode)
             .filter(NoSuratJalan__Tanggal__year=input_tahun)
             .order_by("NoSuratJalan__Tanggal")
         )
@@ -498,8 +498,8 @@ def detailksbb(request, id, tanggal,lokasi):
     # SJP
     datamasuk = models.DetailSuratJalanPembelian.objects.filter(KodeProduk__KodeProduk = id, NoSuratJalan__Tanggal = tanggal)
     # Transaksi Gudang
-    datagudang = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk=id,jumlah__gte=0)
-    dataretur = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk=id,jumlah__lt=0)
+    datagudang = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk_KodeProduk=id,jumlah__gte=0)
+    dataretur = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk_KodeProduk=id,jumlah__lt=0)
     for item in dataretur:
         item.jumlah = item.jumlah *-1
     print(datagudang,dataretur)
@@ -1098,6 +1098,7 @@ def load_produk(request):
 
 def bulk_createsjp(request):
     if request.method == "POST" and request.FILES["file"]:
+        kodebahanerror = []
         file = request.FILES["file"]
         excel_file = pd.ExcelFile(file)
 
@@ -1118,27 +1119,31 @@ def bulk_createsjp(request):
                 if pd.isna(row["Tanggal"]):
                     print(f"Index {index}: Tanggal adalah NaT")
                 else:
-                    print(index, row["Tanggal"])
-                    print(row["Masuk "])
-                    if pd.isna(row["Masuk "]):
+                    try:
+                        print(index, row["Tanggal"])
+                        print(row["Masuk "])
+                        if pd.isna(row["Masuk "]):
+                            continue
+                        data = models.SuratJalanPembelian(
+                            NoSuratJalan=f"SJP/{row['Tanggal']}",
+                            Tanggal=row["Tanggal"],
+                            supplier="-",
+                            PO="-",
+                        ).save()
+                        detailsjp = models.DetailSuratJalanPembelian(
+                            Jumlah=row["Masuk "],
+                            KeteranganACC=1,
+                            Harga=row["Unnamed: 3"],
+                            KodeProduk=models.Produk.objects.get(KodeProduk=item),
+                            NoSuratJalan=models.SuratJalanPembelian.objects.get(
+                                Tanggal=row["Tanggal"]
+                            ),
+                        ).save()
+                    except:
+                        kodebahanerror.append(item)
                         continue
-                    data = models.SuratJalanPembelian(
-                        NoSuratJalan=f"SJP/{row['Tanggal']}",
-                        Tanggal=row["Tanggal"],
-                        supplier="-",
-                        PO="-",
-                    ).save()
-                    detailsjp = models.DetailSuratJalanPembelian(
-                        Jumlah=row["Masuk "],
-                        KeteranganACC=1,
-                        Harga=row["Unnamed: 3"],
-                        KodeProduk=models.Produk.objects.get(KodeProduk=item),
-                        NoSuratJalan=models.SuratJalanPembelian.objects.get(
-                            Tanggal=row["Tanggal"]
-                        ),
-                    ).save()
 
-        return HttpResponse("Berhasil Upload")
+        return HttpResponse(f"Berhasil Upload {kodebahanerror}")
 
     return render(request, "Purchasing/bulk_createproduk.html")
 
@@ -1182,39 +1187,110 @@ def bulk_createsaldoawal(request):
 
 
 def bulk_createtransaksigudang(request):
+    '''
+    UNTUK MENAMBAHKAN DATA TRANSAKSI GUDANG MELALUI KSBJ TIAP ARTIKEL 
+    '''
     if request.method == "POST" and request.FILES["file"]:
         file = request.FILES["file"]
+        nama_artikel = '2011 BW'
+        artikelobj = models.Artikel.objects.get(KodeArtikel = nama_artikel)
+        print(nama_artikel)
+        # print(asd)
         excel_file = pd.ExcelFile(file)
+        # df = pd.read_excel(file, engine="openpyxl", sheet_name='WIP')
+        # print(df)
+        # i = 0
+        # detailspkobj = models.DetailSPK(
+        #     NoSPK = models.SPK.objects.get(NoSPK='dummyspk'),
+        #     KodeArtikel = artikelobj,
+        #     Jumlah = 0
+        # ).save()
+        # kodebahanbaku = None
+        # for index,row in df.iterrows():
+        #     if i < 6:
+        #         i+=1
+        #         continue
+        #     print(i,index,row)
+        #     # print(tanggal,permintaan,bahanbaku)
+        #     if kodebahanbaku is None and not pd.isna(row['Unnamed: 2']):
+        #         bahanbaku = row['Unnamed: 2']
+        #         kodebahanbaku = bahanbaku
+        #     if not pd.isna(row['Unnamed: 4']):
+        #         tanggal = row['CV. PUNCAK ABADI']
+        #         permintaan = row['Unnamed: 4']
+        #         print('ini',kodebahanbaku)
+        #         # if pd.isna(row['Unnamed: 1']):
+        #         detailspk = models.DetailSPK.objects.get(NoSPK__NoSPK = 'dummyspk',KodeArtikel = artikelobj)
+        #         # else:
+        #         #     # Cek apakah sudah ada datanya
+        #         #     cekobj = models.SPK.objects.filter(NoSPK = row["Unnamed: 1"]).exists()
+        #         #     if cekobj:
+        #         #         detailspk = models.DetailSPK.objects.get(NoSPK__NoSPK = row["Unnamed: 1"],KodeArtikel = artikelobj)
+        #         #     else:
+        #         #         cekobj = models.SPK(
+        #         #             NoSPK = row['Unnamed: 1'],
+        #         #            Tanggal = datetime.now(),
+        #         #            Keterangan = "-",
+        #         #            KeteranganACC = True,
+        #         #         ).save()
+        #         #         detailspkobj = models.DetailSPK(
+        #         #             NoSPK = models.SPK.objects.get(NoSPK=row["Unnamed: 1"]),
+        #         #             KodeArtikel = artikelobj,
+        #         #             Jumlah = 0
+        #         #         )
+        #         #         detailspkobj.save()
+        #         #         detailspk = models.DetailSPK.objects.get(NoSPK__NoSPK = row["Unnamed: 1"],KodeArtikel = artikelobj)
+
+        #         dataobj = models.TransaksiGudang(
+        #             KodeProduk = models.Produk.objects.get(KodeProduk = kodebahanbaku),
+        #             keterangan = "-",
+        #             jumlah = permintaan,
+        #             tanggal = tanggal,
+        #             KeteranganACC = True,
+        #             Lokasi = models.Lokasi.objects.get(NamaLokasi = "WIP"),
+        #             DetailSPK = detailspk
+
+        #         ).save()
+                
+                
+        # print(asd)
 
         # Mendapatkan daftar nama sheet
         sheet_names = excel_file.sheet_names
+        produkerror = []
 
         for item in sheet_names:
             df = pd.read_excel(file, engine="openpyxl", sheet_name=item)
             print(item)
             print(df)
+            # print(asd)
 
             i = 0
             for index, row in df.iterrows():
                 if i < 2:
                     i += 1
                     continue
-                print(row["Tanggal"])
-                if pd.isna(row["Keluar"]):
-                    print(f"Index {index}: Tanggal adalah NaT")
-                else:
-                    print(index, row["Tanggal"])
-                    print(row["Keluar"])
-                    transaksiobj = models.TransaksiGudang(
-                        keterangan="-",
-                        jumlah=row["Keluar"],
-                        tanggal=row["Tanggal"],
-                        KeteranganACC=True,
-                        KodeProduk=models.Produk.objects.get(KodeProduk=item),
-                        Lokasi=models.Lokasi.objects.get(IDLokasi=1),
-                    ).save()
+                try:
+                    # print(row["Tanggal"])
+                    if pd.isna(row["Unnamed: 4"]):
+                        print(f"Index {index}: Tanggal adalah NaT")
+                    else:
+                        print(index, row['Unnamed: 4'])
+                        print(row['Unnamed: 4'],item)
+                        transaksiobj = models.TransaksiGudang(
+                                keterangan="-",
+                                jumlah=row['Unnamed: 4'],
+                                tanggal=row['Unnamed: 0'],
+                                KeteranganACC=True,
+                                KodeProduk=models.Produk.objects.get(KodeProduk=item),
+                                Lokasi=models.Lokasi.objects.get(IDLokasi=1),
+                            ).save()
+                except:
+                        produkerror.append(item)
+                        continue
 
-        return HttpResponse("Berhasil Upload")
+
+        return HttpResponse(f"Berhasil Upload, {produkerror}")
 
     return render(request, "Purchasing/bulk_createproduk.html")
 

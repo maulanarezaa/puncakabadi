@@ -53,12 +53,18 @@ def acc_subkon(request,id) :
         harga_barang = request.POST["harga_barang"]
         supplier = request.POST["supplier"]
         keterangan = request.POST["keterangan"]
+        tanggalinvoice = request.POST['tanggal_invoice']
+        noinvoice = request.POST['no_invoice']
         # potongan = request.POST["input_ppn"]
 
         accobj.KeteranganACC = True
         accobj.Harga = harga_barang
         accobj.NoSuratJalan.Supplier = supplier
         accobj.Keterangan= keterangan
+        if tanggalinvoice != '':
+            accobj.NoSuratJalan.TanggalInvoice = tanggalinvoice
+        if noinvoice != '':
+            accobj.NoSuratJalan.NoInvoice = noinvoice
         accobj.save()
         accobj.NoSuratJalan.save()
         models.transactionlog(
@@ -75,7 +81,8 @@ def notif_barang_purchasing(request):
     filtersubkonobj = models.DetailSuratJalanPenerimaanProdukSubkon.objects.filter(KeteranganACC = False).order_by("NoSuratJalan__Tanggal")
     for x in filtersubkonobj :
         x.NoSuratJalan.Tanggal = x.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
-        x.NoSuratJalan.TanggalInvoice = x.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d")
+        if x.NoSuratJalan.TanggalInvoice:
+            x.NoSuratJalan.TanggalInvoice = x.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d")
     print("Data subkon bos!", filtersubkonobj)
     filter_dataobj = models.DetailSuratJalanPembelian.objects.filter(
         KeteranganACC=False
@@ -655,6 +662,7 @@ def barang_masuk(request):
         list_harga_total = []
         list_ppn_1 = []
         list_total_ppn_1 = []
+        
         try :
             filtersjb = models.DetailSuratJalanPembelian.objects.filter(
                 NoSuratJalan__Tanggal__range=(input_awal, input_terakhir)
@@ -765,11 +773,12 @@ def update_barang_masuk(request, id):
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_barangsubkon_masuk(request, id):
     updateobj = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPenerimaanSubkon=id)
+    updateobj.NoSuratJalan.TanggalInvoice = updateobj.NoSuratJalan.TanggalInvoice.strftime('%Y-%m-%d')
     # if updateobj.HargaDollar > 0:
     #     updateobj.hargakonversi = updateobj.Harga / updateobj.HargaDollar
     # else:
     #     updateobj.hargakonversi = 16000
-
+    
     if request.method == "GET":
         harga_total = updateobj.Jumlah * updateobj.Harga
         return render(
@@ -860,7 +869,7 @@ def view_rekapbarang(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def read_produk(request):
-    produkobj = models.Produk.objects.all()
+    produkobj = models.Produk.objects.all().order_by('KodeProduk')
     return render(request, "Purchasing/read_produk.html", {"produkobj": produkobj})
 
 
@@ -925,7 +934,7 @@ def update_produk(request, id):
             messages.error(request,f'Kode Produk {kode_produk} sudah ada pada sistem')
             return redirect('update_produk',id = id)
         produkbaru = models.Produk.objects.get(KodeProduk=id)
-        produkbaru.pk = kode_produk
+        produkbaru.KodeProduk = kode_produk
         produkbaru.NamaProduk = nama_produk
         produkbaru.unit = unit_produk
         produkbaru.keteranganPurchasing = keterangan_produk
@@ -962,6 +971,7 @@ def delete_produk(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def rekap_gudang(request):
+    sekarang = datetime.now().strftime('%Y-%m-%d')
     listproduk = []
     listnama = []
     satuan = []
@@ -990,7 +1000,7 @@ def rekap_gudang(request):
             ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0)))
             pemusnahan = models.PemusnahanBahanBaku.objects.filter(
                 Tanggal__range=(mulai, date), KodeBahanBaku=i, lokasi="3"
-            ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0)))
+            ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0,output_field=FloatField())))
         else:
             datagudang = models.TransaksiGudang.objects.filter(
                 tanggal__range=(mulai, datenow), KodeProduk=i
@@ -1614,20 +1624,20 @@ def views_penyusun(request):
                         )
                         # print(konversidataobj.Kuantitas)
                         masukobj = models.DetailSuratJalanPembelian.objects.filter(
-                            KodeProduk=item.KodeProduk
+                            KodeProduk__KodeProduk=item.KodeProduk
                         )
                         # print("ini detail sjp", masukobj)
                         tanggalmasuk = masukobj.values_list(
                             "NoSuratJalan__Tanggal", flat=True
                         )
                         keluarobj = models.TransaksiGudang.objects.filter(
-                            jumlah__gte=0, KodeProduk=item.KodeProduk
+                            jumlah__gte=0, KodeProduk__KodeProduk=item.KodeProduk
                         )
                         tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
                         # print(item)
                         saldoawalobj = (
                             models.SaldoAwalBahanBaku.objects.filter(
-                                IDBahanBaku=item.KodeProduk.KodeProduk
+                                IDBahanBaku__KodeProduk=item.KodeProduk.KodeProduk
                             )
                             .order_by("-Tanggal")
                             .first()
@@ -2148,19 +2158,19 @@ def views_rekapharga(request):
                 request, "Purchasing/views_ksbb.html", {"kodeprodukobj": kodeprodukobj}
             )
         masukobj = models.DetailSuratJalanPembelian.objects.filter(
-            KodeProduk=produkobj.KodeProduk, NoSuratJalan__Tanggal__range=(awaltahun,akhirtahun)
+            KodeProduk__KodeProduk=produkobj.KodeProduk, NoSuratJalan__Tanggal__range=(awaltahun,akhirtahun)
         )
 
         tanggalmasuk = masukobj.values_list("NoSuratJalan__Tanggal", flat=True)
 
         keluarobj = models.TransaksiGudang.objects.filter(
-            jumlah__gte=0, KodeProduk=produkobj.KodeProduk, tanggal__range=(awaltahun,akhirtahun)
+            jumlah__gte=0, KodeProduk__KodeProduk=produkobj.KodeProduk, tanggal__range=(awaltahun,akhirtahun)
         )
         returobj = models.TransaksiGudang.objects.filter(
-            jumlah__lt=0, KodeProduk=produkobj.KodeProduk, tanggal__range=(awaltahun,akhirtahun)
+            jumlah__lt=0, KodeProduk__KodeProduk=produkobj.KodeProduk, tanggal__range=(awaltahun,akhirtahun)
         )
         pemusnahanobj = models.PemusnahanBahanBaku.objects.filter(
-            lokasi__NamaLokasi = 'Gudang',KodeBahanBaku = produkobj.KodeProduk, Tanggal__range = (awaltahun,akhirtahun)
+            lokasi__NamaLokasi = 'Gudang',KodeBahanBaku__KodeProduk = produkobj.KodeProduk, Tanggal__range = (awaltahun,akhirtahun)
         )
         # print(pemusnahanobj)
         # print(asd)
@@ -2170,7 +2180,7 @@ def views_rekapharga(request):
         print("ini kode bahan baku", keluarobj)
         saldoawalobj = (
             models.SaldoAwalBahanBaku.objects.filter(
-                IDBahanBaku=produkobj.KodeProduk,
+                IDBahanBaku__KodeProduk=produkobj.KodeProduk,
                 IDLokasi__IDLokasi=3,
                 Tanggal__range=(awaltahun,akhirtahun)
             )
