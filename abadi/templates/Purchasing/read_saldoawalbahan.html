@@ -2,11 +2,7 @@
 {% load static %}
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}
-{% endblock stylesheets %}
-
-{% block javascripts %}
-{% endblock javascripts %}
+{% load customfilter %}
 
 {% load humanize %}
 <!-- Page content  -->
@@ -41,8 +37,8 @@
                 <td>{{i.IDBahanBaku.NamaProduk}}</td>
                 <td>{{i.IDBahanBaku.unit}}</td>
                 <td>{{i.IDLokasi}}</td>
-                <td>{{i.Jumlah}}</td>
-                <td>{{i.Harga|floatformat:2|intcomma}}</td>
+                <td>{{i.Jumlah|separator_ribuan}}</td>
+                <td>{{i.Harga|custom_thousands_separator}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   {% if user.groups.first.name != 'ppic' %}

@@ -187,7 +187,7 @@
               <th>Nomor SPK</th>
               <th>Bahan Baku</th>
               <th>Nama Produk</th>
-              <th>Unit</th>
+              <th>Satuan</th>
               <th>Artikel Peruntukan</th>
               <th>Jumlah</th>
               <th>Lokasi</th>
@@ -198,13 +198,24 @@
             {% for i in transaksigudang %}
             <tr>
               <td>{{i.tanggal}}</td>
-              <td>{{i.DetailSPK.NoSPK}}</td>
+              <td>
+                {% if i.DetailSPK != None %}
+                  {{i.DetailSPK.NoSPK}}
+                  {% else %}
+                  {{i.DetailSPKDisplay.NoSPK}}
+                {% endif %}
+              </td>
               <td>{{i.KodeProduk}}</td>
               <td>{{i.KodeProduk.NamaProduk}}</td>
               <td>{{i.KodeProduk.unit}}</td>
 
-
-              <td>{{i.DetailSPK.KodeArtikel.KodeArtikel}}</td>
+              <td>
+                {% if i.DetailSPK != None %}
+                  {{i.DetailSPK.KodeArtikel.KodeArtikel}}
+                  {% else %}
+                  {{i.DetailSPKDisplay.KodeDisplay.KodeDisplay}}
+                {% endif %}
+              </td>
               <td>{{i.jumlah}}</td>
               <td>{{i.Lokasi}}</td>
               <td>{{i.keterangan}}</td>

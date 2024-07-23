@@ -5,7 +5,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
-
+{% load customfilter %}
 <!-- Page content  -->
 {% block content %}
 <div class="row">
@@ -39,7 +39,7 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="number" class="form-control" value="tahun_bulan_sekarang"
+                                    <input type="number" class="form-control" value="{{tahun}}"
                                         placeholder="Masukkan Periode" min="2024" max="2200"
                                         aria-label="Masukkan Periode" name="periode">
                                     <div class="input-group-append">
@@ -101,13 +101,13 @@
                                     {{i.Tanggal}}
                                 </td>
                                 <td>
-                                    {{i.Masuk|intcomma}}
+                                    {{i.Masuk|separator_ribuan}}
                                 </td>
                                 <td>
-                                    {{i.Keluar|intcomma}}
+                                    {{i.Keluar|separator_ribuan}}
                                 </td>
                                 <td>
-                                    {{i.Sisa|intcomma}}
+                                    {{i.Sisa|separator_ribuan}}
                                 </td>
                             </tr>
                             {% endfor %}

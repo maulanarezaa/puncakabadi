@@ -19,7 +19,19 @@
           <form method="get">
             <div class="row">
               <div class="col-lg-4">
+                <select name="lokasi" id="" class="form-control" >
+                  {% if lokasi == "WIP" %}
+                  <option value="WIP" selected>WIP</option>
+                  <option value="FG">FG</option>
+                  {% else %}
+                  <option value="WIP" >WIP</option>
+                  <option value="FG" selected>FG</option>
+                  {% endif %}
+                </select>
+              </div>
+              <div class="col-lg-4">
                   <div class="form-group">
+                    
                       <div class="input-group">
                           <input required type="date" class="form-control"  value="{{tanggal_akhir}}" placeholder="Masukkan Periode" id="tanggal" min="2024"
                               aria-label="Masukkan Periode" name="periode">

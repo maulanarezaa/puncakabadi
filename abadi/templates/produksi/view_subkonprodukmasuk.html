@@ -4,7 +4,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
-
+{% load customfilter %}
 <!-- Page content  -->
 {% block content %}
 <div class="row">
@@ -42,7 +42,7 @@
                                 <td>{{i.NoSuratJalan.NoSuratJalan}}</td>
                                 <td>{{i.KodeProduk.NamaProduk}}</td>
                                 <td>{{i.KodeProduk.KodeArtikel}}</td>
-                                <td>{{i.Jumlah|intcomma}}</td>
+                                <td>{{i.Jumlah|separator_ribuan}}</td>
                                 <td>{{i.Keterangan}}</td>
                                 <td>
                                     {% if user.groups.first.name != 'ppic' %}

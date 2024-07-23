@@ -3,6 +3,7 @@
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
+{% load customfilter %}
 {% endblock stylesheets %}
 
 
@@ -107,13 +108,13 @@
                                     {% if i.StatusDisplay == True %}
                                     {% for item in i.detailspk%}
                                     <p>
-                                        {{item.Jumlah}}
+                                        {{item.Jumlah|separator_ribuan}}
                                     </p>
                                     {% endfor %}
                                     {% else %}
                                     {% for item in i.detailspk %}
                                     <p>
-                                        {{item.Jumlah}}
+                                        {{item.Jumlah|separator_ribuan}}
                                     </p>
                                     {% endfor %}
                                     {% endif %}
@@ -156,7 +157,7 @@
                                 <th>Tanggal</th>
                                 <th>Keterangan</th>
                                 <th>No SPK</th>
-                                <th>Artikel</th>
+                                <th>Produk</th>
                                 <th>Jumlah</th>
                             </tr>
                         </thead>
@@ -184,15 +185,15 @@
                                 </td>
                                 <td>
                                     {% for j in i.detailsppb %}
-                                    {% if j.DetailSPKDisplay == None %}
+                                    {% if j.DetailSPKDisplay != None %}
+                                    <p>
+                                        {{j.DetailSPKDisplay.KodeDisplay}}
+                                    </p>
+                                    {% elif j.DetailBahan != None %}
+                                    {{j.DetailBahan.KodeProduk}}
+                                    {% else %}
                                     <p>
                                         {{j.DetailSPK.KodeArtikel}}
-                                    </p>
-                                    {% else %}
-
-                                    <p>
-
-                                        {{j.DetailSPKDisplay.KodeDisplay}}
                                     </p>
                                     {% endif %}
 
@@ -203,7 +204,7 @@
                                     {% for j in i.detailsppb %}
                                     <p>
 
-                                        {{j.Jumlah}}
+                                        {{j.Jumlah|separator_ribuan}}
                                     </p>
                                     {% endfor %}
                                 </td>

@@ -69,6 +69,7 @@ def dashboard(request):
     for i in datasppb:
         detailsppb = models.DetailSPPB.objects.filter(NoSPPB=i.id)
         i.detailsppb = detailsppb
+        print(detailsppb)
     return render(
         request,
         "rnd/dashboard.html",
@@ -615,23 +616,23 @@ def views_rekapharga(request):
                 request, "Purchasing/views_ksbb.html", {"kodeprodukobj": kodeprodukobj}
             )
         masukobj = models.DetailSuratJalanPembelian.objects.filter(
-            KodeProduk=produkobj.KodeProduk, NoSuratJalan__Tanggal__gte=awaltahun
+            KodeProduk__KodeProduk=produkobj.KodeProduk, NoSuratJalan__Tanggal__gte=awaltahun
         )
 
         tanggalmasuk = masukobj.values_list("NoSuratJalan__Tanggal", flat=True)
 
         keluarobj = models.TransaksiGudang.objects.filter(
-            jumlah__gte=0, KodeProduk=produkobj.KodeProduk, tanggal__gte=awaltahun
+            jumlah__gte=0, KodeProduk__KodeProduk=produkobj.KodeProduk, tanggal__gte=awaltahun
         )
         returobj = models.TransaksiGudang.objects.filter(
-            jumlah__lt=0, KodeProduk=produkobj.KodeProduk, tanggal__gte=awaltahun
+            jumlah__lt=0, KodeProduk__KodeProduk=produkobj.KodeProduk, tanggal__gte=awaltahun
         )
         tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
         tanggalretur = returobj.values_list("tanggal", flat=True)
         print("ini kode bahan baku", keluarobj)
         saldoawalobj = (
             models.SaldoAwalBahanBaku.objects.filter(
-                IDBahanBaku=produkobj.KodeProduk,
+                IDBahanBaku__KodeProduk=produkobj.KodeProduk,
                 IDLokasi__IDLokasi=3,
                 Tanggal__range=(awaltahun, akhirtahun),
             )
@@ -797,8 +798,8 @@ def views_rekapharga(request):
             # print("harga awal Hari Ini :", hargasatuanawal)
             # print("harga total Hari Ini :", hargatotalawal, "\n")
             dumy["Sisahariini"] = saldoawal
-            dumy["Hargasatuansisa"] = round(hargasatuanawal, 2)
-            dumy["Hargatotalsisa"] = round(hargatotalawal, 2)
+            dumy["Hargasatuansisa"] = hargasatuanawal 
+            dumy["Hargatotalsisa"] = hargatotalawal
 
             listdata.append(dumy)
 
@@ -962,9 +963,12 @@ def views_penyusun(request):
                             messages.error(request, f"Tidak ditemukan data Transaksi Barang pada penyusun {item.KodeProduk.KodeProduk} - {item.KodeProduk.NamaProduk}")
                             hargasatuanawal = 0
                             hargaterakhir = 0
+                            hargaperkotak = 0
                             # print(asd
                             kuantitaskonversi = konversidataobj.Kuantitas
                             kuantitasallowance = konversidataobj.Allowance
+                            print(item)
+                            # print(asd)
                             # return redirect("rekapharga")
                         # print(asdas)
                         else :
@@ -1567,3 +1571,87 @@ def bulk_createpenyusun(request):
         return HttpResponse(f"Berhasil Upload {listerror}")
 
     return render(request, "rnd/upload_artikel.html")
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
+def views_display(request):
+    data = models.Display.objects.all()
+    return render(request, "rnd/views_display.html", {"data": data})
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
+def tambahdatadisplay(request):
+    if request.method == "GET":
+        return render(request, "rnd/tambah_display.html")
+    if request.method == "POST":
+        # print(dir(request))
+        kodebaru = request.POST["kodeartikel"]
+        keterangan = request.POST["keterangan"]
+        data = models.Display.objects.filter(KodeDisplay=kodebaru).exists()
+        if data:
+            messages.error(request, "Kode Artikel sudah ada")
+            return redirect("tambahdataartikel")
+        else:
+            if keterangan == "":
+                keterangan = "-"
+            newdataobj = models.Display(KodeDisplay=kodebaru, keterangan=keterangan)
+            models.transactionlog(
+                user="RND",
+                waktu=datetime.now(),
+                jenis="Create",
+                pesan=f"Display : {newdataobj.KodeDisplay} Keterangan : {newdataobj.keterangan}",
+            ).save()
+            newdataobj.save()
+            messages.success(request, "Data berhasil disimpan")
+            return redirect("views_display")
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
+def updatedatadisplay(request, id):
+    data = models.Display.objects.get(id=id)
+    if request.method == "GET":
+        return render(request, "rnd/update_display.html", {"artikel": data})
+    else:
+        kodedisplay = request.POST["kodeartikel"]
+        keterangan = request.POST["keterangan"]
+        if keterangan == "":
+            keterangan = "-"
+        cekkodeartikel = (
+            models.Display.objects.filter(KodeDisplay=kodedisplay)
+            .exclude(id=id)
+            .exists()
+        )
+        if cekkodeartikel:
+            messages.error(request, "Kode Display telah terdaftar pada database")
+            return redirect("update_artikel", id=id)
+        else:
+            transaksilog = models.transactionlog(
+                user="RND",
+                waktu=datetime.now(),
+                jenis="Update",
+                pesan=f"Display Lama : {data.KodeDisplay} Keterangan Lama : {data.keterangan} Artikel Baru : {kodedisplay} Keterangan Baru : {keterangan}",
+            )
+            data.KodeDisplay = kodedisplay
+            data.keterangan = keterangan
+            data.save()
+            transaksilog.save()
+            messages.success(request, "Data Berhasil diupdate")
+        return redirect("views_display")
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
+def deletedisplay(request, id):
+    dataobj = models.Display.objects.get(id=id)
+    models.transactionlog(
+        user="RND",
+        waktu=datetime.now(),
+        jenis="Delete",
+        pesan=f"Artikel : {dataobj.KodeDisplay} Keterangan : {dataobj.keterangan}",
+    ).save()
+    dataobj.delete()
+    messages.success(request, "Data Berhasil dihapus")
+    return redirect("views_display")

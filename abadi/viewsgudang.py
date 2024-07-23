@@ -854,7 +854,7 @@ def read_produk(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def update_produk_gudang(request, id):
-    produkobj = models.Produk.objects.get(pk=id)
+    produkobj = models.Produk.objects.get(KodeProduk=id)
     if request.method == "GET":
         return render(request, "gudang/update_produk.html", {"produkobj": produkobj})
     else:
@@ -915,7 +915,7 @@ def addsaldo(request):
             return redirect("addsaldobahan")
         existing_entry = models.SaldoAwalBahanBaku.objects.filter(
             Tanggal__year=tanggal_formatted.year,
-            IDBahanBaku=kodeproduk,
+            IDBahanBaku__KodeProduk=kodeproduk,
             IDLokasi__NamaLokasi=lokasi,
         ).exists()
         if existing_entry:
@@ -1177,7 +1177,7 @@ def bulk_createsaldoawal(request):
                             Jumlah=row["Sisa"],
                             Tanggal="2024-01-01",
                             IDBahanBaku=models.Produk.objects.get(KodeProduk=item),
-                            IDLokasi=models.Lokasi.objects.get(pk=3),
+                            IDLokasi=models.Lokasi.objects.get(pk=1),
                         ).save()
                         break
 
@@ -1324,6 +1324,7 @@ def add_pemusnahanbarang(request):
         lokasi = "Gudang"
         jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
+        keterangan = request.POST['keterangan']
         lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
         try:
             produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
@@ -1332,7 +1333,7 @@ def add_pemusnahanbarang(request):
             return redirect("add_pemusnahangudang")
 
         pemusnahanobj = models.PemusnahanBahanBaku(
-            Tanggal=tanggal, Jumlah=jumlah, KodeBahanBaku=produkobj, lokasi=lokasiobj
+            Tanggal=tanggal, Jumlah=jumlah, KodeBahanBaku=produkobj, lokasi=lokasiobj,Keterangan=keterangan
         )
         pemusnahanobj.save()
 
@@ -1365,6 +1366,7 @@ def update_pemusnahanbarang(request, id):
         lokasi = "Gudang"
         jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
+        keterangan = request.POST['keterangan']
         try:
             produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
         except:
@@ -1375,6 +1377,7 @@ def update_pemusnahanbarang(request, id):
         dataobj.Jumlah = jumlah
         dataobj.KodeBahanBaku = produkobj
         dataobj.lokasi = lokasiobj
+        dataobj.Keterangan = keterangan
 
         dataobj.save()
 

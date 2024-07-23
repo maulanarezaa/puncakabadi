@@ -32,6 +32,7 @@
                 <th>Kode Bahan Baku</th>
                 <th>Lokasi</th>
                 <th>Jumlah</th>
+                <th>Keterangan</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -42,6 +43,13 @@
                 <td>{{i.KodeBahanBaku}}</td>
                 <td>{{i.lokasi.NamaLokasi}}</td>
                 <td>{{i.Jumlah|separator_desimal}}</td>
+                <td>
+
+                  {% if i.Keterangan != None %}
+                  {{i.Keterangan}}
+                  
+                  {% endif %}
+                </td>
                 <td>
                   {% if user.groups.first.name != 'ppic' %}
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->

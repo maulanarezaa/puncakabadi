@@ -53,18 +53,20 @@
                                 </td>
                                 <td>
                                     <ul>
-                                        {% for i in i.detailsppb %}
-                                        {% if i.DetailSPKDisplay == None %}
-                                        <li>
-                                            {{i.DetailSPK.KodeArtikel}}
-                                        </li>
-                                        {% else %}
-                                        <li>
+                                        {% for j in i.detailsppb %}
+                                    {% if j.DetailSPKDisplay != None %}
+                                    <p>
+                                        {{j.DetailSPKDisplay.KodeDisplay}}
+                                    </p>
+                                    {% elif j.DetailBahan != None %}
+                                    {{j.DetailBahan.KodeProduk}}
+                                    {% else %}
+                                    <p>
+                                        {{j.DetailSPK.KodeArtikel}}
+                                    </p>
+                                    {% endif %}
 
-                                            {{i.DetailSPKDisplay.KodeDisplay}}
-                                        </li>
-                                        {% endif %}
-                                        {% endfor %}
+                                    {% endfor %}
                                     </ul>
 
                                 </td>

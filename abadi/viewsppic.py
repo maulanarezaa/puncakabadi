@@ -37,7 +37,10 @@ def gethargabahanbaku(
             for k in sjpobj:
                 hargamasuktotalperhari += k.Harga * k.Jumlah
                 jumlahmasukperhari += k.Jumlah
-            hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
+            try:
+                hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
+            except ZeroDivisionError:
+                hargamasuksatuanperhari = 0
             # print("data SJP ada")
             # print(hargamasuksatuanperhari)
             # print(jumlahmasukperhari)
@@ -2295,7 +2298,10 @@ def getstokbahanproduksi(last_days, stopindex, awaltahun):
             for dataproduk in saldoawalobj:
                 totalbiayaawal += dataproduk.Harga * dataproduk.Jumlah
                 jumlahawal += dataproduk.Jumlah
-            hargasatuanawal = totalbiayaawal / jumlahawal
+            try:
+                hargasatuanawal = totalbiayaawal / jumlahawal
+            except ZeroDivisionError:
+                hargasatuanawal = 0
 
         totalbiayasaldoawal += totalbiayaawal
         produk.hargasatuanawal = hargasatuanawal
@@ -2327,7 +2333,10 @@ def getstokbahanproduksi(last_days, stopindex, awaltahun):
             for dataproduk in saldoawalobj:
                 totalbiayaawal += dataproduk.Harga * dataproduk.Jumlah
                 jumlahawal += dataproduk.Jumlah
-            hargasatuanawal = totalbiayaawal / jumlahawal
+            try:
+                hargasatuanawal = totalbiayaawal / jumlahawal
+            except ZeroDivisionError:
+                hargasatuanawal = 0
 
         totalbiayasaldoawal += totalbiayaawal
         produk.hargasatuanawal = hargasatuanawal

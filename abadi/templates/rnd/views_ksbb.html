@@ -6,6 +6,7 @@
 {% block stylesheets %}
 {% endblock stylesheets %}
 {% load humanize %}
+{% load customfilter %}
 
 
 
@@ -91,23 +92,23 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td>{{Saldoawal.saldoawal|floatformat:2|intcomma}}</td>
-                                <td>{{Saldoawal.hargasatuanawal|floatformat:2|intcomma}}</td>
-                                <td>{{Saldoawal.hargatotalawal|floatformat:2|intcomma}}</td>
+                                <td>{{Saldoawal.saldoawal|custom_thousands_separator}}</td>
+                                <td>{{Saldoawal.hargasatuanawal|custom_thousands_separator}}</td>
+                                <td>{{Saldoawal.hargatotalawal|custom_thousands_separator}}</td>
                             </tr>
                             {% if data %}
                             {% for i in data %}
                             <tr>
                                 <td>{{i.Tanggal}}</td>
                                 <td>{{i.Jumlahmasuk}}</td>
-                                <td>{{i.Hargamasuksatuan|floatformat:2|intcomma}}</td>
-                                <td>{{i.Hargamasuktotal|floatformat:2|intcomma}}</td>
+                                <td>{{i.Hargamasuksatuan|custom_thousands_separator}}</td>
+                                <td>{{i.Hargamasuktotal|custom_thousands_separator}}</td>
                                 <td>{{i.Jumlahkeluar}}</td>
-                                <td>{{i.Hargakeluarsatuan|floatformat:2|intcomma}}</td>
-                                <td>{{i.Hargakeluartotal|floatformat:2|intcomma}}</td>
-                                <td>{{i.Sisahariini|floatformat:2|intcomma}}</td>
-                                <td>{{i.Hargasatuansisa|floatformat:2|intcomma}}</td>
-                                <td>{{i.Hargatotalsisa|floatformat:2|intcomma}}</td>
+                                <td>{{i.Hargakeluarsatuan|custom_thousands_separator}}</td>
+                                <td>{{i.Hargakeluartotal|custom_thousands_separator}}</td>
+                                <td>{{i.Sisahariini|custom_thousands_separator}}</td>
+                                <td>{{i.Hargasatuansisa|custom_thousands_separator}}</td>
+                                <td>{{i.Hargatotalsisa|custom_thousands_separator}}</td>
 
                             </tr>
                             {% endfor %}

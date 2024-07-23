@@ -103,7 +103,7 @@
                                 <td>
                                     <a style="color: black;">
 
-                                        {{saldo.Tanggal}} - Saldo awal
+                                        {{saldo.Tanggal.year}} - Saldo awal
                                 </td>
                                 </a>
                                 <td></td>
@@ -131,7 +131,11 @@
                                     <ul>
                                         {% for keluar in i.detailmasuk %}
                                         <li>
+                                            {% if keluar.DetailSPK == None %}
+                                            -
+                                            {% else %}
                                             {{keluar.DetailSPK.KodeArtikel}}
+                                            {% endif %}
                                         </li>
                                         {% endfor %}
                                     </ul>
