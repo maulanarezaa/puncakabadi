@@ -574,6 +574,7 @@ def updateco(request, id):
         )
     else:
         print(request.POST)
+        # print(asd)
         tanggaladd = request.POST["tanggal"]
         nomorco = request.POST["nomorco"]
         kepada = request.POST["kepada"]
@@ -632,7 +633,7 @@ def updateco(request, id):
         ) in zip(
             listiddisplay, display, kuantitasdisplay, hargadisplay, deskripsidisplay
         ):
-            print("<Masuk")
+            print("Masuk",iddisplay)
             if iddisplay == "":
                 detailconfirmationobj = models.detailconfirmationorder(
                     confirmationorder=data,
@@ -643,7 +644,7 @@ def updateco(request, id):
                 )
             else:
                 detailconfirmationobj = models.detailconfirmationorder.objects.get(
-                    id=listid
+                    id=iddisplay
                 )
                 detailconfirmationobj.confirmationorder = data
 
@@ -662,12 +663,14 @@ def deletedetailco(request, id):
     data = models.detailconfirmationorder.objects.get(id=id)
     idco = data.confirmationorder.id
     data.delete()
+    messages.success(request,"Data berhasil dihapus")
     return redirect("updateco", id=idco)
 
 
 def deleteco(request, id):
     data = models.confirmationorder.objects.get(id=id)
     data.delete()
+    messages.success(request,"Data berhasil dihapus")
     return redirect("confirmationorder")
 
 

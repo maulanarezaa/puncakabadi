@@ -1,6 +1,6 @@
 {% extends "ppic/base.html" %}
 {% load static %}
-{% load humanize %}
+{% load customfilter %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -22,7 +22,7 @@
                     {% if sjp %}
 
                     <h5>Detail Barang Keluar Bulan : {{bulan}}</h5>
-                    <table class="table">
+                    <table class="table" id="tabellaporanbarangmasuk">
                         <thead>
                             <tr>
                                 <td>No</td>
@@ -47,9 +47,9 @@
                                 <td>{{item.KodeProduk}}</td>
                                 <td>{{item.KodeProduk.NamaProduk}}</td>
                                 <td>{{item.KodeProduk.unit}}</td>
-                                <td>{{item.Harga}}</td>
+                                <td>{{item.Harga|custom_thousands_separator}}</td>
                                 <td>{{item.Jumlah}}</td>
-                                <td>{{item.totalbiaya}}</td>
+                                <td>{{item.totalbiaya|custom_thousands_separator}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -57,45 +57,13 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <td>Total</td>
-                                <td>{{totalbiayamasuk}}</td>
+                                <td >Total</td>
+                                <td>{{totalbiayamasuk|custom_thousands_separator}}</td>
                             </tr>
                         </thead>
                     </table>
 
-                    {% for artikel,item in penyusun.items %}
-                    <h5>Detail Penyusun Artikel {{artikel}}</h4>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <td>Penyusun</td>
-                                    <td>Kuantitas 2.5%</td>
-                                    <td>harga satuan</td>
-                                    <td>harga perkotak</td>
-                                </tr>
-
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    {% for bahanbaku,data in item.penyusun.items %}
-                                    <td>{{bahanbaku}}</td>
-                                    <td>{{data.kuantitas}}</td>
-                                    <td>{{data.harga}}</td>
-                                    <td>{{data.totalharga}}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                        <table class="table">
-                            <thead>
-                                <tr>
-
-                                    <td>Harga FG</td>
-                                    <td>{{item.hargafg}}</td>
-                                </tr>
-                            </thead>
-                        </table>
-                        {% endfor %}
+                   
 
 
 

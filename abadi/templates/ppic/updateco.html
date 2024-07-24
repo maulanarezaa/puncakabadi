@@ -195,93 +195,95 @@
     $('#confirmDeleteModal').modal('show');
   }
   function addProduct() {
-    let productCounter = document.querySelectorAll('.tes').length + 1;
+    // Use a global or data attribute counter to keep track of new rows
+    let productCounter = document.querySelectorAll('#artikels .row').length + 1;
     const productRow = document.createElement('div');
     productRow.className = "row";
     productRow.id = `artikel_${productCounter}`;
     productRow.innerHTML = `
-    <input type='text' name=id[] hidden>
-      <div class="col-md-3 tes">
-        <div class="form-group">
-          <label for="artikel_${productCounter}">Artikel ${productCounter}:</label>
-          <select class="form-control" name="artikel[]">
-                  <option value="">Pilih Artikel</option>
-                  {% for item in dataartikel %}
-                  <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
-                  {% endfor %}
+        <input type='text' name='id[]' hidden>
+        <div class="col-md-3 tes">
+            <div class="form-group">
+                <label for="artikel_${productCounter}">Artikel ${productCounter}:</label>
+                <select class="form-control" name="artikel[]">
+                    <option value="">Pilih Artikel</option>
+                    {% for item in dataartikel %}
+                    <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
+                    {% endfor %}
                 </select>
+            </div>
         </div>
-      </div>
-      <div class="col-md-3">
-        <div class="form-group">
-          <label for="deskripsi_${productCounter}">Deskripsi</label>
-          <input type="text" class="form-control" name="deskripsi[]" placeholder="Deskripsi" required>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="deskripsi_${productCounter}">Deskripsi</label>
+                <input type="text" class="form-control" name="deskripsi[]" placeholder="Deskripsi" required>
+            </div>
         </div>
-      </div>
-      <div class="col-md-2">
-        <div class="form-group">
-          <label for="kuantitas_${productCounter}">Kuantitas</label>
-          <input type="number" class="form-control" min="0" name="kuantitas[]" placeholder="Kuantitas" required>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label for="kuantitas_${productCounter}">Kuantitas</label>
+                <input type="number" class="form-control" min="0" name="kuantitas[]" placeholder="Kuantitas" required>
+            </div>
         </div>
-      </div>
-      <div class="col-md-3">
-        <div class="form-group">
-          <label for="harga_${productCounter}">Harga</label>
-          <input type="number" class="form-control" min="0" name="harga[]" placeholder="Harga" required>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="harga_${productCounter}">Harga</label>
+                <input type="number" class="form-control" min="0" name="harga[]" placeholder="Harga" required>
+            </div>
         </div>
-      </div>
-      <div class="col-md-1">
-        <br>
-        <label for="hapus${productCounter}"></label>
-        <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn-trash"></i></button>
-      </div>`;
+        <div class="col-md-1">
+            <br>
+            <label for="hapus${productCounter}"></label>
+            <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn-trash"></i></button>
+        </div>`;
     document.getElementById('artikels').appendChild(productRow);
-  }
+}
 
-  function addDisplay() {
-    let displayCounter = document.querySelectorAll('.display').length + 1;
+
+function addDisplay() {
+    // Use a global or data attribute counter to keep track of new rows
+    let displayCounter = document.querySelectorAll('#displays .row').length + 1;
     const displayRow = document.createElement('div');
     displayRow.className = "row";
     displayRow.id = `display_${displayCounter}`;
     displayRow.innerHTML = `
-    <input type='text' name=iddisplay[] hidden>
-      <div class="col-md-3 tes">
-        <div class="form-group">
-          <label for="display_${displayCounter}">Display ${displayCounter}:</label>
-          <select class="form-control" name="display[]">
-                  <option value="">Pilih Display</option>
-
-                  {% for item in datadisplay %}
-                  <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }}</option>
-                  {% endfor %}
+        <input type='text' name='iddisplay[]' hidden>
+        <div class="col-md-3 tes">
+            <div class="form-group">
+                <label for="display_${displayCounter}">Display ${displayCounter}:</label>
+                <select class="form-control" name="display[]">
+                    <option value="">Pilih Display</option>
+                    {% for item in datadisplay %}
+                    <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }}</option>
+                    {% endfor %}
                 </select>
+            </div>
         </div>
-      </div>
-      <div class="col-md-3">
-        <div class="form-group">
-          <label for="deskripsi_${displayCounter}">Deskripsi</label>
-          <input type="text" class="form-control" name="deskripsidisplay[]" placeholder="Deskripsi" required>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="deskripsi_${displayCounter}">Deskripsi</label>
+                <input type="text" class="form-control" name="deskripsidisplay[]" placeholder="Deskripsi" required>
+            </div>
         </div>
-      </div>
-      <div class="col-md-2">
-        <div class="form-group">
-          <label for="kuantitas_${displayCounter}">Kuantitas</label>
-          <input type="number" class="form-control" min="0" name="kuantitasdisplay[]" placeholder="Kuantitas" required>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label for="kuantitas_${displayCounter}">Kuantitas</label>
+                <input type="number" class="form-control" min="0" name="kuantitasdisplay[]" placeholder="Kuantitas" required>
+            </div>
         </div>
-      </div>
-      <div class="col-md-3">
-        <div class="form-group">
-          <label for="harga_${displayCounter}">Harga</label>
-          <input type="number" class="form-control" min="0" name="hargadisplay[]" placeholder="Harga" required>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="harga_${displayCounter}">Harga</label>
+                <input type="number" class="form-control" min="0" name="hargadisplay[]" placeholder="Harga" required>
+            </div>
         </div>
-      </div>
-      <div class="col-md-1">
-        <br>
-        <label for="hapus${displayCounter}"></label>
-        <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn-trash"></i></button>
-      </div>`;
+        <div class="col-md-1">
+            <br>
+            <label for="hapus${displayCounter}"></label>
+            <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn-trash"></i></button>
+        </div>`;
     document.getElementById('displays').appendChild(displayRow);
-  }
+}
 
   function deleteRow(button) {
     let idInput = button.parentElement.parentElement.querySelector('input[name="id[]"]');
