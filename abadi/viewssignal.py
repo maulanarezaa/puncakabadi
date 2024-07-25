@@ -17,16 +17,19 @@ import pandas as pd
 @receiver(post_delete, sender=models.PemusnahanBahanBaku)
 def updatehargapurchasing(sender, instance, **kwargs):
     print(f'Updating for {sender.__name__}')
-    if hasattr(instance, 'tanggal'):
-        tanggal = instance.tanggal if isinstance(instance.tanggal, date) else datetime.strptime(instance.tanggal, '%Y-%m-%d').date()
-    elif hasattr(instance, 'Tanggal'):
-        tanggal = instance.Tanggal if isinstance(instance.Tanggal, date) else datetime.strptime(instance.Tanggal, '%Y-%m-%d').date()
-    elif hasattr(instance, 'NoSuratJalan'):
-        tanggal = instance.NoSuratJalan.Tanggal
-    else:
-        raise ValueError("Tidak dapat menemukan atribut tanggal pada instance")
-
-    kodeproduk = instance.KodeProduk if hasattr(instance, 'KodeProduk') else instance.IDBahanBaku
+    if isinstance(instance,models.TransaksiGudang):
+        tanggal = datetime.strptime(instance.tanggal, '%Y-%m-%d').date()
+        kodeproduk = instance.KodeProduk
+    elif isinstance(instance,models.SaldoAwalBahanBaku):
+        tanggal = datetime.strptime(instance.Tanggal, '%Y-%m-%d').date()
+        kodeproduk = instance.IDBahanBaku
+    elif isinstance(instance,models.DetailSuratJalanPembelian):
+        tanggal = datetime.strptime(instance.NoSuratJalan.Tanggal, '%Y-%m-%d').date()
+        kodeproduk = instance.KodeProduk
+    elif isinstance(instance,models.PemusnahanBahanBaku):
+        tanggal = datetime.strptime(instance.Tanggal, '%Y-%m-%d').date()
+        kodeproduk = instance.KodeBahanBaku
+    
     data = gethargapurchasingperbulanperproduk(tanggal, kodeproduk)
     df = pd.DataFrame(data)
     print(df)
