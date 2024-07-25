@@ -441,8 +441,8 @@ class SaldoAwalBahanBakuSubkon(models.Model):
 class CacheValue(models.Model):
     KodeProduk = models.ForeignKey(Produk,on_delete=models.CASCADE)
     Tanggal = models.DateField()
-    Jumlah = models.FloatField()
-    Harga = models.FloatField()
+    Jumlah = models.FloatField(default=0)
+    Harga = models.FloatField(default=0)
 
     def __str__(self):
         return f'{self.KodeProduk} - {self.Tanggal}'

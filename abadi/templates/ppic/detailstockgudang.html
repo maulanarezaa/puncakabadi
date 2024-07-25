@@ -5,6 +5,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
+{% load customfilter %}
 
 
 
@@ -17,13 +18,13 @@
                 <h4 class="card-title">Detail Stok Gudang Periode : {{bulan}} </h4>
                 <div class="table-responsive pt-3">
                     {% if data %}
-                    <table class="table">
+                    <table class="table" id="detaillaporanstokgudang">
                         <thead>
                             <tr>
                                 <td>No</td>
                                 <td>Kode Artikel</td>
                                 <td>Jumlah</td>
-                                <td>Harga FG</td>
+                                <td>Harga Akhir bulan</td>
                                 <td>Biaya</td>
                             </tr>
                         </thead>
@@ -32,9 +33,9 @@
                             <tr>
                                 <td>{{forloop.counter}}</td>
                                 <td>{{artikel}}</td>
-                                <td>{{item.hargasatuan}}</td>
-                                <td>{{item.jumlah}}</td>
-                                <td>{{item.hargatotal}}</td>
+                                <td>{{item.jumlah|separator_ribuan}}</td>
+                                <td>{{item.hargasatuan|custom_thousands_separator}}</td>
+                                <td>{{item.hargatotal|custom_thousands_separator}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
