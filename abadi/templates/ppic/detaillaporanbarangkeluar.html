@@ -6,6 +6,7 @@
 {% block stylesheets %}
 {% endblock stylesheets %}
 {% load humanize %}
+{% load customfilter %}
 
 
 <!-- Page content  -->
@@ -41,9 +42,9 @@
                                 <td>{{item.NoSPPB.NoSPPB}}</td>
                                 <td>{{item.DetailSPK.NoSPK}}</td>
                                 <td>{{item.DetailSPK.KodeArtikel}}</td>
-                                <td>{{item.Jumlah}}</td>
-                                <td>{{item.hargafg|floatformat:2|intcomma}}</td>
-                                <td>{{item.totalharga|floatformat:2|intcomma}}</td>
+                                <td>{{item.Jumlah|separator_ribuan}}</td>
+                                <td>{{item.hargafg|custom_thousands_separator}}</td>
+                                <td>{{item.totalharga|custom_thousands_separator}}</td>
                             </tr>
                             {% endfor %}
                             <tr>
@@ -53,7 +54,7 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td>{{nilaibarangkeluar|floatformat:2|intcomma}}</td>
+                                <td>{{nilaibarangkeluar|custom_thousands_separator}}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -67,8 +68,8 @@
                                 <td>No SPPB</td>
                                 <td>No SPK</td>
                                 <td>Display</td>
-                                <td>Jumlah</td>
-                                <td>Jumlah Produksi</td>
+                                <td>Jumlah Pengiriman (SPPB)</td>
+                                <td>Jumlah Produksi (SPK)</td>
                                 <td>Bahan Baku</td>
                                 <td>Jumlah Permintaan</td>
                                 <td>Jumlah Penggunaan</td>
@@ -84,8 +85,8 @@
                                 <td>{{item.NoSPPB.NoSPPB}}</td>
                                 <td>{{item.DetailSPKDisplay.NoSPK}}</td>
                                 <td>{{item.DetailSPKDisplay.KodeDisplay}}</td>
-                                <td>{{item.Jumlah}}</td>
-                                <td>{{item.DetailSPKDisplay.Jumlah}}</td>
+                                <td>{{item.Jumlah|separator_ribuan}}</td>
+                                <td>{{item.DetailSPKDisplay.Jumlah|separator_ribuan}}</td>
 
                                 <td>
                                     <ul>
@@ -100,7 +101,7 @@
                                     <ul>
                                     {% for i in item.penggunaanbahan.values %}
                                         <li>
-                                            {{i.totalpermintaan}}
+                                            {{i.totalpermintaan|separator_ribuan}}
                                         </li>
                                     {% endfor %}
                                     </ul>
@@ -109,7 +110,7 @@
                                     <ul>
                                         {% for i in item.penggunaanbahan.values %}
                                             <li>
-                                                {{i.jumlahpenggunaan}}
+                                                {{i.jumlahpenggunaan|custom_thousands_separator}}
                                             </li>
                                         {% endfor %}
                                         </ul>
@@ -118,7 +119,7 @@
                                     <ul>
                                         {% for i in item.penggunaanbahan.values %}
                                             <li>
-                                                {{i.biayaawal}}
+                                                {{i.biayaawal|custom_thousands_separator}}
                                             </li>
                                         {% endfor %}
                                         </ul>
@@ -127,12 +128,12 @@
                                     <ul>
                                         {% for i in item.penggunaanbahan.values %}
                                             <li>
-                                                {{i.totalbiaya}}
+                                                {{i.totalbiaya|custom_thousands_separator}}
                                             </li>
                                         {% endfor %}
                                         </ul>
                                 </td>
-                                <td>{{item.totalbiaya}}</td>
+                                <td>{{item.totalbiaya|custom_thousands_separator}}</td>
                             </tr>
                             {% endfor %}
                             <tr>
@@ -147,7 +148,7 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td>{{nilaibarangkeluar}}</td>
+                                <td>{{nilaidisplaykeluar|custom_thousands_separator}}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -176,9 +177,9 @@
                                 <td>{{item.KodeProduk.KodeProduk}}</td>
                                 <td>{{item.KodeProduk.NamaProduk}}</td>
                                 <td>{{item.Lokasi}}</td>
-                                <td>{{item.harga}}</td>
-                                <td>{{item.jumlah}}</td>
-                                <td>{{item.hargatotal}}</td>
+                                <td>{{item.harga|custom_thousands_separator}}</td>
+                                <td>{{item.jumlah|separator_ribuan}}</td>
+                                <td>{{item.hargatotal|custom_thousands_separator}}</td>
                             </tr>
                             {% endfor %}
                             <tr>
@@ -189,7 +190,7 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td>{{nilaigold}}</td>
+                                <td>{{nilaigold|custom_thousands_separator}}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -216,9 +217,9 @@
                                 <td>{{item.KodeProduk.KodeProduk}}</td>
                                 <td>{{item.KodeProduk.NamaProduk}}</td>
                                 <td>{{item.Lokasi}}</td>
-                                <td>{{item.harga}}</td>
-                                <td>{{item.jumlah}}</td>
-                                <td>{{item.hargatotal}}</td>
+                                <td>{{item.harga|custom_thousands_separator}}</td>
+                                <td>{{item.jumlah|separator_ribuan}}</td>
+                                <td>{{item.hargatotal|custom_thousands_separator}}</td>
                                 
                             </tr>
                             {% endfor %}
@@ -232,7 +233,7 @@
                                 <td></td>
                                 <td></td>
                                 
-                                <td>{{nilailainlain}}</td>
+                                <td>{{nilailainlain|custom_thousands_separator}}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -252,7 +253,6 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <p>{{transaksibahanbaku}}</p>
                             {% for item in transaksibahanbaku %}
                             <tr>
                                 <td>{{forloop.counter}}</td>
@@ -260,9 +260,9 @@
                                 <td>{{item.DetailBahan.KodeProduk}}</td>
                                 <td>{{item.DetailBahan.NamaProduk}}</td>
                                 <td>{{item.DetailBahan.unit}}</td>
-                                <td>{{item.Jumlah}}</td>
-                                <td>{{item.harga|floatformat:2|intcomma}}</td>
-                                <td>{{item.hargatotal|floatformat:2|intcomma}}</td>
+                                <td>{{item.Jumlah|separator_ribuan}}</td>
+                                <td>{{item.harga|custom_thousands_separator}}</td>
+                                <td>{{item.hargatotal|custom_thousands_separator}}</td>
                             </tr>
                             {% endfor %}
                             <tr>
@@ -273,11 +273,11 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td>{{nilaitransaksibahanbaku|floatformat:2|intcomma}}</td>
+                                <td>{{nilaitransaksibahanbaku|custom_thousands_separator}}</td>
                             </tr>
                         </tbody>
                     </table>
-                    <h4>Grand Total : <span>{{totalbiayakeluar}}</span> </h4>
+                    <h4>Grand Total : <span>{{totalbiayakeluar|custom_thousands_separator}}</span> </h4>
 
                 </div>
             </div>

@@ -27,7 +27,7 @@ def updatehargapurchasing(sender, instance, **kwargs):
         tanggal = datetime.strptime(instance.NoSuratJalan.Tanggal, '%Y-%m-%d').date()
         kodeproduk = instance.KodeProduk
     elif isinstance(instance,models.PemusnahanBahanBaku):
-        tanggal = datetime.strptime(instance.Tanggal, '%Y-%m-%d').date()
+        tanggal = datetime.strptime(str(instance.Tanggal), '%Y-%m-%d').date()
         kodeproduk = instance.KodeBahanBaku
     
     data = gethargapurchasingperbulanperproduk(tanggal, kodeproduk)
@@ -143,24 +143,16 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
         KodeProduk=bahanbaku, NoSuratJalan__Tanggal__range=(awaltahun, akhirtahun)
     )
     keluarobj = models.TransaksiGudang.objects.filter(
-        KodeProduk=bahanbaku,jumlah__gt=0, tanggal__range=(awaltahun, akhirtahun)
+        KodeProduk=bahanbaku,jumlah__gte=0, tanggal__range=(awaltahun, akhirtahun)
     )
     pemusnahanobj = models.PemusnahanBahanBaku.objects.filter(
-        KodeBahanBaku=bahanbaku, Tanggal__range=(awaltahun, akhirtahun)
+        KodeBahanBaku=bahanbaku, Tanggal__range=(awaltahun, akhirtahun),lokasi__NamaLokasi = "Gudang"
     )
     returobj = models.TransaksiGudang.objects.filter(
             jumlah__lt=0, KodeProduk=bahanbaku, tanggal__range=(awaltahun,akhirtahun)
         )
     
-    saldoawalobj = (
-            models.SaldoAwalBahanBaku.objects.filter(
-                IDBahanBaku=bahanbaku,
-                IDLokasi__IDLokasi=3,
-                Tanggal__range=(awaltahun,akhirtahun)
-            )
-            .order_by("-Tanggal")
-            .first()
-        )
+    
     if saldoawalobj:
             print("ada data")
             saldoawal = saldoawalobj.Jumlah
@@ -184,8 +176,12 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
     tanggalretur = returobj.values_list("tanggal", flat=True)
     tanggalpemusnahan = pemusnahanobj.values_list("Tanggal",flat=True)
     tanggalmasuk = masukobj.values_list("NoSuratJalan__Tanggal", flat=True)
+    print('tanggal keluar :',tanggalkeluar)
+    print('tanggal retur : ',tanggalretur)
+    print('tanggal pemusnahan : ',tanggalpemusnahan)
     listtanggal = sorted(list(set(tanggalkeluar.union(tanggalretur).union(tanggalpemusnahan).union(tanggalmasuk))))
     listdata = []
+    statusmasuk = False
     for i in listtanggal :
         jumlahmasukperhari = 0
         hargamasuktotalperhari = 0
@@ -208,25 +204,28 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
             dumy = {
                 "Tanggal": i,
                 "Jumlahstokawal": saldoawal,
-                "Hargasatuanawal": round(hargasatuanawal, 2),
-                "Hargatotalawal": round(hargatotalawal, 2),
+                "Hargasatuanawal": hargasatuanawal, 
+                "Hargatotalawal": hargatotalawal, 
                 "Jumlahmasuk": jumlahmasukperhari,
-                "Hargamasuksatuan": round(hargamasuksatuanperhari, 2),
-                "Hargamasuktotal": round(hargamasuktotalperhari, 2),
+                "Hargamasuksatuan": hargamasuksatuanperhari, 
+                "Hargamasuktotal": hargamasuktotalperhari, 
                 "Jumlahkeluar": jumlahkeluarperhari,
-                "Hargakeluarsatuan": round(hargakeluarsatuanperhari, 2),
-                "Hargakeluartotal": round(hargakeluartotalperhari, 2),
+                "Hargakeluarsatuan": hargakeluarsatuanperhari, 
+                "Hargakeluartotal": hargakeluartotalperhari, 
             }
             saldoawal += jumlahmasukperhari - jumlahkeluarperhari
             hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
-            hargasatuanawal = hargatotalawal / saldoawal
+            try:
+                hargasatuanawal = hargatotalawal / saldoawal
+            except ZeroDivisionError:
+                hargasatuanawal = 0
 
             print("Sisa Stok Hari Ini : ", saldoawal)
             print("harga awal Hari Ini :", hargasatuanawal)
             print("harga total Hari Ini :", hargatotalawal, "\n")
             dumy["Sisahariini"] = saldoawal
-            dumy["Hargasatuansisa"] = round(hargasatuanawal, 2)
-            dumy["Hargatotalsisa"] = round(hargatotalawal, 2)
+            dumy["Hargasatuansisa"] = hargasatuanawal
+            dumy["Hargatotalsisa"] = hargatotalawal
             print(dumy)
             statusmasuk = True
             listdata.append(dumy)
@@ -289,14 +288,14 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
         dumy = {
             "Tanggal": i,
             "Jumlahstokawal": saldoawal,
-            "Hargasatuanawal": round(hargasatuanawal, 2),
-            "Hargatotalawal": round(hargatotalawal, 2),
+            "Hargasatuanawal": hargasatuanawal,
+            "Hargatotalawal": hargatotalawal,
             "Jumlahmasuk": jumlahmasukperhari,
-            "Hargamasuksatuan": round(hargamasuksatuanperhari, 2),
-            "Hargamasuktotal": round(hargamasuktotalperhari, 2),
+            "Hargamasuksatuan": hargamasuksatuanperhari,
+            "Hargamasuktotal": hargamasuktotalperhari,
             "Jumlahkeluar": jumlahkeluarperhari,
-            "Hargakeluarsatuan": round(hargakeluarsatuanperhari, 2),
-            "Hargakeluartotal": round(hargakeluartotalperhari, 2),
+            "Hargakeluarsatuan": hargakeluarsatuanperhari,
+            "Hargakeluartotal": hargakeluartotalperhari,
         }
         """
         Rumus dari Excel KSBB Purchasing
@@ -321,8 +320,8 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
         print("harga awal Hari Ini :", hargasatuanawal)
         print("harga total Hari Ini :", hargatotalawal, "\n")
         dumy["Sisahariini"] = saldoawal
-        dumy["Hargasatuansisa"] = round(hargasatuanawal, 2)
-        dumy["Hargatotalsisa"] = round(hargatotalawal, 2)
+        dumy["Hargasatuansisa"] = hargasatuanawal
+        dumy["Hargatotalsisa"] = hargatotalawal
 
         listdata.append(dumy)
     print(listdata)

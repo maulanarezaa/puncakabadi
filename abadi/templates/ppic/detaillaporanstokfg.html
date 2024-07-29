@@ -9,6 +9,7 @@
 
 
 
+
 <!-- Page content  -->
 {% block content %}
 <div class="row">
@@ -17,12 +18,13 @@
             <div class="card-body">
                 <h4 class="card-title" > Total Saldo FG Periode {{bulan}} :Rp {{totalsaldofg|custom_thousands_separator}}</h4>
                 <h4 class="card-title">Detail Stok Artikel FG Periode : {{bulan}} </h4>
+                <h4 >Total Saldo Artikel : {{saldoperbagian.artikel|custom_thousands_separator}} </h5>
 
 
 
                 <div class="table-responsive pt-3">
                     {% if artikelfg %}
-                    <table class="table">
+                    <table class="table" id="stokfgartikel">
                         <thead>
                             <tr>
                                 <td>No</td>
@@ -45,13 +47,7 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <td>Total</td>
-                                <td>{{stokfg.total}}</td>
-                        </thead>
-                    </table>
+            
 
 
                     {% endif %}
@@ -66,12 +62,13 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Detail Stok Display FG Periode : {{bulan}} </h4>
+                <h4 >Total Saldo Display : {{saldoperbagian.display|custom_thousands_separator}} </h4>
 
 
 
                 <div class="table-responsive pt-3">
                     {% if displayfg %}
-                    <table class="table">
+                    <table class="table" id="stokfgdisplay">
                         <thead>
                             <tr>
                                 <td>No</td>
@@ -94,13 +91,7 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <td>Total</td>
-                                <td>{{stokfg.total}}</td>
-                        </thead>
-                    </table>
+                    
 
 
                     {% endif %}
@@ -116,13 +107,14 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Detail Stok FG Periode : {{bulan}} </h4>
+                <h4 >Total Saldo Bahan : {{saldoperbagian.bahanbaku|custom_thousands_separator}} </h4>
+
 
 
 
                 <div class="table-responsive pt-3">
                     <h5>Stok Bahan Baku</h5>
-                    {{sisabahanfg}}
-                    <table class="table">
+                    <table class="table" id="stokfgbahan">
                         <thead>
                             <tr>
                                 <td>No</td>
@@ -150,13 +142,7 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <td>Total</td>
-                                <td>{{sisabahafg.total}}</td>
-                        </thead>
-                    </table>
+                   
 
 
                 </div>

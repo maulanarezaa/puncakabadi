@@ -39,3 +39,4 @@ def separator_desimal(value):
         return formatted_value
     except (ValueError,TypeError):
         return value
+    

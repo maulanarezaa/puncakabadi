@@ -2369,14 +2369,14 @@ def views_rekapharga(request):
                 dumy = {
                     "Tanggal": i.strftime("%Y-%m-%d"),
                     "Jumlahstokawal": saldoawal,
-                    "Hargasatuanawal": round(hargasatuanawal, 2),
-                    "Hargatotalawal": round(hargatotalawal, 2),
+                    "Hargasatuanawal": hargasatuanawal, 
+                    "Hargatotalawal": hargatotalawal, 
                     "Jumlahmasuk": jumlahmasukperhari,
-                    "Hargamasuksatuan": round(hargamasuksatuanperhari, 2),
-                    "Hargamasuktotal": round(hargamasuktotalperhari, 2),
+                    "Hargamasuksatuan": hargamasuksatuanperhari, 
+                    "Hargamasuktotal": hargamasuktotalperhari, 
                     "Jumlahkeluar": jumlahkeluarperhari,
-                    "Hargakeluarsatuan": round(hargakeluarsatuanperhari, 2),
-                    "Hargakeluartotal": round(hargakeluartotalperhari, 2),
+                    "Hargakeluarsatuan": hargakeluarsatuanperhari, 
+                    "Hargakeluartotal": hargakeluartotalperhari, 
                 }
                 saldoawal += jumlahmasukperhari - jumlahkeluarperhari
                 hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
@@ -2386,9 +2386,8 @@ def views_rekapharga(request):
                 print("harga awal Hari Ini :", hargasatuanawal)
                 print("harga total Hari Ini :", hargatotalawal, "\n")
                 dumy["Sisahariini"] = saldoawal
-                dumy["Hargasatuansisa"] = round(hargasatuanawal, 2)
-                dumy["Hargatotalsisa"] = round(hargatotalawal, 2)
-                print(dumy)
+                dumy["Hargasatuansisa"] = hargasatuanawal
+                dumy["Hargatotalsisa"] = hargatotalawal
                 statusmasuk = True
                 listdata.append(dumy)
                 # print(asdasd)
@@ -2489,14 +2488,14 @@ def views_rekapharga(request):
             dumy = {
                 "Tanggal": i.strftime("%Y-%m-%d"),
                 "Jumlahstokawal": saldoawal,
-                "Hargasatuanawal": round(hargasatuanawal, 2),
-                "Hargatotalawal": round(hargatotalawal, 2),
+                "Hargasatuanawal": hargasatuanawal, 
+                "Hargatotalawal": hargatotalawal, 
                 "Jumlahmasuk": jumlahmasukperhari,
-                "Hargamasuksatuan": round(hargamasuksatuanperhari, 2),
-                "Hargamasuktotal": round(hargamasuktotalperhari, 2),
+                "Hargamasuksatuan": hargamasuksatuanperhari, 
+                "Hargamasuktotal": hargamasuktotalperhari, 
                 "Jumlahkeluar": jumlahkeluarperhari,
-                "Hargakeluarsatuan": round(hargakeluarsatuanperhari, 2),
-                "Hargakeluartotal": round(hargakeluartotalperhari, 2),
+                "Hargakeluarsatuan": hargakeluarsatuanperhari, 
+                "Hargakeluartotal": hargakeluartotalperhari, 
             }
             """
             Rumus dari Excel KSBB Purchasing
@@ -2521,8 +2520,8 @@ def views_rekapharga(request):
             print("harga awal Hari Ini :", hargasatuanawal)
             print("harga total Hari Ini :", hargatotalawal, "\n")
             dumy["Sisahariini"] = saldoawal
-            dumy["Hargasatuansisa"] = round(hargasatuanawal, 2)
-            dumy["Hargatotalsisa"] = round(hargatotalawal, 2)
+            dumy["Hargasatuansisa"] = hargasatuanawal
+            dumy["Hargatotalsisa"] = hargatotalawal
 
             listdata.append(dumy)
 

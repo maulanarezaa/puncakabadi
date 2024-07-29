@@ -12,6 +12,7 @@ from . import logindecorators
 from django.contrib.auth.decorators import login_required
 import pandas as pd
 from django.db.models import FloatField
+import time
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
@@ -1405,3 +1406,17 @@ def delete_pemusnahanbarang(request, id):
     ).save()
 
     return redirect(view_pemusnahanbarang)
+
+def updatecache(request):
+    waktustart = time.time()
+    allprodukobj = models.Produk.objects.all()
+    # allprodukobj = models.Produk.objects.filter(KodeProduk = 'tesbahanbaku')
+    for produk in allprodukobj:
+        newpemusnahan = models.PemusnahanBahanBaku(
+            Tanggal = datetime.now().date(),
+            KodeBahanBaku = produk,
+            lokasi = models.Lokasi.objects.get(NamaLokasi = 'Gudang'),
+            Jumlah = 0
+        ).save()
+    waktuakhir = time.time()
+    return HttpResponse(f'Waktu proses :{waktuakhir-waktustart} ')
