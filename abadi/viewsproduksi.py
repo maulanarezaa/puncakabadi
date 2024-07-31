@@ -4815,3 +4815,22 @@ def view_ksbbsubkon(request):
             listdata.append(data)
 
         return render(request, "produksi/view_ksbbsubkon.html",{'data':listdata,'saldo':saldoawal,'kodebarang':request.GET["kodebarang"],"nama": nama,"satuan": satuan,"kodeprodukobj": kodeproduk,'tahun':tahun})
+
+def ksbbcat (request):
+    kodecat = 'A-004'
+    sekarang = datetime.now().year
+    tanggal_mulai = datetime(year=sekarang, month=1, day=1)
+    tanggal_akhir = datetime(year=sekarang, month=12, day=31)
+    kodeproduk = models.Produk.objects.filter(KodeProduk__startswith=kodecat)
+    if len(request.GET) == 0:
+        print(kodeproduk)
+        return render(request, "produksi/view_ksbbcat.html", {"kodeprodukobj": kodeproduk, "sekarang": sekarang})
+    else:
+        kodeproduk = request.GET['kodebarang']
+        datakodeprodukobj = models.Produk.objects.get(KodeProduk = kodeproduk)
+        lokasi = 'WIP'
+        data = calculateksbbcat(datakodeprodukobj,tanggal_mulai,tanggal_akhir,lokasi)
+        return render(request, "produksi/view_ksbbcat.html", {"kodeprodukobj": kodeproduk, "sekarang": sekarang})
+
+def calculateksbbcat(produk,tanggal_mulai,tanggal_akhir,lokasi):
+    pass

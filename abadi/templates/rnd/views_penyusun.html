@@ -23,8 +23,8 @@
                             <div class="form-group">
                                 <div class="input-group">
                                     <input required type="text" class="form-control" placeholder="Masukkan Nama Artikel"
-                                        aria-label="Masukkan Nama Artikel" name="kodeartikel" list="listartikel">
-                                    <datalist id="listartikel">
+                                        aria-label="Masukkan Nama Artikel" name="kodeartikel" list="listartikell" value="{{kodeartikel}}">
+                                    <datalist id="listartikell">
                                         {% for i in dataartikel %}
                                         <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
                                         {% endfor %}

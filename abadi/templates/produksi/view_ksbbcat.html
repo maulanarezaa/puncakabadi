@@ -1,0 +1,210 @@
+{% extends "produksi/base.html" %}
+{% load static %}
+{% load humanize %}
+
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+<!-- Page content  -->
+{% block content %}
+<div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Kartu Stok Bahan Baku : <span style="font-weight: lighter;">
+                        {{kodebarang}}</span></h4>
+                <h4 class="card-title">Nama Bahan Baku : <span style="font-weight: lighter;">
+                        {{nama}}</span></h4>
+                <h4 class="card-title">Satuan : <span style="font-weight: lighter;">
+                        {{satuan}}</span></h4>
+                <h4 class="card-title">Lokasi : <span style="font-weight: lighter;">
+                        {{lokasi}}</span></h4>
+                <form action="" method="get">
+                    {% if kodebarang %}
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <input type="text" class="form-control" placeholder="Masukkan Kode Barangg"
+                                    name="kodebarang" list="kodebarang" value="{{kodebarang}}" required>
+                                <datalist id="kodebarang">
+                                    {% for i in kodeprodukobj %}
+                                    <option value="{{i.KodeProduk}}">{{i.NamaProduk}} - {{i.unit}}</option>
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <select name="lokasi" id="" class="form-control">
+                                    {% if lokasi == "WIP" %}
+                                        <option value="WIP" selected>WIP</option>
+                                        <option value="FG">FG</option>
+                                        {% else %}
+                                        <option value="WIP" >WIP</option>
+                                        <option value="FG" selected>FG</option>
+                                        {% endif %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="number" class="form-control" value="{{tahun}}"
+                                        aria-label="Masukkan Periode" name="periode">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-sm btn-primary" type="submit">Filter</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input required type="text" class="form-control" placeholder="Masukkan Kode Barang"
+                                        aria-label="Masukkan Kode Barang" name="kodebarang" list="kodebarang">
+                                    <datalist id="kodebarang">
+                                        {% for i in kodeprodukobj %}
+                                        <option value="{{i.KodeProduk}}">{{i.NamaProduk}}</option>
+                                        {% endfor %}
+                                    </datalist>
+                                    <input type="text" name="lokasi" value="WIP" hidden>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-sm btn-primary" type="submit">Search</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </form>
+
+                <div class="table-responsive pt-3">
+                    <table class="table table-bordered" id="tabelksbb">
+                        <thead>
+                            <tr>
+                                <td>Tanggal</td>
+                                <td>Artikel</td>
+                                <td>Koversi</td>
+                                <td>Masuk</td>
+                                <td>Sisa Pengambilan</td>
+                                <td>Per Kotak</td>
+                                <td>Per Satuan</td>
+                                <td>Keluar</td>
+                                <td style="text-align:center;">Saldo</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <a style="color: black;">
+
+                                        {{saldo.Tanggal.year}} - Saldo awal
+                                </td>
+                                </a>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+
+                                <td>{{saldo.Jumlah|floatformat:2|intcomma}}</td>
+
+                            </tr>
+                            {% for i in data %}
+
+                            <tr>
+                                
+                                <td>
+
+                                    <a href="{% url 'detail_ksbb'  id=kodebarang tanggal=i.Tanggal lokasi=lokasi %}"
+                                        style="color: black;">
+                                        {{i.Tanggal}}
+                                </td>
+                                
+                                <td>
+                                    <ul>
+                                        {% for keluar in i.detailmasuk %}
+                                        <li>
+                                            {% if keluar.DetailSPK == None %}
+                                            -
+                                            {% else %}
+                                            {{keluar.DetailSPK.KodeArtikel}}
+                                            {% endif %}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>
+
+                                    <ul>
+                                        {% for keluar in i.detailmasuk %}
+                                        <li>
+                                            {{keluar.jumlah|floatformat:2|intcomma}}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                                            <td>
+                                    <ul>
+
+                                        {% for artikel in i.Artikel %}
+                                        <li>{{artikel}}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        {% for jumlah in i.Perkotak %}
+                                        <li>{{jumlah|floatformat:2|intcomma}}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        {% for konversi in i.Konversi %}
+                                        <li>{{konversi|floatformat:4|intcomma}}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                
+                                
+                                <td>
+                                    <ul>
+                                        {% for keluar in i.Keluar %}
+                                        <li>
+                                            {{keluar|floatformat:2|intcomma}}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+
+                                        {% for sisa in i.Sisa %}
+                                        <li>
+                                            {{sisa|floatformat:2|intcomma}}
+                                        </li>
+
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                            </tr>
+                            {% endfor %}
+
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+{% endblock javascripts %}

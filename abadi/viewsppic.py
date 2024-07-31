@@ -1717,7 +1717,7 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
         totalsaldoartikel = 0
         timegeneratedata = time.time()
         # print('waktugeneratedata : ',timegeneratedata-awal)
-        # print(asd)
+        waktuartikel = time.time()
         for kode_artikel in all_kode_artikel:
             total_mutasi = mutasi_dict.get(kode_artikel, 0)
             total_pengiriman = pengiriman_dict.get(kode_artikel, 0)
@@ -1750,6 +1750,9 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
             totalsaldo = hargaterakhir[0] * total
             totalsaldoartikel += totalsaldo
             resultdengansaldoawal.append({'KodeArtikel': kode_artikel, 'total':total,"penyusunfg":konversibahanbaku,'hargafg':hargaterakhir[0],'totalsaldo':totalsaldo})
+        waktuakhirartikel = time.time()
+        print('waktu proses artikel : ', waktuakhirartikel-waktuartikel)
+        print('watku proses - artikel section ',waktuakhirartikel - waktuawal)
         # print(resultdengansaldoawal)
         # print(asd)
         timedataartikel = time.time()
@@ -1758,6 +1761,7 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
 
         resultdisplay = []
         totalsaldodisplay = 0
+        waktudisplay = time.time()
         for kode_display in all_kode_display:
             total_mutasi = mutasidisplay_dict.get(kode_display.KodeDisplay, 0)
             total_pengiriman = pengirimandisplay_dict.get(kode_display.KodeDisplay, 0)
@@ -1788,18 +1792,18 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
                     hargafgdisplay = 0
                     if num == 0 :
                        jumlahstokdisplay = sisapermintaan
-                       print(sisapermintaan)
+                    #    print(sisapermintaan)
                     #    print(asd)
                     else:
                         jumlahstokdisplay = datadetailmutasidisplay.Jumlah
-                        print(jumlahstokdisplay)
+                        # print(jumlahstokdisplay)
                         # print(asd)
                     spkpermintaanproduk = datadetailmutasidisplay.DetailSPKDisplay
                     permintaanproduk = models.TransaksiGudang.objects.filter(DetailSPKDisplay = spkpermintaanproduk).values("KodeProduk").annotate(total=Sum('jumlah'))
-                    print(permintaanproduk,spkpermintaanproduk,spkpermintaanproduk.Jumlah)
+                    # print(permintaanproduk,spkpermintaanproduk,spkpermintaanproduk.Jumlah)
                     for k in permintaanproduk:
                         hargaterakhir = gethargapurchasingperbulanperproduk(hari,k['KodeProduk'])
-                        print(hargaterakhir,k,jumlahstokdisplay)
+                        # print(hargaterakhir,k,jumlahstokdisplay)
                         jumlahkonversispk = k['total']/spkpermintaanproduk.Jumlah
                         jumlahhargakonversifgperbahanbaku = hargaterakhir * jumlahkonversispk * jumlahstokdisplay
                         hargafgdisplay += jumlahhargakonversifgperbahanbaku
@@ -1827,11 +1831,14 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
             totalsaldodisplay += stokxhargaperspk
             resultdisplay.append({'KodeDisplay': kode_display, 'total':jumlahspk,'hargafg':weightedaverage,'totalsaldo':stokxhargaperspk})
 
+        waktuakhirdisplay = time.time()
+        print('waktu proses display : ', waktuakhirdisplay-waktudisplay)
 
         sisabahanbaku = []
         totalsaldobahanbaku = 0
         bahanbakuall = models.Produk.objects.all()
         # bahanbakuall = models.Produk.objects.filter(KodeProduk = "tesbahanbaku")
+        waktubahan = time.time()
         for item in bahanbakuall:
             total_permintaanbarang = permintaanbahanbaku_dict.get(item.KodeProduk, 0)
             total_saldoawalbahanbaku = saldoawalbahanbaku_dict.get(item.KodeProduk,0)
@@ -1848,12 +1855,15 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
             totalsaldobahanbaku += totalsaldo
             sisabahanbaku.append({'KodeProduk':item,'total':totalbahanbaku,'hargasatuan':hargaterakhir,"hargatotal":totalsaldo})
 
-       
+        waktuakhirbahan = time.time()
+        print('waktu akhir bahan : ',waktuakhirbahan - waktubahan)
         total_saldofg = totalsaldoartikel + totalsaldobahanbaku + totalsaldodisplay
         
         data.append({'Artikel':resultdengansaldoawal,"BahanBaku":sisabahanbaku,"Display":resultdisplay,"totalsaldo":total_saldofg,'totalperbagian':{'artikel':totalsaldoartikel,'display':totalsaldodisplay,'bahanbaku':totalsaldobahanbaku}})
         
         akhir1loop = time.time()
+    print('waktu akhir 1 loop : ',akhir1loop-waktuawal)
+    # print(asd)
         
     return data
     
@@ -3731,20 +3741,51 @@ def exportlaporanbulananexcelkeseluruhan(request):
     print(listdatagudangperbulan)
     # print(asd)
     """5. Sheet Stock Awal Produksi"""
-    liststokawalproduksi = []
-    dfstokawalproduksi = create_dataframeproduksi(datawip[0])
-    liststokawalproduksi.append(dfstokawalproduksi)
+    # data wip
+    datamodelstockawalwip = {
+        "Kode Produk": [],
+        "Nama Produk": [],
+        "Unit": [],
+        "Harga Satuan": [],
+        "Jumlah": [],
+        "Total Biaya": [],
+        
+    }
 
-    # Proses datastokwiponly
-    dfstokawalwip = create_dataframeproduksi(datastokwiponly[0])
-    liststokawalproduksi.append(dfstokawalwip)
+    # print(asd)
+    for stokawal in datastokwiponly[0]["data"]:
+        # print(stokawal)
+        datamodelstockawalwip["Harga Satuan"].append(stokawal.hargasatuanawal_wip)
+        datamodelstockawalwip["Jumlah"].append(stokawal.jumlahawal_wip)
+        datamodelstockawalwip["Kode Produk"].append(stokawal.KodeProduk)
+        datamodelstockawalwip["Nama Produk"].append(stokawal.NamaProduk)
+        datamodelstockawalwip["Total Biaya"].append(stokawal.totalbiayaawal_wip)
+        datamodelstockawalwip["Unit"].append(stokawal.unit)
+    # print(datawip)
+    dfstokawalwip = pd.DataFrame(datamodelstockawalwip)
     totalsaldoawalwip = datastokwiponly[0]['total']
-
-    # Proses datastokfgonly
-    dfstokawalfg = create_dataframeproduksi(datastokfgonly[0])
-    liststokawalproduksi.append(dfstokawalfg)
-    print(liststokawalproduksi)
+    datamodelstockawalwip = {
+        "Kode Produk": [],
+        "Nama Produk": [],
+        "Unit": [],
+        "Harga Satuan": [],
+        "Jumlah": [],
+        "Total Biaya": [],
+        
+    }
+    for stokawal in datastokfgonly[0]["data"]:
+        # print(stokawal)
+        datamodelstockawalwip["Harga Satuan"].append(stokawal.hargasatuanawal_fg)
+        datamodelstockawalwip["Jumlah"].append(stokawal.jumlahawal_fg)
+        datamodelstockawalwip["Kode Produk"].append(stokawal.KodeProduk)
+        datamodelstockawalwip["Nama Produk"].append(stokawal.NamaProduk)
+        datamodelstockawalwip["Total Biaya"].append(stokawal.totalbiayaawal_fg)
+        datamodelstockawalwip["Unit"].append(stokawal.unit)
+    # print(datawip)
+    dfstokawalfg = pd.DataFrame(datamodelstockawalwip)
     totalsaldoawalfg = datastokfgonly[0]['total']
+
+
 
     """6. SHEET STOK BARANG FG"""
     # print("\n\n")
@@ -4171,7 +4212,7 @@ def exportlaporanbulananexcelkeseluruhan(request):
             
 
             
-        if len(dfstokawalwip)!=0 or len(dfstokawalfg)!=0:
+        if not dfstokawalwip.empty or not dfstokawalfg.empty:
             startrow = 1
             maxcolprevdf = 0
             maxrow = 0

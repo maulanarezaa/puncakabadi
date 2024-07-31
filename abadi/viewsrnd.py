@@ -880,11 +880,10 @@ def read_produk(request):
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def views_penyusun(request):
     print(request.GET)
-    data = request.GET
+    dataartikel = models.Artikel.objects.all()
     if len(request.GET) == 0:
-        data = models.Artikel.objects.all()
-
-        return render(request, "rnd/views_penyusun.html", {"dataartikel": data})
+    
+        return render(request, "rnd/views_penyusun.html", {"dataartikel": dataartikel})
     else:
         kodeartikel = request.GET["kodeartikel"]
 
@@ -1196,6 +1195,7 @@ def views_penyusun(request):
                             "nilaifg": nilaifg,
                             "versiterpilih": versiterpilih,
                             "dataversi": dataversi,
+                            'dataartikel' : dataartikel
                         },
                     )
                 else:

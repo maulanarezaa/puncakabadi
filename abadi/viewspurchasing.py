@@ -18,6 +18,7 @@ from openpyxl.styles import PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 from django.core.exceptions import ValidationError
 from django.utils.dateparse import parse_date
+import math
 """PURCHASING"""
 
 
@@ -26,6 +27,7 @@ from django.utils.dateparse import parse_date
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def acc_subkon(request,id) :
     accobj = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPenerimaanSubkon=id)
+    print('tes')
     if request.method == "GET" :
         valueppn = request.GET.get("input_ppn",2)
         try:
@@ -356,7 +358,6 @@ def notif_barang_purchasing(request):
             "filtersubkonobj" : filtersubkonobj
         },
     )
-
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
@@ -2084,61 +2085,73 @@ def kebutuhan_barang(request):
             artall = models.Artikel.objects.all()
             waktusekarang = datetime.now()
             awaltahun = datetime(year = waktusekarang.year,month=1,day=1)
-            datasjb = (
-                models.DetailSuratJalanPembelian.objects.values("KodeProduk").filter(NoSuratJalan__Tanggal__range =(awaltahun,waktusekarang))
-                .annotate(kuantitas=Sum("Jumlah"))
-                .order_by()
-            )
+            dataproduk = models.CacheValue.objects.filter(Tanggal__year = waktusekarang.year, Tanggal__month = waktusekarang.month)
+            print(dataproduk)
+            print(len(dataproduk))
+            if dataproduk.exists():
+                for item in dataproduk:
+                    list_q_gudang.append({item.KodeProduk.id:item.Jumlah})
 
-            if len(datasjb) == 0:
-                messages.error(request, "Tidak ada barang masuk ke gudang")
+                # print(asd)
+            else:
+                datasjb = (
+                    models.DetailSuratJalanPembelian.objects.values("KodeProduk").filter(NoSuratJalan__Tanggal__range =(awaltahun,waktusekarang))
+                    .annotate(kuantitas=Sum("Jumlah"))
+                    .order_by()
+                )
 
-            datagudang = (
-                models.TransaksiGudang.objects.values("KodeProduk").filter(tanggal__range =(awaltahun,waktusekarang))
-                .annotate(kuantitas=Sum("jumlah"))
-                .order_by()
-            )
+                if len(datasjb) == 0:
+                    messages.error(request, "Tidak ada barang masuk ke gudang")
 
-            datasaldoawal = models.SaldoAwalBahanBaku.objects.values("IDBahanBaku").filter(Tanggal__range =(awaltahun,waktusekarang)).filter(IDLokasi__NamaLokasi="Gudang").annotate(kuantitas=Sum("Jumlah")).order_by()
+                datagudang = (
+                    models.TransaksiGudang.objects.values("KodeProduk").filter(tanggal__range =(awaltahun,waktusekarang))
+                    .annotate(kuantitas=Sum("jumlah"))
+                    .order_by()
+                )
 
-            datapemusnahan = models.PemusnahanBahanBaku.objects.values("KodeBahanBaku").filter(Tanggal__range = (awaltahun,waktusekarang)).filter(lokasi__NamaLokasi="Gudang").annotate(kuantitas=Sum("Jumlah")).order_by()
-            
+                datasaldoawal = models.SaldoAwalBahanBaku.objects.values("IDBahanBaku").filter(Tanggal__range =(awaltahun,waktusekarang)).filter(IDLokasi__NamaLokasi="Gudang").annotate(kuantitas=Sum("Jumlah")).order_by()
 
-            print("data sjb", datasjb)
-            print("data gudang", datagudang)
-            print("data saldoawal", datasaldoawal)
-            print("data pemusnahan", datapemusnahan)
-            for item in datasjb:
-                kode_produk = item["KodeProduk"]
-                print('ini kode produk', kode_produk)
-                try:
-                    corresponding_gudang_item = datagudang.get(KodeProduk=kode_produk)
-                    print("corresponding gudang :",corresponding_gudang_item)
-
-
-                except models.TransaksiGudang.DoesNotExist:
-                    corresponding_gudang_item = {"KodeProduk" : kode_produk, "kuantitas" : 0}
-
-                try :
-                    corresponding_saldo_awal_item = datasaldoawal.get(IDBahanBaku=kode_produk)
-                    print("corresponding saldo_awal :",corresponding_saldo_awal_item)
-                except models.SaldoAwalBahanBaku.DoesNotExist :
-                    corresponding_saldo_awal_item = {"IDBahanBaku" : kode_produk, "kuantitas" : 0}
+                datapemusnahan = models.PemusnahanBahanBaku.objects.values("KodeBahanBaku").filter(Tanggal__range = (awaltahun,waktusekarang)).filter(lokasi__NamaLokasi="Gudang").annotate(kuantitas=Sum("Jumlah")).order_by()
                 
-                try :
-                    corresponding_pemusnahan_item = datapemusnahan.get(KodeBahanBaku = kode_produk)
-                    print("corresponding pemusnahan :",corresponding_pemusnahan_item)
-                except models.PemusnahanBahanBaku.DoesNotExist :
-                    corresponding_pemusnahan_item = {"KodeBahanBaku" : kode_produk, "kuantitas" : 0}
-                print("kuantitas sjb :", item["kuantitas"])
-                jumlah_akhir = item["kuantitas"] - corresponding_gudang_item["kuantitas"]+corresponding_saldo_awal_item["kuantitas"]-corresponding_pemusnahan_item["kuantitas"]
-                # if jumlah_akhir < 0:
-                #     messages.info(request,"Kuantitas gudang menjadi minus")
 
-                list_q_gudang.append({kode_produk: jumlah_akhir})
+                print("data sjb", datasjb)
+                print("data gudang", datagudang)
+                print("data saldoawal", datasaldoawal)
+                print("data pemusnahan", datapemusnahan)
+                # print(asd)
+                for item in datasjb:
+                    kode_produk = item["KodeProduk"]
+                    print('ini kode produk', kode_produk)
+                    try:
+                        corresponding_gudang_item = datagudang.get(KodeProduk=kode_produk)
+                        print("corresponding gudang :",corresponding_gudang_item)
+
+
+                    except models.TransaksiGudang.DoesNotExist:
+                        corresponding_gudang_item = {"KodeProduk" : kode_produk, "kuantitas" : 0}
+
+                    try :
+                        corresponding_saldo_awal_item = datasaldoawal.get(IDBahanBaku=kode_produk)
+                        print("corresponding saldo_awal :",corresponding_saldo_awal_item)
+                    except models.SaldoAwalBahanBaku.DoesNotExist :
+                        corresponding_saldo_awal_item = {"IDBahanBaku" : kode_produk, "kuantitas" : 0}
+                    
+                    try :
+                        corresponding_pemusnahan_item = datapemusnahan.get(KodeBahanBaku = kode_produk)
+                        print("corresponding pemusnahan :",corresponding_pemusnahan_item)
+                    except models.PemusnahanBahanBaku.DoesNotExist :
+                        corresponding_pemusnahan_item = {"KodeBahanBaku" : kode_produk, "kuantitas" : 0}
+                    print("kuantitas sjb :", item["kuantitas"])
+                    jumlah_akhir = item["kuantitas"] - corresponding_gudang_item["kuantitas"]+corresponding_saldo_awal_item["kuantitas"]-corresponding_pemusnahan_item["kuantitas"]
+                    # if jumlah_akhir < 0:
+                    #     messages.info(request,"Kuantitas gudang menjadi minus")
+
+                    list_q_gudang.append({models.Produk.objects.get(pk = kode_produk): jumlah_akhir})
+            
 
             print("LIST KODE ART :", list_kode_art)
             print("LIST Q GUDANG :", list_q_gudang)
+            # print(asd)
             for item in list_kode_art:
                 kodeArt = item["Kode_Artikel"]
 
@@ -2157,6 +2170,8 @@ def kebutuhan_barang(request):
                     versipenyusunterakhir = models.Penyusun.objects.filter(KodeArtikel =art_code).order_by('-versi').first()
                     print("versi terakhir",versipenyusunterakhir)
                     listpenyusun = models.Penyusun.objects.filter(KodeArtikel = art_code, versi = versipenyusunterakhir.versi).values_list('IDKodePenyusun',flat=True)
+                    print(listpenyusun)
+                    # print(asd)
 
                     # print(asd)
                     konversi_art = (
@@ -2174,12 +2189,14 @@ def kebutuhan_barang(request):
                     )
 
                     for item2 in konversi_art:
+                        print(item2)
+
                         kode_artikel = art_code.KodeArtikel
                         kode_produk = item2["kode_produk"]
                         nilai_conv = item2["Kuantitas"]
                         nama_bb = item2["nama_bb"]
 
-                        hasil_conv = round(jumlah_art * nilai_conv)
+                        hasil_conv = math.ceil(jumlah_art * nilai_conv)
 
                         list_hasil_conv.append(
                             {
@@ -2190,32 +2207,36 @@ def kebutuhan_barang(request):
                                 "Hasil Konversi": hasil_conv,
                             }
                         )
+                    # pritn(asd)
 
                 except models.KonversiMaster.DoesNotExist:
                     pass
 
             for item in list_hasil_conv:
+                print(list_hasil_conv)
+                print(item)
+                # print(asd)
                 kode_produk = item["Kode Produk"]
-
                 hasil_konversi = item["Hasil Konversi"]
-
-                for item2 in list_q_gudang:
-
-                    if kode_produk in item2:
-                        gudang_jumlah = item2[kode_produk]
-                        hasil_akhir = gudang_jumlah - hasil_konversi
-                        list_q_akhir.append(
+                datacachevalue = models.CacheValue.objects.filter(KodeProduk = kode_produk,Tanggal__year = waktusekarang.year, Tanggal__month = waktusekarang.month).first()
+                print(datacachevalue)
+                print(kode_produk)
+                gudang_jumlah = datacachevalue.Jumlah
+                hasil_akhir = gudang_jumlah - hasil_konversi
+                # print(asd)
+                list_q_akhir.append(
                             {
                                 "Kode_Artikel": item["Kode Artikel"],
                                 "Jumlah_Artikel": item["Jumlah Artikel"],
-                                "Kode_Produk": kode_produk,
+                                "Kode_Produk": datacachevalue.KodeProduk.KodeProduk,
                                 "Nama_Produk": item["Nama Produk"],
                                 "Kebutuhan": hasil_konversi,
                                 "Stok_Gudang": gudang_jumlah,
                                 "Selisih": hasil_akhir,
                             }
                         )
-
+              
+                
             pengadaan = {}
 
             for item in list_q_akhir:
@@ -2589,7 +2610,8 @@ def exportbarangsubkon_excel(request):
     for item in sjball:
         harga_total = item.Jumlah * item.Harga
         harga_potongan = harga_total * inputppn
-        harga_total_setelah_potongan = harga_total - harga_potongan
+        harga_satuan_setelah_pemotognan = math.ceil(item.Harga - (item.Harga * inputppn))
+        harga_total_setelah_potongan = harga_satuan_setelah_pemotognan * item.Jumlah
         row = [
             item.NoSuratJalan.Tanggal.strftime("%Y-%m-%d"),
             str(item.NoSuratJalan.Supplier),
@@ -2599,7 +2621,7 @@ def exportbarangsubkon_excel(request):
             item.Jumlah,
             item.Harga,
             harga_total,
-            harga_potongan,
+            harga_satuan_setelah_pemotognan,
             harga_total_setelah_potongan,
             item.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d") if item.NoSuratJalan.TanggalInvoice else '',
             str(item.NoSuratJalan.NoInvoice) if item.NoSuratJalan.NoInvoice else ''
@@ -2668,6 +2690,7 @@ def views_rekaphargasubkon(request):
     if len(request.GET) == 0:
         list_harga_total1 = []
         list_ppn = []
+        harga_setelah_ppn = []
         list_total_ppn = []
         sjball = models.DetailSuratJalanPenerimaanProdukSubkon.objects.all().order_by(
             "NoSuratJalan__Tanggal"
@@ -2683,15 +2706,14 @@ def views_rekaphargasubkon(request):
                     x.NoSuratJalan.TanggalInvoice = x.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d")
                 print(harga_total)
                 list_harga_total1.append(harga_total)
-            for item in list_harga_total1:
-                harga_ppn = item*inputppn
-                harga_total_ppn = item-harga_ppn
-                list_ppn.append(harga_ppn)
-                list_total_ppn.append(harga_total_ppn)
+                harga_setelah_pemotongan = math.ceil(x.Harga - (x.Harga * inputppn))
+                total_harga_setelah_pemotongan = harga_setelah_pemotongan * x.Jumlah
+                harga_setelah_ppn.append(harga_setelah_pemotongan)
+                list_total_ppn.append(total_harga_setelah_pemotongan)
             i = 0
             for item in sjball:
                 item.harga_total = list_harga_total1[i]
-                item.harga_ppn = list_ppn[i]
+                item.harga_ppn = harga_setelah_ppn[i]
                 item.harga_total_ppn = list_total_ppn[i]
                 i += 1
             print("list hartot", list_harga_total1)
@@ -2703,8 +2725,6 @@ def views_rekaphargasubkon(request):
                 {
                     "sjball": sjball,
                     "harga_total": harga_total,
-                    "harga_ppn" : harga_ppn,
-                    "harga_total_ppn" : harga_total_ppn,
                     "valueppn" : valueppn
                 },
             )
@@ -2724,7 +2744,8 @@ def views_rekaphargasubkon(request):
         # inputppn = request.POST["input_ppn"]
         list_harga_total = []
         list_ppn_1 = []
-        list_total_ppn_1 = []
+        list_total_ppn = []
+        harga_setelah_ppn = []
         try :
             filtersjb = models.DetailSuratJalanPenerimaanProdukSubkon.objects.filter(
                 NoSuratJalan__Tanggal__range=(input_awal, input_terakhir)
@@ -2739,17 +2760,15 @@ def views_rekaphargasubkon(request):
                 if x.NoSuratJalan.TanggalInvoice is not None:
                     x.NoSuratJalan.TanggalInvoice = x.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d")
                 list_harga_total.append(harga_total)
-            for item in list_harga_total:
-                harga_ppn_1 = item*inputppn
-                harga_total_ppn_1 = item-harga_ppn_1
-                list_ppn_1.append(harga_ppn_1)
-                list_total_ppn_1.append(harga_total_ppn_1)
-
+                harga_setelah_pemotongan = math.ceil(x.Harga - (x.Harga * inputppn))
+                total_harga_setelah_pemotongan = harga_setelah_pemotongan * x.Jumlah
+                harga_setelah_ppn.append(harga_setelah_pemotongan)
+                list_total_ppn.append(total_harga_setelah_pemotongan)
             i = 0
             for item in filtersjb:
                 item.harga_total = list_harga_total[i]
-                item.harga_ppn_1 = list_ppn_1[i]
-                item.harga_total_ppn_1 = list_total_ppn_1[i]
+                item.harga_ppn_1 = harga_setelah_ppn[i]
+                item.harga_total_ppn_1 = list_total_ppn[i]
                 i += 1
             return render(
                 request,
@@ -2757,8 +2776,6 @@ def views_rekaphargasubkon(request):
                 {
                     "data_hasil_filter": filtersjb,
                     "harga_total": harga_total,
-                    "harga_ppn_1" :harga_ppn_1,
-                    "harga_total_ppn_1" : harga_total_ppn_1,
                     "input_awal": input_awal,
                     "input_terakhir": input_terakhir,
                     "valueppn" : valueppn
