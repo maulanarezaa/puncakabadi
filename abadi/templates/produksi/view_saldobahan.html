@@ -37,7 +37,6 @@
                 <th>Nama Bahan Baku</th>
                 <th>Lokasi</th>
                 <th>Jumlah</th>
-                <th>Harga</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -49,7 +48,6 @@
                 <td>{{i.IDBahanBaku.NamaProduk}}</td>
                 <td>{{i.IDLokasi}}</td>
                 <td>{{i.Jumlah|separator_ribuan}}</td>
-                <td>Rp{{i.Harga|custom_thousands_separator}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   {% if user.groups.first.name != 'ppic' %}

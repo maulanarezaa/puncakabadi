@@ -94,7 +94,7 @@
                                 <td>Sisa Pengambilan</td>
                                 <td>Per Kotak</td>
                                 <td>Per Satuan</td>
-                                <td>Keluar</td>
+
                                 <td style="text-align:center;">Saldo</td>
                             </tr>
                         </thead>
@@ -113,6 +113,7 @@
                                 <td></td>
                                 <td></td>
 
+
                                 <td>{{saldo.Jumlah|floatformat:2|intcomma}}</td>
 
                             </tr>
@@ -122,49 +123,21 @@
                                 
                                 <td>
 
-                                    <a href="{% url 'detail_ksbb'  id=kodebarang tanggal=i.Tanggal lokasi=lokasi %}"
+                                    <a href=""
                                         style="color: black;">
                                         {{i.Tanggal}}
                                 </td>
                                 
-                                <td>
-                                    <ul>
-                                        {% for keluar in i.detailmasuk %}
-                                        <li>
-                                            {% if keluar.DetailSPK == None %}
-                                            -
-                                            {% else %}
-                                            {{keluar.DetailSPK.KodeArtikel}}
-                                            {% endif %}
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                </td>
-                                <td>
+                            </td>
+                            <td>
+    <ul>
 
-                                    <ul>
-                                        {% for keluar in i.detailmasuk %}
-                                        <li>
-                                            {{keluar.jumlah|floatformat:2|intcomma}}
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                </td>
-                                                            <td>
-                                    <ul>
-
-                                        {% for artikel in i.Artikel %}
-                                        <li>{{artikel}}</li>
-                                        {% endfor %}
-                                    </ul>
-                                </td>
-                                <td>
-                                    <ul>
-                                        {% for jumlah in i.Perkotak %}
-                                        <li>{{jumlah|floatformat:2|intcomma}}</li>
-                                        {% endfor %}
-                                    </ul>
-                                </td>
+        {% for artikel in i.Artikel %}
+        <li>{{artikel}}</li>
+        {% endfor %}
+    </ul>
+</td>
+                                
                                 <td>
                                     <ul>
                                         {% for konversi in i.Konversi %}
@@ -172,27 +145,31 @@
                                         {% endfor %}
                                     </ul>
                                 </td>
-                                
+                                <td>
+
+                                    {{i.Masuk}}
+                                </td>
+                                <td>tba</td>
+                                <td>
+                                    <ul>
+                                        {% for jumlah in i.Perkotak %}
+                                        <li>{{jumlah|floatformat:2|intcomma}}</li>
+                                        {% endfor %}
+                                    </ul>
                                 
                                 <td>
                                     <ul>
-                                        {% for keluar in i.Keluar %}
-                                        <li>
-                                            {{keluar|floatformat:2|intcomma}}
-                                        </li>
+
+                                        {% for satuan in i.Persatuan %}
+                                        <li>{{satuan}}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>
+                                
+                                
+                                
                                 <td>
-                                    <ul>
-
-                                        {% for sisa in i.Sisa %}
-                                        <li>
-                                            {{sisa|floatformat:2|intcomma}}
-                                        </li>
-
-                                        {% endfor %}
-                                    </ul>
+                                   {{i.Sisa}}
                                 </td>
                             </tr>
                             {% endfor %}

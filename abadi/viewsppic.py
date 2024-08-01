@@ -4218,42 +4218,42 @@ def exportlaporanbulananexcelkeseluruhan(request):
             maxrow = 0
             maxcol = 0
             if len(dfstokawalwip)!=0:
-                dfstokawalwip.to_excel(writer, index=False, startrow=startrow, sheet_name="Saldo Awal WIP")
+                dfstokawalwip.to_excel(writer, index=False, startrow=startrow, sheet_name="Saldo Awal Produksi")
                 maxrow = len(dfstokawalwip)+1
                 maxcol = len(dfstokawalwip.columns)
-                writer.sheets["Saldo Awal WIP"].cell(row=1, column = 1,value ="Saldo Awal WIP")
-                writer.sheets["Saldo Awal WIP"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
-                writer.sheets["Saldo Awal WIP"].cell(row=maxrow+2, column = 1).value = "Total Harga"
-                writer.sheets["Saldo Awal WIP"].cell(row=maxrow+2, column = maxcol,value = totalsaldoawalwip)
-                apply_number_format(writer.sheets['Saldo Awal WIP'],2,maxrow+2,1,maxcol)
-                apply_borders_thin(writer.sheets['Saldo Awal WIP'],2,maxrow+2,maxcol )
-                adjust_column_width(writer.sheets['Saldo Awal WIP'],dfstokawalwip,1,1)
+                writer.sheets["Saldo Awal Produksi"].cell(row=1, column = 1,value ="Saldo Awal WIP")
+                writer.sheets["Saldo Awal Produksi"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
+                writer.sheets["Saldo Awal Produksi"].cell(row=maxrow+2, column = 1).value = "Total Harga"
+                writer.sheets["Saldo Awal Produksi"].cell(row=maxrow+2, column = maxcol,value = totalsaldoawalwip)
+                apply_number_format(writer.sheets['Saldo Awal Produksi'],2,maxrow+2,1,maxcol)
+                apply_borders_thin(writer.sheets['Saldo Awal Produksi'],2,maxrow+2,maxcol )
+                adjust_column_width(writer.sheets['Saldo Awal Produksi'],dfstokawalwip,1,1)
                 maxcolprevdf += maxcol+1
 
             if len(dfstokawalfg)!=0:
                 # data stok awal FG
                 dfstokawalfg.to_excel(
-                                writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Saldo Awal WIP"
+                                writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Saldo Awal Produksi"
                 )
-                writer.sheets["Saldo Awal WIP"].cell(row=1, column = maxcol+2,value ='Saldo awal FG')
+                writer.sheets["Saldo Awal Produksi"].cell(row=1, column = maxcol+2,value ='Saldo awal FG')
                 maxrow = len(dfstokawalfg)+1
                 maxcol = len(dfstokawalfg.columns)+ maxcol + 1
-                writer.sheets["Saldo Awal WIP"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
-                writer.sheets["Saldo Awal WIP"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
-                writer.sheets["Saldo Awal WIP"].cell(row=maxrow+2, column = maxcol,value = totalsaldoawalfg)
-                apply_number_format(writer.sheets['Saldo Awal WIP'],2,maxrow+2,1,maxcol+3)
-                apply_borders_thin(writer.sheets['Saldo Awal WIP'],2,maxrow+2,maxcol ,maxcolprevdf+1)
-                adjust_column_width(writer.sheets['Saldo Awal WIP'],dfstokawalfg,1,maxcolprevdf+1)
+                writer.sheets["Saldo Awal Produksi"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
+                writer.sheets["Saldo Awal Produksi"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
+                writer.sheets["Saldo Awal Produksi"].cell(row=maxrow+2, column = maxcol,value = totalsaldoawalfg)
+                apply_number_format(writer.sheets['Saldo Awal Produksi'],2,maxrow+2,1,maxcol+3)
+                apply_borders_thin(writer.sheets['Saldo Awal Produksi'],2,maxrow+2,maxcol ,maxcolprevdf+1)
+                adjust_column_width(writer.sheets['Saldo Awal Produksi'],dfstokawalfg,1,maxcolprevdf+1)
 
-            writer.sheets["Saldo Awal WIP"].cell(row=2, column = maxcol+2).value = "Total Harga Saldo Awal"
-            writer.sheets["Saldo Awal WIP"].cell(row=2, column = maxcol+3,value = totalsaldoawalfg+totalsaldoawalwip)
-            apply_borders_thin(writer.sheets['Saldo Awal WIP'],2,2,maxcol+3 ,maxcol+2)
+            writer.sheets["Saldo Awal Produksi"].cell(row=2, column = maxcol+2).value = "Total Harga Saldo Awal"
+            writer.sheets["Saldo Awal Produksi"].cell(row=2, column = maxcol+3,value = totalsaldoawalfg+totalsaldoawalwip)
+            apply_borders_thin(writer.sheets['Saldo Awal Produksi'],2,2,maxcol+3 ,maxcol+2)
         
-        if len(dfstokawalgudang) != 0:
+        if not dfstokawalgudang.empty:
             dfstokawalgudang.to_excel(
                                 writer, index=False, startrow=1, startcol=0, sheet_name="Saldo Awal Gudang"
                 )
-            writer.sheets["Saldo Awal Gudang"].cell(row=1, column = 2,value ='Saldo awal FG')
+            writer.sheets["Saldo Awal Gudang"].cell(row=1, column = 1,value ='Saldo awal Gudang')
             maxrow = len(dfstokawalgudang)+1
             maxcol = len(dfstokawalgudang.columns)
             writer.sheets["Saldo Awal Gudang"].merge_cells(start_row=maxrow+2, start_column=1,end_row = maxrow+2,end_column= maxcol-1)
