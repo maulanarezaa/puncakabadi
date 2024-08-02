@@ -306,5 +306,22 @@ urlpatterns = [
     path("load_versi", viewsproduksi.load_versi, name="load_versi"),
     path("load_penyusun", viewsproduksi.load_penyusun, name="loadpenyusun"),
     path("viewksbbcat", viewsproduksi.ksbbcat, name="view_ksbbcat"),
+    path(
+        "viewksbbcat/<str:id>/<str:tanggal>", viewsproduksi.detailksbbcat, name="detail_ksbbcat"
+    ),
+    path(
+        "viewtransaksicat", viewsproduksi.view_transaksicat, name="view_transaksicat"
+    ),
+    path("addtransaksicat", viewsproduksi.add_transaksicat, name="add_transaksicat"),
+    path(
+        "updatetransaksicat/<str:id>",
+        viewsproduksi.update_transaksicat,
+        name="update_transaksicat",
+    ),
+    path(
+        "deletetransaksicat/<str:id>",
+        viewsproduksi.delete_pemusnahan,
+        name="delete_transaksicat",
+    ),
 
 ]

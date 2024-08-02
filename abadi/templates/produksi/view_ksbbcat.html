@@ -1,6 +1,7 @@
 {% extends "produksi/base.html" %}
 {% load static %}
 {% load humanize %}
+{% load customfilter %}
 
 
 <!-- Specific Page CSS goes HERE  -->
@@ -27,7 +28,7 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <input type="text" class="form-control" placeholder="Masukkan Kode Barangg"
-                                    name="kodebarang" list="kodebarang" value="{{kodebarang}}" required>
+                                    name="kodebarang" list="kodebarang" value="{{kodeproduk}}" required>
                                 <datalist id="kodebarang">
                                     {% for i in kodeprodukobj %}
                                     <option value="{{i.KodeProduk}}">{{i.NamaProduk}} - {{i.unit}}</option>
@@ -66,7 +67,7 @@
                             <div class="form-group">
                                 <div class="input-group">
                                     <input required type="text" class="form-control" placeholder="Masukkan Kode Barang"
-                                        aria-label="Masukkan Kode Barang" name="kodebarang" list="kodebarang">
+                                        aria-label="Masukkan Kode Barang" name="kodebarang" list="kodebarang" value="{{kodeproduk}}">
                                     <datalist id="kodebarang">
                                         {% for i in kodeprodukobj %}
                                         <option value="{{i.KodeProduk}}">{{i.NamaProduk}}</option>
@@ -109,7 +110,9 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td></td>
+                                <td>
+                                    {{saldo.SisaPengambilan}}
+                                </td>
                                 <td></td>
                                 <td></td>
 
@@ -123,7 +126,7 @@
                                 
                                 <td>
 
-                                    <a href=""
+                                    <a href="{% url 'detail_ksbbcat'  id=kodeproduk tanggal=i.Tanggal %}"
                                         style="color: black;">
                                         {{i.Tanggal}}
                                 </td>
@@ -141,7 +144,7 @@
                                 <td>
                                     <ul>
                                         {% for konversi in i.Konversi %}
-                                        <li>{{konversi|floatformat:4|intcomma}}</li>
+                                        <li>{{konversi|separator_desimal5angka}}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>
@@ -149,7 +152,12 @@
 
                                     {{i.Masuk}}
                                 </td>
-                                <td>tba</td>
+                                <td>
+                                    {% if i.SisaPengambilan == None %}
+                                    -
+                                    {% else %}
+                                    {{i.SisaPengambilan}}</td>
+                                    {% endif %}
                                 <td>
                                     <ul>
                                         {% for jumlah in i.Perkotak %}
@@ -161,15 +169,12 @@
                                     <ul>
 
                                         {% for satuan in i.Persatuan %}
-                                        <li>{{satuan}}</li>
+                                        <li>{{satuan|separator_desimal5angka}}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>
-                                
-                                
-                                
                                 <td>
-                                   {{i.Sisa}}
+                                   {{i.Sisa|separator_desimal5angka}}
                                 </td>
                             </tr>
                             {% endfor %}

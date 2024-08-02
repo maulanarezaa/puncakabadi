@@ -4824,13 +4824,13 @@ def ksbbcat (request):
         print(kodeproduk)
         return render(request, "produksi/view_ksbbcat.html", {"kodeprodukobj": kodeproduk, "sekarang": sekarang})
     else:
-        kodeproduk = request.GET['kodebarang']
-        datakodeprodukobj = models.Produk.objects.get(KodeProduk = kodeproduk)
+        getkodeproduk = request.GET['kodebarang']
+        datakodeprodukobj = models.Produk.objects.get(KodeProduk = getkodeproduk)
         lokasi = 'WIP'
         data,saldoawal = calculateksbbcat(datakodeprodukobj,tanggal_mulai,tanggal_akhir,lokasi)
         print(data)
         # print(asd)
-        return render(request, "produksi/view_ksbbcat.html", {"kodeprodukobj": kodeproduk, "sekarang": sekarang,'data':data,'saldo':saldoawal})
+        return render(request, "produksi/view_ksbbcat.html", {"kodeprodukobj": kodeproduk, "sekarang": sekarang,'data':data,'saldo':saldoawal,'kodeproduk':getkodeproduk})
 
 def calculateksbbcat(produk,tanggal_mulai,tanggal_akhir,lokasi):
 
@@ -4865,6 +4865,12 @@ def calculateksbbcat(produk,tanggal_mulai,tanggal_akhir,lokasi):
     datasppb = models.DetailSPPB.objects.filter(
         NoSPPB__Tanggal__range = (tanggal_mulai,tanggal_akhir),DetailSPK__KodeArtikel__id__in=penyusun_produk
     ).exclude(DetailSPKDisplay__isnull = False)
+
+    datatransaksicat = models.TransaksiCat.objects.filter(
+        KodeProduk = produk,Tanggal__range=(tanggal_mulai,tanggal_akhir)
+    )
+    print(datatransaksicat)
+    # print(asd)
     
     listartikelmaster = []
     datamodelskonversimaster = {}
@@ -4927,11 +4933,13 @@ def calculateksbbcat(produk,tanggal_mulai,tanggal_akhir,lokasi):
     tanggalpemusnahan = pemusnahanobj.values_list("Tanggal", flat=True)
     tanggalpemusnahanbahanbaku = pemusnahanbahanbakuobj.values_list('Tanggal',flat=True)
     tanggalpengirimanbarang = datasppb.values_list('NoSPPB__Tanggal',flat=True)
+    tanggaltransaksicat = datatransaksicat.values_list("Tanggal",flat=True)
 
     listtanggal = sorted(
-        list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalpemusnahan).union(tanggalpemusnahanbahanbaku).union(tanggalretur)))
+        list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalpemusnahan).union(tanggalpemusnahanbahanbaku).union(tanggalretur).union(tanggaltransaksicat)))
     )
     ''' SALDO AWAL SECTION '''
+    sisapengambilanawal = 0 
     try:
         saldoawal = models.SaldoAwalBahanBaku.objects.get(
             IDBahanBaku=produk,
@@ -4939,7 +4947,8 @@ def calculateksbbcat(produk,tanggal_mulai,tanggal_akhir,lokasi):
             Tanggal__range=(tanggal_mulai, tanggal_akhir),
         )
         saldo = saldoawal.Jumlah
-        saldoawal.Tanggal = saldoawal.Tanggal.strftime("%Y-%m-%d")
+
+        sisapengambilanawal = saldoawal.SisaPengambilan
 
     except models.SaldoAwalBahanBaku.DoesNotExist:
         saldo = 0
@@ -4979,8 +4988,10 @@ def calculateksbbcat(produk,tanggal_mulai,tanggal_akhir,lokasi):
         datapemusnahan = pemusnahanobj.filter(Tanggal = i)
         datapemusnahanbahanbaku = pemusnahanbahanbakuobj.filter(Tanggal = i)
         datapengiriman = datasppb.filter(NoSPPB__Tanggal = i)
+        datatransaksicatfiltered = datatransaksicat.filter(Tanggal = i)
         print(datamasuk)
         # print(asd)
+        '''Masuk dari Gudang'''
         for k in datamasuk:
             masuk += k.jumlah
             # print(k.DetailSPKDisplay != None)
@@ -4998,8 +5009,21 @@ def calculateksbbcat(produk,tanggal_mulai,tanggal_akhir,lokasi):
         artikelkeluar = datakeluar.values_list('KodeArtikel',flat=True).distinct()
         artikelpemusnahan = datapemusnahan.values_list('KodeArtikel',flat=True).distinct()
         artikelkirim = datapengiriman.values_list('DetailSPK__KodeArtikel',flat=True).distinct()
-        
-        
+        '''Transaksi Penimbangan Cat'''
+        for j in datatransaksicatfiltered:
+            total = datatransaksicatfiltered.aggregate(total=Sum('SisaPengambilan'))
+            print(total)
+            data['SisaPengambilan'] = total['total']
+            persatuankeluar = data['Masuk'] + sisapengambilanawal- total['total']
+            datamodelskeluar.append( persatuankeluar)
+            sisapengambilanawal = total['total']
+            print(persatuankeluar)
+            print(sisa)
+            sisa -= persatuankeluar
+            print(sisa)
+            # print(asd)
+            
+        '''Keluar Mutasi'''
         for j in artikelkeluar:
             print('\n',j)
             artikelkeluarobj = models.Artikel.objects.get(id = j)
@@ -5069,8 +5093,178 @@ def calculateksbbcat(produk,tanggal_mulai,tanggal_akhir,lokasi):
             sisa = (sisa)
             datamodelssisa.append(sisa)
         
-        data['Sisa'] = sisa
+        if datakeluarretur.exists():
+            # Mengagregat Jumlah Bahan Baku rusak
+            totalbahanbakuretur = datakeluarretur.aggregate(total=Sum('jumlah'))
+
+            sisa -= totalbahanbakuretur['total']*-1
+            datamodelssisa.append(sisa)
+            datamodelskeluar.append(totalbahanbakuretur['total']*-1)
         
+
+        if datapemusnahanbahanbaku.exists():
+            # Mengagregat Jumlah Bahan Baku rusak
+            totalbahanbakurusak = datapemusnahanbahanbaku.aggregate(total=Sum('Jumlah'))
+
+            sisa -= totalbahanbakurusak['total']
+            datamodelssisa.append(sisa)
+            datamodelskeluar.append(totalbahanbakurusak['total'])
+        
+        if not datamodelssisa :
+            sisa = (sisa)
+            datamodelssisa.append(sisa)
+        data['Sisa'] = sisa
         listdata.append(data)
-    
+        
     return listdata,saldoawal
+
+def detailksbbcat(request, id, tanggal):
+    tanggal = datetime.strptime(tanggal, "%Y-%m-%d")
+    tanggal = tanggal.strftime("%Y-%m-%d")
+    lokasi = 'WIP'
+
+    # Transaksi Gudang
+    datagudang = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk__KodeProduk=id,Lokasi__NamaLokasi=(lokasi),jumlah__gte=0)
+    dataretur = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk__KodeProduk=id,Lokasi__NamaLokasi=(lokasi),jumlah__lt=0)
+    for item in dataretur:
+        item.jumlah = item.jumlah * -1
+    listartikel = (
+        models.Penyusun.objects.filter(KodeProduk__KodeProduk=id)
+        .values_list("KodeArtikel__KodeArtikel", flat=True)
+        .distinct()
+    )
+
+    # Transaksi Produksi
+    dataproduksi = models.TransaksiProduksi.objects.filter(
+        KodeArtikel__KodeArtikel__in=listartikel, Jenis="Mutasi", Tanggal=tanggal
+    )
+    print(dataproduksi)
+
+    # Transaksi Pemusnahan
+    datapemusnahan = models.PemusnahanArtikel.objects.filter(
+        KodeArtikel__KodeArtikel__in=listartikel, Tanggal=tanggal,
+    )
+    # Transaksi Pemusnahan Bahan Baku
+    datapemusnahanbahanbaku  =models.PemusnahanBahanBaku.objects.filter(Tanggal = tanggal,KodeBahanBaku__KodeProduk = id,lokasi__NamaLokasi=lokasi)
+    print(datapemusnahanbahanbaku)
+    print(datagudang)
+    # Transaksi Cat
+    datatransaksicat = models.TransaksiCat.objects.filter(Tanggal = tanggal,KodeProduk__KodeProduk = id)
+    print(datatransaksicat)
+    return render(
+        request,
+        "produksi/view_detailksbbcat.html",
+        {
+            "datagudang": datagudang,
+            "dataproduksi": dataproduksi,
+            "datapemusnahan": datapemusnahan,
+            'datapemusnahanbahanbaku' : datapemusnahanbahanbaku,
+            "dataretur" : dataretur,
+            "datatransaksicat" : datatransaksicat
+        },
+    )
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def view_transaksicat(request):
+    dataproduksi = models.TransaksiCat.objects.all().order_by("-Tanggal")
+    for i in dataproduksi:
+        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
+
+    return render(
+        request, "produksi/view_transaksicat.html", {"dataproduksi": dataproduksi}
+    )
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def add_transaksicat(request):
+    kodeprodukcat = "A-004"
+    dataprodukcat = models.Produk.objects.filter(KodeProduk__startswith=kodeprodukcat)
+    if request.method == "GET":
+        return render(
+            request,
+            "produksi/add_transaksicat.html",
+            { "dataproduk": dataprodukcat},
+        )
+    else:
+
+        kodeproduk = request.POST["kodeproduk"]
+        sisapengambilan = request.POST["sisapengambilan"]
+        tanggal = request.POST["tanggal"]
+
+
+        try:
+            kodeprodukobj = models.Produk.objects.get(KodeProduk=kodeproduk)
+        except:
+            messages.error(request, "Kode Artikel tidak ditemukan")
+            return redirect("add_transaksicat")
+
+        transaksicatbj = models.TransaksiCat(
+            KodeProduk = kodeprodukobj,
+            Tanggal = tanggal,
+            SisaPengambilan = sisapengambilan
+        ).save()
+        models.transactionlog(
+            user="Produksi",
+            waktu=datetime.now(),
+            jenis="Create",
+            pesan=f"Transaksi Cat. Kode Bahan Baku : {kodeprodukobj.KodeProduk} SisaPengambilan : {sisapengambilan} ",
+        ).save()
+        messages.success(request,'Data Berhasil Disimpan')
+        
+        return redirect("view_transaksicat")
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def update_transaksicat(request, id):
+    kodeprodukcat = "A-004"
+    dataprodukcat = models.Produk.objects.filter(KodeProduk__startswith=kodeprodukcat)
+    dataobj = models.TransaksiCat.objects.get(id=id)
+    dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
+    if request.method == "GET":
+        return render(
+            request,
+            "produksi/update_transaksicat.html",
+            {"data": dataobj,'kodeproduk':dataprodukcat},
+        )
+
+    else:
+        kodeproduk = request.POST["kodeproduk"]
+        sisapengambilan = request.POST["sisapengambilan"]
+        tanggal = request.POST["tanggal"]
+        
+        try:
+            kodeprodukobj = models.Produk.objects.get(KodeProduk=kodeproduk)
+        except:
+            messages.error(request, "Kode Artikel tidak ditemukan")
+            return redirect("update_pemusnahan" ,id=id)
+
+        dataobj.Tanggal = tanggal
+        dataobj.SisaPengambilan = sisapengambilan
+        dataobj.KodeProduk = kodeprodukobj
+
+        dataobj.save()
+
+        models.transactionlog(
+            user="Produksi",
+            waktu=datetime.now(),
+            jenis="Update",
+            pesan=f"Pemusnahan Artikel. Kode Bahan Baku : {kodeprodukobj.KodeProduk} Sisa Pengambilan : {sisapengambilan} ",
+        ).save()
+        messages.success(request,"Data Berhasil disimpan")
+        return redirect("view_transaksicat")
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def delete_pemusnahan(request, id):
+    dataobj = models.TransaksiCat.objects.get(id=id)
+    dataobj.delete()
+
+    models.transactionlog(
+        user="Produksi",
+        waktu=datetime.now(),
+        jenis="Delete",
+        pesan=f"Pemusnahan Bahan Baku. Kode Bahan Baku : {dataobj.KodeProduk.KodeProduk} Sisa Pengambilan : {dataobj.SisaPengambilan}",
+    ).save()
+    messages.success(request,'Data Berhasil dihapus')
+    return redirect("view_transaksicat")

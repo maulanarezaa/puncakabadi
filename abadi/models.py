@@ -250,6 +250,7 @@ class SaldoAwalBahanBaku(models.Model):
     Jumlah = models.IntegerField()
     Harga = models.FloatField()
     Tanggal = models.DateField(null=True, blank=True)
+    SisaPengambilan = models.FloatField(default=0)
 
     def __str__(self):
         return f"{self.IDLokasi} - {self.IDBahanBaku}- {self.Tanggal}"
@@ -447,11 +448,10 @@ class CacheValue(models.Model):
     def __str__(self):
         return f'{self.KodeProduk} - {self.Tanggal}'
 
-class transaksicat(models.Model):
+class TransaksiCat(models.Model):
     KodeProduk = models.ForeignKey(Produk,on_delete=models.CASCADE)
     Tanggal = models.DateField()
     SisaPengambilan = models.FloatField(default=0)
     def __str__(self):
         return f'{self.KodeProduk} - {self.Tanggal}'
 
-    

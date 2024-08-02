@@ -40,3 +40,15 @@ def separator_desimal(value):
     except (ValueError,TypeError):
         return value
     
+@register.filter
+def separator_desimal5angka(value):
+    try:
+        # Convert the float value to a string with the appropriate format
+        formatted_value = f"{value:.5f}"
+        print(formatted_value)
+        # Replace dot with comma for decimal separator
+        formatted_value = formatted_value.replace('.', ',')
+        return formatted_value
+    except (ValueError,TypeError):
+        return value
+    
