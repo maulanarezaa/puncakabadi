@@ -1145,7 +1145,7 @@ def bulk_createsjp(request):
                     except Exception as e:
                         kodebahanerror.append([item,e])
 
-                        break
+                        continue
 
         return render(request,'error/errorsjp.html',{'data':kodebahanerror})
 
