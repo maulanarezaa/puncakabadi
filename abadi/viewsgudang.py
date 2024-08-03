@@ -13,6 +13,8 @@ from django.contrib.auth.decorators import login_required
 import pandas as pd
 from django.db.models import FloatField
 import time
+import re
+from django.db.models import Q
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
@@ -1194,107 +1196,135 @@ def bulk_createtransaksigudang(request):
     '''
     if request.method == "POST" and request.FILES["file"]:
         file = request.FILES["file"]
-        nama_artikel = '2011 BW'
+        nama_artikel = '9010 AC'
         artikelobj = models.Artikel.objects.get(KodeArtikel = nama_artikel)
         print(nama_artikel)
         # print(asd)
         excel_file = pd.ExcelFile(file)
-        # df = pd.read_excel(file, engine="openpyxl", sheet_name='WIP')
-        # print(df)
-        # i = 0
-        # detailspkobj = models.DetailSPK(
-        #     NoSPK = models.SPK.objects.get(NoSPK='dummyspk'),
-        #     KodeArtikel = artikelobj,
-        #     Jumlah = 0
-        # ).save()
-        # kodebahanbaku = None
-        # for index,row in df.iterrows():
-        #     if i < 6:
-        #         i+=1
-        #         continue
-        #     print(i,index,row)
-        #     # print(tanggal,permintaan,bahanbaku)
-        #     if kodebahanbaku is None and not pd.isna(row['Unnamed: 2']):
-        #         bahanbaku = row['Unnamed: 2']
-        #         kodebahanbaku = bahanbaku
-        #     if not pd.isna(row['Unnamed: 4']):
-        #         tanggal = row['CV. PUNCAK ABADI']
-        #         permintaan = row['Unnamed: 4']
-        #         print('ini',kodebahanbaku)
-        #         # if pd.isna(row['Unnamed: 1']):
-        #         detailspk = models.DetailSPK.objects.get(NoSPK__NoSPK = 'dummyspk',KodeArtikel = artikelobj)
-        #         # else:
-        #         #     # Cek apakah sudah ada datanya
-        #         #     cekobj = models.SPK.objects.filter(NoSPK = row["Unnamed: 1"]).exists()
-        #         #     if cekobj:
-        #         #         detailspk = models.DetailSPK.objects.get(NoSPK__NoSPK = row["Unnamed: 1"],KodeArtikel = artikelobj)
-        #         #     else:
-        #         #         cekobj = models.SPK(
-        #         #             NoSPK = row['Unnamed: 1'],
-        #         #            Tanggal = datetime.now(),
-        #         #            Keterangan = "-",
-        #         #            KeteranganACC = True,
-        #         #         ).save()
-        #         #         detailspkobj = models.DetailSPK(
-        #         #             NoSPK = models.SPK.objects.get(NoSPK=row["Unnamed: 1"]),
-        #         #             KodeArtikel = artikelobj,
-        #         #             Jumlah = 0
-        #         #         )
-        #         #         detailspkobj.save()
-        #         #         detailspk = models.DetailSPK.objects.get(NoSPK__NoSPK = row["Unnamed: 1"],KodeArtikel = artikelobj)
+        
 
-        #         dataobj = models.TransaksiGudang(
-        #             KodeProduk = models.Produk.objects.get(KodeProduk = kodebahanbaku),
-        #             keterangan = "-",
-        #             jumlah = permintaan,
-        #             tanggal = tanggal,
-        #             KeteranganACC = True,
-        #             Lokasi = models.Lokasi.objects.get(NamaLokasi = "WIP"),
-        #             DetailSPK = detailspk
+        # Mendapatkan daftar nama sheet
+        sheet_names = excel_file.sheet_names
+        produkerror = []
 
-        #         ).save()
-                
-                
+        sheetname = 'WIP'
+        df = pd.read_excel(file, engine="openpyxl", sheet_name=sheetname, header=5)
+        print(sheetname)
+        print(df)
         # print(asd)
+
+        i = 0
+        for index, row in df.iterrows():
+            try:
+                print(row)
+                print(asd)
+                if pd.isna(row["Unnamed: 4"]):
+                    print(f"Index {index}: Tanggal adalah NaT")
+                else:
+
+                    transaksiobj = models.TransaksiGudang(
+                            keterangan="-",
+                            jumlah=row['Unnamed: 4'],
+                            tanggal=row['Unnamed: 0'],
+                            KeteranganACC=True,
+                            KodeProduk=models.Produk.objects.get(KodeProduk=item),
+                            Lokasi=models.Lokasi.objects.get(IDLokasi=1),
+                        )
+            except Exception as e:
+                    produkerror.append([item,e])
+                    continue
+
+
+        return HttpResponse(f"Berhasil Upload, {produkerror}")
+
+    return render(request, "Purchasing/bulk_createproduk.html")
+
+def bulk_createtransaksigudang(request):
+    '''
+    UNTUK MENAMBAHKAN DATA TRANSAKSI GUDANG MELALUI KSBJ TIAP ARTIKEL 
+    '''
+    if request.method == "POST" and request.FILES["file"]:
+        file = request.FILES["file"]
+        nama_artikel = '9010 AC'
+        artikelobj = models.Artikel.objects.get(KodeArtikel = nama_artikel)
+        print(nama_artikel)
+        # print(asd)
+        excel_file = pd.ExcelFile(file)
+        
 
         # Mendapatkan daftar nama sheet
         sheet_names = excel_file.sheet_names
         produkerror = []
 
         for item in sheet_names:
-            df = pd.read_excel(file, engine="openpyxl", sheet_name=item)
+            df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=6)
             print(item)
             print(df)
             # print(asd)
 
             i = 0
+            tanggal = None
+            listtanggal = []
             for index, row in df.iterrows():
-                if i < 2:
-                    i += 1
-                    continue
-                try:
-                    # print(row["Tanggal"])
-                    if pd.isna(row["Unnamed: 4"]):
-                        print(f"Index {index}: Tanggal adalah NaT")
+            
+                print(row)
+                print(item)
+                # print(asd)
+                if not pd.isna(row["Tanggal"]):
+                    listtanggal.append(row['Tanggal'])
+
+                if pd.isna(row["Masuk"]):
+                    print(f"Index {index}: Tanggal adalah NaT")
+                else:
+                    if pd.isna(row['Tanggal']):
+                        tanggal = listtanggal[-1]
                     else:
-                        print(index, row['Unnamed: 4'])
-                        print(row['Unnamed: 4'],item)
-                        transaksiobj = models.TransaksiGudang(
-                                keterangan="-",
-                                jumlah=row['Unnamed: 4'],
-                                tanggal=row['Unnamed: 0'],
-                                KeteranganACC=True,
-                                KodeProduk=models.Produk.objects.get(KodeProduk=item),
-                                Lokasi=models.Lokasi.objects.get(IDLokasi=1),
-                            ).save()
-                except:
-                        produkerror.append(item)
-                        continue
+                        tanggal = row['Tanggal']
+                    transaksiobj = models.TransaksiGudang(
+                            keterangan="-",
+                            jumlah=row['Masuk'],
+                            tanggal=tanggal,
+                            KeteranganACC=True,
+                            KodeProduk=models.Produk.objects.get(KodeProduk=item),
+                            Lokasi=models.Lokasi.objects.get(IDLokasi=1),
+                        )
+                    if not pd.isna(row['Keterangan']):
+                        keterangan = clean_string(row['Keterangan'])
+                        tesartikel = models.Artikel.objects.filter(KodeArtikel=keterangan)
+                        detailspk = models.DetailSPK.objects.filter(NoSPK__NoSPK='dummyspk',KodeArtikel__KodeArtikel__icontains=keterangan).first()
+                        print(keterangan)
+                        print(detailspk)
+                        if detailspk == None and tesartikel.exists():
+                            detailspk = models.DetailSPK(
+                                NoSPK = models.SPK.objects.get(NoSPK = 'dummyspk'),
+                                KodeArtikel = tesartikel.first(),
+                                Jumlah = 0
+                            )
+                            print(tesartikel.first())
+                            simpan = detailspk.save()
+                        
+                        transaksiobj.DetailSPK = detailspk
+                        
+                        # print(asd)
+                    print(row['Tanggal'])
+                    print(item)
+                    transaksiobj.save()
+                    tanggal = row['Tanggal']
+                    
+                # except Exception as e:
+                #         produkerror.append([item,e])
+                #         continue
+                
 
 
         return HttpResponse(f"Berhasil Upload, {produkerror}")
 
     return render(request, "Purchasing/bulk_createproduk.html")
+
+def clean_string(s):
+    # Remove "Art" and any non-alphanumeric characters
+    s = re.sub(r'Art', '', s)
+    return re.sub(r'[^a-zA-Z0-9]', ' ', s).strip()
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
