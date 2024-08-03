@@ -1161,27 +1161,25 @@ def bulk_createsaldoawal(request):
         sheet_names = excel_file.sheet_names
 
         for item in sheet_names:
-            df = pd.read_excel(file, engine="openpyxl", sheet_name=item)
+            df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=4)
             print(item)
             print(df)
+            # print(asd)
 
-            i = 0
+
             for index, row in df.iterrows():
-                if i < 1:
-                    i += 1
-                    continue
-                else:
                     print("Saldo Akhir")
-                    if pd.isna(row["Unnamed: 9"]):
+                    print(row)
+                    if pd.isna(row["Harga.2"]):
                         print(f"Data Kosong, Lanjut")
                         break
                     else:
                         saldoawalwip = models.SaldoAwalBahanBaku(
-                            Harga=row["Unnamed: 9"],
-                            Jumlah=row["Sisa"],
+                            Harga=row["Harga.2"],
+                            Jumlah=row["Quantity.2"],
                             Tanggal="2024-01-01",
                             IDBahanBaku=models.Produk.objects.get(KodeProduk=item),
-                            IDLokasi=models.Lokasi.objects.get(pk=1),
+                            IDLokasi=models.Lokasi.objects.get(pk=3),
                         ).save()
                         break
 
