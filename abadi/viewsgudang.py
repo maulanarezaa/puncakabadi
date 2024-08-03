@@ -1107,22 +1107,24 @@ def bulk_createsjp(request):
         sheet_names = excel_file.sheet_names
 
         for item in sheet_names:
-            df = pd.read_excel(file, engine="openpyxl", sheet_name=item)
+            df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=3)
             print(item)
             print(df)
+            # print(asd)
 
-            i = 0
+            # i = 0
             for index, row in df.iterrows():
-                if i < 2:
-                    i += 1
-                    continue
-                print(row["Tanggal"])
+                # if i < 2:
+                #     i += 1
+                #     continue
+                # print(row["Tanggal"])
+                # print(row)
                 if pd.isna(row["Tanggal"]):
                     print(f"Index {index}: Tanggal adalah NaT")
                 else:
                     try:
-                        print(index, row["Tanggal"])
-                        print(row["Masuk "])
+                        # print(index, row["Tanggal"])
+                        # print(row["Masuk "])
                         if pd.isna(row["Masuk "]):
                             continue
                         data = models.SuratJalanPembelian(
@@ -1140,11 +1142,12 @@ def bulk_createsjp(request):
                                 Tanggal=row["Tanggal"]
                             ),
                         ).save()
-                    except:
-                        kodebahanerror.append(item)
-                        continue
+                    except Exception as e:
+                        kodebahanerror.append([item,e])
 
-        return HttpResponse(f"Berhasil Upload {kodebahanerror}")
+                        break
+
+        return render(request,'error/errorsjp.html',{'data':kodebahanerror})
 
     return render(request, "Purchasing/bulk_createproduk.html")
 
