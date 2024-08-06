@@ -1530,14 +1530,15 @@ def bulk_createpenyusun(request):
                 # print(row["Kode Stock"])
                 try:
                     kodeartikel = models.Artikel.objects.get(KodeArtikel=item)
-                except:
+                except Exception as e:
+                    listerror.append([item,e])
                     continue
                 try:
                     read_produk = models.Produk.objects.get(
                         KodeProduk=row["Kode Stock"]
                     )
                 except:
-                    listerror.append([data, row, item])
+                    listerror.append([item, e])
                     continue
 
                 print(row["Jumlah Sat/ktk"])

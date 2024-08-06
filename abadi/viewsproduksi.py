@@ -1,10 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponse
 from django.contrib import messages
 from . import models
 from django.db.models import Sum
 from datetime import datetime, timedelta
 import pandas as pd
-
+import re
 from . import logindecorators
 from django.contrib.auth.decorators import login_required
 
@@ -5268,3 +5268,83 @@ def delete_pemusnahan(request, id):
     ).save()
     messages.success(request,'Data Berhasil dihapus')
     return redirect("view_transaksicat")
+
+def bulkcreate_transaksiproduksi(request):
+    '''
+    UNTUK MENAMBAHKAN DATA TRANSAKSI GUDANG MELALUI KSBJ TIAP ARTIKEL 
+    '''
+    if request.method == "POST" and request.FILES["file"]:
+        file = request.FILES["file"]
+        # print(asd)
+        excel_file = pd.ExcelFile(file)
+        
+
+        # Mendapatkan daftar nama sheet
+        sheet_names = excel_file.sheet_names
+        produkerror = []
+
+        for item in sheet_names:
+            df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=6)
+            print(item)
+            print(df)
+            # print(asd)
+
+            i = 0
+            tanggal = None
+            listtanggal = []
+            for index, row in df.iterrows():
+                if i == 0:
+                    i+=1
+                    continue
+            
+                print(row)
+                print(item)
+                # print(asd)
+                if not pd.isna(row["Tanggal"]):
+                    listtanggal.append(row['Tanggal'])
+                try:
+                    
+                    if  pd.isna(row['Unnamed: 3']):
+                        print(f"Index {index}: Unnamed: 3 adalah number")
+                    else:
+                        try:
+
+                            if pd.isna(row['Tanggal']):
+                                tanggal = listtanggal[-1]
+                            else:
+                                tanggal = row['Tanggal']
+                            if not pd.isna(row['Keterangan']):
+                                keterangan = clean_string(row['Keterangan'])
+                            print(tanggal)
+                            existing_transaction = models.TransaksiProduksi.objects.filter(
+                                KodeArtikel__KodeArtikel=keterangan,
+                                Tanggal=tanggal
+                            ).exists()
+                            if not existing_transaction:
+                                transaksiobj = models.TransaksiProduksi(
+                                    KodeArtikel = models.Artikel.objects.get(KodeArtikel = keterangan ),
+                                    Lokasi = models.Lokasi.objects.get(NamaLokasi='WIP'),
+                                    Jumlah = row['Unnamed: 3'],
+                                    Jenis = 'Mutasi',
+                                    Tanggal = tanggal,
+                                    Keterangan = '-'
+                                )
+                                transaksiobj.save()
+                    
+                        
+                        except Exception as e:
+                                produkerror.append([item,(e,keterangan)])
+                                continue
+                
+                except KeyError :
+                    break
+
+
+        return render(request,'error/errorsjp.html',{'data':produkerror})
+
+    return render(request, "produksi/bulk_createtransaksiproduksi.html")
+
+def clean_string(s):
+    # Remove "Art" and any non-alphanumeric characters
+    s = re.sub(r'Art', '', s)
+    return re.sub(r'[^a-zA-Z0-9]', ' ', s).strip()

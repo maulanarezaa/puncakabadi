@@ -323,5 +323,6 @@ urlpatterns = [
         viewsproduksi.delete_pemusnahan,
         name="delete_transaksicat",
     ),
-
+    # '''BULK CREATE'''
+    path('bulk_createtransaksiproduksi',viewsproduksi.bulkcreate_transaksiproduksi),
 ]
