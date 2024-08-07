@@ -247,7 +247,7 @@ class SaldoAwalBahanBaku(models.Model):
     IDSaldoAwalBahanBaku = models.AutoField(primary_key=True)
     IDBahanBaku = models.ForeignKey(Produk, on_delete=models.CASCADE)
     IDLokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
-    Jumlah = models.IntegerField()
+    Jumlah = models.FloatField()
     Harga = models.FloatField()
     Tanggal = models.DateField(null=True, blank=True)
     SisaPengambilan = models.FloatField(default=0)

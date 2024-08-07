@@ -5348,3 +5348,39 @@ def clean_string(s):
     # Remove "Art" and any non-alphanumeric characters
     s = re.sub(r'Art', '', s)
     return re.sub(r'[^a-zA-Z0-9]', ' ', s).strip()
+
+def bulk_createsaldoawalproduksi(request):
+    if request.method == "POST" and request.FILES["file"]:
+        file = request.FILES["file"]
+        excel_file = pd.ExcelFile(file)
+
+        # Mendapatkan daftar nama sheet
+        sheet_names = excel_file.sheet_names
+
+        for item in sheet_names:
+            df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=6)
+            print(item)
+            print(df)
+            # print(asd)
+
+
+            for index, row in df.iterrows():
+                    print("Saldo Akhir")
+                    print(row)
+                    # print(asd)
+                    if pd.isna(row["Sisa"]):
+                        print(f"Data Kosong, Lanjut")
+                        break
+                    else:
+                        saldoawalwip = models.SaldoAwalBahanBaku(
+                            Harga=0,
+                            Jumlah=row['Sisa'],
+                            Tanggal="2024-01-01",
+                            IDBahanBaku=models.Produk.objects.get(KodeProduk=item),
+                            IDLokasi=models.Lokasi.objects.get(pk=1),
+                        ).save()
+                        break
+
+        return HttpResponse("Berhasil Upload")
+
+    return render(request, "produksi/bulk_createproduk.html")
