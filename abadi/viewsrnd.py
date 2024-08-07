@@ -1521,55 +1521,61 @@ def bulk_createpenyusun(request):
 
         # Mendapatkan daftar nama sheet
         sheet_names = excel_file.sheet_names
-        print(sheet_names)
+        # print(sheet_names)
         kodepenyusun = 1
         for item in sheet_names:
-            df = pd.read_excel(file, sheet_name=item)
+            lokasi = 'WIP'
+            df = pd.read_excel(file, sheet_name=item,header=4)
             print(df)
+            print(item)
+            # print(df)
+                        # print(asd)
             for data, row in df.iterrows():
                 # print(row["Kode Stock"])
-                try:
-                    kodeartikel = models.Artikel.objects.get(KodeArtikel=item)
-                except Exception as e:
-                    listerror.append([item,e])
-                    continue
-                try:
-                    read_produk = models.Produk.objects.get(
-                        KodeProduk=row["Kode Stock"]
-                    )
-                except:
-                    listerror.append([item, e])
-                    continue
+                print(data)
+                # print(row)
+                # print(row['Jumlah Sat/ktk'])
+                # print(asd)
+                if str(row["Jumlah Sat/ktk"]).strip() == 'WIP':
+                    lokasi = 'FG'
+                    print('Masuk FG')
+                    # print(asd)
+                elif str(row["Jumlah Sat/ktk"]).strip() == 'FG':
+                    break
+                if  pd.isna(row['Kode Stock'] and not pd.isna(row['Jumlah Sat/ktk'])):
+                    listerror.append([item,(data,row['Kode Stock'],row['Bahan Baku'])])
+                else:
+                    kuantitas = row["Jumlah Sat/ktk"]
+                    try:
+                        kodeartikel = models.Artikel.objects.get(KodeArtikel=item)
+                    except Exception as e:
+                        listerror.append([item,(data,e)])
+                        continue
+                    try:
+                        read_produk = models.Produk.objects.get(
+                            KodeProduk=row["Kode Stock"]
+                        )
+                    except Exception as e:
+                        listerror.append([item, (e,data,row["Kode Stock"],row["Jumlah Sat/ktk"])])
+                        continue
 
-                print(row["Jumlah Sat/ktk"])
-                kuantitas = row["Jumlah Sat/ktk"]
-                try:
-                    print(row["Jumlah Sat/ktk (+2,5%)"])
-                    allowance = row["Jumlah Sat/ktk (+2,5%)"]
-                except:
-                    print(row["Jumlah Sat/ktk (+5%)"])
-                    allowance = row["Jumlah Sat/ktk (+5%)"]
-                if pd.isna(allowance):
-                    allowance = 0
-                if pd.isna(kuantitas):
-                    kuantitas = 0
+                    penyusunobj = models.Penyusun(
+                        Status=0,
+                        KodeArtikel=kodeartikel,
+                        KodeProduk=read_produk,
+                        Lokasi=models.Lokasi.objects.get(NamaLokasi=lokasi),
+                        versi=date(2024, 1, 1),
+                    ).save()
+                    kkonversimasterobj = models.KonversiMaster(
+                        Kuantitas=kuantitas,
+                        KodePenyusun=models.Penyusun.objects.last(),
+                        lastedited=datetime.now(),
+                        Allowance=row['Jumlah Sat/ktk'],
+                    ).save()
+                
+            
 
-                penyusunobj = models.Penyusun(
-                    Status=0,
-                    KodeArtikel=kodeartikel,
-                    KodeProduk=read_produk,
-                    Lokasi=models.Lokasi.objects.get(NamaLokasi="WIP"),
-                    versi=date(2024, 1, 1),
-                ).save()
-                kkonversimasterobj = models.KonversiMaster(
-                    Kuantitas=kuantitas,
-                    KodePenyusun=models.Penyusun.objects.last(),
-                    lastedited=datetime.now(),
-                    Allowance=allowance,
-                ).save()
-
-                kodepenyusun += 1
-        return HttpResponse(f"Berhasil Upload {listerror}")
+        return render(request,'error/errorsjp.html',{'data':listerror})
 
     return render(request, "rnd/upload_artikel.html")
 
