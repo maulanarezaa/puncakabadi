@@ -1,0 +1,49 @@
+{% extends "produksi/base.html" %}
+{% load static %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+<!-- Page content  -->
+{% block content %}
+<div class="col-12 grid-margin">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Update Saldo Awal Produksi</h4>
+        <div class="template-demo">
+            <a href="/purchasing/read_produk">
+                <button type="button" class="btn btn-light btn-icon-text">
+                    <i class="typcn typcn-chevron-left btn-icon-prepend"></i>                                                    
+                    Kembali
+                </button>
+            </a>
+        </div>
+        <br>
+        <form class="form-sample" action="" method="post">
+        {% csrf_token %}
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Saldo</label>
+                <div class="col-sm-9">
+                  <input type="number" step="any" class="form-control"name="saldo" value="{{produkobj.Saldo}}"required />
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Tanggal</label>
+                <div class="col-sm-9">
+                    <input type="datetime" class="form-control"  name="tanggal"  value="{{produkobj.Tanggal}}" required />
+                  </div>
+              </div>
+            </div>
+          </div>
+          
+          <button type="submit" class="btn btn-primary mr-2">Submit</button>
+        </form>
+      </div>
+    </div>
+</div>
+{% endblock content %}

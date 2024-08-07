@@ -455,3 +455,10 @@ class TransaksiCat(models.Model):
     def __str__(self):
         return f'{self.KodeProduk} - {self.Tanggal}'
 
+class SaldoAwalProduksi(models.Model):
+    Saldo = models.FloatField()
+    Tanggal = models.DateField()
+    
+    def __str__(self):
+        return f'{self.tahun} - {self.Saldo}'
+

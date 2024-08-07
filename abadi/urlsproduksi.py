@@ -323,7 +323,11 @@ urlpatterns = [
         viewsproduksi.delete_pemusnahan,
         name="delete_transaksicat",
     ),
-    # '''BULK CREATE'''
+    path("read_saldoawalproduksi", viewsproduksi.read_saldoawalproduksi, name="read_sakdoawalproduksi"),
+    path("create_saldoawalproduksi", viewsproduksi.create_produk, name="create_saldoawalproduksi"),
+    path("update_saldoawalproduksi/<str:id>", viewsproduksi.update_produk, name="update_saldoawalproduksi"),
+    path("delete_saldoawalproduksi/<str:id>", viewsproduksi.delete_produk, name="delete_saldoawalproduksi"),
+    # '''BULK CREATE'''d
     path('bulk_createtransaksiproduksi',viewsproduksi.bulkcreate_transaksiproduksi),
     path('bulk_createsaldoawalproduksi',viewsproduksi.bulk_createsaldoawalproduksi),
     path('bulk_createsaldoawalartikel',viewsproduksi.bulkcreate_saldoawalartikel),

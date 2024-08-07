@@ -2371,6 +2371,7 @@ from django.db.models import Sum
 def getstokbahanproduksi(last_days, stopindex, awaltahun):
     """UNTUK MENGHITUNG DATA SALDO AWAL BAHAN BAKU PADA WIP DAN FG"""
     bahanbaku = models.Produk.objects.all()
+    artikels  = models.Artikel.objects.all()
 
     stokawalbahanproduksi = {}
     stokawalbahanproduksiwip = {}
@@ -2420,8 +2421,38 @@ def getstokbahanproduksi(last_days, stopindex, awaltahun):
     stokawalbahanproduksi[0] = {"data": bahanbaku, "total": totalbiayasaldoawal_wip+totalbiayasaldoawal_fg}
     stokawalbahanproduksiwip[0] = {"data": bahanbaku, "total": totalbiayasaldoawal_wip}
     stokawalbahanproduksifg[0] = {"data": bahanbaku, "total": totalbiayasaldoawal_fg}
+    
+    for artikel in artikels:
+        saldoawalwip = models.SaldoAwalArtikel.objects.filter(
+            Tanggal__year=awaltahun.year,
+            IDLokasi__NamaLokasi = "WIP",
+            IDArtikel=artikel,
+        ).first()
+        if saldoawalwip == None:
+            jumlahwip = 0
+        else:
+            jumlahwip = saldoawalwip.Jumlah
+            
+        saldoawalfg = models.SaldoAwalArtikel.objects.filter(
+            Tanggal__year=awaltahun.year,
+            IDLokasi__NamaLokasi = "FG",
+            IDArtikel=artikel,
+        ).first()
+        if saldoawalfg == None:
+            jumlahfg = 0
+        else:
+            jumlahfg = saldoawalfg.Jumlah
+        artikel.jumlahwip = jumlahwip
+        artikel.jumlahfg = jumlahfg
+        
+    datasaldototalproduksi = models.SaldoAwalProduksi.objects.filter(Tanggal__year = awaltahun.year).first()
+    if datasaldototalproduksi == None:
+        datasaldototalproduksi= {"Saldo":0,"Tanggal":None}
+     
 
-    return stokawalbahanproduksi, stokawalbahanproduksiwip, stokawalbahanproduksifg
+
+
+    return datasaldototalproduksi, stokawalbahanproduksiwip, artikels
 
 
 
@@ -2504,7 +2535,15 @@ def perhitunganpersediaan(
 
     # print(sisabahanproduksifg)
 
-    datasaldoawalbahanproduksi[0] = datastokwipawal[0]["total"]
+    # datasaldoawalbahanproduksi[0] = datastokwipawal[0]["total"]
+    datasaldoawalproduksi=models.SaldoAwalProduksi.objects.filter(Tanggal__year = awaltahun.year).first()
+    if datasaldoawalproduksi != None:
+        datasaldoawalbahanproduksi[0] = datasaldoawalproduksi.Saldo
+    else:
+        datasaldoawalbahanproduksi[0] = 0
+    
+    print(datasaldoawalbahanproduksi[0])
+    # print(asd)
     # {0: {<Produk: A-101>: {'stok': 0, 'Hargasatuan': 80000.0, 'Hargatotal': 0}, <Produk: B-001>: {'stok': 0, 'Hargasatuan': 0, 'Hargatotal': 0}, <Produk: C-001>: {'stok': 499.6472403, 'Hargasatuan': 10000.0, 'Hargatotal': 0}, <Produk: D-001>: {'stok': 1000, 'Hargasatuan': 80000.0, 'Hargatotal': 0}, <Produk: A-001-02>: {'stok': 0, 'Hargasatuan': 0, 'Hargatotal': 0}, <Produk: A-001-03>: {'stok': 0, 'Hargasatuan': 50000.0, 'Hargatotal': 0}, <Produk: A-001-06>: {'stok': 0, 'Hargasatuan': 77727.25727272723, 'Hargatotal': 0}, <Produk: coba-001>: {'stok': 0, 'Hargasatuan': 12500.0, 'Hargatotal': 0}, <Produk: tes>: {'stok': 0, 'Hargasatuan': 0, 'Hargatotal': 0}, <Produk: tesksbb>: {'stok': 0, 'Hargasatuan': 10000.0, 'Hargatotal': 0}}, 1: {<Produk: A-101>: {'stok': 0, 'Hargasatuan': 80000.0, 'Hargatotal': 0}, <Produk: B-001>: {'stok': 0, 'Hargasatuan': 0, 'Hargatotal': 0}, <Produk: C-001>: {'stok': 499.6472403, 'Hargasatuan': 10000.0, 'Hargatotal': 0}, <Produk: D-001>: {'stok': 1000, 'Hargasatuan': 80000.0, 'Hargatotal': 0}, <Produk: A-001-02>: {'stok': 0, 'Hargasatuan': 0, 'Hargatotal': 0}, <Produk: A-001-03>: {'stok': 0, 'Hargasatuan': 50000.0, 'Hargatotal': 0}, <Produk: A-001-06>: {'stok': 0, 'Hargasatuan': 77727.25727272723, 'Hargatotal': 0}, <Produk: coba-001>: {'stok': 0, 'Hargasatuan': 12500.0, 'Hargatotal': 0}, <Produk: tes>: {'stok': 0, 'Hargasatuan': 0, 'Hargatotal': 0}, <Produk: tesksbb>: {'stok': 0, 'Hargasatuan': 10000.0, 'Hargatotal': 0}}, 2: {<Produk: A-101>: {'stok': 0, 'Hargasatuan': 79987.61015368767, 'Hargatotal': 0.0}, <Produk: B-001>: {'stok': 0, 'Hargasatuan': 125000.0, 'Hargatotal': 0.0}, <Produk: C-001>: {'stok': 553.3972403, 'Hargasatuan': 10000.0, 'Hargatotal': 5533972.403}, <Produk: D-001>: {'stok': 1000, 'Hargasatuan': 80000.0, 'Hargatotal': 80000000.0}, <Produk: A-001-02>: {'stok': 0, 'Hargasatuan': 96000.0, 'Hargatotal': 0.0}, <Produk: A-001-03>: {'stok': 0, 'Hargasatuan': 50000.0, 'Hargatotal': 0.0}, <Produk: A-001-06>: {'stok': 0, 'Hargasatuan': 77727.25727272723, 'Hargatotal': 0.0}, <Produk: coba-001>: {'stok': 0, 'Hargasatuan': 64423.07692307692, 'Hargatotal': 0.0}, <Produk: tes>: {'stok': 0, 'Hargasatuan': 0, 'Hargatotal': 0}, <Produk: tesksbb>: {'stok': 0, 'Hargasatuan': 10000.0, 'Hargatotal': 0.0}, 'total': 85533972.403}}
 
     # print(asd)
@@ -2682,13 +2721,14 @@ def detaillaporanbaranstokawalproduksi(request):
         datawip, datastokwip, datastokfg = getstokbahanproduksi(
             last_days, index, awaltahun
         )
+        print(datastokfg)
         return render(
             request,
             "ppic/detailstockawalproduksi.html",
             {
-                "stokawal": datawip[0],
+                "stokawal": datawip,
                 'stokawalwip':datastokwip[0],
-                'stokawalfg': datastokfg[0]            },
+                'stokartikel': datastokfg           },
         )
 
 
