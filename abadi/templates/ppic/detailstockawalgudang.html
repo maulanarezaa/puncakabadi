@@ -1,7 +1,7 @@
 {% extends "ppic/base.html" %}
 {% load static %}
 {% load humanize %}
-
+{% load customfilter %}
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
@@ -36,9 +36,9 @@
                                 <td>{{artikel}}</td>
                                 <td>{{artikel.NamaProduk}}</td>
                                 <td>{{artikel.unit}}</td>
-                                <td>{{artikel.hargasatuanawal}}</td>
+                                <td>{{artikel.hargasatuanawal|custom_thousands_separator}}</td>
                                 <td>{{artikel.jumlahawal}}</td>
-                                <td>{{artikel.totalbiayaawal}}</td>
+                                <td>{{artikel.totalbiayaawal|custom_thousands_separator}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

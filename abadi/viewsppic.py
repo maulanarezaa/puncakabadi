@@ -1823,7 +1823,7 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
                 
             else:
                 stokxhargaperspk = 0
-                jumlahspk = sisapermintaan
+                jumlahspk = 0
                 weightedaverage = 0
                 if request != None:
                     messages.error(request,f'Terjadi Kesalahan perhitungan pada {kode_display} Cek kembali mutasi dan Saldo awal display')

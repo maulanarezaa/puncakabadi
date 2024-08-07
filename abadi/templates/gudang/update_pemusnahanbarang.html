@@ -68,7 +68,11 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Keterangan</label>
               <div class="col-sm-9">
+                {% if data.Keterangan == None %}
+                <input type="text" class="form-control" name="keterangan"  />
+                {% else %}
                 <input type="text" class="form-control" name="keterangan" value="{{data.Keterangan}}" />
+                {% endif %}
               </div>
             </div>
           </div>

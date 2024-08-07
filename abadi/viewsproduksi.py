@@ -5356,6 +5356,7 @@ def bulk_createsaldoawalproduksi(request):
 
         # Mendapatkan daftar nama sheet
         sheet_names = excel_file.sheet_names
+        listerror = []
 
         for item in sheet_names:
             df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=6)
@@ -5372,15 +5373,18 @@ def bulk_createsaldoawalproduksi(request):
                         print(f"Data Kosong, Lanjut")
                         break
                     else:
-                        saldoawalwip = models.SaldoAwalBahanBaku(
-                            Harga=0,
-                            Jumlah=row['Sisa'],
-                            Tanggal="2024-01-01",
-                            IDBahanBaku=models.Produk.objects.get(KodeProduk=item),
-                            IDLokasi=models.Lokasi.objects.get(pk=1),
-                        ).save()
+                        try:
+                            saldoawalwip = models.SaldoAwalBahanBaku(
+                                Harga=0,
+                                Jumlah=row['Sisa'],
+                                Tanggal="2024-01-01",
+                                IDBahanBaku=models.Produk.objects.get(KodeProduk=item),
+                                IDLokasi=models.Lokasi.objects.get(pk=2),
+                            ).save()
+                        except Exception as e:
+                            listerror.append([item,e])
                         break
 
-        return HttpResponse("Berhasil Upload")
+        return render(request,'error/errorsjp.html',{'data':listerror})
 
     return render(request, "produksi/bulk_createproduk.html")

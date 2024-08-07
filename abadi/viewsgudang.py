@@ -34,7 +34,7 @@ def view_gudang(request):
     akhir = datetime.now()
 
     mulai = akhir - timedelta(days=30)
-    print(mulai)
+    # print(mulai)
     allspk = models.SPK.objects.filter(
         Tanggal__range=(mulai, akhir), StatusAktif=True
     ).order_by("Tanggal")
@@ -84,6 +84,10 @@ def masuk_gudang(request):
     date = request.GET.get("mulai")
     dateakhir = request.GET.get("akhir")
     print(date, dateakhir)
+    if date =="":
+        date = datetime.min
+    if dateakhir == "":
+        dateakhir = datetime.max
     if date is not None and dateakhir is not None:
         datasjb = models.DetailSuratJalanPembelian.objects.filter(
             NoSuratJalan__Tanggal__range=(date, dateakhir)
@@ -316,7 +320,7 @@ def rekap_gudang(request):
             ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0)))
             saldoawal = models.SaldoAwalBahanBaku.objects.filter(
                 Tanggal__range=(mulai, date), IDBahanBaku=i, IDLokasi="3"
-            ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0)))
+            ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0,output_field=FloatField())))
             pemusnahan = models.PemusnahanBahanBaku.objects.filter(
                 Tanggal__range=(mulai, date), KodeBahanBaku=i, lokasi="3"
             ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0,output_field=FloatField())))
@@ -329,7 +333,7 @@ def rekap_gudang(request):
             ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0)))
             saldoawal = models.SaldoAwalBahanBaku.objects.filter(
                 Tanggal__range=(mulai, datenow), IDBahanBaku=i, IDLokasi="3"
-            ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0)))
+            ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0,output_field=FloatField())))
             pemusnahan = models.PemusnahanBahanBaku.objects.filter(
     Tanggal__range=(mulai, datenow), KodeBahanBaku=i, lokasi="3"
 ).aggregate(
@@ -501,16 +505,16 @@ def detailksbb(request, id, tanggal,lokasi):
     # SJP
     datamasuk = models.DetailSuratJalanPembelian.objects.filter(KodeProduk__KodeProduk = id, NoSuratJalan__Tanggal = tanggal)
     # Transaksi Gudang
-    datagudang = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk_KodeProduk=id,jumlah__gte=0)
-    dataretur = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk_KodeProduk=id,jumlah__lt=0)
+    datagudang = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk__KodeProduk=id,jumlah__gte=0)
+    dataretur = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk__KodeProduk=id,jumlah__lt=0)
     for item in dataretur:
         item.jumlah = item.jumlah *-1
     print(datagudang,dataretur)
     # Transaksi Pemusnahan Bahan Baku
-    datapemusnahanbahanbaku  =models.PemusnahanBahanBaku.objects.filter(Tanggal = tanggal,KodeBahanBaku = id,lokasi__NamaLokasi=lokasi)
+    datapemusnahanbahanbaku  =models.PemusnahanBahanBaku.objects.filter(Tanggal = tanggal,KodeBahanBaku__KodeProduk = id,lokasi__NamaLokasi=lokasi)
     return render(
         request,
-        "Purchasing/view_detailksbb.html",
+        "gudang/view_detailksbb.html",
         {
             "datagudang": datagudang,
             'datapemusnahanbahanbaku' : datapemusnahanbahanbaku,
@@ -1100,6 +1104,7 @@ def load_produk(request):
 
 
 def bulk_createsjp(request):
+    '''PAKAI FILE KSBB PRC A'''
     if request.method == "POST" and request.FILES["file"]:
         kodebahanerror = []
         file = request.FILES["file"]
@@ -1155,6 +1160,7 @@ def bulk_createsjp(request):
 
 
 def bulk_createsaldoawal(request):
+    '''PAKAI FILE KSBB PRC'''
     if request.method == "POST" and request.FILES["file"]:
         file = request.FILES["file"]
         excel_file = pd.ExcelFile(file)
@@ -1176,12 +1182,14 @@ def bulk_createsaldoawal(request):
                         print(f"Data Kosong, Lanjut")
                         break
                     else:
-                        saldoawalwip = models.SaldoAwalBahanBaku(
-                            Harga=row["Harga.2"],
-                            Jumlah=row["Quantity.2"],
-                            Tanggal="2024-01-01",
+                        saldoawalwip = models.SaldoAwalBahanBaku.objects.update_or_create(
                             IDBahanBaku=models.Produk.objects.get(KodeProduk=item),
                             IDLokasi=models.Lokasi.objects.get(pk=3),
+                            defaults={
+                            'Harga':row["Harga.2"],
+                            'Jumlah':row["Quantity.2"],
+                            'Tanggal':"2024-01-01",
+                            }
                         ).save()
                         break
 
@@ -1386,7 +1394,6 @@ def update_pemusnahanbarang(request, id):
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
     lokasiobj = models.Lokasi.objects.filter(NamaLokasi = "Gudang")
     if request.method == "GET":
-
         return render(
             request,
             "gudang/update_pemusnahanbarang.html",
