@@ -1190,7 +1190,7 @@ def bulk_createsaldoawal(request):
                             'Jumlah':row["Quantity.2"],
                             'Tanggal':"2024-01-01",
                             }
-                        ).save()
+                        )
                         break
 
         return HttpResponse("Berhasil Upload")
@@ -1249,6 +1249,7 @@ def bulk_createtransaksigudang(request):
 
 def bulk_createtransaksigudang(request):
     '''
+    PAKAI YANG PRODUKSI
     UNTUK MENAMBAHKAN DATA TRANSAKSI GUDANG MELALUI KSBJ TIAP ARTIKEL 
     '''
     if request.method == "POST" and request.FILES["file"]:
@@ -1443,7 +1444,7 @@ def delete_pemusnahanbarang(request, id):
         pesan=f"Pemusnahan Bahan Baku. Kode Bahan Baku : {dataobj.KodeBahanBaku.KodeProduk} Jumlah : {dataobj.Jumlah} Lokasi : {dataobj.lokasi.NamaLokasi}",
     ).save()
 
-    return redirect(view_pemusnahanbarang)
+    return redirect('view_pemusnahanbarang')
 
 def updatecache(request):
     waktustart = time.time()

@@ -326,4 +326,7 @@ urlpatterns = [
     # '''BULK CREATE'''
     path('bulk_createtransaksiproduksi',viewsproduksi.bulkcreate_transaksiproduksi),
     path('bulk_createsaldoawalproduksi',viewsproduksi.bulk_createsaldoawalproduksi),
+    path('bulk_createsaldoawalartikel',viewsproduksi.bulkcreate_saldoawalartikel),
+    path('bulk_createspk',viewsproduksi.bulk_createspk),
+    path('bulk_createsppb',viewsproduksi.bulk_createsppb),
 ]

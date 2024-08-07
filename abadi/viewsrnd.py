@@ -1380,7 +1380,7 @@ def updatepenyusun(request, id):
         allowance = request.POST["allowance"]
 
         datapenyusun = (
-            models.Penyusun.objects.filter(versi=data.versi, Status=True)
+            models.Penyusun.objects.filter(KodeArtikel= data.KodeArtikel,versi=data.versi, Status=True)
             .exclude(IDKodePenyusun=id)
             .exists()
         )

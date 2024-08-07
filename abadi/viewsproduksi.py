@@ -2220,7 +2220,7 @@ def view_ksbj2(request):
             try:
                 saldoawalobj = models.SaldoAwalArtikel.objects.get(IDArtikel__KodeArtikel=kodeartikel, IDLokasi=lokasiobj.IDLokasi,Tanggal__range =(tanggal_mulai,tanggal_akhir))
                 saldo = saldoawalobj.Jumlah
-                saldoawalobj.Tanggal = saldoawalobj.Tanggal.strftime("%Y-%m-%d")
+                saldoawalobj.Tanggal = saldoawalobj.Tanggal.year
 
             except models.SaldoAwalArtikel.DoesNotExist :
                 saldo = 0
@@ -2315,7 +2315,7 @@ def view_ksbj2(request):
             try:
                 saldoawalobj = models.SaldoAwalArtikel.objects.get(IDArtikel__KodeArtikel=kodeartikel, IDLokasi=lokasiobj.IDLokasi,Tanggal__range =(tanggal_mulai,tanggal_akhir))
                 saldo = saldoawalobj.Jumlah
-                saldoawalobj.Tanggal = saldoawalobj.Tanggal.strftime("%Y-%m-%d")
+                saldoawalobj.Tanggal = saldoawalobj.Tanggal.year
             except models.SaldoAwalArtikel.DoesNotExist :
                 saldo = 0
                 saldoawalobj ={
@@ -5271,7 +5271,7 @@ def delete_pemusnahan(request, id):
 
 def bulkcreate_transaksiproduksi(request):
     '''
-    UNTUK MENAMBAHKAN DATA TRANSAKSI GUDANG MELALUI KSBJ TIAP ARTIKEL 
+    Input dari KSBB Produksi 
     '''
     if request.method == "POST" and request.FILES["file"]:
         file = request.FILES["file"]
@@ -5384,6 +5384,201 @@ def bulk_createsaldoawalproduksi(request):
                         except Exception as e:
                             listerror.append([item,e])
                         break
+
+        return render(request,'error/errorsjp.html',{'data':listerror})
+
+    return render(request, "produksi/bulk_createproduk.html")
+
+def bulkcreate_saldoawalartikel(request):
+    if request.method == "POST" and request.FILES["file"]:
+        file = request.FILES["file"]
+        excel_file = pd.ExcelFile(file)
+
+        kodeartikel = '5111 EXP R'
+        artikeobj = models.Artikel.objects.get(KodeArtikel = kodeartikel)
+
+        # Mendapatkan daftar nama sheet
+        sheet_names = ['WIP','FG']
+        listerror = []
+        '''INPUT SALDO AWAL ARTIKEL'''
+        item = 'WIP'
+        df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=5)
+        print(item)
+        print(df)
+        # print(asd)
+
+        i = 0
+        for index, row in df.iterrows():
+                if i == 0 :
+                    i+=1
+                    continue
+                print("Saldo Akhir")
+                print(row)
+                print(row['Saldo Opname'])
+                # print(asd)
+                try:
+                    saldoawalwip = models.SaldoAwalArtikel(
+                        IDArtikel = artikeobj,
+                        Jumlah=row['Saldo Opname'],
+                        Tanggal="2024-01-01",
+                        IDLokasi=models.Lokasi.objects.get(pk=1),
+                    ).save()
+                except Exception as e:
+                    listerror.append([item,e])
+                break
+        
+                
+        # print(asd)
+        item = 'FG'
+        df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=5)
+        print(item)
+        print(df)
+        # print(asd)
+
+        i = 0
+        for index, row in df.iterrows():
+                if i == 0 :
+                    i+=1
+                    continue
+                print("Saldo Akhir")
+                print(row)
+                print(row['Saldo Opname'])
+                # print(asd)
+                try:
+                    saldoawalwip = models.SaldoAwalArtikel(
+                        IDArtikel = artikeobj,
+                        Jumlah=row['Saldo Opname'],
+                        Tanggal="2024-01-01",
+                        IDLokasi=models.Lokasi.objects.get(pk=2),
+                    ).save()
+                except Exception as e:
+                    listerror.append([item,e])
+                break
+        
+        i = 0
+        nosppb = None
+        for index, row in df.iterrows():
+                if i == 0 :
+                    i+=1
+                    continue
+                print("Saldo Akhir")
+                print(row)
+                print(row['Kirim Barang'])
+                if not pd.isna(row['Kirim Barang']):
+                    if not pd.isna(row['Unnamed: 4']):
+                        nosppb = row['Unnamed: 4']
+                    try:
+                        saldoawalwip = models.DetailSPPB(
+                            NoSPPB = models.SPPB.objects.get(NoSPPB= nosppb),
+                            DetailSPK = models.DetailSPK.objects.get(NoSPK__NoSPK = row['Kirim Barang'],KodeArtikel = artikeobj),
+                            Jumlah=row['Unnamed: 5'],
+        
+                        ).save()
+                    except Exception as e:
+                        listerror.append([item,e])
+                
+
+       
+        return render(request,'error/errorsjp.html',{'data':listerror})
+
+    return render(request, "produksi/bulk_createproduk.html")
+
+def bulk_createspk(request):
+    if request.method == "POST" and request.FILES["file"]:
+        file = request.FILES["file"]
+        excel_file = pd.ExcelFile(file)
+
+        # Mendapatkan daftar nama sheet
+        sheet_names = ['SPK','SPK 2024']
+        listerror = []
+
+        for item in sheet_names:
+            df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=4)
+            print(item)
+            print(df)
+            # print(asd)
+
+            tanggal = None
+            NoSPK = None
+            for index, row in df.iterrows():
+                    if not pd.isna(row['Tanggal']):
+                        tanggal = row['Tanggal']
+                        NoSPK = row['No. SPK']
+                        spkobj=models.SPK(
+                            NoSPK = NoSPK,
+                            Tanggal = tanggal,
+                            KeteranganACC = True,
+                        )
+                        spkobj.save()
+                        
+                    print(tanggal)
+                    print(NoSPK)
+                    print(row)
+                    if not pd.isna(row['Artikel']):
+                        try:
+                            print(row['Artikel'])
+                            detailspkobj = models.DetailSPK(
+                                NoSPK = models.SPK.objects.get(NoSPK = NoSPK),
+                                KodeArtikel = models.Artikel.objects.get(KodeArtikel = clean_string(row['Artikel'])),
+                                Jumlah = row['Jumlah']
+                            ).save()
+                        except Exception as e:
+                            listerror.append([NoSPK,(e,row['Artikel'],item)])
+
+
+                        # print(asd)
+                    # if pd.isna(row["Sisa"]):
+                    #     print(f"Data Kosong, Lanjut")
+                    #     break
+                    # else:
+                    #     try:
+                    #         saldoawalwip = models.SaldoAwalBahanBaku(
+                    #             Harga=0,
+                    #             Jumlah=row['Sisa'],
+                    #             Tanggal="2024-01-01",
+                    #             IDBahanBaku=models.Produk.objects.get(KodeProduk=item),
+                    #             IDLokasi=models.Lokasi.objects.get(pk=2),
+                    #         ).save()
+                    #     except Exception as e:
+                    #         listerror.append([item,e])
+                    #     break
+
+        return render(request,'error/errorsjp.html',{'data':listerror})
+
+    return render(request, "produksi/bulk_createproduk.html")
+
+def bulk_createsppb(request):
+    if request.method == "POST" and request.FILES["file"]:
+        file = request.FILES["file"]
+        excel_file = pd.ExcelFile(file)
+
+        # Mendapatkan daftar nama sheet
+        sheet_names = ['SPPB2024']
+        listerror = []
+
+        for item in sheet_names:
+            df = pd.read_excel(file, engine="openpyxl", sheet_name=item)
+            print(item)
+            print(df)
+            # print(asd)
+
+
+            for index, row in df.iterrows():
+                    print("Saldo Akhir")
+                    print(row)
+                    # print(asd)
+                    try:
+                        if not pd.isna(row['Tanggal']):
+                            tanggal = row['Tanggal']
+                            NoSPK = row['No. SPPB']
+                            spkobj=models.SPPB(
+                                NoSPPB = NoSPK,
+                                Tanggal = tanggal,
+                                Keterangan = "-",
+                            )
+                            spkobj.save()
+                    except Exception as e :
+                        listerror.append([row,e])
 
         return render(request,'error/errorsjp.html',{'data':listerror})
 

@@ -1,6 +1,7 @@
 {% extends "produksi/base.html" %}
 {% load static %}
 {% load humanize %}
+{% load customfilter %}
 
 
 <!-- Specific Page CSS goes HERE  -->
@@ -108,7 +109,7 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td>{{saldoawal.Jumlah|floatformat:0|intcomma}}</td>
+                                <td>{{saldoawal.Jumlah|custom_thousands_separator}}</td>
                             </tr>
                             {% for i in listdata %}
                             <tr>
@@ -130,10 +131,10 @@
 
                                 </td>
                                 <td>{{i.Kodeproduk.KodeProduk.KodeProduk}}</td>
-                                <td>{{i.Masuklembar|floatformat:0|intcomma}}</td>
-                                <td>{{i.Masukkonversi|floatformat:0|intcomma}}</td>
-                                <td>{{i.Hasil|floatformat:0|intcomma}}</td>
-                                <td>{{i.Sisa|floatformat:0|intcomma}}</td>
+                                <td>{{i.Masuklembar|custom_thousands_separator}}</td>
+                                <td>{{i.Masukkonversi|custom_thousands_separator}}</td>
+                                <td>{{i.Hasil|custom_thousands_separator}}</td>
+                                <td>{{i.Sisa|custom_thousands_separator}}</td>
                             </tr>
 
                             {% endfor %}
@@ -170,12 +171,12 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td>{{saldoawal.Jumlah}}</td>
+                                <td>{{saldoawal.Jumlah|separator_ribuan}}</td>
                             </tr>
                             {% for i in listdata %}
                             <tr>
                                 <td>{{i.Tanggal}}</td>
-                                <td>{{i.Penyerahanwip}}</td>
+                                <td>{{i.Penyerahanwip|separator_ribuan}}</td>
                                 {% if i.DetailSPPB %}
                                 <td>
                                     {% for j in i.DetailSPPB %}
@@ -192,7 +193,7 @@
                                 <td>
                                     {% for j in i.DetailSPPB %}
                                     <li>
-                                        {{j.Jumlah}}
+                                        {{j.Jumlah|separator_ribuan}}
                                     </li>
                                     {% endfor %}
 
@@ -202,7 +203,7 @@
                                 <td>-</td>
                                 <td>-</td>
                                 {% endif %}
-                                <td>{{i.Sisa}}</td>
+                                <td>{{i.Sisa|separator_ribuan}}</td>
                             </tr>
                             {% endfor %}
                             {% if saldoakhir%}:
