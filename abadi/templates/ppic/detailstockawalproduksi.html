@@ -24,7 +24,9 @@
                         <thead>
                             <tr>
                                 <td>No</td>
-                                <td>Kode Artikel</td>
+                                <td>Kode Bahan Baku</td>
+                                <td>Nama Bahan Baku</td>
+                                <td>Satuan</td>
                                 <td>Jumlah</td>
                             </tr>
                         </thead>
@@ -33,6 +35,8 @@
                             <tr>
                                 <td>{{forloop.counter}}</td>
                                 <td>{{artikel}}</td>
+                                <td>{{artikel.NamaProduk}}</td>
+                                <td>{{artikel.unit}}</td>
                                 <td>{{artikel.jumlahawal_wip|separator_desimal}}</td>
                             </tr>
                             {% endfor %}

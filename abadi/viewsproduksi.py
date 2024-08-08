@@ -5308,10 +5308,11 @@ def create_produk(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["produksi"])
 def update_produk(request, id):
-    produkobj = models.Produk.objects.get(KodeProduk=id)
+    produkobj = models.SaldoAwalProduksi.objects.get(pk=id)
+    produkobj.Tanggal = produkobj.Tanggal.strftime("%Y-%m-%d")
     if request.method == "GET":
         return render(
-            request, "produksi/update_produk.html", {"produkobj": produkobj}
+            request, "produksi/update_saldoawalproduksi.html", {"produkobj": produkobj}
         )
     else:
 
@@ -5319,7 +5320,7 @@ def update_produk(request, id):
         tanggal = request.POST["tanggal"]
         tanggalobj = datetime.strptime(str(tanggal),"%Y-%m-%d")
 
-        namaproduk = models.SaldoAwalArtikel.objects.filter(Tanggal__year=tanggalobj.year).exists()
+        namaproduk = models.SaldoAwalProduksi.objects.filter(Tanggal__year=tanggalobj.year).exclude(pk=id).exists()
         print(namaproduk)
         print(request.POST)
         print(id)

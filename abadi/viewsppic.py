@@ -2297,11 +2297,13 @@ def saldogudang(last_days, stopindex, awaltahun,hargapurchasing=None):
         hargaakhirbulanperproduk = gethargapurchasingperbulan(
         last_days, stopindex, awaltahun
         )
+    # print(hargaakhirbulanperproduk)
+    # print(asd)
     saldoawal = {}
     saldoakhirgudang = {}
     totalbiayasaldoawal = 0
     bahanbaku = models.Produk.objects.all()
-    # bahanbaku = models.Produk.objects.filter(KodeProduk="A-101")
+    # bahanbaku = models.Produk.objects.filter(KodeProduk="A-001-06")
     for produk in bahanbaku:
         saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(
             IDBahanBaku=produk, Tanggal__gte=awaltahun, IDLokasi__NamaLokasi="Gudang"
