@@ -181,6 +181,21 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
     print('tanggal pemusnahan : ',tanggalpemusnahan)
     listtanggal = sorted(list(set(tanggalkeluar.union(tanggalretur).union(tanggalpemusnahan).union(tanggalmasuk))))
     listdata = []
+    listdata.append({
+            "Tanggal": awaltahun,
+            "Jumlahstokawal": saldoawal,
+            "Hargasatuanawal": hargasatuanawal,
+            "Hargatotalawal": hargatotalawal,
+            "Jumlahmasuk": 0,
+            "Hargamasuksatuan": 0,
+            "Hargamasuktotal": 0,
+            "Jumlahkeluar": 0,
+            "Hargakeluarsatuan": 0,
+            "Hargakeluartotal": 0,
+            "Sisahariini": saldoawal,
+            "Hargasatuansisa": hargasatuanawal,
+            "Hargatotalsisa": hargatotalawal
+        })
     statusmasuk = False
     for i in listtanggal :
         jumlahmasukperhari = 0
@@ -324,13 +339,9 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
         dumy["Hargatotalsisa"] = hargatotalawal
 
         listdata.append(dumy)
-    print(listdata)
-    if len(listtanggal) == 0 and saldoawalobj:
-        listdata.append({
-                 "Sisahariini" : saldoawal,
-            "Hargasatuansisa" : hargasatuanawal,
-            "Hargatotalsisa" : hargatotalawal
-            })
+    
+        
+   
     return listdata
     
 

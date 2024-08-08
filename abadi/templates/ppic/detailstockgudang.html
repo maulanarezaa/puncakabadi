@@ -6,6 +6,7 @@
 {% block stylesheets %}
 {% endblock stylesheets %}
 {% load customfilter %}
+{% load customfilter %}
 
 
 
@@ -16,6 +17,7 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Detail Stok Gudang Periode : {{bulan}} </h4>
+                <h4> Total : {{data.hargaakhirbulanperproduk.total|custom_thousands_separator}}</h4>
                 <div class="table-responsive pt-3">
                     {% if data %}
                     <table class="table" id="detaillaporanstokgudang">
@@ -40,15 +42,8 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <td>Total</td>
-                                <td>{{data.hargaakhirbulanperproduk.total}}</td>
-                            </tr>
-                        </thead>
-                    </table>
-                    </table>
+                    
+                    
                     {% endif %}
                 </div>
             </div>
