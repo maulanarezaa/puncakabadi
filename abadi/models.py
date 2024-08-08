@@ -76,7 +76,7 @@ class DetailSuratJalanPembelian(models.Model):
     IDDetailSJPembelian = models.AutoField(primary_key=True)
     NoSuratJalan = models.ForeignKey(SuratJalanPembelian, on_delete=models.CASCADE)
     KodeProduk = models.ForeignKey(Produk, on_delete=models.CASCADE)
-    Jumlah = models.IntegerField()
+    Jumlah = models.FloatField()
     KeteranganACC = models.BooleanField()
     Harga = models.FloatField()
     HargaDollar = models.FloatField(default=0)

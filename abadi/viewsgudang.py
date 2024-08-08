@@ -1113,6 +1113,7 @@ def bulk_createsjp(request):
         # Mendapatkan daftar nama sheet
         sheet_names = excel_file.sheet_names
         sheet_names = ['A-004-154','A-004-155','A-005-158','B-012-10']
+        sheet_names = ['A-004-117']
 
         for item in sheet_names:
             df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=3)
@@ -1122,6 +1123,14 @@ def bulk_createsjp(request):
 
             # i = 0
             for index, row in df.iterrows():
+                # datadelete = models.DetailSuratJalanPembelian.objects.filter(
+                #             KodeProduk=models.Produk.objects.get(KodeProduk=item),
+                #             )
+                # print(datadelete)
+                # for data in datadelete:
+                #     print(data.Jumlah, data.NoSuratJalan.Tanggal)
+                #     data.delete()
+                # print(asd)
                 # if i < 2:
                 #     i += 1
                 #     continue
@@ -1201,78 +1210,79 @@ def bulk_createsaldoawal(request):
     return render(request, "Purchasing/bulk_createproduk.html")
 
 
+# def bulk_createtransaksigudang(request):
+#     '''
+#     UNTUK MENAMBAHKAN DATA TRANSAKSI GUDANG MELALUI KSBJ TIAP ARTIKEL 
+#     '''
+#     if request.method == "POST" and request.FILES["file"]:
+#         file = request.FILES["file"]
+#         nama_artikel = '9010 AC'
+#         artikelobj = models.Artikel.objects.get(KodeArtikel = nama_artikel)
+#         print(nama_artikel)
+#         # print(asd)
+#         excel_file = pd.ExcelFile(file)
+        
+
+#         # Mendapatkan daftar nama sheet
+#         sheet_names = excel_file.sheet_names
+#         produkerror = []
+
+#         sheetname = 'WIP'
+#         df = pd.read_excel(file, engine="openpyxl", sheet_name=sheetname, header=5)
+#         print(sheetname)
+#         print(df)
+#         # print(asd)
+
+#         i = 0
+#         for index, row in df.iterrows():
+#             try:
+#                 print(row)
+#                 print(asd)
+#                 if pd.isna(row["Unnamed: 4"]):
+#                     print(f"Index {index}: Tanggal adalah NaT")
+#                 else:
+
+#                     transaksiobj = models.TransaksiGudang(
+#                             keterangan="-",
+#                             jumlah=row['Unnamed: 4'],
+#                             tanggal=row['Unnamed: 0'],
+#                             KeteranganACC=True,
+#                             KodeProduk=models.Produk.objects.get(KodeProduk=item),
+#                             Lokasi=models.Lokasi.objects.get(IDLokasi=1),
+#                         )
+#             except Exception as e:
+#                     produkerror.append([item,e])
+#                     continue
+
+
+#         return HttpResponse(f"Berhasil Upload, {produkerror}")
+
+#     return render(request, "Purchasing/bulk_createproduk.html")
+
 def bulk_createtransaksigudang(request):
     '''
-    UNTUK MENAMBAHKAN DATA TRANSAKSI GUDANG MELALUI KSBJ TIAP ARTIKEL 
+    UNTUK MENAMBAHKAN DATA TRANSAKSI GUDANG MELALUI KSBB WIP DAN FG
+    KS Bahan Baku A.xlsx (WIP)
     '''
     if request.method == "POST" and request.FILES["file"]:
         file = request.FILES["file"]
-        nama_artikel = '9010 AC'
-        artikelobj = models.Artikel.objects.get(KodeArtikel = nama_artikel)
-        print(nama_artikel)
         # print(asd)
         excel_file = pd.ExcelFile(file)
         
 
         # Mendapatkan daftar nama sheet
         sheet_names = excel_file.sheet_names
-        produkerror = []
-
-        sheetname = 'WIP'
-        df = pd.read_excel(file, engine="openpyxl", sheet_name=sheetname, header=5)
-        print(sheetname)
-        print(df)
-        # print(asd)
-
-        i = 0
-        for index, row in df.iterrows():
-            try:
-                print(row)
-                print(asd)
-                if pd.isna(row["Unnamed: 4"]):
-                    print(f"Index {index}: Tanggal adalah NaT")
-                else:
-
-                    transaksiobj = models.TransaksiGudang(
-                            keterangan="-",
-                            jumlah=row['Unnamed: 4'],
-                            tanggal=row['Unnamed: 0'],
-                            KeteranganACC=True,
-                            KodeProduk=models.Produk.objects.get(KodeProduk=item),
-                            Lokasi=models.Lokasi.objects.get(IDLokasi=1),
-                        )
-            except Exception as e:
-                    produkerror.append([item,e])
-                    continue
-
-
-        return HttpResponse(f"Berhasil Upload, {produkerror}")
-
-    return render(request, "Purchasing/bulk_createproduk.html")
-
-def bulk_createtransaksigudang(request):
-    '''
-    UNTUK MENAMBAHKAN DATA TRANSAKSI GUDANG MELALUI KSBJ TIAP ARTIKEL 
-    '''
-    if request.method == "POST" and request.FILES["file"]:
-        file = request.FILES["file"]
-        # print(asd)
-        excel_file = pd.ExcelFile(file)
-        
-
-        # Mendapatkan daftar nama sheet
-        sheet_names = excel_file.sheet_names
-        sheet_names = ['A-004-37']
+        sheet_names = ['A-006-41']
         produkerror = []
 
         for item in sheet_names:
-            datadelete = models.TransaksiGudang.objects.filter( KodeProduk=models.Produk.objects.get(KodeProduk=item),
-                                Lokasi=models.Lokasi.objects.get(IDLokasi=1))
-            print(datadelete)
-            for item in datadelete:
-                item.jumlah = 2.5
-                item.save()
-            print(asd)
+            # datadelete = models.TransaksiGudang.objects.filter( KodeProduk=models.Produk.objects.get(KodeProduk=item),
+            #                     Lokasi=models.Lokasi.objects.get(IDLokasi=1))
+            # print(datadelete)
+            # for item in datadelete:
+            #     print(item.tanggal,item.jumlah)
+            #     item.delete()
+            # print(asd)
             df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=6)
             print(item)
             print(df)
@@ -1456,7 +1466,7 @@ def delete_pemusnahanbarang(request, id):
 def updatecache(request):
     waktustart = time.time()
     # allprodukobj = models.Produk.objects.all()
-    allprodukobj = models.Produk.objects.filter(KodeProduk = 'B-012-10')
+    allprodukobj = models.Produk.objects.filter(KodeProduk = 'A-004-117')
     for produk in allprodukobj:
         newpemusnahan = models.PemusnahanBahanBaku(
             Tanggal = datetime.now().date(),

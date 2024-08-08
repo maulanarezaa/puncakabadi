@@ -7,14 +7,14 @@ from collections import defaultdict
 import pandas as pd
 
 
-@receiver(post_save, sender=models.TransaksiGudang)
-@receiver(post_save, sender=models.SaldoAwalBahanBaku)
-@receiver(post_save, sender=models.DetailSuratJalanPembelian)
-@receiver(post_save, sender=models.PemusnahanBahanBaku)
-@receiver(post_delete, sender=models.TransaksiGudang)
-@receiver(post_delete, sender=models.SaldoAwalBahanBaku)
-@receiver(post_delete, sender=models.DetailSuratJalanPembelian)
-@receiver(post_delete, sender=models.PemusnahanBahanBaku)
+# @receiver(post_save, sender=models.TransaksiGudang)
+# @receiver(post_save, sender=models.SaldoAwalBahanBaku)
+# @receiver(post_save, sender=models.DetailSuratJalanPembelian)
+# @receiver(post_save, sender=models.PemusnahanBahanBaku)
+# @receiver(post_delete, sender=models.TransaksiGudang)
+# @receiver(post_delete, sender=models.SaldoAwalBahanBaku)
+# @receiver(post_delete, sender=models.DetailSuratJalanPembelian)
+# @receiver(post_delete, sender=models.PemusnahanBahanBaku)
 def updatehargapurchasing(sender, instance, **kwargs):
     print(f'Updating for {sender.__name__}')
     if isinstance(instance,models.TransaksiGudang):
