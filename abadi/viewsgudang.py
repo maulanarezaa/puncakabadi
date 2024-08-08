@@ -1112,6 +1112,7 @@ def bulk_createsjp(request):
 
         # Mendapatkan daftar nama sheet
         sheet_names = excel_file.sheet_names
+        sheet_names = ['A-004-154','A-004-155','A-005-158','B-012-10']
 
         for item in sheet_names:
             df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=3)
@@ -1167,6 +1168,8 @@ def bulk_createsaldoawal(request):
 
         # Mendapatkan daftar nama sheet
         sheet_names = excel_file.sheet_names
+        sheet_names = ['A-004-154','A-004-155','A-005-158','B-012-10']
+
 
         for item in sheet_names:
             df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=4)
@@ -1249,23 +1252,27 @@ def bulk_createtransaksigudang(request):
 
 def bulk_createtransaksigudang(request):
     '''
-    PAKAI YANG PRODUKSI
     UNTUK MENAMBAHKAN DATA TRANSAKSI GUDANG MELALUI KSBJ TIAP ARTIKEL 
     '''
     if request.method == "POST" and request.FILES["file"]:
         file = request.FILES["file"]
-        nama_artikel = '9010 AC'
-        artikelobj = models.Artikel.objects.get(KodeArtikel = nama_artikel)
-        print(nama_artikel)
         # print(asd)
         excel_file = pd.ExcelFile(file)
         
 
         # Mendapatkan daftar nama sheet
         sheet_names = excel_file.sheet_names
+        sheet_names = ['A-004-37']
         produkerror = []
 
         for item in sheet_names:
+            datadelete = models.TransaksiGudang.objects.filter( KodeProduk=models.Produk.objects.get(KodeProduk=item),
+                                Lokasi=models.Lokasi.objects.get(IDLokasi=1))
+            print(datadelete)
+            for item in datadelete:
+                item.jumlah = 2.5
+                item.save()
+            print(asd)
             df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=6)
             print(item)
             print(df)
@@ -1448,8 +1455,8 @@ def delete_pemusnahanbarang(request, id):
 
 def updatecache(request):
     waktustart = time.time()
-    allprodukobj = models.Produk.objects.all()
-    # allprodukobj = models.Produk.objects.filter(KodeProduk = 'A-001-01')
+    # allprodukobj = models.Produk.objects.all()
+    allprodukobj = models.Produk.objects.filter(KodeProduk = 'B-012-10')
     for produk in allprodukobj:
         newpemusnahan = models.PemusnahanBahanBaku(
             Tanggal = datetime.now().date(),

@@ -121,7 +121,7 @@ class TransaksiGudang(models.Model):
     IDDetailTransaksiGudang = models.AutoField(primary_key=True)
     KodeProduk = models.ForeignKey(Produk, on_delete=models.CASCADE)
     keterangan = models.CharField(max_length=20)
-    jumlah = models.IntegerField()
+    jumlah = models.FloatField()
     tanggal = models.DateField()
     KeteranganACC = models.BooleanField()
     Lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)

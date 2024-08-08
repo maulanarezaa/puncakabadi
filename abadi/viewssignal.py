@@ -18,7 +18,7 @@ import pandas as pd
 def updatehargapurchasing(sender, instance, **kwargs):
     print(f'Updating for {sender.__name__}')
     if isinstance(instance,models.TransaksiGudang):
-        tanggal = datetime.strptime(instance.tanggal, '%Y-%m-%d').date()
+        tanggal = datetime.strptime(str(instance.tanggal), '%Y-%m-%d').date()
         kodeproduk = instance.KodeProduk
     elif isinstance(instance,models.SaldoAwalBahanBaku):
         tanggal = datetime.strptime(str(instance.Tanggal), '%Y-%m-%d').date()
