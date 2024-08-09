@@ -1465,8 +1465,8 @@ def delete_pemusnahanbarang(request, id):
 
 def updatecache(request):
     waktustart = time.time()
-    # allprodukobj = models.Produk.objects.all()
-    allprodukobj = models.Produk.objects.filter(KodeProduk = 'A-004-117')
+    allprodukobj = models.Produk.objects.all()
+    allprodukobj = models.Produk.objects.filter(KodeProduk = 'A-005-58')
     for produk in allprodukobj:
         newpemusnahan = models.PemusnahanBahanBaku(
             Tanggal = datetime.now().date(),

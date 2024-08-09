@@ -5482,11 +5482,12 @@ def bulk_createsaldoawalproduksi(request):
     return render(request, "produksi/bulk_createproduk.html")
 
 def bulkcreate_saldoawalartikel(request):
+    '''INPUT KSBJ TIAP ARTIKEL, JANGAN LUPA GANTI KODE ARTIKEL'''
     if request.method == "POST" and request.FILES["file"]:
         file = request.FILES["file"]
         excel_file = pd.ExcelFile(file)
 
-        kodeartikel = '5111 EXP R'
+        kodeartikel = '10451 AC-M'
         artikeobj = models.Artikel.objects.get(KodeArtikel = kodeartikel)
 
         # Mendapatkan daftar nama sheet
@@ -5567,7 +5568,7 @@ def bulkcreate_saldoawalartikel(request):
         
                         ).save()
                     except Exception as e:
-                        listerror.append([item,e])
+                        listerror.append([item,(e,nosppb,row['Kirim Barang'])])
                 
 
        

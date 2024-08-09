@@ -213,7 +213,10 @@ def gethargafgterakhirberdasarkanmutasi(KodeArtikel, Tanggaltes, HargaPurchasing
             hargakomponen_wip_fgterakhir = komponen_wip_terakhir[KodeArtikel][
                 "hargawip"
             ]
-
+    print(hargakomponen_wip_fgterakhir,
+        hargakomponen_fg_fgterakhir,
+        )
+    print(asd)
     return (
         totalbiayafg,
         hargakomponen_wip_fgterakhir,
@@ -921,6 +924,7 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
 
                 totalbiayakeluar += detailsppb.totalharga
                 print(totalbiayakeluar, detailsppb)
+                print(asd)
                 datapenyusun[detailsppb.DetailSPK.KodeArtikel] = {
                     "WIP": ge[3][detailsppb.DetailSPK.KodeArtikel]["penyusun"],
                     "FG": ge[4][detailsppb.DetailSPK.KodeArtikel]["penyusun"],

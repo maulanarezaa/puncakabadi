@@ -7,14 +7,14 @@ from collections import defaultdict
 import pandas as pd
 
 
-# @receiver(post_save, sender=models.TransaksiGudang)
-# @receiver(post_save, sender=models.SaldoAwalBahanBaku)
-# @receiver(post_save, sender=models.DetailSuratJalanPembelian)
-# @receiver(post_save, sender=models.PemusnahanBahanBaku)
-# @receiver(post_delete, sender=models.TransaksiGudang)
-# @receiver(post_delete, sender=models.SaldoAwalBahanBaku)
-# @receiver(post_delete, sender=models.DetailSuratJalanPembelian)
-# @receiver(post_delete, sender=models.PemusnahanBahanBaku)
+@receiver(post_save, sender=models.TransaksiGudang)
+@receiver(post_save, sender=models.SaldoAwalBahanBaku)
+@receiver(post_save, sender=models.DetailSuratJalanPembelian)
+@receiver(post_save, sender=models.PemusnahanBahanBaku)
+@receiver(post_delete, sender=models.TransaksiGudang)
+@receiver(post_delete, sender=models.SaldoAwalBahanBaku)
+@receiver(post_delete, sender=models.DetailSuratJalanPembelian)
+@receiver(post_delete, sender=models.PemusnahanBahanBaku)
 def updatehargapurchasing(sender, instance, **kwargs):
     print(f'Updating for {sender.__name__}')
     if isinstance(instance,models.TransaksiGudang):
@@ -47,7 +47,8 @@ def updatehargapurchasing(sender, instance, **kwargs):
 
     # Mengelompokkan data berdasarkan 'EndOfMonth' dan mengambil baris terakhir
     end_of_month_data = df.groupby('EndOfMonth').last().reset_index()
-
+    print(end_of_month_data)
+    print(asd)
     # Mengubah nama kolom sesuai kebutuhan
     end_of_month_data = end_of_month_data.rename(columns={
         'EndOfMonth': 'Tanggal', 
@@ -56,8 +57,8 @@ def updatehargapurchasing(sender, instance, **kwargs):
     })
 
         # Mengatur rentang waktu dari awal tahun hingga akhir tahun
-    start_date = pd.to_datetime('2024-01-01')
-    end_date = pd.to_datetime('2024-12-31')
+    start_date = pd.to_datetime(f'{tanggal.year}-01-01')
+    end_date = pd.to_datetime(f'{tanggal.year}-12-31')
 
     # Membuat DataFrame dengan seluruh bulan
     all_months = pd.date_range(start=start_date, end=end_date, freq='M')
@@ -84,22 +85,23 @@ def updatehargapurchasing(sender, instance, **kwargs):
 
         for month in full_year_df.index:
             if month < first_non_zero_month:
-                # Set bulan sebelum bulan dengan data menjadi 0
                 full_year_df.loc[month, 'Balance'] = 0
-                full_year_df.loc[month, 'EndOfMonthPrice'] = 0
+                # Harga tidak di-set ke 0 jika sudah ada harga sebelumnya
+                if previous_price is not None:
+                    full_year_df.loc[month, 'EndOfMonthPrice'] = previous_price
+                else:
+                    full_year_df.loc[month, 'EndOfMonthPrice'] = 0
             else:
-                # Jika bulan saat ini adalah bulan pertama yang memiliki data
                 if previous_balance is None and full_year_df.loc[month, 'Balance'] != 0:
                     previous_balance = full_year_df.loc[month, 'Balance']
                     previous_price = full_year_df.loc[month, 'EndOfMonthPrice']
                 
-                # Jika bulan saat ini kosong, gunakan nilai bulan sebelumnya
                 if full_year_df.loc[month, 'Balance'] == 0:
                     if previous_balance is not None:
                         full_year_df.loc[month, 'Balance'] = previous_balance
+                    if previous_price is not None:
                         full_year_df.loc[month, 'EndOfMonthPrice'] = previous_price
 
-                # Update nilai bulan sebelumnya
                 if full_year_df.loc[month, 'Balance'] != 0:
                     previous_balance = full_year_df.loc[month, 'Balance']
                     previous_price = full_year_df.loc[month, 'EndOfMonthPrice']
