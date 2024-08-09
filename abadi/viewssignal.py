@@ -48,7 +48,7 @@ def updatehargapurchasing(sender, instance, **kwargs):
     # Mengelompokkan data berdasarkan 'EndOfMonth' dan mengambil baris terakhir
     end_of_month_data = df.groupby('EndOfMonth').last().reset_index()
     print(end_of_month_data)
-    print(asd)
+    # print(asd)
     # Mengubah nama kolom sesuai kebutuhan
     end_of_month_data = end_of_month_data.rename(columns={
         'EndOfMonth': 'Tanggal', 
@@ -85,23 +85,22 @@ def updatehargapurchasing(sender, instance, **kwargs):
 
         for month in full_year_df.index:
             if month < first_non_zero_month:
+                # Set bulan sebelum bulan dengan data menjadi 0
                 full_year_df.loc[month, 'Balance'] = 0
-                # Harga tidak di-set ke 0 jika sudah ada harga sebelumnya
-                if previous_price is not None:
-                    full_year_df.loc[month, 'EndOfMonthPrice'] = previous_price
-                else:
-                    full_year_df.loc[month, 'EndOfMonthPrice'] = 0
+                full_year_df.loc[month, 'EndOfMonthPrice'] = full_year_df.loc[month, 'Hargakeluarsatuan']
             else:
+                # Jika bulan saat ini adalah bulan pertama yang memiliki data
                 if previous_balance is None and full_year_df.loc[month, 'Balance'] != 0:
                     previous_balance = full_year_df.loc[month, 'Balance']
                     previous_price = full_year_df.loc[month, 'EndOfMonthPrice']
                 
+                # Jika bulan saat ini kosong, gunakan nilai bulan sebelumnya
                 if full_year_df.loc[month, 'Balance'] == 0:
                     if previous_balance is not None:
                         full_year_df.loc[month, 'Balance'] = previous_balance
-                    if previous_price is not None:
                         full_year_df.loc[month, 'EndOfMonthPrice'] = previous_price
 
+                # Update nilai bulan sebelumnya
                 if full_year_df.loc[month, 'Balance'] != 0:
                     previous_balance = full_year_df.loc[month, 'Balance']
                     previous_price = full_year_df.loc[month, 'EndOfMonthPrice']
@@ -235,7 +234,8 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
             try:
                 hargasatuanawal = hargatotalawal / saldoawal
             except ZeroDivisionError:
-                hargasatuanawal = 0
+                hargasatuanawal = hargasatuanawal
+                # print(asd)
 
             print("Sisa Stok Hari Ini : ", saldoawal)
             print("harga awal Hari Ini :", hargasatuanawal)
@@ -321,17 +321,13 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
         Harga keluar = harga satuan hari sebelumnya
 
         """
-        dummysaldoawal = saldoawal
-        dummyhargatotalawal = hargatotalawal
-        dummyhargasatuanawal = hargasatuanawal
-
         saldoawal += jumlahmasukperhari - jumlahkeluarperhari
         hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
         print(hargatotalawal, saldoawal)
         try:
             hargasatuanawal = hargatotalawal / saldoawal
-        except:
-            hargasatuanawal = 0
+        except :
+            hargasatuanawal = hargasatuanawal
 
         print("Sisa Stok Hari Ini : ", saldoawal)
         print("harga awal Hari Ini :", hargasatuanawal)

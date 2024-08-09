@@ -924,7 +924,7 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
 
                 totalbiayakeluar += detailsppb.totalharga
                 print(totalbiayakeluar, detailsppb)
-                print(asd)
+                # print(asd)
                 datapenyusun[detailsppb.DetailSPK.KodeArtikel] = {
                     "WIP": ge[3][detailsppb.DetailSPK.KodeArtikel]["penyusun"],
                     "FG": ge[4][detailsppb.DetailSPK.KodeArtikel]["penyusun"],
