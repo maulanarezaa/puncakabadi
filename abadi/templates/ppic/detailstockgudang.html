@@ -24,7 +24,8 @@
                         <thead>
                             <tr>
                                 <td>No</td>
-                                <td>Kode Artikel</td>
+                                <td>Kode Bahan Baku</td>
+                                <td>Nama Bahan Baku</td>
                                 <td>Jumlah</td>
                                 <td>Harga Akhir bulan</td>
                                 <td>Biaya</td>
@@ -35,6 +36,7 @@
                             <tr>
                                 <td>{{forloop.counter}}</td>
                                 <td>{{artikel}}</td>
+                                <td>{{artikel.NamaProduk}}</td>
                                 <td>{{item.jumlah|separator_ribuan}}</td>
                                 <td>{{item.hargasatuan|custom_thousands_separator}}</td>
                                 <td>{{item.hargatotal|custom_thousands_separator}}</td>

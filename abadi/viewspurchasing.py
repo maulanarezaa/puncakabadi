@@ -80,6 +80,7 @@ def acc_subkon(request,id) :
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def notif_barang_purchasing(request):
+    waktusekarang = datetime.now()
     filtersubkonobj = models.DetailSuratJalanPenerimaanProdukSubkon.objects.filter(KeteranganACC = False).order_by("NoSuratJalan__Tanggal")
     for x in filtersubkonobj :
         x.NoSuratJalan.Tanggal = x.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
@@ -95,266 +96,360 @@ def notif_barang_purchasing(request):
     for x in filter_spkobj:
         x.Tanggal = x.Tanggal.strftime("%Y-%m-%d")
     print(filter_spkobj)
-    list_artikel = []
-    list_q_gudang = []
-    list_data_art = []
-    list_hasil_conv = []
-    list_q_akhir = []
-    try:
-        allartikel = models.Artikel.objects.all()
-        for item in allartikel:
-            nama_artikel = item.KodeArtikel
-            list_artikel.append(nama_artikel)
-    except models.Artikel.DoesNotExist:
-        messages.error(request, "Data Artikel tidak ditemukan")
-
-    waktusekarang = datetime.now()
-    awaltahun = datetime(year = waktusekarang.year,month=1,day=1)
-    datasjb = (
-        models.DetailSuratJalanPembelian.objects.values("KodeProduk").filter(NoSuratJalan__Tanggal__range =(awaltahun,waktusekarang))
-        .annotate(kuantitas=Sum("Jumlah"))
-        .order_by()
-    )
-
-    if len(datasjb) == 0:
-        messages.error(request, "Tidak ada barang masuk ke gudang")
-
-    datagudang = (
-        models.TransaksiGudang.objects.values("KodeProduk").filter(tanggal__range =(awaltahun,waktusekarang))
-        .annotate(kuantitas=Sum("jumlah"))
-        .order_by()
-    )
-
-    datasaldoawal = models.SaldoAwalBahanBaku.objects.values("IDBahanBaku").filter(Tanggal__range =(awaltahun,waktusekarang)).filter(IDLokasi__NamaLokasi="Gudang").annotate(kuantitas=Sum("Jumlah")).order_by()
-
-    datapemusnahan = models.PemusnahanBahanBaku.objects.values("KodeBahanBaku").filter(Tanggal__range = (awaltahun,waktusekarang)).filter(lokasi__NamaLokasi="Gudang").annotate(kuantitas=Sum("Jumlah")).order_by()
-    
-
-    print("data sjb", datasjb)
-    print("data gudang", datagudang)
-    print("data saldoawal", datasaldoawal)
-    print("data pemusnahan", datapemusnahan)
-    for item in datasjb:
-        kode_produk = item["KodeProduk"]
-        print('ini kode produk', kode_produk)
-        try:
-            corresponding_gudang_item = datagudang.get(KodeProduk=kode_produk)
-            print("corresponding gudang :",corresponding_gudang_item)
-
-
-        except models.TransaksiGudang.DoesNotExist:
-            corresponding_gudang_item = {"KodeProduk" : kode_produk, "kuantitas" : 0}
-
-        try :
-            corresponding_saldo_awal_item = datasaldoawal.get(IDBahanBaku=kode_produk)
-            print("corresponding saldo_awal :",corresponding_saldo_awal_item)
-        except models.SaldoAwalBahanBaku.DoesNotExist :
-            corresponding_saldo_awal_item = {"IDBahanBaku" : kode_produk, "kuantitas" : 0}
-        
-        try :
-            corresponding_pemusnahan_item = datapemusnahan.get(KodeBahanBaku = kode_produk)
-            print("corresponding pemusnahan :",corresponding_pemusnahan_item)
-        except models.PemusnahanBahanBaku.DoesNotExist :
-            corresponding_pemusnahan_item = {"KodeBahanBaku" : kode_produk, "kuantitas" : 0}
-        print("kuantitas sjb :", item["kuantitas"])
-        jumlah_akhir = item["kuantitas"] - corresponding_gudang_item["kuantitas"]+corresponding_saldo_awal_item["kuantitas"]-corresponding_pemusnahan_item["kuantitas"]
-        # if jumlah_akhir < 0:
-        #     messages.info(request,"Kuantitas gudang menjadi minus")
-
-        list_q_gudang.append({kode_produk: jumlah_akhir})
-
-    print("LIST KODE ART :", list_artikel)
-    print("LIST Q GUDANG :", list_q_gudang)
+    '''
+    Algoritma mencari kebutuhan barang
+    1. Ambil data SPK terlebih dahulu yang belum lunas
+    2. Jumlahkan artikel detail SPK
+    3. Hitung kebutuhan Artikel berdasarkan bahan baku
+    4. Ambil nilai Bahan Baku 
+    5. Hitung kurangnya
+    '''
+    '''REKAP PENGADAAN BAHAN BAKU'''
     dataspk = (
         models.DetailSPK.objects.filter(NoSPK__StatusAktif=True)
         .values(("KodeArtikel__KodeArtikel"))
-        .annotate(kuantitas2=Sum("Jumlah"))
-        .order_by()
-    )
-
-    for item in dataspk:
-        art_code = item["KodeArtikel__KodeArtikel"]
-        jumlah_art = item["kuantitas2"]
-        list_data_art.append({"Kode_Artikel": art_code, "Jumlah_Artikel": jumlah_art})
-
-    for item in list_data_art:
-        kodeArt = item["Kode_Artikel"]
-
-        jumlah_art = item["Jumlah_Artikel"]
-
-        getidartikel = models.Artikel.objects.get(KodeArtikel=kodeArt)
-        art_code = getidartikel.id
-
-        try:
-            konversi_art = (
-                models.KonversiMaster.objects.filter(KodePenyusun__KodeArtikel=art_code)
-                .annotate(
-                    kode_art=F("KodePenyusun__KodeArtikel__KodeArtikel"),
-                    kode_produk=F("KodePenyusun__KodeProduk"),
-                    nilai_konversi=F("Allowance"),
-                    nama_bb=F("KodePenyusun__KodeProduk__NamaProduk"),
-                    unit_satuan=F("KodePenyusun__KodeProduk__unit"),
-                )
-                .values(
-                    "kode_art", "kode_produk", "Kuantitas", "nama_bb", "unit_satuan"
-                )
-                .distinct()
-            )
-
-            for item2 in konversi_art:
-                kode_artikel = art_code
-                kode_produk = item2["kode_produk"]
-                nilai_conv = item2["Kuantitas"]
-                nama_bb = item2["nama_bb"]
-                unit_satuan = item2["unit_satuan"]
-                hasil_conv = round(jumlah_art * nilai_conv)
-
-                list_hasil_conv.append(
-                    {
-                        "Kode Artikel": kode_artikel,
-                        "Jumlah Artikel": jumlah_art,
-                        "Kode Produk": kode_produk,
-                        "Nama Produk": nama_bb,
-                        "Hasil Konversi": hasil_conv,
-                        "Unit Satuan": unit_satuan,
-                    }
-                )
-
-        except models.KonversiMaster.DoesNotExist:
-            pass
-    
-    for item in list_hasil_conv:
-        kode_produk = item["Kode Produk"]
-        hasil_konversi = item["Hasil Konversi"]
-        for item2 in list_q_gudang:
-            if kode_produk in item2:
-                gudang_jumlah = item2[kode_produk]
-
-                hasil_akhir = gudang_jumlah - hasil_konversi
-                list_q_akhir.append(
-                    {
-                        "Kode_Artikel": item["Kode Artikel"],
-                        "Jumlah_Artikel": item["Jumlah Artikel"],
-                        "Kode_Produk": kode_produk,
-                        "Nama_Produk": item["Nama Produk"],
-                        "Unit_Satuan": item["Unit Satuan"],
-                        "Kebutuhan": hasil_konversi,
-                        "Stok_Gudang": gudang_jumlah,
-                        "Selisih": hasil_akhir,
-                    }
-                )
-
-    # list_pengadaan = []
-    # for item in list_q_akhir:
-    #     kode_produk = item['Kode_Produk']
-    #     nama_produk = item['Nama_Produk']
-    #     satuan = item['Unit_Satuan']
-    #     selisih = item['Selisih']
-    #     if kode_produk in pengadaan['Kode_Produk'] :
-    #         pengadaan[]
-    pengadaan = {}
-
-    for item in list_q_akhir:
-        produk = item["Kode_Produk"]
-        pengadaan[produk] = [0, 0]
-
-    for item in list_q_akhir:
-        produk = item["Kode_Produk"]
-        nama_produk = item["Nama_Produk"]
-        selisih = item["Selisih"]
-        if produk in pengadaan:
-            pengadaan[produk][0] = nama_produk
-            pengadaan[produk][1] += selisih
-        else:
-            pengadaan[produk][0] = nama_produk
-            pengadaan[produk][1] = selisih
-
-    rekap_pengadaan = {}
-
-    for key, value in pengadaan.items():
-        if value[1] < 0:
-            new_value = abs(value[1])
-            for i, item in enumerate(list_q_akhir):
-                if item["Kode_Produk"] == key:
-                    key = models.Produk.objects.get(pk = key).KodeProduk
-                    index = i
-                    rekap_pengadaan[key] = [
-                        value[0],
-                        new_value,
-                        list_q_akhir[index]["Unit_Satuan"],
-                    ]
-
-    list_produk = []
-    jumlah_min = models.Produk.objects.values("KodeProduk", "Jumlahminimal")
-    print(jumlah_min)
-    datasjb = (
-        models.DetailSuratJalanPembelian.objects.values(
-            "KodeProduk",
-            "KodeProduk__NamaProduk",
-            "KodeProduk__unit",
-            "KodeProduk__keteranganGudang",
-        )
         .annotate(kuantitas=Sum("Jumlah"))
         .order_by()
     )
+    print(dataspk)
+    querysetartikel = []
+    for item in dataspk:
+        artikelobj  = models.Artikel.objects.get(KodeArtikel=item['KodeArtikel__KodeArtikel'])
+        jumlah = item['kuantitas']
+        artikelobj.Jumlah = jumlah
+        querysetartikel.append(artikelobj)
 
-    datagudang = (
-        models.TransaksiGudang.objects.values("KodeProduk")
-        .annotate(kuantitas=Sum("jumlah"))
-        .order_by()
-    )
-
-    # for item2 in jumlah_min :
-    #         kode = item2['KodeProduk']
-    #         print(kode)
-    for item in datasjb:
-        kode_produk = item["KodeProduk"]
-        nama_produk = item["KodeProduk__NamaProduk"]
-        satuan = item["KodeProduk__unit"]
-        try:
-            corresponding_gudang_item = datagudang.get(KodeProduk=kode_produk)
-            item["kuantitas"] -= corresponding_gudang_item["kuantitas"]
-            for item2 in jumlah_min:
-                print(item2)
-                kode = item2["KodeProduk"]
-                jumlah_minimal = item2["Jumlahminimal"]
-                print(jumlah_minimal)
-                print(item)
-                # print(ads)
-                print(kode)
-                print(kode_produk)
-                # print(asd)
-                if kode == models.Produk.objects.get(pk = kode_produk).KodeProduk:
-                    if item["kuantitas"] < jumlah_minimal:
-                        list_produk.append(
-                            {
-                                "Kode_Produk": kode_produk,
-                                "Nama_Produk": nama_produk,
-                                "Satuan": satuan,
-                                "Jumlah_minimal": jumlah_minimal,
-                                "Jumlah_aktual": item["kuantitas"],
-                            }
-                        )
-                        print(list_artikel)
-                        # print(asd)
-                    else:
-                        continue
-                else:
-                    continue
-
-        except models.TransaksiGudang.DoesNotExist:
-            pass
+        # listtipeartikel.append(item['KodeArtikel__KodeArtikel'])
+        # listjumlah.append(item['kuantitas'])
     
-    print("\nrekap pengadaan :",rekap_pengadaan,"\n")
-    print("Ini list produk: ", list_produk)
+    # querysetartikel = models.Artikel.objects.filter(KodeArtikel__in =listtipeartikel)
+    # Cari versi terakhir dari tiap artikel
+    listkebutuhanproduk = {}
+    for item in querysetartikel:
+        versiterakhir = models.Penyusun.objects.filter(KodeArtikel = item).values_list('versi',flat=True).distinct().order_by("versi").last()
+        # print(versiterakhir)
+        penyusunobj = models.Penyusun.objects.filter(KodeArtikel = item, versi = versiterakhir)
+        # print(len(penyusunobj))
+        konversimaster = models.KonversiMaster.objects.filter(KodePenyusun__in = penyusunobj)
+        # print(konversimaster)
+        # print(len(konversimaster))
+        for datapenyusun in konversimaster:
+            bahanbakuobj = models.Produk.objects.get(KodeProduk = datapenyusun.KodePenyusun.KodeProduk)
+            print(bahanbakuobj)
+            if bahanbakuobj not in listkebutuhanproduk :
+                listkebutuhanproduk[bahanbakuobj] = datapenyusun.Allowance * item.Jumlah
+            else:
+                listkebutuhanproduk[bahanbakuobj] += datapenyusun.Allowance * item.Jumlah
+
+
+            # if bahanbakuobj.jumlahbahanbaku == None:
+                # pass
+    # print(listkebutuhanproduk)
+    print(querysetartikel)
+    rekappengadaanbarang = {}
+    for produk,jumlah in listkebutuhanproduk.items():
+        # print(jumlah)
+        cachevalue = models.CacheValue.objects.filter(KodeProduk = produk,Tanggal__month = waktusekarang.month).first()
+        totalsaldosekarang = cachevalue.Jumlah
+        kebutuhan = jumlah
+        selisih = totalsaldosekarang-kebutuhan
+        if selisih<0 : 
+            rekappengadaanbarang[produk] = math.ceil(abs(selisih))
+        else:
+            continue
+        # print(cachevalue)
+    rekappengadaanbarang = dict(sorted(rekappengadaanbarang.items(), key=lambda item: item[0].KodeProduk))
+    print(rekappengadaanbarang)
+    '''BARANG DIBAWAH STOK
+    ALGORITMA
+    1. Ambil semua data bahan baku
+    2. Ambil cache value
+    3. Bandingkan antar jumlah minimal dan nilai sekarang
+    '''
+
+    rekapbahandibawahstok = {}
+    allproduk = models.Produk.objects.all()
+    for produk in allproduk:
+        cachevalue = models.CacheValue.objects.filter(KodeProduk = produk,Tanggal__month = waktusekarang.month).first()
+        if cachevalue.Jumlah < produk.Jumlahminimal:
+            rekapbahandibawahstok[produk] = cachevalue.Jumlah
+        else:
+            continue
+
+    print(rekapbahandibawahstok)
+    rekapbahandibawahstok = dict(sorted(rekapbahandibawahstok.items(), key=lambda item: item[0].KodeProduk))
+
+    # print(asd)
+
+    # print(asd)
+
+    # list_artikel = []
+    # list_q_gudang = []
+    # list_data_art = []
+    # list_hasil_conv = []
+    # list_q_akhir = []
+    # try:
+    #     allartikel = models.Artikel.objects.all()
+    #     for item in allartikel:
+    #         nama_artikel = item.KodeArtikel
+    #         list_artikel.append(nama_artikel)
+    # except models.Artikel.DoesNotExist:
+    #     messages.error(request, "Data Artikel tidak ditemukan")
+
+    
+    # awaltahun = datetime(year = waktusekarang.year,month=1,day=1)
+    # datasjb = (
+    #     models.DetailSuratJalanPembelian.objects.values("KodeProduk").filter(NoSuratJalan__Tanggal__range =(awaltahun,waktusekarang))
+    #     .annotate(kuantitas=Sum("Jumlah"))
+    #     .order_by()
+    # )
+
+    # if len(datasjb) == 0:
+    #     messages.error(request, "Tidak ada barang masuk ke gudang")
+
+    # datagudang = (
+    #     models.TransaksiGudang.objects.values("KodeProduk").filter(tanggal__range =(awaltahun,waktusekarang))
+    #     .annotate(kuantitas=Sum("jumlah"))
+    #     .order_by()
+    # )
+
+    # datasaldoawal = models.SaldoAwalBahanBaku.objects.values("IDBahanBaku").filter(Tanggal__range =(awaltahun,waktusekarang)).filter(IDLokasi__NamaLokasi="Gudang").annotate(kuantitas=Sum("Jumlah")).order_by()
+
+    # datapemusnahan = models.PemusnahanBahanBaku.objects.values("KodeBahanBaku").filter(Tanggal__range = (awaltahun,waktusekarang)).filter(lokasi__NamaLokasi="Gudang").annotate(kuantitas=Sum("Jumlah")).order_by()
+    
+
+    # print("data sjb", datasjb)
+    # print("data gudang", datagudang)
+    # print("data saldoawal", datasaldoawal)
+    # print("data pemusnahan", datapemusnahan)
+    # for item in datasjb:
+    #     kode_produk = item["KodeProduk"]
+    #     print('ini kode produk', kode_produk)
+    #     try:
+    #         corresponding_gudang_item = datagudang.get(KodeProduk=kode_produk)
+    #         print("corresponding gudang :",corresponding_gudang_item)
+
+
+    #     except models.TransaksiGudang.DoesNotExist:
+    #         corresponding_gudang_item = {"KodeProduk" : kode_produk, "kuantitas" : 0}
+
+    #     try :
+    #         corresponding_saldo_awal_item = datasaldoawal.get(IDBahanBaku=kode_produk)
+    #         print("corresponding saldo_awal :",corresponding_saldo_awal_item)
+    #     except models.SaldoAwalBahanBaku.DoesNotExist :
+    #         corresponding_saldo_awal_item = {"IDBahanBaku" : kode_produk, "kuantitas" : 0}
+        
+    #     try :
+    #         corresponding_pemusnahan_item = datapemusnahan.get(KodeBahanBaku = kode_produk)
+    #         print("corresponding pemusnahan :",corresponding_pemusnahan_item)
+    #     except models.PemusnahanBahanBaku.DoesNotExist :
+    #         corresponding_pemusnahan_item = {"KodeBahanBaku" : kode_produk, "kuantitas" : 0}
+    #     print("kuantitas sjb :", item["kuantitas"])
+    #     jumlah_akhir = item["kuantitas"] - corresponding_gudang_item["kuantitas"]+corresponding_saldo_awal_item["kuantitas"]-corresponding_pemusnahan_item["kuantitas"]
+    #     # if jumlah_akhir < 0:
+    #     #     messages.info(request,"Kuantitas gudang menjadi minus")
+
+    #     list_q_gudang.append({kode_produk: jumlah_akhir})
+
+
+    # print("LIST KODE ART :", list_artikel)
+    # print("LIST Q GUDANG :", list_q_gudang)
+    # # print(asd)
+   
+    # dataspk = (
+    #     models.DetailSPK.objects.filter(NoSPK__StatusAktif=True)
+    #     .values(("KodeArtikel__KodeArtikel"))
+    #     .annotate(kuantitas2=Sum("Jumlah"))
+    #     .order_by()
+    # )
+
+    # for item in dataspk:
+    #     art_code = item["KodeArtikel__KodeArtikel"]
+    #     jumlah_art = item["kuantitas2"]
+    #     list_data_art.append({"Kode_Artikel": art_code, "Jumlah_Artikel": jumlah_art})
+
+    # for item in list_data_art:
+    #     kodeArt = item["Kode_Artikel"]
+
+    #     jumlah_art = item["Jumlah_Artikel"]
+
+    #     getidartikel = models.Artikel.objects.get(KodeArtikel=kodeArt)
+    #     art_code = getidartikel.id
+
+    #     try:
+    #         konversi_art = (
+    #             models.KonversiMaster.objects.filter(KodePenyusun__KodeArtikel=art_code)
+    #             .annotate(
+    #                 kode_art=F("KodePenyusun__KodeArtikel__KodeArtikel"),
+    #                 kode_produk=F("KodePenyusun__KodeProduk"),
+    #                 nilai_konversi=F("Allowance"),
+    #                 nama_bb=F("KodePenyusun__KodeProduk__NamaProduk"),
+    #                 unit_satuan=F("KodePenyusun__KodeProduk__unit"),
+    #             )
+    #             .values(
+    #                 "kode_art", "kode_produk", "Kuantitas", "nama_bb", "unit_satuan"
+    #             )
+    #             .distinct()
+    #         )
+    #         # print(konversi_art)
+    #         # for i in konversi_art:
+    #         #     print(i)
+    #         # print(asd)
+
+    #         for item2 in konversi_art:
+    #             kode_artikel = art_code
+    #             kode_produk = item2["kode_produk"]
+    #             nilai_conv = item2["Kuantitas"]
+    #             nama_bb = item2["nama_bb"]
+    #             unit_satuan = item2["unit_satuan"]
+    #             hasil_conv = round(jumlah_art * nilai_conv)
+
+    #             list_hasil_conv.append(
+    #                 {
+    #                     "Kode Artikel": kode_artikel,
+    #                     "Jumlah Artikel": jumlah_art,
+    #                     "Kode Produk": kode_produk,
+    #                     "Nama Produk": nama_bb,
+    #                     "Hasil Konversi": hasil_conv,
+    #                     "Unit Satuan": unit_satuan,
+    #                 }
+    #             )
+
+    #     except models.KonversiMaster.DoesNotExist:
+    #         pass
+    
+    # for item in list_hasil_conv:
+    #     kode_produk = item["Kode Produk"]
+    #     hasil_konversi = item["Hasil Konversi"]
+    #     for item2 in list_q_gudang:
+    #         if kode_produk in item2:
+    #             gudang_jumlah = item2[kode_produk]
+
+    #             hasil_akhir = gudang_jumlah - hasil_konversi
+    #             list_q_akhir.append(
+    #                 {
+    #                     "Kode_Artikel": item["Kode Artikel"],
+    #                     "Jumlah_Artikel": item["Jumlah Artikel"],
+    #                     "Kode_Produk": kode_produk,
+    #                     "Nama_Produk": item["Nama Produk"],
+    #                     "Unit_Satuan": item["Unit Satuan"],
+    #                     "Kebutuhan": hasil_konversi,
+    #                     "Stok_Gudang": gudang_jumlah,
+    #                     "Selisih": hasil_akhir,
+    #                 }
+    #             )
+
+    # # list_pengadaan = []
+    # # for item in list_q_akhir:
+    # #     kode_produk = item['Kode_Produk']
+    # #     nama_produk = item['Nama_Produk']
+    # #     satuan = item['Unit_Satuan']
+    # #     selisih = item['Selisih']
+    # #     if kode_produk in pengadaan['Kode_Produk'] :
+    # #         pengadaan[]
+    # pengadaan = {}
+
+    # for item in list_q_akhir:
+    #     produk = item["Kode_Produk"]
+    #     pengadaan[produk] = [0, 0]
+
+    # for item in list_q_akhir:
+    #     produk = item["Kode_Produk"]
+    #     nama_produk = item["Nama_Produk"]
+    #     selisih = item["Selisih"]
+    #     if produk in pengadaan:
+    #         pengadaan[produk][0] = nama_produk
+    #         pengadaan[produk][1] += selisih
+    #     else:
+    #         pengadaan[produk][0] = nama_produk
+    #         pengadaan[produk][1] = selisih
+
+    # rekap_pengadaan = {}
+
+    # for key, value in pengadaan.items():
+    #     if value[1] < 0:
+    #         new_value = abs(value[1])
+    #         for i, item in enumerate(list_q_akhir):
+    #             if item["Kode_Produk"] == key:
+    #                 key = models.Produk.objects.get(pk = key).KodeProduk
+    #                 index = i
+    #                 rekap_pengadaan[key] = [
+    #                     value[0],
+    #                     new_value,
+    #                     list_q_akhir[index]["Unit_Satuan"],
+    #                 ]
+
+    # list_produk = []
+    # jumlah_min = models.Produk.objects.values("KodeProduk", "Jumlahminimal")
+    # print(jumlah_min)
+    # datasjb = (
+    #     models.DetailSuratJalanPembelian.objects.values(
+    #         "KodeProduk",
+    #         "KodeProduk__NamaProduk",
+    #         "KodeProduk__unit",
+    #         "KodeProduk__keteranganGudang",
+    #     )
+    #     .annotate(kuantitas=Sum("Jumlah"))
+    #     .order_by()
+    # )
+
+    # datagudang = (
+    #     models.TransaksiGudang.objects.values("KodeProduk")
+    #     .annotate(kuantitas=Sum("jumlah"))
+    #     .order_by()
+    # )
+
+    # # for item2 in jumlah_min :
+    # #         kode = item2['KodeProduk']
+    # #         print(kode)
+    # for item in datasjb:
+    #     kode_produk = item["KodeProduk"]
+    #     nama_produk = item["KodeProduk__NamaProduk"]
+    #     satuan = item["KodeProduk__unit"]
+    #     try:
+    #         corresponding_gudang_item = datagudang.get(KodeProduk=kode_produk)
+    #         item["kuantitas"] -= corresponding_gudang_item["kuantitas"]
+    #         for item2 in jumlah_min:
+    #             print(item2)
+    #             kode = item2["KodeProduk"]
+    #             jumlah_minimal = item2["Jumlahminimal"]
+    #             print(jumlah_minimal)
+    #             print(item)
+    #             # print(ads)
+    #             print(kode)
+    #             print(kode_produk)
+    #             # print(asd)
+    #             if kode == models.Produk.objects.get(pk = kode_produk).KodeProduk:
+    #                 if item["kuantitas"] < jumlah_minimal:
+    #                     list_produk.append(
+    #                         {
+    #                             "Kode_Produk": kode_produk,
+    #                             "Nama_Produk": nama_produk,
+    #                             "Satuan": satuan,
+    #                             "Jumlah_minimal": jumlah_minimal,
+    #                             "Jumlah_aktual": item["kuantitas"],
+    #                         }
+    #                     )
+    #                     print(list_artikel)
+    #                     # print(asd)
+    #                 else:
+    #                     continue
+    #             else:
+    #                 continue
+
+    #     except models.TransaksiGudang.DoesNotExist:
+    #         pass
+    
+    # print("\nrekap pengadaan :",rekap_pengadaan,"\n")
+    # print("Ini list produk: ", list_produk)
     return render(
         request,
         "Purchasing/notif_purchasing.html",
         {
             "filterobj": filter_dataobj,
             "filter_spkobj": filter_spkobj,
-            "rekap_pengadaan": rekap_pengadaan,
-            "listproduk": list_produk,
+            "rekap_pengadaan": rekappengadaanbarang,
+            "listproduk": rekapbahandibawahstok,
             "filtersubkonobj" : filtersubkonobj
         },
     )
@@ -2169,7 +2264,7 @@ def kebutuhan_barang(request):
 
                 try:
                     versipenyusunterakhir = models.Penyusun.objects.filter(KodeArtikel =art_code).order_by('-versi').first()
-                    print("versi terakhir",versipenyusunterakhir)
+                    print("versi terakhir",versipenyusunterakhir, art_code)
                     listpenyusun = models.Penyusun.objects.filter(KodeArtikel = art_code, versi = versipenyusunterakhir.versi).values_list('IDKodePenyusun',flat=True)
                     print(listpenyusun)
                     # print(asd)
@@ -2210,8 +2305,9 @@ def kebutuhan_barang(request):
                         )
                     # pritn(asd)
 
-                except models.KonversiMaster.DoesNotExist:
-                    pass
+                except Exception as e :
+                    messages.error(request,f'Error {e}')
+                    continue
 
             for item in list_hasil_conv:
                 print(list_hasil_conv)
@@ -2242,26 +2338,34 @@ def kebutuhan_barang(request):
 
             for item in list_q_akhir:
                 produk = item["Kode_Produk"]
-                pengadaan[produk] = [0, 0]
-
+                pengadaan[produk] = [0, 0,0]
+            print(list_q_akhir)
+            print(pengadaan)
+            # print(asd)
             for item in list_q_akhir:
                 produk = item["Kode_Produk"]
                 nama_produk = item["Nama_Produk"]
-                selisih = item["Selisih"]
+                selisih = item['Kebutuhan']
+                stoksekarnag = item['Stok_Gudang']
                 if produk in pengadaan:
                     pengadaan[produk][0] = nama_produk
                     pengadaan[produk][1] += selisih
+                    pengadaan[produk][2] = stoksekarnag
                 else:
                     pengadaan[produk][0] = nama_produk
                     pengadaan[produk][1] = selisih
+                    pengadaan[produk][2] = stoksekarnag
 
             rekap_pengadaan = {}
 
+            print(pengadaan)
             for key, value in pengadaan.items():
-                if value[1] < 0:
+                value[1] -= value[2]
+                if value[1] > 0:
                     new_value = abs(value[1])
                     rekap_pengadaan[key] = [value[0], new_value]
-
+            print(pengadaan)
+            # print(asd)
             return render(
                 request,
                 "Purchasing/kebutuhan_barang.html",

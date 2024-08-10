@@ -1463,10 +1463,15 @@ def delete_pemusnahanbarang(request, id):
 
     return redirect('view_pemusnahanbarang')
 
+def readcachevalue(request):
+    cachevalue = models.CacheValue.objects.all()
+    for item in cachevalue:
+        item.Tanggal = item.Tanggal.strftime("%Y-%m-%d")
+    return render(request, 'gudang/cachevalue.html',{'data' : cachevalue})
 def updatecache(request):
     waktustart = time.time()
     allprodukobj = models.Produk.objects.all()
-    # allprodukobj = models.Produk.objects.filter(KodeProduk = 'tesbahanbaku')
+    allprodukobj = models.Produk.objects.filter(KodeProduk = 'A-004-01')
     for produk in allprodukobj:
         newpemusnahan = models.PemusnahanBahanBaku(
             Tanggal = datetime.now().date(),

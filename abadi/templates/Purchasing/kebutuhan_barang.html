@@ -3,21 +3,6 @@
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
-<style>
-  @keyframes fade-out {
-    from {
-      opacity: 1;
-    }
-
-    to {
-      opacity: 0;
-    }
-  }
-
-  .hide-table {
-    animation: fade-out 0.2s ease-in-out forwards;
-  }
-</style>
 
 
 {% endblock stylesheets %}
@@ -163,7 +148,7 @@
                     <div id="secondTable" style="display: none;" class="col-lg-12">
 
                       <h4 style="margin-top: 10px;">Tabel Kebutuhan Bahan Baku</h4>
-                      <table class="table table-bordered" style="table-layout: fixed;" id="datapengadaan2">
+                      <table class="table table-bordered"  id="datapengadaan2">
                         <thead>
                           <tr>
                             <th>No</th>
@@ -176,7 +161,7 @@
                             <th>Selisih</th>
                           </tr>
                         </thead>
-                        <tbody id="tableBody">
+                        <tbody >
                           {% for i in list_q_akhir %}
                           <tr>
                             <td>{{forloop.counter}}</td>
@@ -270,7 +255,6 @@
     button.closest('.row').remove();
   }
 </script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
   document.getElementById('hideTable').addEventListener('click', function () {
     var firstTable = document.getElementById('firstTable');

@@ -27,9 +27,9 @@
               <tr>
                 <td>{{forloop.counter}}</td>
                 <td>{{key}}</td>
-                <td>{{value.0}}</td>
-                <td>{{value.2}}</td>
-                <td>{{value.1|separator_ribuan}}</td>
+                <td>{{key.NamaProduk}}</td>
+                <td>{{key.unit}}</td>
+                <td>{{value|separator_ribuan}}</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -58,14 +58,14 @@
               </tr>
             </thead>
             <tbody>
-              {% for item in listproduk %}
+              {% for item,nilai in listproduk.items %}
               <tr>
                 <td>{{forloop.counter}}</td>
-                <td>{{item.Kode_Produk}}</td>
-                <td>{{item.Nama_Produk}}</td>
-                <td>{{item.Satuan}}</td>
-                <td>{{item.Jumlah_minimal|separator_ribuan}}</td>
-                <td>{{item.Jumlah_aktual|separator_ribuan}}</td>
+                <td>{{item.KodeProduk}}</td>
+                <td>{{item.NamaProduk}}</td>
+                <td>{{item.unit}}</td>
+                <td>{{item.Jumlahminimal|separator_ribuan}}</td>
+                <td>{{nilai|separator_ribuan}}</td>
               </tr>
               {% endfor %}
             </tbody>

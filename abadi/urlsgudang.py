@@ -75,5 +75,6 @@ urlpatterns = [
         viewsgudang.delete_pemusnahanbarang,
         name="delete_pemusnahangudang",
     ),
-    path('updatecache',viewsgudang.updatecache)
+    path('updatecache',viewsgudang.updatecache),
+    path('readcachevalue',viewsgudang.readcachevalue)
 ]
