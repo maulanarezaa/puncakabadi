@@ -216,7 +216,7 @@ def gethargafgterakhirberdasarkanmutasi(KodeArtikel, Tanggaltes, HargaPurchasing
     print(hargakomponen_wip_fgterakhir,
         hargakomponen_fg_fgterakhir,
         )
-    print(asd)
+    # print(asd)
     return (
         totalbiayafg,
         hargakomponen_wip_fgterakhir,

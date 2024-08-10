@@ -71,43 +71,48 @@ def updatehargapurchasing(sender, instance, **kwargs):
     full_year_df = full_year_df.join(end_of_month_data.set_index('Tanggal'))
 
     # Mengisi NaN dengan 0 untuk bulan-bulan yang tidak memiliki data
-    full_year_df.fillna({'Balance': 0, 'EndOfMonthPrice': 0}, inplace=True)
-
+    # print(non_zero_months)
+    print(full_year_df)
+    full_year_df['EndOfMonthPrice'] = full_year_df['EndOfMonthPrice'].ffill()
     # Cek bulan dengan data yang tidak kosong
     non_zero_months = full_year_df[full_year_df['Balance'] > 0].index
+    print(full_year_df)
+    full_year_df.fillna({'Balance': 0, 'EndOfMonthPrice': 0}, inplace=True)
+    print(full_year_df)
+    # print(asd)
 
-    if not non_zero_months.empty:
-        first_non_zero_month = non_zero_months[0]
+    # if not non_zero_months.empty:
+    #     first_non_zero_month = non_zero_months[0]
         
-        # Inisialisasi variabel untuk menyimpan nilai bulan sebelumnya
-        previous_balance = None
-        previous_price = None
+    #     # Inisialisasi variabel untuk menyimpan nilai bulan sebelumnya
+    #     previous_balance = None
+    #     previous_price = None
 
-        for month in full_year_df.index:
-            if month < first_non_zero_month:
-                # Set bulan sebelum bulan dengan data menjadi 0
-                full_year_df.loc[month, 'Balance'] = 0
-                full_year_df.loc[month, 'EndOfMonthPrice'] = full_year_df.loc[month, 'Hargakeluarsatuan']
-            else:
-                # Jika bulan saat ini adalah bulan pertama yang memiliki data
-                if previous_balance is None and full_year_df.loc[month, 'Balance'] != 0:
-                    previous_balance = full_year_df.loc[month, 'Balance']
-                    previous_price = full_year_df.loc[month, 'EndOfMonthPrice']
+    #     for month in full_year_df.index:
+    #         if month < first_non_zero_month:
+    #             # Set bulan sebelum bulan dengan data menjadi 0
+    #             full_year_df.loc[month, 'Balance'] = 0
+    #             full_year_df.loc[month, 'EndOfMonthPrice'] = 0
+    #         else:
+    #             # Jika bulan saat ini adalah bulan pertama yang memiliki data
+    #             if previous_balance is None and full_year_df.loc[month, 'Balance'] != 0:
+    #                 previous_balance = full_year_df.loc[month, 'Balance']
+    #                 previous_price = full_year_df.loc[month, 'EndOfMonthPrice']
                 
-                # Jika bulan saat ini kosong, gunakan nilai bulan sebelumnya
-                if full_year_df.loc[month, 'Balance'] == 0:
-                    if previous_balance is not None:
-                        full_year_df.loc[month, 'Balance'] = previous_balance
-                        full_year_df.loc[month, 'EndOfMonthPrice'] = previous_price
+    #             # Jika bulan saat ini kosong, gunakan nilai bulan sebelumnya
+    #             if full_year_df.loc[month, 'Balance'] == 0:
+    #                 if previous_balance is not None:
+    #                     full_year_df.loc[month, 'Balance'] = previous_balance
+    #                     full_year_df.loc[month, 'EndOfMonthPrice'] = previous_price
 
-                # Update nilai bulan sebelumnya
-                if full_year_df.loc[month, 'Balance'] != 0:
-                    previous_balance = full_year_df.loc[month, 'Balance']
-                    previous_price = full_year_df.loc[month, 'EndOfMonthPrice']
-    else:
-        # Jika tidak ada data sama sekali, set seluruh bulan menjadi 0
-        full_year_df['Balance'] = 0
-        full_year_df['EndOfMonthPrice'] = 0
+    #             # Update nilai bulan sebelumnya
+    #             if full_year_df.loc[month, 'Balance'] != 0:
+    #                 previous_balance = full_year_df.loc[month, 'Balance']
+    #                 previous_price = full_year_df.loc[month, 'EndOfMonthPrice']
+    # else:
+    #     # Jika tidak ada data sama sekali, set seluruh bulan menjadi 0
+    #     full_year_df['Balance'] = 0
+    #     full_year_df['EndOfMonthPrice'] = 0
 
     # Reset index untuk output
     full_year_df.reset_index(inplace=True)

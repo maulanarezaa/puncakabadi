@@ -707,7 +707,8 @@ def update_barang_masuk(request, id):
         updateobj.NoSuratJalan.PO = po_barang
         updateobj.save()
         updateobj.NoSuratJalan.save()
-        harga_total = updateobj.Jumlah * updateobj.Harga
+        print(harga_barang, updateobj.Jumlah)
+        harga_total = float(updateobj.Jumlah) * int(harga_barang)
         models.transactionlog(
             user="Purchasing",
             waktu=datetime.now(),
