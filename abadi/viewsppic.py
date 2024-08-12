@@ -4347,3 +4347,95 @@ def exportlaporanbulananexcelkeseluruhan(request):
     )
 
     return response
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['ppic'])
+def read_saldoawalproduksi(request):
+    produkobj = models.SaldoAwalProduksi.objects.all().order_by('Tanggal')
+    return render(request, "ppic/read_saldoawalproduksi.html", {"produkobj": produkobj})
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
+def create_produk(request):
+    if request.method == "GET":
+        return render(request, "ppic/create_saldoawalproduksi.html")
+    else:
+        saldo = request.POST["saldo"]
+        tanggal = request.POST["tanggal"]
+        tanggalobj = datetime.strptime(str(tanggal),"%Y-%m-%d")
+        produkobj = models.SaldoAwalProduksi.objects.filter(Tanggal__year =tanggalobj.year)
+        if len(produkobj) > 0:
+            messages.error(request, f"Saldo Awal Produksi pada tahun {tanggalobj.year}")
+            return redirect("create_saldoawalproduksi")
+        else:
+            new_saldoawal = models.SaldoAwalProduksi(
+                Saldo = saldo,
+                Tanggal = tanggalobj
+            )
+            new_saldoawal.save()
+            models.transactionlog(
+                user="PPIC",
+                waktu=datetime.now(),
+                jenis="Create",
+                pesan=f"Saldo awal {saldo} Tanggal {tanggalobj}",
+            ).save()
+            messages.success(request, "Data berhasil disimpan")
+            return redirect("read_sakdoawalproduksi")
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
+def update_produk(request, id):
+    produkobj = models.SaldoAwalProduksi.objects.get(pk=id)
+    produkobj.Tanggal = produkobj.Tanggal.strftime("%Y-%m-%d")
+    if request.method == "GET":
+        return render(
+            request, "ppic/update_saldoawalproduksi.html", {"produkobj": produkobj}
+        )
+    else:
+
+        saldo = request.POST["saldo"]
+        tanggal = request.POST["tanggal"]
+        tanggalobj = datetime.strptime(str(tanggal),"%Y-%m-%d")
+
+        namaproduk = models.SaldoAwalProduksi.objects.filter(Tanggal__year=tanggalobj.year).exclude(pk=id).exists()
+        print(namaproduk)
+        print(request.POST)
+        print(id)
+        # print(asd)
+
+        if namaproduk:
+            messages.error(request,f'Saldo awal Produksi  {tanggalobj.year} sudah ada pada sistem')
+            return redirect('update_saldoawalproduksi',id = id)
+        produkbaru = models.SaldoAwalProduksi.objects.get(id=id)
+        produkbaru.Saldo = saldo
+        produkbaru.Tanggal = tanggalobj
+       
+        # print(asd)
+        produkbaru.save()
+        models.transactionlog(
+            user="PPIC",
+            waktu=datetime.now(),
+            jenis="Update",
+            pesan=f"Saldo Awal Produksi {tanggalobj.year} sudah di Update",
+        ).save()
+        messages.success(request, "Data berhasil disimpan")
+        return redirect("read_sakdoawalproduksi")
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
+def delete_produk(request, id):
+    produkobj = models.SaldoAwalProduksi.objects.get(pk=id)
+    # print("delete:",produkobj.KodeProduk)
+    models.transactionlog(
+        user="PPIC",
+        waktu=datetime.now(),
+        jenis="Delete",
+        pesan=f"Saldo Awal Produksi {produkobj.Tanggal.year} sudah di Delete",
+    ).save()
+    produkobj.delete()
+    messages.success(request, "Data Berhasil dihapus")
+    return redirect("read_sakdoawalproduksi")

@@ -1,0 +1,96 @@
+{% extends "ppic/base.html" %}
+{% load static %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+<!-- Page content  -->
+{% block content %}
+<div class="col-12 grid-margin">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Create Saldo Awal Produksi</h4>
+        <div class="template-demo">
+            <a href="/purchasing/read_produk">
+                <button type="button" class="btn btn-light btn-icon-text">
+                    <i class="typcn typcn-chevron-left btn-icon-prepend"></i>                                                    
+                    Kembali
+                </button>
+            </a>
+        </div>
+        <br>
+        <form class="form-sample" action="" method="post">
+        {% csrf_token %}
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Total Saldo Awal</label>
+                <div class="col-sm-9">
+                  <input type="text" step="any" id="saldo" class="form-control"name="saldo" required />
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Tanggal</label>
+                <div class="col-sm-9">
+                    <input type="date" class="form-control"  name="tanggal" required />
+                  </div>
+              </div>
+            </div>
+          </div>
+          
+          <button type="submit" class="btn btn-primary mr-2">Submit</button>
+        </form>
+      </div>
+    </div>
+</div>
+<script>
+  function formatSaldo(input, isInitial = false) {
+    let value = input.value;
+    
+    if (isInitial) {
+      // Jika ini adalah nilai awal, kita asumsikan formatnya sudah benar (menggunakan titik sebagai pemisah desimal)
+      // Kita perlu mengubah titik menjadi koma untuk pemisah desimal
+      let parts = value.split('.');
+      if (parts.length > 1) {
+        // Ada pemisah desimal
+        let integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        value = integerPart + ',' + parts[1];
+      } else {
+        // Tidak ada pemisah desimal
+        value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      }
+    } else {
+      // Untuk input manual, gunakan logika yang sama seperti sebelumnya
+      value = value.replace(/[^\d,]/g, '');
+      let parts = value.split(',');
+      if (parts.length > 2) {
+        parts = [parts[0], parts.slice(1).join('')];
+      }
+      let integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      value = integerPart + (parts.length > 1 ? ',' + parts[1].slice(0, 5) : '');
+    }
+    
+    input.value = value;
+  }
+  
+  // Format nilai awal saat halaman dimuat
+  document.addEventListener('DOMContentLoaded', function() {
+    var saldoInput = document.getElementById('saldo');
+    formatSaldo(saldoInput, true);
+  });
+  
+  // Format saat input berubah
+  document.getElementById('saldo').addEventListener('input', function(e) {
+    formatSaldo(this);
+  });
+  
+  // Hapus format sebelum submit form
+  document.querySelector('form').addEventListener('submit', function(e) {
+    var saldoInput = document.getElementById('saldo');
+    saldoInput.value = saldoInput.value.replace(/\./g, '').replace(',', '.');
+  });
+  </script>
+{% endblock content %}

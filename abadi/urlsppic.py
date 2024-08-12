@@ -73,4 +73,8 @@ urlpatterns = [
         viewsppic.exportlaporanbulananexcelkeseluruhan,
         name="exportlaporanpersediaankeseluruhan",
     ),
+    path("read_saldoawalproduksi", viewsppic.read_saldoawalproduksi, name="read_sakdoawalproduksi"),
+    path("create_saldoawalproduksi", viewsppic.create_produk, name="create_saldoawalproduksi"),
+    path("update_saldoawalproduksi/<str:id>", viewsppic.update_produk, name="update_saldoawalproduksi"),
+    path("delete_saldoawalproduksi/<str:id>", viewsppic.delete_produk, name="delete_saldoawalproduksi"),
 ]
