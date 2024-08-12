@@ -7,6 +7,7 @@ import pandas as pd
 import re
 from . import logindecorators
 from django.contrib.auth.decorators import login_required
+import math
 
 # Dashboard Produksi
 @login_required
@@ -2279,10 +2280,14 @@ def view_ksbj2(request):
                     konversi= penyesuaiaanfilter.konversi
                     print(konversi,penyesuaiaanfilter,i)
                     # print(asd)
-                try:
-                    masukpcs = jumlahmasuk*konversi
-                except:
-                    masukpcs = 0
+            
+                masukpcs = math.ceil(jumlahmasuk/konversi)
+                if masukpcs != 0 :
+                    print(masukpcs)
+                    print(jumlahmasuk, konversi)
+                    # print(asd)
+                
+                    
                 saldoawal = saldoawal - jumlahmutasi + masukpcs
 
                 datamodels['Tanggal'] = i.strftime("%Y-%m-%d")
@@ -5679,6 +5684,82 @@ def bulk_createsppb(request):
                             spkobj.save()
                     except Exception as e :
                         listerror.append([row,e])
+
+        return render(request,'error/errorsjp.html',{'data':listerror})
+
+    return render(request, "produksi/bulk_createproduk.html")
+
+def bulk_createpenyesuaian(request):
+    if request.method == "POST" and request.FILES["file"]:
+        file = request.FILES["file"]
+        excel_file = pd.ExcelFile(file)
+
+        # Mendapatkan daftar nama sheet
+        sheet_names = excel_file.sheet_names
+        # sheet_names = ['A-001-02']
+        listerror = []
+
+        for item in sheet_names:
+            df = pd.read_excel(file, engine="openpyxl", sheet_name=item)
+            produkobj = models.Produk.objects.get(KodeProduk = item)
+
+            print(item)
+            print(df)
+            TanggalAwalPenyesuaian = '2024-1-1'
+            TanggalAkhirPenyesuan = "2024-7-30"
+            # print(asd)
+
+            i = 0
+            for index, row in df.iterrows():
+                if i == 0 :
+                    i+=1
+                    continue
+                try:
+                    jumlah = (row['Unnamed: 10'])
+                    if type(jumlah) != float and type(jumlah) != int:
+                        listerror.append([item,'Tipe data bukan number'])
+                        break
+                    if jumlah == 1 :
+                        listerror.append([item,'Jumlah Hanya 1'])
+                        break
+                except Exception as e :
+                    listerror.append([item,e])
+                    break
+                
+                    
+                print(jumlah)
+                print("Saldo Akhir")
+                print(row)
+                penyesuaianartikel = models.Penyusun.objects.filter(KodeProduk__KodeProduk = item).values_list('KodeArtikel__KodeArtikel',flat=True).distinct()
+                print(penyesuaianartikel)
+                for artikel in penyesuaianartikel:
+                    print(artikel)
+                    konversiobj =models.KonversiMaster.objects.filter(KodePenyusun__KodeArtikel__KodeArtikel = artikel, KodePenyusun__KodeProduk__KodeProduk = item)
+                    if len(konversiobj) != 1 :
+                        kuantitas = konversiobj.aggregate(konversi = Sum('Kuantitas'))['konversi']
+                        # print(kuantitas)
+                        # print(asd)
+                    else:
+                        kuantitas = konversiobj.first().Kuantitas
+                    # kuantitas = konversiobj.Kuantitas
+                    print(kuantitas,jumlah)
+                    # print(asd)
+                    konversi = kuantitas * jumlah
+                
+                    try:
+                        spkobj=models.Penyesuaian(
+                            KodeArtikel = models.Artikel.objects.get(KodeArtikel = artikel),
+                            KodeProduk = produkobj,
+                            TanggalMulai = TanggalAwalPenyesuaian,
+                            TanggalMinus = TanggalAkhirPenyesuan,
+                            lokasi = models.Lokasi.objects.get(NamaLokasi = 'WIP'),
+                            konversi =  konversi
+                        )
+                        spkobj.save()
+                    except Exception as e:
+                        listerror.append([item,(e,artikel,item)])
+                    
+                break
 
         return render(request,'error/errorsjp.html',{'data':listerror})
 

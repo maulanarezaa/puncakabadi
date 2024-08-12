@@ -1667,3 +1667,104 @@ def deletedisplay(request, id):
     dataobj.delete()
     messages.success(request, "Data Berhasil dihapus")
     return redirect("views_display")
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
+def views_harga(request):
+    datakirim = []
+    data = models.HargaArtikel.objects.all()
+   
+    return render(request, "rnd/views_harga.html", {"data": data})
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
+def tambahdataharga(request):
+    allartikel = models.Artikel.objects.all()
+    if request.method == "GET":
+        return render(request, "rnd/tambah_harga.html",{'allartikel':allartikel})
+    if request.method == "POST":
+        # print(dir(request))
+        kodeartikel = request.POST["kodeartikel"]
+        tanggal = request.POST["tanggal"]
+        tanggalobj = datetime.strptime(str(tanggal),'%Y-%m')
+        harga = request.POST['harga']
+        data = models.HargaArtikel.objects.filter(KodeArtikel__KodeArtikel=kodeartikel, Tanggal__month = tanggalobj.month ,Tanggal__year = tanggalobj.year).exists()
+        if data:
+            messages.error(request, "Harga pada artikel sudah ada sebelumnya")
+            return redirect("tambahdataharga")
+        else:
+            try:
+                artikelobj = models.Artikel.objects.get(KodeArtikel = kodeartikel)
+                newdataobj  = models.HargaArtikel(
+                    Tanggal = tanggalobj,
+                    KodeArtikel = artikelobj,
+                    Harga = harga
+                )
+                newdataobj.full_clean()
+            except Exception as e:
+                messages.error(request,f'Error {e}')
+                return redirect("tambahdataharga")
+            
+
+            models.transactionlog(
+                user="RND",
+                waktu=datetime.now(),
+                jenis="Create",
+                pesan=f"Artikel : {newdataobj.KodeArtikel} Harga : {newdataobj.Harga}",
+            ).save()
+            newdataobj.save()
+            messages.success(request, "Data berhasil disimpan")
+            return redirect("views_harga")
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
+def updatedataharga(request, id):
+    data = models.HargaArtikel.objects.get(pk=id)
+    data.Tanggal = data.Tanggal.strftime("%Y-%m")
+    allartikel = models.Artikel.objects.all()
+    if request.method == "GET":
+        return render(request, "rnd/update_harga.html", {"artikel": data,'allartikel':allartikel})
+    else:
+        kodeartikel = request.POST["kodeartikel"]
+        tanggal = request.POST["tanggal"]
+        harga = request.POST['harga']
+        tanggalobj = datetime.strptime(tanggal,'%Y-%m')
+        cekharga = (
+            models.HargaArtikel.objects.filter(KodeArtikel__KodeArtikel=kodeartikel, Tanggal__year = tanggalobj.year, Tanggal__month = tanggalobj.month)
+            .exclude(id=id)
+            .exists()
+        )
+        if cekharga:
+            messages.error(request, "Kode Artikel telah memiliki Harga pada bulan tersebut")
+            return redirect("update_harga", id=id)
+        else:
+            transaksilog = models.transactionlog(
+                user="RND",
+                waktu=datetime.now(),
+                jenis="Update",
+                pesan=f"Artikel : {data.KodeArtikel} Harga lama : {data.Harga} Tanggal Lama : {data.Tanggal} Tanggal Baru : {tanggal} Harga Baru : {harga}",
+            )
+            data.Harga = harga
+            data.Tanggal = tanggalobj
+            data.save()
+            transaksilog.save()
+            messages.success(request, "Data Berhasil diupdate")
+        return redirect("views_harga")
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
+def deleteharga(request, id):
+    dataobj = models.HargaArtikel.objects.get(id=id)
+    models.transactionlog(
+        user="RND",
+        waktu=datetime.now(),
+        jenis="Delete",
+        pesan=f"Artikel : {dataobj.KodeArtikel} Tanggal : {dataobj.Tanggal}",
+    ).save()
+    dataobj.delete()
+    messages.success(request, "Data Berhasil dihapus")
+    return redirect("views_harga")

@@ -7,6 +7,7 @@
 
 {% block javascripts %}
 {% endblock javascripts %}
+{% load customfilter %}
 
 <!-- Page content  -->
 {% block content %}
@@ -53,7 +54,7 @@
                 <td>{{i.lokasi}}</td>
                 <td>{{i.TanggalMulai}}</td>
                 <td>{{i.TanggalMinus}}</td>
-                <td>{{i.konversi}}</td>
+                <td>{{i.konversi|separator_desimal5angka}}</td>
                 <td>
                   {% if user.groups.first.name != 'ppic' %}
                   <a href="{% url 'update_penyesuaian' i.IDPenyesuaian %}">

@@ -132,8 +132,8 @@
                                 </td>
                                 <td>{{i.Kodeproduk.KodeProduk.KodeProduk}}</td>
                                 <td>{{i.Masuklembar|custom_thousands_separator}}</td>
-                                <td>{{i.Masukkonversi|custom_thousands_separator}}</td>
-                                <td>{{i.Hasil|custom_thousands_separator}}</td>
+                                <td>{{i.Masukkonversi|separator_ribuan}}</td>
+                                <td>{{i.Hasil|separator_ribuan}}</td>
                                 <td>{{i.Sisa|custom_thousands_separator}}</td>
                             </tr>
 
@@ -150,7 +150,6 @@
                             {% endif %}
                         </tbody>
                     </table>
-                    {{data.count}} {{kodeartikel}} {{lokasi}}
                     {% elif data.count > 0 and kodeartikel and lokasi == 'FG'%}
                     <table class="table table-bordered" id="tabelksbjfg">
                         <thead>

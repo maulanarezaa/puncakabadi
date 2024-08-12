@@ -27,18 +27,27 @@
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-toggle="collapse" href="#kartustok" aria-expanded="false" aria-controls="produksi">
-        <i class="typcn typcn-document-text menu-icon"></i>
-        <span class="menu-title">Kartu Stok </span>
-        <i class="menu-arrow"></i>
+      <a class="nav-link" href="{% url 'views_harga' %}" >
+        <i class="typcn typcn-film menu-icon"></i>
+        <span class="menu-title">Konversi</span>
+      </a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#kartustok" aria-expanded="false" >
+          <i class="typcn typcn-document-text menu-icon"></i>
+          <span class="menu-title">Kartu Stok</span>
+          <i class="menu-arrow"></i>
       </a>
       <div class="collapse" id="kartustok">
-        <ul class="nav flex-column sub-menu">
-          <li class="nav-item"> <a class="nav-link" href="{%url 'rekaphargarnd'%}">Kartu Stok Bahan Baku Purchasing</a></li>
-        </ul>
-        <ul class="nav flex-column sub-menu">
-          <li class="nav-item"> <a class="nav-link" href="{%url 'view_ksbjrnd'%}">Kartu Stok Barang Jadi Produksi</a></li>
-        </ul>
+          <ul class="nav flex-column sub-menu">
+              <li class="nav-item">
+                  <a class="nav-link" href="{% url 'rekaphargarnd' %}">KSBB Purchasing</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link" href="{% url 'view_ksbjrnd' %}">KSBJ Produksi</a>
+              </li>
+          </ul>
       </div>
     </li>
     <li class="nav-item">

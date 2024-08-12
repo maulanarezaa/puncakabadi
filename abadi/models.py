@@ -172,8 +172,7 @@ class Penyesuaian(models.Model):
     KodeArtikel = models.ForeignKey(Artikel,on_delete=models.CASCADE,null=True,blank=True)
     TanggalMulai = models.DateField()
     TanggalMinus = models.DateField(null=True, blank=True)
-
-    konversi = models.FloatField(blank=True, null=True)
+    konversi = models.FloatField()
     lokasi = models.ForeignKey(Lokasi,on_delete=models.CASCADE, default=1)
 
     def __str__(self):
@@ -462,3 +461,10 @@ class SaldoAwalProduksi(models.Model):
     def __str__(self):
         return f'{self.tahun} - {self.Saldo}'
 
+class HargaArtikel(models.Model):
+    Tanggal = models.DateField()
+    KodeArtikel = models.ForeignKey(Artikel,on_delete=models.CASCADE)
+    Harga = models.FloatField()
+
+    def __str__(self):
+        return f'{self.KodeArtikel} - {self.Tanggal} - {self.Harga}'

@@ -146,6 +146,7 @@ def dashboard(request):
 
 
 def gethargafgterakhirberdasarkanmutasi(KodeArtikel, Tanggaltes, HargaPurchasing):
+    hargaartikelfg = models.HargaArtikel.objects.filter(KodeArtikel = KodeArtikel, Tanggal__month = Tanggaltes.month)
     cekmutasiwipfg = cekmutasiwipfgterakhir(KodeArtikel, Tanggaltes)
     cekmutasiwip = cekmutasiwipterakhir(KodeArtikel, Tanggaltes)
     # cekmutasifg = cekmutasifgterakhir(KodeArtikel, Tanggaltes)
@@ -216,7 +217,7 @@ def gethargafgterakhirberdasarkanmutasi(KodeArtikel, Tanggaltes, HargaPurchasing
     print(hargakomponen_wip_fgterakhir,
         hargakomponen_fg_fgterakhir,
         )
-    print(asd)
+    # print(asd)
     return (
         totalbiayafg,
         hargakomponen_wip_fgterakhir,

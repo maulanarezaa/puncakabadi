@@ -30,7 +30,7 @@
                                         aria-label="Masukkan Kode Barang" name="kodebarang" value="{{kodebarang}}" list="listbahanbaku">
                                         <datalist id="listbahanbaku">
                                             {% for item in kodeproduk %}
-                                            <option value="{{item.pk}}">{{item.NamaProduk}}</option>
+                                            <option value="{{item.KodeProduk}}">{{item.NamaProduk}}</option>
                                             {% endfor %}
                                         </datalist>
                                 </div>
