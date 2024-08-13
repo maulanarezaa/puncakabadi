@@ -305,6 +305,7 @@ def rekap_gudang(request):
     tahun = datenow.year
     mulai = datetime(year=tahun, month=1, day=1)
     date = request.GET.get("date")
+    
 
     for i in dataproduk:
         listproduk.append(i.KodeProduk)
@@ -314,10 +315,10 @@ def rekap_gudang(request):
         if date is not None:
             datagudang = models.TransaksiGudang.objects.filter(
                 tanggal__range=(mulai, date), KodeProduk=i
-            ).aggregate(kuantitas=Coalesce(Sum("jumlah"), Value(0)))
+            ).aggregate(kuantitas=Coalesce(Sum("jumlah"), Value(0,output_field=FloatField())))
             datasjp = models.DetailSuratJalanPembelian.objects.filter(
                 NoSuratJalan__Tanggal__range=(mulai, date), KodeProduk=i
-            ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0)))
+            ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0,output_field=FloatField())))
             saldoawal = models.SaldoAwalBahanBaku.objects.filter(
                 Tanggal__range=(mulai, date), IDBahanBaku=i, IDLokasi="3"
             ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0,output_field=FloatField())))
@@ -327,10 +328,10 @@ def rekap_gudang(request):
         else:
             datagudang = models.TransaksiGudang.objects.filter(
                 tanggal__range=(mulai, datenow), KodeProduk=i
-            ).aggregate(kuantitas=Coalesce(Sum("jumlah"), Value(0)))
+            ).aggregate(kuantitas=Coalesce(Sum("jumlah"), Value(0,output_field=FloatField())))
             datasjp = models.DetailSuratJalanPembelian.objects.filter(
                 NoSuratJalan__Tanggal__range=(mulai, datenow), KodeProduk=i
-            ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0)))
+            ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0,output_field=FloatField())))
             saldoawal = models.SaldoAwalBahanBaku.objects.filter(
                 Tanggal__range=(mulai, datenow), IDBahanBaku=i, IDLokasi="3"
             ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0,output_field=FloatField())))
@@ -365,6 +366,8 @@ def rekap_gudang(request):
         }
         for kode_produk, nama_produk, satuan, stok_akhir in combined_list
     }
+    if date != "":
+        sekarang = date
 
     return render(
         request,
@@ -690,7 +693,7 @@ def tracking_spk(request, id):
 
         # Data SPK Terkait yang telah jadi di FG
         transaksiproduksiobj = models.TransaksiProduksi.objects.filter(
-            DetailSPPBDisplay__DetailSPKDisplay__NoSPK=dataspk.id, Jenis="Mutasi"
+            DetailSPKDisplay__NoSPK=dataspk.id, Jenis="Mutasi"
         )
         print(transaksiproduksiobj)
 
@@ -967,6 +970,7 @@ def delete_saldo(request, id):
         pesan=f"Kode Barang : {dataobj.IDBahanBaku} Lokasi : {dataobj.IDLokasi}",
     ).save()
     dataobj.delete()
+    messages.success(request,"Data berhasil dihapus")
     return redirect("read_saldoawalbahan")
 
 
@@ -1272,7 +1276,7 @@ def bulk_createtransaksigudang(request):
 
         # Mendapatkan daftar nama sheet
         sheet_names = excel_file.sheet_names
-        sheet_names = ['A-006-41']
+        # sheet_names = ['A-006-41']
         produkerror = []
 
         for item in sheet_names:
@@ -1306,13 +1310,15 @@ def bulk_createtransaksigudang(request):
                         tanggal = listtanggal[-1]
                     else:
                         tanggal = row['Tanggal']
+                    # try:
+                    tanggal = datetime.strftime(tanggal,"%Y-%m-%d")
                     transaksiobj = models.TransaksiGudang(
                             keterangan="-",
                             jumlah=row['Masuk'],
                             tanggal=tanggal,
                             KeteranganACC=True,
                             KodeProduk=models.Produk.objects.get(KodeProduk=item),
-                            Lokasi=models.Lokasi.objects.get(IDLokasi=1),
+                            Lokasi=models.Lokasi.objects.get(NamaLokasi = 'FG'),
                         )
                     if not pd.isna(row['Keterangan']):
                         keterangan = clean_string(row['Keterangan'])
@@ -1334,9 +1340,11 @@ def bulk_createtransaksigudang(request):
                         # print(asd)
                     print(row['Tanggal'])
                     print(item)
+                    print(tanggal)
                     transaksiobj.save()
                     tanggal = row['Tanggal']
-                    
+                    # except Exception as e:
+                    #     produkerror.append([item,e])
                 # except Exception as e:
                 #         produkerror.append([item,e])
                 #         continue
@@ -1461,7 +1469,7 @@ def delete_pemusnahanbarang(request, id):
         pesan=f"Pemusnahan Bahan Baku. Kode Bahan Baku : {dataobj.KodeBahanBaku.KodeProduk} Jumlah : {dataobj.Jumlah} Lokasi : {dataobj.lokasi.NamaLokasi}",
     ).save()
 
-    return redirect('view_pemusnahanbarang')
+    return redirect('read_pemusnahanbahangudang')
 
 def readcachevalue(request):
     cachevalue = models.CacheValue.objects.all()

@@ -5351,7 +5351,7 @@ def bulkcreate_transaksiproduksi(request):
                             if not existing_transaction:
                                 transaksiobj = models.TransaksiProduksi(
                                     KodeArtikel = models.Artikel.objects.get(KodeArtikel = keterangan ),
-                                    Lokasi = models.Lokasi.objects.get(NamaLokasi='FG'),
+                                    Lokasi = models.Lokasi.objects.get(NamaLokasi='WIP'),
                                     Jumlah = row['Unnamed: 3'],
                                     Jenis = 'Mutasi',
                                     Tanggal = tanggal,

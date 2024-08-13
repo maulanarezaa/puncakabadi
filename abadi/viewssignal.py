@@ -24,7 +24,7 @@ def updatehargapurchasing(sender, instance, **kwargs):
         tanggal = datetime.strptime(str(instance.Tanggal), '%Y-%m-%d').date()
         kodeproduk = instance.IDBahanBaku
     elif isinstance(instance,models.DetailSuratJalanPembelian):
-        tanggal = instance.NoSuratJalan.Tanggal
+        tanggal =  datetime.strptime(str(instance.NoSuratJalan.Tanggal),'%Y-%m-%d').date()
         kodeproduk = instance.KodeProduk
     elif isinstance(instance,models.PemusnahanBahanBaku):
         tanggal = datetime.strptime(str(instance.Tanggal), '%Y-%m-%d').date()
