@@ -985,6 +985,19 @@ def view_mutasi(request):
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def view_mutasidetailsppb(request):
+    dataproduksi = models.DetailSPPB.objects.all().order_by(
+        "-NoSPPB__Tanggal"
+    )
+    for i in dataproduksi:
+        i.NoSPPB.Tanggal = i.NoSPPB.Tanggal.strftime("%Y-%m-%d")
+
+    return render(
+        request, "produksi/view_mutasidetailsppb.html", {"dataproduksi": dataproduksi}
+    )
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_produksi(request):
     dataproduksi = models.TransaksiProduksi.objects.filter(Jenis="Produksi").order_by(
         "-Tanggal", "KodeArtikel"

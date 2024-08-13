@@ -15,16 +15,34 @@
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Detail Barang Keluar Periode : {{bulan}} </h4>
-
-
-
+                <h4 class="card-title">Artikel Keluar Periode : {{bulan}} </h4>
                 <div class="table-responsive pt-3">
-
-
-                    <h5>Detail Artikel Keluar Bulan : {{bulan}}</h5>
+                    <h5>Rekap Artikel Keluar Bulan : {{bulan}}</h5>
                     <h5> Total : {{nilaibarangkeluar|custom_thousands_separator}} </h5>
                     <table class="table" id="tabelsppbartikel">
+                        <thead>
+                            <tr>
+                                
+                                <td>Artikel</td>
+                                <td>Jumlah</td>
+                                <td>Harga FG</td>
+                                <td>Total Biaya</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for artikel,item in rekapartikel.items %}
+                            <tr>
+                                <td>{{artikel}}</td>
+                                <td>{{item.Jumlah}}</td>
+                                <td>{{item.HargaFG|custom_thousands_separator}}</td>
+                                <td>{{item.hargatotal|custom_thousands_separator}}</td>
+                                
+                            </tr>
+                            {% endfor %}
+                                                   </tbody>
+                    </table>
+                    <h5>Detail Artikel Keluar Bulan : {{bulan}}</h5>
+                    <table class="table" id="detailtabelsppbartikel">
                         <thead>
                             <tr>
                                 <td>No</td>
@@ -51,6 +69,92 @@
                                                    </tbody>
                     </table>
 
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Detail Display Keluar Periode : {{bulan}} </h4>
+                <div class="table-responsive pt-3">
+                    
+                    <h5>Rekap Display Keluar Bulan : {{bulan}}</h5>
+                    <h5> Total : {{nilaidisplaykeluar|custom_thousands_separator}} </h5>
+
+                    <table class="table" id="tabeldisplaybarangkeluar">
+                        <thead>
+                            <tr>
+                               <td>Kode Display</td>
+                               <td>SPK</td>
+                               <td>Jumlah</td>
+                               <td>HargaFG</td>
+                               <td>Total Biaya</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in display %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{item.NoSPPB.NoSPPB}}</td>
+                                <td>{{item.DetailSPKDisplay.NoSPK}}</td>
+                                <td>{{item.DetailSPKDisplay.KodeDisplay}}</td>
+                                <td>{{item.Jumlah|separator_ribuan}}</td>
+                                <td>{{item.DetailSPKDisplay.Jumlah|separator_ribuan}}</td>
+
+                                <td>
+                                    <ul>
+                                    {% for i in item.penggunaanbahan.keys %}
+                                        <li>
+                                            {{i}}
+                                        </li>
+                                    {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                    {% for i in item.penggunaanbahan.values %}
+                                        <li>
+                                            {{i.totalpermintaan|separator_ribuan}}
+                                        </li>
+                                    {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        {% for i in item.penggunaanbahan.values %}
+                                            <li>
+                                                {{i.jumlahpenggunaan|custom_thousands_separator}}
+                                            </li>
+                                        {% endfor %}
+                                        </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        {% for i in item.penggunaanbahan.values %}
+                                            <li>
+                                                {{i.biayaawal|custom_thousands_separator}}
+                                            </li>
+                                        {% endfor %}
+                                        </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        {% for i in item.penggunaanbahan.values %}
+                                            <li>
+                                                {{i.totalbiaya|custom_thousands_separator}}
+                                            </li>
+                                        {% endfor %}
+                                        </ul>
+                                </td>
+                                <td>{{item.totalbiaya|custom_thousands_separator}}</td>
+                            </tr>
+                            {% endfor %}
+                           
+                        </tbody>
+                    </table>
                     <h5>Detail Display Keluar Bulan : {{bulan}}</h5>
                     <h5> Total : {{nilaidisplaykeluar|custom_thousands_separator}} </h5>
 
@@ -132,10 +236,45 @@
                            
                         </tbody>
                     </table>
+                    </div>
+                    </div>
+        </div>
+    </div>
 
 
-                    <h5>Detail Transaksi golongan D : {{bulan}}</h5>
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Detail Bahan Golongan D Keluar Periode : {{bulan}} </h4>
+                <div class="table-responsive pt-3">
+                    <h5>Rekap Bahan golongan D Keluar : {{bulan}}</h5>
                     <h5>Total : {{nilaigold|custom_thousands_separator}} </h5>
+                    <table class="table" id="detailtabeltransaksigold">
+                        <thead>
+                            <tr>
+                                <td>Kode Bahan Baku</td>
+                                <td>Nama Bahan Baku</td>
+                                <td>Kuantitas</td>
+                                <td>Harga Satuan</td>
+                                <td>Harga Total</td>
+                                
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for artikel,item in rekapgolongand.items %}
+                            <tr>
+                                
+                                <td>{{artikel.KodeProduk}}</td>
+                                <td>{{artikel.NamaProduk}}</td>
+                                <td>{{item.Jumlah}}</td>
+                                <td>{{item.Harga|custom_thousands_separator}}</td>
+                                <td>{{item.hargatotal|custom_thousands_separator}}</td>
+                            </tr>
+                            {% endfor %}
+                           
+                        </tbody>
+                    </table>
+                    <h5>Detail Transaksi golongan D : {{bulan}}</h5>
                     <table class="table" id="tabeltransaksigold">
                         <thead>
                             <tr>
@@ -166,10 +305,50 @@
                            
                         </tbody>
                     </table>
+                </div>
+            </div>
 
-                    <h5>Detail Transaksi lain-lain : {{bulan}}</h5>
+        </div>
+    </div>
+
+                
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Detail Barang Keluar Periode : {{bulan}} </h4>
+                    <h5>Rekap Transaksi lain-lain : {{bulan}}</h5>
                     <h5>Total : {{nilailainlain|custom_thousands_separator}} </h5>
                     <table class="table" id="tabeltransaksilainlain">
+                        <thead>
+                            <tr>
+                                
+                                <td>Kode Bahan Baku</td>
+                                <td>Nama Bahan Baku</td>
+                                <td>Harga Satuan</td>
+                                <td>Kuantitas</td>
+                                <td>Harga Total</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in lainlain %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{item.tanggal}}</td>
+                                <td>{{item.KodeProduk.KodeProduk}}</td>
+                                <td>{{item.KodeProduk.NamaProduk}}</td>
+                                <td>{{item.Lokasi}}</td>
+                                <td>{{item.harga|custom_thousands_separator}}</td>
+                                <td>{{item.jumlah|separator_ribuan}}</td>
+                                <td>{{item.hargatotal|custom_thousands_separator}}</td>
+                                
+                            </tr>
+                            {% endfor %}
+                            
+                        </tbody>
+                    </table>
+                    
+                    <h5>Detail Transaksi lain-lain : {{bulan}}</h5>
+                    <table class="table" id="detailtabeltransaksilainlain">
                         <thead>
                             <tr>
                                 <td>No</td>
@@ -200,9 +379,48 @@
                         </tbody>
                     </table>
 
-                    <h5>Detail Bahan Baku Keluar Bulan : {{bulan}}</h5>
+                    
+                </div>
+            </div>
+        </div>
+        
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Detail Bahan Baku Keluar Periode : {{bulan}} </h4>
+                    
+                    <h5>Rekap Bahan Baku Keluar Bulan : {{bulan}}</h5>
                     <h5>Total : {{nilaitransaksibahanbaku|custom_thousands_separator}} </h5>
                     <table class="table" id="tabelransaksibahanbaku">
+                        <thead>
+                            <tr>
+                                
+                                <td>Bahan Baku</td>
+                                <td>Nama Bahan Baku</td>
+                                <td>Satuan</td>
+                                <td>Jumlah</td>
+                                <td>Harga </td>
+                                <td>Total Biaya</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in transaksibahanbaku %}
+                            <tr>
+                                
+                                <td>{{item.DetailBahan.KodeProduk}}</td>
+                                <td>{{item.DetailBahan.NamaProduk}}</td>
+                                <td>{{item.DetailBahan.unit}}</td>
+                                <td>{{item.Jumlah|separator_ribuan}}</td>
+                                <td>{{item.harga|custom_thousands_separator}}</td>
+                                <td>{{item.hargatotal|custom_thousands_separator}}</td>
+                            </tr>
+                            {% endfor %}
+                            
+                        </tbody>
+                    </table>
+                    <h5>Detail Bahan Baku Keluar Bulan : {{bulan}}</h5>
+                    <h5>Total : {{nilaitransaksibahanbaku|custom_thousands_separator}} </h5>
+                    <table class="table" id="detailtabelransaksibahanbaku">
                         <thead>
                             <tr>
                                 <td>No</td>
