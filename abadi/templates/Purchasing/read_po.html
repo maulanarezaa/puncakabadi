@@ -78,16 +78,7 @@
                       <td>{{i.KodeProduk.NamaProduk}}</td>
                       <td>{{i.Jumlah}}</td>
                       <td>{{i.Harga}}</td>
-                      <td>
-                          <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
-                          <div class="template-demo">
-                            <a href="{% url 'update_po' i.IDDetailSJPembelian %}">
-                              <button type="button" class="btn btn-warning">
-                                <i class="typcn typcn-edit"></i>
-                              </button>
-                            </a>
-                          </div>
-                      </td>
+                      
                     </tr>
                     {% endfor %}
                   </tbody>

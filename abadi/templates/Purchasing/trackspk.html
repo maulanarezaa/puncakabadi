@@ -7,7 +7,6 @@
 
 <!-- Page content  -->
 {% block content %}
-
 <div class="col-12 grid-margin">
   <div class="card">
     <div class="card-body">
@@ -188,7 +187,7 @@
               <th>Nomor SPK</th>
               <th>Bahan Baku</th>
               <th>Nama Produk</th>
-              <th>Unit</th>
+              <th>Satuan</th>
               <th>Artikel Peruntukan</th>
               <th>Jumlah</th>
               <th>Lokasi</th>
@@ -199,13 +198,24 @@
             {% for i in transaksigudang %}
             <tr>
               <td>{{i.tanggal}}</td>
-              <td>{{i.DetailSPK.NoSPK}}</td>
+              <td>
+                {% if i.DetailSPK != None %}
+                  {{i.DetailSPK.NoSPK}}
+                  {% else %}
+                  {{i.DetailSPKDisplay.NoSPK}}
+                {% endif %}
+              </td>
               <td>{{i.KodeProduk}}</td>
               <td>{{i.KodeProduk.NamaProduk}}</td>
               <td>{{i.KodeProduk.unit}}</td>
 
-
-              <td>{{i.DetailSPK.KodeArtikel.KodeArtikel}}</td>
+              <td>
+                {% if i.DetailSPK != None %}
+                  {{i.DetailSPK.KodeArtikel.KodeArtikel}}
+                  {% else %}
+                  {{i.DetailSPKDisplay.KodeDisplay.KodeDisplay}}
+                {% endif %}
+              </td>
               <td>{{i.jumlah}}</td>
               <td>{{i.Lokasi}}</td>
               <td>{{i.keterangan}}</td>
@@ -231,8 +241,14 @@
             {% for i in transaksiproduksi %}
             <tr>
               <td>{{i.Tanggal}}</td>
+              {% if i.DetailSPK == None %}
+              <td>{{i.DetailSPKDisplay.NoSPK}}</td>
+              <td>{{i.DetailSPKDisplay.KodeDisplay}}</td>
+              {% else %}
               <td>{{i.DetailSPK.NoSPK}}</td>
               <td>{{i.DetailSPK.KodeArtikel.KodeArtikel}}</td>
+              {% endif %}
+
               <td>{{i.Jumlah}}</td>
               <td>{{i.Keterangan}}</td>
             </tr>
@@ -260,8 +276,13 @@
             <tr>
               <td>{{i.NoSPPB.Tanggal}}</td>
               <td>{{i.NoSPPB.NoSPPB}}</td>
+              {% if i.DetailSPK == None %}
+              <td>{{i.DetailSPKDisplay.NoSPK}}</td>
+              <td>{{i.DetailSPKDisplay.KodeDisplay}}</td>
+              {% else %}
               <td>{{i.DetailSPK.NoSPK}}</td>
               <td>{{i.DetailSPK.KodeArtikel.KodeArtikel}}</td>
+              {% endif %}
               <td>{{i.Jumlah}}</td>
               <td>{{i.Keterangan}}</td>
             </tr>

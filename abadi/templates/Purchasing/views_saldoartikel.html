@@ -8,6 +8,7 @@
 
 {% block javascripts %}
 {% endblock javascripts %}
+{% load customfilter %}
 
 <!-- Page content  -->
 {% block content %}
@@ -17,7 +18,7 @@
       <div class="card-body">
         <h4 class="card-title">Saldo Awal Artikel</h4>
         <div class="table-responsive pt-3">
-          <table class="table table-bordered" id="myTable">
+          <table class="table table-bordered" id="saldoawalartikelpurchasing">
             <thead>
               <tr>
                 <th>No</th>
@@ -34,7 +35,7 @@
                 <td>{{i.Tanggal}}</td>
                 <td>{{i.IDArtikel.KodeArtikel}}</td>
                 <td>{{i.IDLokasi}}</td>
-                <td>{{i.Jumlah|intcomma}}</td>
+                <td>{{i.Jumlah|separator_ribuan}}</td>
               </tr>
               {% endfor %}
             </tbody>

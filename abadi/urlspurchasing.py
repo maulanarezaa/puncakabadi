@@ -36,7 +36,7 @@ urlpatterns = [
     path('update_barangsubkon_masuk/<str:id>',viewspurchasing.update_barangsubkon_masuk,name='updatebarangsubkonmasuk'),
     # rekap purchasing(gudang+produksi)
     path("rekap_purchasing", viewspurchasing.rekap_purchasing, name="rekap_purchasing"),
-    path("rekapgudang2", viewspurchasing.rekap_gudang, name="rekapgudang2"),
+    path("rekapbaranggudang", viewspurchasing.rekap_gudang, name="rekapgudang2"),
     path(
         "viewrekapbarang2", viewspurchasing.view_rekapbarang, name="view_rekapbarang2"
     ),
@@ -73,11 +73,6 @@ urlpatterns = [
     path('updatesaldoawalartikel/<str:id>',viewspurchasing.update_saldoartikel,name='updatesaldoartikelpurchasing'),
    
     # Saldo awal b.sub
-    path(
-        "viewsaldobahansubkon",
-        viewspurchasing.view_saldobahansubkon,
-        name="view_saldobahansubkon",
-    ),
      
     path(
         "updatesaldobahansubkon/<str:id>",

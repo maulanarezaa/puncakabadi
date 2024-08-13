@@ -242,8 +242,8 @@
             <tr>
               <td>{{i.Tanggal}}</td>
               {% if i.DetailSPK == None %}
-              <td>{{i.DetailSPPBDisplay.DetailSPKDisplay.NoSPK}}</td>
-              <td>{{i.DetailSPPBDisplay.DetailSPKDisplay.KodeDisplay}}</td>
+              <td>{{i.DetailSPKDisplay.NoSPK}}</td>
+              <td>{{i.DetailSPKDisplay.KodeDisplay}}</td>
               {% else %}
               <td>{{i.DetailSPK.NoSPK}}</td>
               <td>{{i.DetailSPK.KodeArtikel.KodeArtikel}}</td>

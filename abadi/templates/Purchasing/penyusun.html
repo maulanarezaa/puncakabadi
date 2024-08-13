@@ -4,6 +4,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
+{% load customfilter %}
 
 
 
@@ -67,6 +68,8 @@
                         </div>
                     </div>
                 </form>
+                <h4 class="card-title">Nilai FG : <span style="font-weight: lighter;">
+                    Rp{{nilaifg |custom_thousands_separator}}</span></h4>
 
                 {% endif %}
                 <div class="table-responsive pt-3">
@@ -97,10 +100,10 @@
                                 <td>{{i.Penyusunobj.KodeProduk.unit}}</td>
                                 <td>{{i.Penyusunobj.Lokasi.NamaLokasi}}</td>
                                 <td>{{i.Penyusunobj.Status}}</td>
-                                <td>{{i.Konversi|floatformat:5}}</td>
-                                <td>{{i.Allowance|floatformat:5}}</td>
-                                <td>{{i.HargaSatuan|floatformat:2|intcomma}}</td>
-                                <td>{{i.Hargakotak|floatformat:2|intcomma}}</td>
+                                <td>{{i.Konversi|separator_desimal5angka}}</td>
+                                <td>{{i.Allowance|separator_desimal5angka}}</td>
+                                <td>{{i.HargaSatuan|custom_thousands_separator}}</td>
+                                <td>{{i.Hargakotak|custom_thousands_separator}}</td>
 
 
                             </tr>

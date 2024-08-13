@@ -7,6 +7,7 @@
 
 {% block javascripts %}
 {% endblock javascripts %}
+{% load customfilter %}
 
 <!-- Page content  -->
 {% block content %}
@@ -17,7 +18,7 @@
         <h4 class="card-title">Saldo Awal Produk Subkon</h4>
     
         <div class="table-responsive pt-3">
-          <table class="table table-bordered" id="myTable">
+          <table class="table table-bordered" id="saldoawalproduksubkon">
             <thead>
               <tr>
                 <th>No</th>
@@ -35,7 +36,7 @@
                 <td>{{i.Tanggal}}</td>
                 <td>{{i.IDProdukSubkon.NamaProduk}}</td>
                 <td>{{i.IDProdukSubkon.KodeArtikel.KodeArtikel}}</td>
-                <td>{{i.Jumlah|intcomma}}</td>
+                <td>{{i.Jumlah|separator_ribuan}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   {% if user.groups.first.name != 'ppic' %}

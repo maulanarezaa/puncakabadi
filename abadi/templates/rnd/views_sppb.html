@@ -33,7 +33,7 @@
                                 <td>{{i.Tanggal}}</td>
                                 <td>{{i.NoSPPB}}</td>
                                 <td>{{i.Keterangan}}</td>
-                                {% if i.detailsppb.exists %}
+
                                 <td>
                                     {% for j in i.detailsppb %}
                                     <li>{{j.DetailSPK.NoSPK}}</li>
@@ -64,9 +64,7 @@
                                     </li>
                                     {% endfor %}
                                 </td>
-                                {% else %}
-                                <p> Belum ada Record Detail SPPB</p>
-                                {% endif %}
+                               
 
                             </tr>
                             {% endfor %}

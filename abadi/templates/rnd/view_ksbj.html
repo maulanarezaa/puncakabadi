@@ -1,5 +1,8 @@
 {% extends "rnd/base.html" %}
 {% load static %}
+{% load humanize %}
+{% load customfilter %}
+
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -22,7 +25,13 @@
                             <div class="form-group">
                                 <div class="input-group">
                                     <input required type="text" class="form-control" placeholder="Masukkan Nama Artikel"
-                                        aria-label="Masukkan Nama Artikel" name="kodeartikel" value="{{kodeartikel}}">
+                                        aria-label="Masukkan Nama Artikel" name="kodeartikel" list="listartikel"
+                                        value="{{kodeartikel}}">
+                                    <datalist id="listartikel">
+                                        {% for i in dataartikel %}
+                                        <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
+                                        {% endfor %}
+                                    </datalist>
                                 </div>
                             </div>
                         </div>
@@ -31,7 +40,6 @@
                                 <div class="input-group">
                                     <input type="number" name="tahun" class="form-control" placeholder="Masukan Tahun"
                                         value="{{tahun}}">
-
                                 </div>
                             </div>
                         </div>
@@ -79,8 +87,8 @@
                 </form>
 
                 <div class="table-responsive pt-3">
-                    {% if data.count > 0 and kodeartikel and lokasi == 'WIP' or saldoawal%}
-                    <table class="table table-bordered">
+                    {% if data.count > 0 and kodeartikel and lokasi == 'WIP' %}
+                    <table class="table table-bordered" id="ksbjrnd">
                         <thead>
                             <tr>
                                 <td>Tanggal</td>
@@ -95,9 +103,13 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="6">Saldo awal ({{saldoawal.Tanggal}}) </td>
-
-                                <td>{{saldoawal.Jumlah}}</td>
+                                <td>{{saldoawal.Tanggal}} Saldo awal </td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>{{saldoawal.Jumlah|custom_thousands_separator}}</td>
                             </tr>
                             {% for i in listdata %}
                             <tr>
@@ -119,10 +131,10 @@
 
                                 </td>
                                 <td>{{i.Kodeproduk.KodeProduk.KodeProduk}}</td>
-                                <td>{{i.Masuklembar}}</td>
-                                <td>{{i.Masukkonversi}}</td>
-                                <td>{{i.Hasil}}</td>
-                                <td>{{i.Sisa}}</td>
+                                <td>{{i.Masuklembar|custom_thousands_separator}}</td>
+                                <td>{{i.Masukkonversi|separator_ribuan}}</td>
+                                <td>{{i.Hasil|separator_ribuan}}</td>
+                                <td>{{i.Sisa|custom_thousands_separator}}</td>
                             </tr>
 
                             {% endfor %}
@@ -138,9 +150,8 @@
                             {% endif %}
                         </tbody>
                     </table>
-
                     {% elif data.count > 0 and kodeartikel and lokasi == 'FG'%}
-                    <table class="table table-bordered">
+                    <table class="table table-bordered" id="ksbjrnd">
                         <thead>
                             <tr>
                                 <td>Tanggal</td>
@@ -154,17 +165,17 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Saldo awal ({{saldoawal.Tanggal}} )</td>
+                                <td>{{saldoawal.Tanggal}} Saldo awal </td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td>{{saldoawal.Jumlah}}</td>
+                                <td>{{saldoawal.Jumlah|separator_ribuan}}</td>
                             </tr>
                             {% for i in listdata %}
                             <tr>
                                 <td>{{i.Tanggal}}</td>
-                                <td>{{i.Penyerahanwip}}</td>
+                                <td>{{i.Penyerahanwip|separator_ribuan}}</td>
                                 {% if i.DetailSPPB %}
                                 <td>
                                     {% for j in i.DetailSPPB %}
@@ -181,7 +192,7 @@
                                 <td>
                                     {% for j in i.DetailSPPB %}
                                     <li>
-                                        {{j.Jumlah}}
+                                        {{j.Jumlah|separator_ribuan}}
                                     </li>
                                     {% endfor %}
 
@@ -191,7 +202,7 @@
                                 <td>-</td>
                                 <td>-</td>
                                 {% endif %}
-                                <td>{{i.Sisa}}</td>
+                                <td>{{i.Sisa|separator_ribuan}}</td>
                             </tr>
                             {% endfor %}
                             {% if saldoakhir%}:
