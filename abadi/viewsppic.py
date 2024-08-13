@@ -742,10 +742,37 @@ def detaillaporanbarangkeluar(request):
             else:
                 rekapartikel[i.DetailSPK.KodeArtikel] = {'Jumlah': i.Jumlah, "HargaFG":i.hargafg}
             rekapartikel[i.DetailSPK.KodeArtikel]['hargatotal'] = rekapartikel[i.DetailSPK.KodeArtikel]['Jumlah'] * rekapartikel[i.DetailSPK.KodeArtikel]['HargaFG']
+           
+
         # Rekap Display Keluar
-        datatransaksidisplay =datatransaksikeluar['SPPBDisplay']['totalbiayasppb']
+        '''
+        A : {NoSPK : {1: {Jumlah : x,Harga:y},}}
+        '''
+        datatransaksidisplay =datatransaksikeluar['SPPBDisplay']['SPPBDisplay']
         rekaptransaksidisplay = {}
-        
+        for i in datatransaksidisplay:
+            # print(dir(i))
+            if i.DetailSPKDisplay.KodeDisplay in rekaptransaksidisplay:
+                print('Masuk',rekaptransaksidisplay[i.DetailSPKDisplay.KodeDisplay]['NoSPK'])
+                
+                if i.DetailSPKDisplay.NoSPK.NoSPK in rekaptransaksidisplay[i.DetailSPKDisplay.KodeDisplay]['NoSPK']:
+                    rekaptransaksidisplay[i.DetailSPKDisplay.KodeDisplay]['NoSPK'][i.DetailSPKDisplay.NoSPK.NoSPK]['Jumlah'] += i.Jumlah
+                    rekaptransaksidisplay[i.DetailSPKDisplay.KodeDisplay]['NoSPK'][i.DetailSPKDisplay.NoSPK.NoSPK]['Hargatotal'] += i.totalbiaya
+                    # TOTAL BIAYA MASIH ERROR DARI RUMUS PERHITUNGAN BARANG KELUAR DI FG 
+                    # print('masuksini')
+                else:
+                    rekaptransaksidisplay[i.DetailSPKDisplay.KodeDisplay]['NoSPK'][i.DetailSPKDisplay.NoSPK.NoSPK ]= {'Jumlah' : i.Jumlah, 'Hargatotal':i.totalbiaya}
+
+            else:
+                rekaptransaksidisplay[i.DetailSPKDisplay.KodeDisplay] = {"NoSPK" : {i.DetailSPKDisplay.NoSPK.NoSPK: {'Jumlah' : i.Jumlah, 'Hargatotal':i.totalbiaya}}}
+            hargatotal = rekaptransaksidisplay[i.DetailSPKDisplay.KodeDisplay]['NoSPK'][i.DetailSPKDisplay.NoSPK.NoSPK ]['Hargatotal']
+            if hargatotal == 0 :
+                hargasatuan = 0
+            else:
+                hargasatuan = hargatotal /rekaptransaksidisplay[i.DetailSPKDisplay.KodeDisplay]['NoSPK'][i.DetailSPKDisplay.NoSPK.NoSPK]['Jumlah']
+            rekaptransaksidisplay[i.DetailSPKDisplay.KodeDisplay]['NoSPK'][i.DetailSPKDisplay.NoSPK.NoSPK ]['hargasatuan'] = hargasatuan
+
+        print(rekaptransaksidisplay)
         # Rekap Bahan Baku Keluar
         databahanbakukeluar = datatransaksikeluar["Transaksibahanbaku"]['datatransaksi']
         rekapdatabahankeluar = {}
@@ -765,7 +792,7 @@ def detaillaporanbarangkeluar(request):
                 rekapgolongand[i.KodeProduk] = {"Jumlah" : i.jumlah,"Harga":i.harga}
             rekapgolongand[i.KodeProduk]['hargatotal'] = rekapgolongand[i.KodeProduk]['Jumlah'] * rekapgolongand[i.KodeProduk]['Harga']
 
-        print(rekapgolongand)
+        # print(rekapgolongand)
         # Rekap transaksi lain lain
         rekaptransaksilainlain = datatransaksikeluar['Transaksilainlain']['datatransaksi']
         rekaptransaksilainlain={}
@@ -793,7 +820,8 @@ def detaillaporanbarangkeluar(request):
                 "transaksibahanbaku":datatransaksikeluar["Transaksibahanbaku"]['datatransaksi'],
                 "nilaitransaksibahanbaku":datatransaksikeluar["Transaksibahanbaku"]['totalbiaya'],
                 "rekapartikel" : rekapartikel,
-                'rekapgolongand':rekapgolongand
+                'rekapgolongand':rekapgolongand,
+                'rekaptransaksidisplay' : rekaptransaksidisplay
                 
                 
             },
@@ -1060,9 +1088,9 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
                 penggunaanproduk[dataproduk['KodeProduk__KodeProduk']] = {'jumlahpenggunaan':totalpenggunaanperdisplay,"biayaawal":hargaawal,"totalbiaya":hargaawal*totalpenggunaanperdisplay,'totalpermintaan':totalpermintaan}
                 totalbiayakomponendisplay += hargaawal * totalpenggunaanperdisplay
             # print(penggunaanproduk)
-            totalbiayadisplay += totalbiayakomponendisplay * display.Jumlah
+            totalbiayadisplay += totalbiayakomponendisplay
             display.penggunaanbahan = penggunaanproduk
-            display.totalbiaya = totalbiayadisplay
+            display.totalbiaya = totalbiayakomponendisplay
             
         
         datamodeldisplay['SPPBDisplay']= (datatransaksisppbdisplay)

@@ -95,63 +95,40 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in display %}
+                            {% for artikel, item in rekaptransaksidisplay.items %}
                             <tr>
-                                <td>{{forloop.counter}}</td>
-                                <td>{{item.NoSPPB.NoSPPB}}</td>
-                                <td>{{item.DetailSPKDisplay.NoSPK}}</td>
-                                <td>{{item.DetailSPKDisplay.KodeDisplay}}</td>
-                                <td>{{item.Jumlah|separator_ribuan}}</td>
-                                <td>{{item.DetailSPKDisplay.Jumlah|separator_ribuan}}</td>
-
+                                <td>{{ artikel }}</td>
                                 <td>
                                     <ul>
-                                    {% for i in item.penggunaanbahan.keys %}
-                                        <li>
-                                            {{i}}
-                                        </li>
-                                    {% endfor %}
+                                        {% for spk_key, spk_value in item.NoSPK.items %}
+                                            <li>{{ spk_key }}</li>
+                                        {% endfor %}
                                     </ul>
                                 </td>
                                 <td>
                                     <ul>
-                                    {% for i in item.penggunaanbahan.values %}
-                                        <li>
-                                            {{i.totalpermintaan|separator_ribuan}}
-                                        </li>
-                                    {% endfor %}
+                                        {% for spk_key, spk_value in item.NoSPK.items %}
+                                            <li>{{ spk_value.Jumlah}}</li>
+                                        {% endfor %}
                                     </ul>
                                 </td>
                                 <td>
                                     <ul>
-                                        {% for i in item.penggunaanbahan.values %}
-                                            <li>
-                                                {{i.jumlahpenggunaan|custom_thousands_separator}}
-                                            </li>
+                                        {% for spk_key, spk_value in item.NoSPK.items %}
+                                            <li>{{ spk_value.hargasatuan|custom_thousands_separator }}</li>
                                         {% endfor %}
-                                        </ul>
+                                    </ul>
                                 </td>
                                 <td>
                                     <ul>
-                                        {% for i in item.penggunaanbahan.values %}
-                                            <li>
-                                                {{i.biayaawal|custom_thousands_separator}}
-                                            </li>
+                                        {% for spk_key, spk_value in item.NoSPK.items %}
+                                            <li>{{ spk_value.Hargatotal|custom_thousands_separator }}</li>
                                         {% endfor %}
-                                        </ul>
+                                    </ul>
                                 </td>
-                                <td>
-                                    <ul>
-                                        {% for i in item.penggunaanbahan.values %}
-                                            <li>
-                                                {{i.totalbiaya|custom_thousands_separator}}
-                                            </li>
-                                        {% endfor %}
-                                        </ul>
-                                </td>
-                                <td>{{item.totalbiaya|custom_thousands_separator}}</td>
                             </tr>
-                            {% endfor %}
+                        {% endfor %}
+                        
                            
                         </tbody>
                     </table>

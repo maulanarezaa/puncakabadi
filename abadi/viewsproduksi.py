@@ -993,7 +993,7 @@ def view_mutasidetailsppb(request):
         i.NoSPPB.Tanggal = i.NoSPPB.Tanggal.strftime("%Y-%m-%d")
 
     return render(
-        request, "produksi/view_mutasidetailsppb.html", {"dataproduksi": dataproduksi}
+        request, "produksi/view_mutasisppb.html", {"dataproduksi": dataproduksi}
     )
 
 @login_required
@@ -5351,7 +5351,7 @@ def bulkcreate_transaksiproduksi(request):
                             if not existing_transaction:
                                 transaksiobj = models.TransaksiProduksi(
                                     KodeArtikel = models.Artikel.objects.get(KodeArtikel = keterangan ),
-                                    Lokasi = models.Lokasi.objects.get(NamaLokasi='WIP'),
+                                    Lokasi = models.Lokasi.objects.get(NamaLokasi='FG'),
                                     Jumlah = row['Unnamed: 3'],
                                     Jenis = 'Mutasi',
                                     Tanggal = tanggal,

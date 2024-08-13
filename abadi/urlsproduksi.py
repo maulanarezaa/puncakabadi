@@ -39,7 +39,7 @@ urlpatterns = [
     path(
         "deleteproduksi/<str:id>", viewsproduksi.delete_produksi, name="delete_produksi"
     ),
-    path("viewdetailsppb", viewsproduksi.view_mutasi, name="view_detailmutasisppb"),
+    path("viewdetailsppb", viewsproduksi.view_mutasidetailsppb, name="view_detailmutasisppb"),
     path("viewmutasi", viewsproduksi.view_mutasi, name="view_mutasi"),
     path("addmutasi", viewsproduksi.add_mutasi, name="add_mutasi"),
     path("updatemutasi/<str:id>", viewsproduksi.update_mutasi, name="update_mutasi"),

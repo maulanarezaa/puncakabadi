@@ -29,30 +29,43 @@
               <tr>
                 <th>Tanggal</th>
                 <th>Jenis</th>
-                <th>Lokasi</th>
+                <th>No SPPB</th>
                 <th>No SPK</th>
                 <th>Kode Artikel</th>
                 <th>Jumlah</th>
-                <th>Keterangan</th>
+
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {% for i in dataproduksi %}
               <tr>
-                <td>{{i.Tanggal}}</td>
-                <td>{{i.Jenis}}</td>
-                <td>{{i.Lokasi.NamaLokasi}}</td>
-                {% if i.KodeDisplay == None %}
-                <td>{{i.DetailSPK.NoSPK}} - {{i.DetailSPK.KodeArtikel}}</td>
-                <td>{{i.KodeArtikel}}</td>
-                {% else %}
-                <td>{{i.DetailSPPBDisplay.DetailSPKDisplay.NoSPK}}</td>
-                <td>{{i.KodeDisplay}}</td>
+                <td>{{i.NoSPPB.Tanggal}}</td>
+                <td>
+                  {% if i.DetailSPK != None %}
+                  Artikel
+                  {% elif i.DetailSPKDisplay != None %}
+                  Display
+                  {% else %}
+                  Bahan
+                  {% endif %}
+                <td>{{i.NoSPPB}}</td>
 
-                {% endif %}
+
+                </td>
+                {% if i.DetailSPK != None %}
+                  <td>{{i.DetailSPK.NoSPK}}</td>
+                  <td>{{i.DetailSPK.KodeArtikel}}</td>
+                  {% elif i.DetailSPKDisplay != None %}
+                  <td>{{i.DetailSPKDisplay.NoSPK}}</td>
+                  <td>{{i.DetailSPKDisplay.KodeDisplay}}</td>
+                  {% else %}
+                  <td>-</td>
+                  <td>{{i.DetailBahan.KodeProduk}}</td>
+                  
+                  {% endif %}
                 <td>{{i.Jumlah|intcomma}}</td>
-                <td>{{i.Keterangan}}</td>
+               
                 <td>
                   {% if user.groups.first.name != 'ppic' %}
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
