@@ -52,3 +52,15 @@ def separator_desimal5angka(value):
     except (ValueError,TypeError):
         return value
     
+@register.filter
+def separator_ribuan2desimal(value):
+    try:
+        # Memformat nilai dengan 2 angka desimal
+        formatted_value = f"{value:,.2f}"
+        # Ganti koma dengan titik untuk pemisah ribuan
+        formatted_value = formatted_value.replace(',', 'X')  # Sementara ganti koma dengan 'X'
+        formatted_value = formatted_value.replace('.', ',')  # Ganti titik (desimal) dengan koma
+        formatted_value = formatted_value.replace('X', '.')  # Ganti 'X' dengan titik untuk ribuan
+        return formatted_value
+    except (ValueError, TypeError):
+        return value

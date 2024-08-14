@@ -321,7 +321,7 @@ urlpatterns = [
     ),
     path(
         "deletetransaksicat/<str:id>",
-        viewsproduksi.delete_pemusnahan,
+        viewsproduksi.delete_pemusnahancat,
         name="delete_transaksicat",
     ),
     # '''BULK CREATE'''d

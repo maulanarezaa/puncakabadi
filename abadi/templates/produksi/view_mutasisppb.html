@@ -70,17 +70,12 @@
                   {% if user.groups.first.name != 'ppic' %}
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   <div class="template-demo">
-                    <a href="{% url 'update_mutasi' i.idTransaksiProduksi %}">
+                    <a href="{% url 'detail_sppb' i.NoSPPB.id %}">
                       <button type="button" class="btn btn-warning">
                         <i class="typcn typcn-edit"></i>
                       </button>
                     </a>
-                    <a>
-                      <button type="button" onclick="confirmDelete('{{ i.idTransaksiProduksi  }}')"
-                        class="btn btn-danger">
-                        <i class="typcn typcn typcn-trash"></i>
-                      </button>
-                    </a>
+                   
                   </div>
                   {% endif %}
                 </td>

@@ -26,6 +26,7 @@ def dashboard(request):
 
         if data.exists():
             for item in data:
+                item.versi = item.versi.strftime('%Y-%m-%d')
                 konversidataobj = models.KonversiMaster.objects.get(KodePenyusun=item.IDKodePenyusun)
 
                 tanggal_sekarang = datetime.now().date()
@@ -258,7 +259,7 @@ def add_spk(request):
             messages.error(request, "Nomor SPK sudah ada")
             return redirect("add_spk")
         else:
-            messages.success(request, "Data berhasil disimpan")
+            
             data_spk = models.SPK(
                 NoSPK=nomor_spk,
                 Tanggal=tanggal,
@@ -272,7 +273,7 @@ def add_spk(request):
                 StatusDisplay = 1
             
             data_spk.StatusDisplay = StatusDisplay
-            data_spk.save()
+            
 
             models.transactionlog(
                 user="Produksi",
@@ -283,37 +284,50 @@ def add_spk(request):
             
             artikel_list = request.POST.getlist("artikel[]")
             jumlah_list = request.POST.getlist("quantity[]")
-            no_spk = models.SPK.objects.get(NoSPK=nomor_spk)
 
             for produk, jumlah in zip(artikel_list, jumlah_list):
                 # Pisahkan KodeArtikel dari jumlah dengan delimiter '/'
                 if jenisspk == "spkartikel":
-                    kode_artikel = models.Artikel.objects.get(KodeArtikel=produk)
+                    try:
+                        kode_artikel = models.Artikel.objects.get(KodeArtikel=produk)
+                        data_spk.save()
+                        no_spk = models.SPK.objects.get(NoSPK=nomor_spk)
 
-                    # Simpan data ke dalam model DetailSPK
-                    datadetailspk = models.DetailSPK(
-                        NoSPK=no_spk, KodeArtikel=kode_artikel, Jumlah=jumlah
-                    )
-                    models.transactionlog(
-                        user="Produksi",
-                        waktu=datetime.now(),
-                        jenis="Create",
-                        pesan=f"Detail Surat Perintah Kerja. No SPK : {no_spk.NoSPK} Kode Artikel : {kode_artikel.KodeArtikel} Jumlah : {jumlah}",
-                    ).save()
+
+                        # Simpan data ke dalam model DetailSPK
+                        datadetailspk = models.DetailSPK(
+                            NoSPK=no_spk, KodeArtikel=kode_artikel, Jumlah=jumlah
+                        )
+                        models.transactionlog(
+                            user="Produksi",
+                            waktu=datetime.now(),
+                            jenis="Create",
+                            pesan=f"Detail Surat Perintah Kerja. No SPK : {no_spk.NoSPK} Kode Artikel : {kode_artikel.KodeArtikel} Jumlah : {jumlah}",
+                        ).save()
+                        messages.success(request, "Data berhasil disimpan")
+                    except models.Artikel.DoesNotExist:
+                        messages.error(request,f"Artikel {produk} tidak ditemukan dalam sistem")
+
                 elif jenisspk == "spkdisplay":
-                    kode_display = models.Display.objects.get(KodeDisplay = produk)
+                    try :
+                        kode_display = models.Display.objects.get(KodeDisplay = produk)
+                        data_spk.save()
+                        no_spk = models.SPK.objects.get(NoSPK=nomor_spk)
 
-                    # Simpan data dalam model detailSPK
-                    datadetailspk = models.DetailSPKDisplay(
-                        NoSPK = no_spk, KodeDisplay = kode_display, Jumlah = jumlah
-                    )
-                    models.transactionlog(
-                        user="Produksi",
-                        waktu=datetime.now(),
-                        jenis="Create",
-                        pesan=f"Detail Surat Perintah Kerja. No SPK : {no_spk.NoSPK} Kode Display : {kode_display.KodeDisplay} Jumlah : {jumlah}",
-                    ).save()
-                datadetailspk.save()
+                        # Simpan data dalam model detailSPK
+                        datadetailspk = models.DetailSPKDisplay(
+                            NoSPK = no_spk, KodeDisplay = kode_display, Jumlah = jumlah
+                        )
+                        models.transactionlog(
+                            user="Produksi",
+                            waktu=datetime.now(),
+                            jenis="Create",
+                            pesan=f"Detail Surat Perintah Kerja. No SPK : {no_spk.NoSPK} Kode Display : {kode_display.KodeDisplay} Jumlah : {jumlah}",
+                        ).save()
+                        datadetailspk.save()
+                        messages.success(request, "Data berhasil disimpan")
+                    except models.Display.DoesNotExist:
+                        messages.error(request,f'Display {produk} tidak ditemukan dalam sistem')
 
             return redirect("view_spk")
 
@@ -1678,7 +1692,7 @@ def update_gudangretur(request, id):
         gudangobj.KodeProduk = getproduk
         gudangobj.Lokasi = getlokasi
         gudangobj.tanggal = tanggal
-        gudangobj.jumlah = -int(jumlah)
+        gudangobj.jumlah = float(jumlah) * -1
         gudangobj.keterangan = keterangan
 
         gudangobj.save()
@@ -2225,7 +2239,7 @@ def view_ksbj2(request):
         lokasi = request.GET['lokasi']
         lokasiobj = models.Lokasi.objects.get(NamaLokasi = lokasi)
 
-        getbahanbakuutama = models.Penyusun.objects.filter(KodeArtikel=artikel.id, Status=1,versi__range=(tanggal_mulai,tanggal_akhir)).first()
+        getbahanbakuutama = models.Penyusun.objects.filter(KodeArtikel=artikel.id, Status=1,versi__lte=tanggal_akhir).order_by('-versi').first()
         print(getbahanbakuutama)
         if not getbahanbakuutama :
             messages.error(request, "Bahan Baku utama belum di set")
@@ -2766,6 +2780,7 @@ def delete_pemusnahan(request, id):
         jenis="Delete",
         pesan=f"Pemusnahan Artikel. Kode Artikel : {dataobj.KodeArtikel.KodeArtikel} Jumlah : {dataobj.Jumlah} Lokasi : {dataobj.lokasi.NamaLokasi}",
     ).save()
+    messages.success(request,'Data berhasil dihapus')
 
     return redirect(view_pemusnahan)
 
@@ -3414,7 +3429,7 @@ def delete_saldobahan(request, id):
         jenis="Delete",
         pesan=f"Saldo Bahan Baku. Kode Bahan Baku : {dataobj.IDBahanBaku.KodeProduk} Jumlah : {dataobj.Jumlah} Lokasi : {dataobj.IDLokasi.NamaLokasi} Harga : {dataobj.Harga}",
     ).save()
-    
+    messages.success(request,'Data berhasil dihapus')
     return redirect(view_saldobahan)
 
 
@@ -3550,7 +3565,8 @@ def delete_saldoartikel(request, id):
         jenis="Delete",
         pesan=f"Saldo Artikel. Kode Bahan Baku : {dataobj.IDArtikel.KodeArtikel} Jumlah : {dataobj.Jumlah} Lokasi : {dataobj.IDLokasi.NamaLokasi}",
     ).save()
-    
+    messages.success(request,'Data berhasil dihapus')
+
     return redirect(view_saldoartikel)
 
 
@@ -3672,7 +3688,7 @@ def delete_saldosubkon(request, id):
         jenis="Delete",
         pesan=f"Saldo Produk Subkon. Nama Produk : {dataobj.IDProdukSubkon.NamaProduk}  Kode Artikel : {dataobj.IDProdukSubkon.KodeArtikel} Jumlah : {dataobj.Jumlah}",
     ).save()
-    
+    messages.success(request,'Data berhasil dihapus')
     return redirect('view_saldosubkonproduksi')
 
 
@@ -3796,7 +3812,8 @@ def delete_saldobahansubkon(request, id):
             jenis="Delete",
             pesan=f"Saldo Bahan Baku Subkon. Kode Bahan Baku: {dataobj.IDBahanBakuSubkon.KodeProduk} Jumlah : {dataobj.Jumlah}",
         ).save()
-    
+    messages.success(request,'Data berhasil dihapus')
+
     return redirect(view_saldobahansubkon)
 
 
@@ -3824,7 +3841,7 @@ def update_produk_produksi(request, id):
             jenis="Update",
             pesan=f"Bahan Baku. Kode Bahan Baku: {produkobj.KodeProduk} Nama Bahan Baku : {produkobj.NamaProduk}  Keterangan : {produkobj.keteranganProduksi}",
         ).save()
-
+        messages.success(request,'Data berhasil disimpan')
         return redirect("read_produk_produksi")
 
 
@@ -4218,7 +4235,7 @@ def delete_subkonbahankeluar(request, id):
         jenis="Delete",
         pesan=f"Detail SJ Kirim Bahan Subkon. Kode Bahan Baku: {dataskk.KodeBahanBaku.KodeProduk} Nama Bahan Baku : {dataskk.KodeBahanBaku.NamaProduk}  Jumlah : {dataskk.Jumlah} Keterangan : {dataskk.Keterangan}",
     ).save()
-    
+    messages.success(request,'Data berhasil dihapus')
     return redirect("view_subkonbahankeluar")
 
 
@@ -4420,7 +4437,7 @@ def delete_subkonprodukmasuk(request, id):
         jenis="Delete",
         pesan=f"Detail SJ Terima Produk Subkon. Nama Produk : {dataskk.KodeProduk.NamaProduk} Artikel Untuk : {dataskk.KodeProduk.KodeArtikel}  Jumlah : {dataskk.Jumlah} Keterangan : {dataskk.Keterangan}",
     ).save()
-    
+    messages.success(request,'Data berhasil dihapus')
     return redirect("view_subkonprodukmasuk")
 
 
@@ -4641,7 +4658,7 @@ def delete_transaksi_subkon_terima(request, id):
             jenis="Delete",
             pesan=f"Transaksi Produk Subkon. Nama Produk: {produkobj.KodeProduk.NamaProduk} Artikel Peruntukan : {produkobj.KodeProduk.KodeArtikel}  Jumlah : {produkobj.Jumlah}",
         ).save()
-
+    messages.success(request,'Data berhasil dihapus')
     return redirect("transaksi_subkon_terima")
 
 
@@ -5281,7 +5298,7 @@ def update_transaksicat(request, id):
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
-def delete_pemusnahan(request, id):
+def delete_pemusnahancat(request, id):
     dataobj = models.TransaksiCat.objects.get(id=id)
     dataobj.delete()
 

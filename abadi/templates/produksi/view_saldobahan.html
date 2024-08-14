@@ -47,7 +47,7 @@
                 <td>{{i.IDBahanBaku.KodeProduk}}</td>
                 <td>{{i.IDBahanBaku.NamaProduk}}</td>
                 <td>{{i.IDLokasi}}</td>
-                <td>{{i.Jumlah|separator_ribuan}}</td>
+                <td>{{i.Jumlah|separator_ribuan2desimal}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   {% if user.groups.first.name != 'ppic' %}

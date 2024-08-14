@@ -70,8 +70,15 @@
 
   <script>
     $(document).ready(function () {
-      $('#myTable').dataTable();
+      $('#myTable').dataTable({
+        "order": [[0, "dsc"]],});
+      $('#tabelspk').dataTable({
+        "order": [[0, "dsc"]],});
+      $('#tabelsppb').dataTable({
+        "order": [[0, "dsc"]],});
       $('#tabelpenyesuaian').dataTable();
+      $('#bahanbakusubkon').dataTable();
+      $('#tabelproduksubkon').dataTable();
       $('#artikel').DataTable();
       $('#barang').DataTable();
       $('#tabelksbjwip').DataTable();
