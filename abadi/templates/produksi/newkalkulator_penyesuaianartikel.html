@@ -1,0 +1,231 @@
+{% extends "produksi/base.html" %}
+{% load static %}
+{% load humanize %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+{% load customfilter %}
+
+<!-- Page content  -->
+{% block content %}
+<div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Simulasi Perhitungan Penyesuaian Artikel: <span style="font-weight: lighter;">
+                        {{kodebarang}}</span></h4>
+                <h4 class="card-title">Nama Barang : <span style="font-weight: lighter;">
+                        {{nama}}</span></h4>
+                <h4 class="card-title">Satuan : <span style="font-weight: lighter;">
+                        {{satuan}}</span></h4>
+                <h4 class="card-title">Lokasi : <span style="font-weight: lighter;">
+                        {{lokasi}}</span></h4>
+                <form action="" method="get">
+                    {% if kodebarang %}
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <label for="">Kode Bahan Baku</label>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Masukkan Kode Barang"
+                                        aria-label="Masukkan Kode Barang" name="kodebarang" value="{{kodebarang}}" list="listbahanbaku">
+                                        <datalist id="listbahanbaku">
+                                            {% for item in kodeproduk %}
+                                            <option value="{{item.KodeProduk}}">{{item.NamaProduk}}</option>
+                                            {% endfor %}
+                                        </datalist>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2">
+                            <label for="">Lokasi</label>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <select name="lokasi" id="" class="form-control">
+                                        {% if lokasi == 'WIP' %}
+                                        <option value="WIP" selected>WIP</option>
+                                        <option value="FG">FG</option>
+                                        {% else %}
+                                        <option value="WIP">WIP</option>
+                                        <option value="FG" selected>FG</option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2">
+                            <div class="form-group">
+                                <label for="">Tanggal Awal </label>
+                                <div class="input-group">
+                                    
+                                    {% if tanggalawal %}
+                                    <input type="date" class="form-control" placeholder="Masukkan Kode Barang"
+                                        aria-label="Masukkan Kode Barang" name="tanggalawal" value="{{tanggalawal}}">
+                                        {% else %}
+                                        <input type="date" class="form-control" placeholder="Masukkan Kode Barang"
+                                            aria-label="Masukkan Kode Barang" name="tanggalawal">
+                                    {%  endif%}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2">
+                            <div class="form-group">
+                                <label for="">Tanggal Akhir </label>
+                                <div class="input-group">
+                                    
+                                    {% if tanggalakhir %}
+                                    <input type="date" class="form-control" placeholder="Masukkan Kode Barang"
+                                        aria-label="Masukkan Kode Barang" name="tanggalakhir" value="{{tanggalakhir}}">
+                                        {% else %}
+                                        <input type="date" class="form-control" placeholder="Masukkan Kode Barang"
+                                            aria-label="Masukkan Kode Barang" name="tanggalakhir">
+                                    {%  endif%}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label for="">Jumlah Aktual</label>
+                                <div class="input-group">
+                                    {% if dataaktual %}
+                                    <input type="number" class="form-control" placeholder="Jumlah Kotak Aktual" min="0"
+                                        name="jumlah" value="{{dataaktual}}">
+                                    {% else %}
+                                    <input type="number" class="form-control" placeholder="Jumlah Kotak Aktual" min="0"
+                                        name="jumlah">
+                                    {% endif%}
+                                    <div class="input-group-append">
+                                        <button class="btn btn-sm btn-primary" type="submit">Hitung</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="number" class="form-control" value="tahun_bulan_sekarang" hidden
+                                        placeholder="Masukkan Periode" min="2024" max="2200"
+                                        aria-label="Masukkan Periode" name="periode">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        
+                        <div class="col-lg-6">
+                            
+                            <form action="{% url 'view_ksbb' %}" method='post'>
+                                {% for key,value in konversiakhirfix.items %}
+                                <input type="text" hidden name="konversi" value="{{value.konversiakhir}}">
+                                <input type="text" hidden name="artikel" id="" value="{{key}}">
+                                {% endfor %}
+                            </form>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="number" class="form-control" value="tahun_bulan_sekarang" hidden
+                                        placeholder="Masukkan Periode" min="2024" max="2200"
+                                        aria-label="Masukkan Periode" name="periode">
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+
+
+
+                    {% else %}
+
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Masukkan Kode Barang"
+                                        aria-label="Masukkan Kode Barang" name="kodebarang" list="kodebarang">
+                                    <datalist id="kodebarang">
+                                        {% for i in kodeprodukobj %}
+                                        <option value="{{i.KodeProduk}}">{{i.NamaProduk}}</option>
+                                        {% endfor %}
+
+                                    </datalist>
+                                    <input type="month" name="periode" value="tahun_bulan_sekarang"
+                                        style="display: none;">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-sm btn-primary" type="submit">Search</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </form>
+
+
+
+<h4>Penyesuaian Baru : {{penyesuaian}}</h4>
+                <div class="table-responsive pt-3">
+                    {% if data %}
+                    <table class="table table-bordered" id="tabelksbb">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Masuk (Lembar)</th>
+                                <th>Masuk (Konversi)</th>
+                                <th>Hasil</th>
+                                <th style="text-align:center;">Sisa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <a style="color: black;">
+
+                                        {{tahun}} - Saldo awal
+                                </td>
+                                </a>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+
+
+                                <td>{{saldo|custom_thousands_separator}}</td>
+
+                            </tr>
+                            {% for i in data %}
+                            <tr>
+                                <td>
+
+                                    {{i.Tanggal}}
+                                </td>
+                                <td>{{i.Masuklembar|separator_ribuan}}</td>
+                                <td>{{i.Masukkonversi|separator_ribuan}}</td>
+                                <td>{{i.Hasil|separator_ribuan}}</td>
+                                
+                                <td>
+                                    
+
+                                        {{i.Sisa|separator_ribuan}}
+                                    
+                                </td>
+                            </tr>
+                            {% endfor %}
+
+                    </table>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+{% endblock javascripts %}

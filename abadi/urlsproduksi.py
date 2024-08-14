@@ -241,6 +241,11 @@ urlpatterns = [
         viewsproduksi.kalkulatorpenyesuaian2,
         name="kalkulatorpenyesuaian",
     ),
+    path(
+        "kalkulatorpenyesuaianartikel",
+        viewsproduksi.kalkulatorpenyesuaianartikel,
+        name="kalkulatorpenyesuaianartikel",
+    ),
     path("viewsaldobahanbaku", viewsproduksi.view_saldobahan, name="view_saldobahanproduksi"),
     path("viewsaldoartikel", viewsproduksi.view_saldoartikel, name="view_saldoartikel"),
     path(

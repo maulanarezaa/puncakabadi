@@ -2301,16 +2301,18 @@ def view_ksbj2(request):
                 #     messages.error(request,'Data allowance belum di set')
                 print(getbahanbakuutama)
                 # print(asd)d
-                penyesuaiaanfilter = models.Penyesuaian.objects.filter(KodeArtikel = artikel.id, KodeProduk = getbahanbakuutama.KodeProduk,TanggalMulai__lte = i, TanggalMinus__gte = i).first()
+                penyesuaiaanfilter = models.PenyesuaianArtikel.objects.filter(KodeArtikel = artikel.id,TanggalMulai__lte = i, TanggalMinus__gte = i).first()
                 print(penyesuaiaanfilter)
+            
+                masukpcs = math.ceil(jumlahmasuk/konversi)
                 if penyesuaiaanfilter:
                     konversi= penyesuaiaanfilter.konversi
                     print(konversi,penyesuaiaanfilter,i)
+                    masukpcs = math.ceil(masukpcs*konversi)
                     # print(asd)
-            
-                masukpcs = math.ceil(jumlahmasuk/konversi)
                 if masukpcs != 0 :
                     print(masukpcs)
+
                     print(jumlahmasuk, konversi)
                     # print(asd)
                 
@@ -2422,6 +2424,117 @@ def view_ksbj2(request):
                     "tahun": tahun,
                 },
             )
+def hitung_ksbj(kodeartikel, lokasi, tahun):
+    try:
+        artikel = models.Artikel.objects.get(KodeArtikel=kodeartikel)
+    except models.Artikel.DoesNotExist:
+        raise ValueError("Artikel tidak ditemukan")
+
+    # Menentukan tanggal awal dan akhir berdasarkan tahun
+    tanggal_mulai = datetime(year=tahun, month=1, day=1)
+    tanggal_akhir = datetime(year=tahun, month=12, day=31)
+
+    # Mendapatkan lokasi
+    try:
+        lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
+    except models.Lokasi.DoesNotExist:
+        raise ValueError("Lokasi tidak ditemukan")
+
+    # Mendapatkan bahan baku utama yang aktif pada tanggal tersebut
+    getbahanbakuutama = models.Penyusun.objects.filter(
+        KodeArtikel=artikel.id, Status=1, versi__lte=tanggal_akhir
+    ).order_by('-versi').first()
+    
+    if not getbahanbakuutama:
+        raise ValueError("Bahan Baku utama belum di set")
+    
+    # Mendapatkan transaksi produksi dan transaksi gudang
+    data_produksi = models.TransaksiProduksi.objects.filter(
+        KodeArtikel=artikel.id, Jenis="Mutasi", Lokasi=lokasiobj.IDLokasi
+    )
+    
+    data_gudang = models.TransaksiGudang.objects.filter(
+        DetailSPK__KodeArtikel=artikel.id,
+        KodeProduk=getbahanbakuutama.KodeProduk,
+        tanggal__range=(tanggal_mulai, tanggal_akhir)
+    )
+    
+    listtanggal_masuk = data_gudang.values_list('tanggal', flat=True).distinct()
+
+    # Mendapatkan saldo awal berdasarkan lokasi dan artikel
+    try:
+        saldoawalobj = models.SaldoAwalArtikel.objects.get(
+            IDArtikel__KodeArtikel=kodeartikel,
+            IDLokasi=lokasiobj.IDLokasi,
+            Tanggal__range=(tanggal_mulai, tanggal_akhir)
+        )
+        saldoawal = saldoawalobj.Jumlah
+    except models.SaldoAwalArtikel.DoesNotExist:
+        saldoawal = 0
+
+    # Mengumpulkan tanggal transaksi
+    tanggallist = data_produksi.filter(
+        Tanggal__range=(tanggal_mulai, tanggal_akhir)
+    ).values_list("Tanggal", flat=True).distinct()
+
+    tanggallist = sorted(list(set(tanggallist.union(listtanggal_masuk))))
+
+    # Proses perhitungan KSBJ
+    listdata = []
+    saldo = saldoawal
+    for i in tanggallist:
+        datamodels = {
+            'Tanggal': i.strftime("%Y-%m-%d"),
+            'Masuklembar': None,
+            'Masukkonversi': None,
+            'Hasil': None,
+            'Sisa': saldo,
+        }
+
+        # Mutasi dan masuk barang
+        jumlahmutasi = data_produksi.filter(Tanggal=i).aggregate(total=Sum('Jumlah'))['total'] or 0
+        jumlahmasuk = data_gudang.filter(tanggal=i).aggregate(total=Sum('jumlah'))['total'] or 0
+
+        # Menghitung konversi berdasarkan penyusun
+        penyusun_filter = models.Penyusun.objects.filter(
+            KodeArtikel=artikel.id, Status=1, versi__lte=i
+        ).order_by('-versi').first()
+
+        if not penyusun_filter:
+            penyusun_filter = models.Penyusun.objects.filter(
+                KodeArtikel=artikel.id, Status=1, versi__gte=i
+            ).order_by('versi').first()
+
+        konversi = models.KonversiMaster.objects.get(
+            KodePenyusun=penyusun_filter.IDKodePenyusun
+        ).Allowance
+        
+        # Menghitung masuk pcs berdasarkan konversi
+        masukpcs = math.ceil(jumlahmasuk / konversi)
+
+        # Penyesuaian jika ada
+        penyesuaian = models.PenyesuaianArtikel.objects.filter(
+            KodeArtikel=artikel.id, TanggalMulai__lte=i, TanggalMinus__gte=i
+        ).first()
+        
+        if penyesuaian:
+            masukpcs = math.ceil(masukpcs * penyesuaian.konversi)
+
+        # Update saldo
+        saldo += masukpcs - jumlahmutasi
+        if saldo < 0:
+            raise ValueError(f"Sisa stok negatif pada tanggal {i.strftime('%Y-%m-%d')}")
+
+        # Update datamodel
+        datamodels['Masuklembar'] = jumlahmasuk
+        datamodels['Masukkonversi'] = masukpcs
+        datamodels['Hasil'] = jumlahmutasi
+        datamodels['Sisa'] = saldo
+
+        listdata.append(datamodels)
+
+    return listdata, saldoawal
+
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
@@ -2595,16 +2708,16 @@ def view_rekapproduksi(request):
                             penyusunfiltertanggal = models.Penyusun.objects.filter(KodeArtikel = artikel.id, Status = 1, versi__gte = i).order_by('versi').first()
 
                         konversimasterobj = models.KonversiMaster.objects.get(KodePenyusun=penyusunfiltertanggal.IDKodePenyusun)
-                        cekpenyesuaian = models.Penyesuaian.objects.filter(KodeProduk = getbahanbakuutama.first().KodeProduk ,KodeArtikel = artikel, TanggalMulai__lte=i, TanggalMinus__gte=i)
+                        cekpenyesuaian = models.PenyesuaianArtikel.objects.filter(KodeArtikel = artikel, TanggalMulai__lte=i, TanggalMinus__gte=i)
                         allowance = konversimasterobj.Allowance
                         # print('ini penyesuaian : ', cekpenyesuaian)
-                        if cekpenyesuaian.exists():
-                            allowance = cekpenyesuaian.first().konversi
                         try:
                             masukpcs = math.ceil(jumlahmasuk/((allowance)))
                         except:
                             masukpcs = 0
                             messages.error(request,"Data allowance belum di setting")
+                        if cekpenyesuaian.exists():
+                            masukpcs = round(masukpcs*cekpenyesuaian.first().konversi)
                         saldoawal = saldoawal - jumlahmutasi + masukpcs
                         print(i)
                         print(saldoawal)
@@ -2928,7 +3041,7 @@ def delete_pemusnahanbarang(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def penyesuaianartikel(request):
-    datapenyesuaian = models.Penyesuaian.objects.all()
+    datapenyesuaian = models.PenyesuaianArtikel.objects.all()
     return render(
         request, "produksi/view_penyesuaianartikel.html", {"datapenyesuaian": datapenyesuaian}
     )
@@ -2937,10 +3050,9 @@ def penyesuaianartikel(request):
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def addpenyesuaianartikel(request):
     dataartikel = models.Artikel.objects.all()
-    kodebahanbaku = models.Produk.objects.all()
     if request.method == "GET":
         return render(
-            request, "produksi/add_penyesuaianartikel.html", {"Artikel": dataartikel,'kodebahanbaku':kodebahanbaku}
+            request, "produksi/add_penyesuaianartikel.html", {"Artikel": dataartikel}
         )
     else:
         print(request.POST)
@@ -2953,18 +3065,14 @@ def addpenyesuaianartikel(request):
         
         listidartikel = request.POST.getlist('artikel_display')
         listkuantitas = request.POST.getlist("kuantitas")
-        listbahanbaku = request.POST.getlist('kodebahanbaku')
 
-        for artikel,bahanbaku,kuantitas in zip(listidartikel,listbahanbaku,listkuantitas):
-            print(artikel,bahanbaku,kuantitas)
+        for artikel,kuantitas in zip(listidartikel,listkuantitas):
+            # print(artikel,bahanbaku,kuantitas)
             kodeartikel = models.Artikel.objects.get(KodeArtikel = artikel)
-            bahanbaku = models.Produk.objects.get(KodeProduk = bahanbaku)
-            penyesuaianobj = models.Penyesuaian(
+            penyesuaianobj = models.PenyesuaianArtikel(
                 TanggalMulai=tanggalmulai,
                 TanggalMinus = tanggalminus,
                 lokasi = lokasi,
-
-                KodeProduk = bahanbaku,
                 KodeArtikel = kodeartikel,
                 konversi = kuantitas
 
@@ -2975,7 +3083,7 @@ def addpenyesuaianartikel(request):
                 user="Produksi",
                 waktu=datetime.now(),
                 jenis="Create",
-                pesan=f"Penyesuaian. Kode Artikel : {kodeartikel} Kode bahan baku : {bahanbaku} Tanggal Mulai : {tanggalmulai} Tanggal Minus : {tanggalminus} Konversi : {kuantitas} ",
+                pesan=f"Penyesuaian. Kode Artikel : {kodeartikel} Tanggal Mulai : {tanggalmulai} Tanggal Minus : {tanggalminus} Konversi : {kuantitas} ",
             ).save()
         messages.success(request,'Data berhasil disimpan')
         return redirect("view_penyesuaianartikel")
@@ -2985,9 +3093,8 @@ def addpenyesuaianartikel(request):
 def update_penyesuaianartikel(request, id):
     
     dataartikel = models.Artikel.objects.all()
-    dataproduk = models.Produk.objects.all()
 
-    datapenyesuaianobj = models.Penyesuaian.objects.get(pk = id)
+    datapenyesuaianobj = models.PenyesuaianArtikel.objects.get(pk = id)
     datapenyesuaianobj.TanggalMulai = datapenyesuaianobj.TanggalMulai.strftime('%Y-%m-%d')
     datapenyesuaianobj.TanggalMinus = datapenyesuaianobj.TanggalMinus.strftime('%Y-%m-%d')
 
@@ -2995,7 +3102,7 @@ def update_penyesuaianartikel(request, id):
         return render(
             request,
             "produksi/update_penyesuaianartikel.html",
-            {"dataobj": datapenyesuaianobj, "Artikel": dataartikel,'kodebahanbaku':dataproduk},
+            {"dataobj": datapenyesuaianobj, "Artikel": dataartikel},
         )
     else:
         print(request.POST)
@@ -3004,7 +3111,6 @@ def update_penyesuaianartikel(request, id):
         idpenyesuaian = request.POST['idpenyesuaian']
         kuantitas = request.POST['kuantitas']
         kodeartikel = request.POST['artikel']
-        kodebahanbaku = request.POST['kodebahanbaku']
         lokasi = request.POST['lokasi']
 
         try:
@@ -3013,19 +3119,13 @@ def update_penyesuaianartikel(request, id):
             messages.error(request,f"Data Artikel {kodeartikel} tidak ditemukan dalam database")
             return redirect('update_penyesuaianartikel',id = id)
 
-        try:
-            produkobj=models.Produk.objects.get(KodeProduk = kodebahanbaku)
-        except models.Produk.DoesNotExist:
-            messages.error(request,f"Data Produk {kodebahanbaku} tidak ditemukan dalam database")
-            return redirect('update_penyesuaianartikel',id = id)
-
-        penyesuaianobj = models.Penyesuaian.objects.get(
+       
+        penyesuaianobj = models.PenyesuaianArtikel.objects.get(
             IDPenyesuaian=idpenyesuaian
         )
         penyesuaianobj.TanggalMinus = tanggalminus
         penyesuaianobj.TanggalMulai = tanggalmulai
         penyesuaianobj.KodeArtikel = artikelobj
-        penyesuaianobj.KodeProduk = produkobj
         penyesuaianobj.lokasi = models.Lokasi.objects.get(NamaLokasi = lokasi)
 
         penyesuaianobj.konversi = kuantitas
@@ -3035,7 +3135,7 @@ def update_penyesuaianartikel(request, id):
             user="Produksi",
             waktu=datetime.now(),
             jenis="Update",
-            pesan=f"Penyesuaian. Kode Artikel : {datapenyesuaianobj.KodeArtikel} Kode Bahan Baku : {datapenyesuaianobj.KodeProduk} Tanggal Mulai : {datapenyesuaianobj.TanggalMulai} Tanggal Minus : {datapenyesuaianobj.TanggalMinus} Konversi : {kuantitas} ",
+            pesan=f"Penyesuaian. Kode Artikel : {datapenyesuaianobj.KodeArtikel} Tanggal Mulai : {datapenyesuaianobj.TanggalMulai} Tanggal Minus : {datapenyesuaianobj.TanggalMinus} Konversi : {kuantitas} ",
         ).save()
         messages.success(request,"Data berhasil disimpan")
         return redirect("view_penyesuaianartikel")
@@ -3043,16 +3143,16 @@ def update_penyesuaianartikel(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_penyesuaianartikel(request, id):
-    datapenyesuaianobj = models.Penyesuaian.objects.get(IDPenyesuaian=id)
+    datapenyesuaianobj = models.PenyesuaianArtikel.objects.get(IDPenyesuaian=id)
     datapenyesuaianobj.delete()
 
     models.transactionlog(
         user="Produksi",
         waktu=datetime.now(),
         jenis="Delete",
-        pesan=f"Penyesuaian. Kode Artikel : {datapenyesuaianobj.KodeArtikel} Kode Bahan Baku : {datapenyesuaianobj.KodeProduk} Tanggal Mulai : {datapenyesuaianobj.TanggalMulai} Tanggal Minus : {datapenyesuaianobj.TanggalMinus} Konversi : {datapenyesuaianobj.konversi} ",
+        pesan=f"Penyesuaian. Kode Artikel : {datapenyesuaianobj.KodeArtikel} Tanggal Mulai : {datapenyesuaianobj.TanggalMulai} Tanggal Minus : {datapenyesuaianobj.TanggalMinus} Konversi : {datapenyesuaianobj.konversi} ",
     ).save()
-    messages.success(request,'Data berhasil disimpan')
+    messages.success(request,'Data berhasil dihapus')
     return redirect("view_penyesuaianartikel")
 
 @login_required
@@ -3182,7 +3282,7 @@ def delete_penyesuaian(request, id):
         jenis="Delete",
         pesan=f"Penyesuaian. Kode Artikel : {datapenyesuaianobj.KodeArtikel} Kode Bahan Baku : {datapenyesuaianobj.KodeProduk} Tanggal Mulai : {datapenyesuaianobj.TanggalMulai} Tanggal Minus : {datapenyesuaianobj.TanggalMinus} Konversi : {datapenyesuaianobj.konversi} ",
     ).save()
-    messages.success(request,'Data berhasil disimpan')
+    messages.success(request,'Data berhasil dihapus')
     return redirect("view_penyesuaian")
 
 @login_required
@@ -3450,6 +3550,145 @@ def kalkulatorpenyesuaian2(request):
 
             },
         )
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def kalkulatorpenyesuaianartikel(request):
+    kodeproduk = models.Artikel.objects.all()
+    if len(request.GET) == 0:
+        return render(
+            request,
+            "produksi/kalkulator_penyesuaianartikel.html",
+            {"kodeprodukobj": kodeproduk},
+        )
+    else:
+        """
+        1. Cari 
+        """
+        try:
+            produk = models.Artikel.objects.get(KodeArtikel=request.GET["kodebarang"])
+            
+        except:
+            messages.error(request, "Data Produk tidak ditemukan")
+            return redirect("kalkulatorpenyesuaianartikel")
+        
+        if request.GET["periode"]:
+            tahun = int(request.GET["periode"])
+        else:
+            sekarang = datetime.now()
+            tahun = sekarang.year
+
+        tanggal_mulai = datetime(year=tahun, month=1, day=1)
+        tanggal_akhir = datetime(year=tahun, month=12, day=31)
+        lokasi = request.GET['lokasi']
+        listdata,saldoawal = hitung_ksbj(request.GET["kodebarang"],request.GET['lokasi'],tanggal_mulai.year)
+        # print(listdata,saldoawal) 
+        print(request.GET)
+        # print(asd)
+        tanggalawal = request.GET['tanggalawal']
+        tanggalakhir = request.GET['tanggalakhir']
+        jumlahaktual = request.GET['jumlah']
+        if tanggalawal == "" or tanggalakhir == "" or jumlahaktual== "":
+            return render(
+            request,
+            "produksi/newkalkulator_penyesuaianartikel.html",
+            {
+                "kodebarang": request.GET["kodebarang"],
+                "data": listdata,
+                "saldo": saldoawal,
+                "tahun": tahun,
+                'lokasi' : lokasi
+
+            },
+        
+            )
+        else:
+            '''
+            ALGORITMA
+            1. Ambil semua data Bahan Baku hasil konversi masuk pertanggal
+            2. Ambil selisih antara hasil terakhir pada tanggalakhir dan hasil stok opname
+            3. Jumlah hasil konversi dari semua bahan - selisih
+            4. Didapat nilai penyesuaian
+            5. Nilai penyesuaian dikalikan dengan nilai hasil.
+            
+            '''
+            jumlahmasuk = 0
+            i=0
+            tanggalawaldatetime =  datetime.strptime(tanggalawal,"%Y-%m-%d")
+            tanggalakhirdatetime =  datetime.strptime(tanggalakhir,"%Y-%m-%d")
+            for item in listdata:
+                tanggaldata = datetime.strptime(item['Tanggal'],"%Y-%m-%d")
+                if tanggalawaldatetime <= tanggaldata <= tanggalakhirdatetime:
+                    if i == 0:
+                        jumlahawal = item['Masukkonversi']
+                        i+=1
+                    print(item)
+                    jumlahmasuk += item['Masukkonversi']
+                    sisa = item['Sisa']
+                elif tanggaldata < tanggalawaldatetime:
+                    continue
+                elif tanggaldata > tanggalakhirdatetime:
+                    break
+            selisih = sisa - float(jumlahaktual)
+            selisihmasuk = jumlahmasuk - selisih
+            penyesuaianbaru = selisihmasuk/jumlahmasuk
+            selisihpotong = jumlahmasuk
+            
+            # penyesuaianbaru = 0.979471329730907
+
+            i = 0
+            hasilsisa = jumlahawal  # Inisialisasi `hasilsisa` dengan `jumlahawal`
+
+            for item in listdata:
+                tanggaldata = datetime.strptime(item['Tanggal'], "%Y-%m-%d")
+                
+                if tanggalawaldatetime <= tanggaldata <= tanggalakhirdatetime:
+                    print(item)
+                    
+                    # Update Masukkonversi dengan pembulatan
+                    item['Masukkonversi'] =round(item['Masukkonversi'] * penyesuaianbaru)
+                    
+                    if i == 0:
+                        # Hitung selisih dan update hasilsisa untuk item pertama
+                        selisihhasilawal = item['Masukkonversi'] - jumlahawal
+                        hasilsisa = item['Sisa'] + selisihhasilawal
+                        item['Sisa'] = hasilsisa
+                    else:
+                        # Update Sisa berdasarkan hasilsisa dan Masukkonversi - Hasil
+                        hasilsisa = hasilsisa + item['Masukkonversi'] - item['Hasil']
+                        item['Sisa'] = hasilsisa
+                    
+                    print('Masukkonversi:', item['Masukkonversi'])
+                    print('Sisa setelah update:', item['Sisa'])
+                    
+                    # Update iterasi
+                    i += 1
+                
+                elif tanggaldata < tanggalawaldatetime:
+                    continue
+                elif tanggaldata > tanggalakhirdatetime:
+                    break
+            # print(listdata)
+            #  {'Tanggal': '2024-07-26', 'Masuklembar': 28.0, 'Masukkonversi': 2090, 'Hasil': 2100, 'Sisa': 71711}
+            print(selisih,selisihmasuk,jumlahmasuk,penyesuaianbaru,sisa,jumlahaktual)
+            return render(
+            request,
+            "produksi/newkalkulator_penyesuaianartikel.html",
+            {
+                "kodebarang": request.GET["kodebarang"],
+                "data": listdata,
+                "saldo": saldoawal,
+                "tahun": tahun,
+                'lokasi' : lokasi,
+                'tanggalawal' : tanggalawal,
+                'tanggalakhir' : tanggalakhir,
+                'dataaktual' : jumlahaktual,
+                'penyesuaian' : penyesuaianbaru
+
+
+            },)
+
+
+
 
 
 # Saldo Awal Bahan Baku

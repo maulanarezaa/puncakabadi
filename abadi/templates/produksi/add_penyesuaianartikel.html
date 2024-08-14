@@ -62,25 +62,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label class="">Kode Bahan Baku</label>
-                                <div class="" id="versi_1">
-                                    <input class="form-control" type="text" name="kodebahanbaku" list="kodebahanbaku" required placeholder="Masukkan Kode Bahan Baku" onchange="updateNamaBahanBaku(this)">
-                                    <datalist id="kodebahanbaku">
-                                        {% for i in kodebahanbaku %}
-                                        <option value="{{i.KodeProduk}}" data-namaproduk="{{i.NamaProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
-                                        {% endfor %}
-                                    </datalist>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label class="">Nama Bahan Baku</label>
-                                <input type="text" disabled name="namabahanbaku" class="form-control namabahanbaku" value="">
-                            </div>
-                        </div>
+                        
+                       
                         <div class="col-md-2">
                             <div class="form-group ">
                                 <label class="">Kuantitas</label>
