@@ -185,11 +185,21 @@
       </div>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="{% url 'view_penyesuaian' %}">
-        <i class="typcn typcn-link menu-icon"></i>
+      <a class="nav-link" data-toggle="collapse" href="#penyesuaian" aria-expanded="false" aria-controls="produksi">
+        <i class="typcn typcn-shopping-bag menu-icon"></i>
         <span class="menu-title">Penyesuaian</span>
+        <i class="menu-arrow"></i>
       </a>
+      <div class="collapse" id="penyesuaian">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="{% url 'view_penyesuaian' %}">Bahan Baku</a></li>
+        </ul>
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="{% url 'view_penyesuaianartikel' %}">Artikel</a></li>
+       
+      </div>
     </li>
+   
     <li class="nav-item">
       <a class="nav-link" href="{% url 'read_produk_produksi' %}">
         <i class="typcn typcn-link menu-icon"></i>

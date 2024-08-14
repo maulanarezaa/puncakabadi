@@ -177,6 +177,17 @@ class Penyesuaian(models.Model):
 
     def __str__(self):
         return f"{self.KodeArtikel} {self.KodeProduk} {self.TanggalMulai} - {self.TanggalMinus}"
+    
+class PenyesuaianArtikel(models.Model):
+    IDPenyesuaian = models.AutoField(primary_key=True)
+    KodeArtikel = models.ForeignKey(Artikel,on_delete=models.CASCADE,null=True,blank=True)
+    TanggalMulai = models.DateField()
+    TanggalMinus = models.DateField(null=True, blank=True)
+    konversi = models.FloatField()
+    lokasi = models.ForeignKey(Lokasi,on_delete=models.CASCADE, default=1)
+
+    def __str__(self):
+        return f"{self.KodeArtikel} {self.KodeProduk} {self.TanggalMulai} - {self.TanggalMinus}"
 
 
 class SPPB(models.Model):

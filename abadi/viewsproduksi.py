@@ -2440,13 +2440,15 @@ def view_rekapbarang(request):
     tanggal_mulai = datetime(year=tahun, month=1, day=1)
 
     dataproduk = models.Produk.objects.all()
+    dataproduk = models.Produk.objects.filter(KodeProduk = "A-001-01")
 
     if tanggal_akhir:
         for produk in dataproduk:
+            asd
             listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, tanggal_akhir,lokasi)
 
             if listdata:
-                produk.kuantitas = listdata[-1]["Sisa"][0]
+                produk.kuantitas = listdata[-1]["Sisa"][-1]
             else:
                 produk.kuantitas = 0
     else:
@@ -2454,10 +2456,10 @@ def view_rekapbarang(request):
             listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, sekarang,lokasi)
 
             if listdata:
-                produk.kuantitas = listdata[-1]["Sisa"][0]
+                produk.kuantitas = listdata[-1]["Sisa"][-1]
             else:
                 produk.kuantitas = 0
-
+    print(dataproduk)
     return render(request, "produksi/rekap_barang.html", {'data':dataproduk , 'tanggal_akhir':tanggal_akhir,'lokasi':lokasi})
 
 @login_required
@@ -2508,6 +2510,7 @@ def view_rekapproduksi(request):
         datarekap = []
 
         artikelobj = models.Artikel.objects.all()
+        # artikelobj = models.Artikel.objects.filter(KodeArtikel = '9010 AC')
         for artikel in artikelobj:
 
             print(artikel)
@@ -2519,9 +2522,15 @@ def view_rekapproduksi(request):
                 messages.error(request, ("Bahan Baku",artikel.KodeArtikel,"belum di set"))
                 continue
 
-            data = models.TransaksiProduksi.objects.filter(KodeArtikel=artikel.id,Jenis = "Mutasi")
-            datamasuk = models.TransaksiGudang.objects.filter(DetailSPK__KodeArtikel = artikel.id,tanggal__range=(tanggal_mulai, tanggal_akhir))
+            data = models.TransaksiProduksi.objects.filter(KodeArtikel=artikel,Jenis = "Mutasi",Tanggal__range=(tanggal_mulai,tanggal_akhir))
+            print(data)
+            datamasuk = models.TransaksiGudang.objects.filter(DetailSPK__KodeArtikel = artikel.id,tanggal__range=(tanggal_mulai, tanggal_akhir),KodeProduk = getbahanbakuutama.first().KodeProduk)
+            print(datamasuk)
+            datapemusnahan = models.PemusnahanArtikel.objects.filter(Tanggal__range=(tanggal_mulai,tanggal_akhir),KodeArtikel = artikel.id)
+            print(datapemusnahan)
+            # print(asd)
             listtanggalmasuk = datamasuk.values_list('tanggal',flat=True).distinct()
+            listtanggalpemusnahan = datapemusnahan.values_list('Tanggal',flat=True).distinct()
 
             if not data :
                 messages.error(request, ("Tidak ditemukan data Transaki Produksi untuk Artikel",artikel.KodeArtikel))
@@ -2554,9 +2563,9 @@ def view_rekapproduksi(request):
                     saldoawal = saldo                        
 
                     if listtanggalsaldo:
-                        tanggallist = sorted(list(set((tanggallist.union(listtanggalmasuk.union(listtanggalsaldo))))))
+                        tanggallist = sorted(list(set((tanggallist.union(listtanggalmasuk.union(listtanggalsaldo).union(listtanggalpemusnahan))))))
                     else:
-                        tanggallist = sorted(list(set((tanggallist.union(listtanggalmasuk)))))
+                        tanggallist = sorted(list(set((tanggallist.union(listtanggalmasuk).union(listtanggalpemusnahan)))))
 
                     for i in tanggallist:
                         datamodels = {
@@ -2569,6 +2578,10 @@ def view_rekapproduksi(request):
 
                         jumlahmutasi =  filtertanggal.filter(Jenis ="Mutasi").aggregate(total = Sum('Jumlah'))['total']
                         jumlahmasuk = filtertanggaltransaksigudang.aggregate(total = Sum('jumlah'))['total']
+                       
+                        # if jumlahmasuk != None:
+
+                        #     # print(asd)
 
                         if jumlahmutasi is None:
                             jumlahmutasi = 0
@@ -2582,13 +2595,22 @@ def view_rekapproduksi(request):
                             penyusunfiltertanggal = models.Penyusun.objects.filter(KodeArtikel = artikel.id, Status = 1, versi__gte = i).order_by('versi').first()
 
                         konversimasterobj = models.KonversiMaster.objects.get(KodePenyusun=penyusunfiltertanggal.IDKodePenyusun)
+                        cekpenyesuaian = models.Penyesuaian.objects.filter(KodeProduk = getbahanbakuutama.first().KodeProduk ,KodeArtikel = artikel, TanggalMulai__lte=i, TanggalMinus__gte=i)
+                        allowance = konversimasterobj.Allowance
+                        # print('ini penyesuaian : ', cekpenyesuaian)
+                        if cekpenyesuaian.exists():
+                            allowance = cekpenyesuaian.first().konversi
                         try:
-                            masukpcs = round(jumlahmasuk/((konversimasterobj.Allowance)))
+                            masukpcs = math.ceil(jumlahmasuk/((allowance)))
                         except:
                             masukpcs = 0
                             messages.error(request,"Data allowance belum di setting")
                         saldoawal = saldoawal - jumlahmutasi + masukpcs
-
+                        print(i)
+                        print(saldoawal)
+                        
+                       
+                            # print(asd)
                         datamodels['Tanggal'] = i.strftime("%Y-%m-%d")
                         datamodels['Sisa'] = saldoawal
 
@@ -2667,6 +2689,7 @@ def view_rekapproduksi(request):
                 dataartikel.append(item3)
 
                 datarekap.append(dataartikel)
+        print(datarekap)
 
         return render(request, "produksi/rekap_produksi.html", {'artikel':artikelobj, 'data':datarekap, 'tahun':tahun })
 
@@ -2904,6 +2927,136 @@ def delete_pemusnahanbarang(request, id):
 # Penyesuaian
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def penyesuaianartikel(request):
+    datapenyesuaian = models.Penyesuaian.objects.all()
+    return render(
+        request, "produksi/view_penyesuaianartikel.html", {"datapenyesuaian": datapenyesuaian}
+    )
+    
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def addpenyesuaianartikel(request):
+    dataartikel = models.Artikel.objects.all()
+    kodebahanbaku = models.Produk.objects.all()
+    if request.method == "GET":
+        return render(
+            request, "produksi/add_penyesuaianartikel.html", {"Artikel": dataartikel,'kodebahanbaku':kodebahanbaku}
+        )
+    else:
+        print(request.POST)
+        # print(asd)
+        # Add Penyesuaian
+        tanggalmulai = request.POST["tanggalmulai"]
+        tanggalminus = request.POST['tanggalminus']
+        lokasi = request.POST['lokasi']
+        lokasi = models.Lokasi.objects.get(NamaLokasi = lokasi)
+        
+        listidartikel = request.POST.getlist('artikel_display')
+        listkuantitas = request.POST.getlist("kuantitas")
+        listbahanbaku = request.POST.getlist('kodebahanbaku')
+
+        for artikel,bahanbaku,kuantitas in zip(listidartikel,listbahanbaku,listkuantitas):
+            print(artikel,bahanbaku,kuantitas)
+            kodeartikel = models.Artikel.objects.get(KodeArtikel = artikel)
+            bahanbaku = models.Produk.objects.get(KodeProduk = bahanbaku)
+            penyesuaianobj = models.Penyesuaian(
+                TanggalMulai=tanggalmulai,
+                TanggalMinus = tanggalminus,
+                lokasi = lokasi,
+
+                KodeProduk = bahanbaku,
+                KodeArtikel = kodeartikel,
+                konversi = kuantitas
+
+            )
+            penyesuaianobj.save()
+
+            models.transactionlog(
+                user="Produksi",
+                waktu=datetime.now(),
+                jenis="Create",
+                pesan=f"Penyesuaian. Kode Artikel : {kodeartikel} Kode bahan baku : {bahanbaku} Tanggal Mulai : {tanggalmulai} Tanggal Minus : {tanggalminus} Konversi : {kuantitas} ",
+            ).save()
+        messages.success(request,'Data berhasil disimpan')
+        return redirect("view_penyesuaianartikel")
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def update_penyesuaianartikel(request, id):
+    
+    dataartikel = models.Artikel.objects.all()
+    dataproduk = models.Produk.objects.all()
+
+    datapenyesuaianobj = models.Penyesuaian.objects.get(pk = id)
+    datapenyesuaianobj.TanggalMulai = datapenyesuaianobj.TanggalMulai.strftime('%Y-%m-%d')
+    datapenyesuaianobj.TanggalMinus = datapenyesuaianobj.TanggalMinus.strftime('%Y-%m-%d')
+
+    if request.method == "GET":
+        return render(
+            request,
+            "produksi/update_penyesuaianartikel.html",
+            {"dataobj": datapenyesuaianobj, "Artikel": dataartikel,'kodebahanbaku':dataproduk},
+        )
+    else:
+        print(request.POST)
+        tanggalmulai = request.POST["tanggalmulai"]
+        tanggalminus = request.POST['tanggalminus']
+        idpenyesuaian = request.POST['idpenyesuaian']
+        kuantitas = request.POST['kuantitas']
+        kodeartikel = request.POST['artikel']
+        kodebahanbaku = request.POST['kodebahanbaku']
+        lokasi = request.POST['lokasi']
+
+        try:
+            artikelobj=models.Artikel.objects.get(id = kodeartikel)
+        except models.Artikel.DoesNotExist:
+            messages.error(request,f"Data Artikel {kodeartikel} tidak ditemukan dalam database")
+            return redirect('update_penyesuaianartikel',id = id)
+
+        try:
+            produkobj=models.Produk.objects.get(KodeProduk = kodebahanbaku)
+        except models.Produk.DoesNotExist:
+            messages.error(request,f"Data Produk {kodebahanbaku} tidak ditemukan dalam database")
+            return redirect('update_penyesuaianartikel',id = id)
+
+        penyesuaianobj = models.Penyesuaian.objects.get(
+            IDPenyesuaian=idpenyesuaian
+        )
+        penyesuaianobj.TanggalMinus = tanggalminus
+        penyesuaianobj.TanggalMulai = tanggalmulai
+        penyesuaianobj.KodeArtikel = artikelobj
+        penyesuaianobj.KodeProduk = produkobj
+        penyesuaianobj.lokasi = models.Lokasi.objects.get(NamaLokasi = lokasi)
+
+        penyesuaianobj.konversi = kuantitas
+        penyesuaianobj.save()
+
+        models.transactionlog(
+            user="Produksi",
+            waktu=datetime.now(),
+            jenis="Update",
+            pesan=f"Penyesuaian. Kode Artikel : {datapenyesuaianobj.KodeArtikel} Kode Bahan Baku : {datapenyesuaianobj.KodeProduk} Tanggal Mulai : {datapenyesuaianobj.TanggalMulai} Tanggal Minus : {datapenyesuaianobj.TanggalMinus} Konversi : {kuantitas} ",
+        ).save()
+        messages.success(request,"Data berhasil disimpan")
+        return redirect("view_penyesuaianartikel")
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def delete_penyesuaianartikel(request, id):
+    datapenyesuaianobj = models.Penyesuaian.objects.get(IDPenyesuaian=id)
+    datapenyesuaianobj.delete()
+
+    models.transactionlog(
+        user="Produksi",
+        waktu=datetime.now(),
+        jenis="Delete",
+        pesan=f"Penyesuaian. Kode Artikel : {datapenyesuaianobj.KodeArtikel} Kode Bahan Baku : {datapenyesuaianobj.KodeProduk} Tanggal Mulai : {datapenyesuaianobj.TanggalMulai} Tanggal Minus : {datapenyesuaianobj.TanggalMinus} Konversi : {datapenyesuaianobj.konversi} ",
+    ).save()
+    messages.success(request,'Data berhasil disimpan')
+    return redirect("view_penyesuaianartikel")
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def penyesuaian(request):
     datapenyesuaian = models.Penyesuaian.objects.all()
     return render(
@@ -3029,7 +3182,7 @@ def delete_penyesuaian(request, id):
         jenis="Delete",
         pesan=f"Penyesuaian. Kode Artikel : {datapenyesuaianobj.KodeArtikel} Kode Bahan Baku : {datapenyesuaianobj.KodeProduk} Tanggal Mulai : {datapenyesuaianobj.TanggalMulai} Tanggal Minus : {datapenyesuaianobj.TanggalMinus} Konversi : {datapenyesuaianobj.konversi} ",
     ).save()
-
+    messages.success(request,'Data berhasil disimpan')
     return redirect("view_penyesuaian")
 
 @login_required

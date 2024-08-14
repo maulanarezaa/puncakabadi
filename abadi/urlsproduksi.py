@@ -212,6 +212,18 @@ urlpatterns = [
     ),
     path("ksbbsubkon", viewsproduksi.view_ksbbsubkon, name="ksbbsubkon"),
     path("ksbjsubkon", viewsproduksi.view_ksbjsubkon, name="ksbjsubkon"),
+    path("penyesuaianartikel", viewsproduksi.penyesuaianartikel, name="view_penyesuaianartikel"),
+    path("addpenyesuaianartikel", viewsproduksi.addpenyesuaianartikel, name="addpenyesuaianartikel"),
+    path(
+        "deletepenyesuaianartikel/<str:id>",
+        viewsproduksi.delete_penyesuaianartikel,
+        name="delete_penyesuaianartikel",
+    ),
+    path(
+        "updatepenyesuaianartikel/<str:id>",
+        viewsproduksi.update_penyesuaianartikel,
+        name="update_penyesuaianartikel",
+    ),
     path("penyesuaian", viewsproduksi.penyesuaian, name="view_penyesuaian"),
     path("addpenyesuaian", viewsproduksi.addpenyesuaian, name="addpenyesuaian"),
     path(
