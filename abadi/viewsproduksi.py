@@ -2557,7 +2557,6 @@ def view_rekapbarang(request):
 
     if tanggal_akhir:
         for produk in dataproduk:
-            asd
             listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, tanggal_akhir,lokasi)
 
             if listdata:
