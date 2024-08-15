@@ -36,16 +36,20 @@
                                 <td>
                                     <ul>
 
-                                        {% for j in i.detailco %}
+                                        {% for j in i.detailcopo %}
                                         <li>
+                                            {% if j.Artikel == None %}
+                                            {{j.Display}}
+                                            {% else%}
                                             {{j.Artikel}}
+                                            {% endif %}
                                         </li>
                                         {% endfor %}
                                     </ul>
                                 </td>
                                 <td>
                                     <ul>
-                                        {% for j in i.detailco %}
+                                        {% for j in i.detailcopo %}
                                         <li>
                                             {{j.kuantitas}}
                                         </li>

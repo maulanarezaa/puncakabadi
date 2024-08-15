@@ -470,7 +470,7 @@ class SaldoAwalProduksi(models.Model):
     Tanggal = models.DateField()
     
     def __str__(self):
-        return f'{self.tahun} - {self.Saldo}'
+        return f'{self.Tanggal.year} - {self.Saldo}'
 
 class HargaArtikel(models.Model):
     Tanggal = models.DateField()

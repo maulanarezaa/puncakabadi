@@ -7,6 +7,7 @@
 
 {% block javascripts %}
 {% endblock javascripts %}
+{% load customfilter %}
 
 <!-- Page content  -->
 {% block content %}
@@ -33,6 +34,7 @@
                 <th>Nomor CO</th>
                 <th>Produk</th>
                 <th>Kuantitas</th>
+                <th>Harga</th>
                 <th>Status</th>
                 <th>Action</th>
               </tr>
@@ -61,7 +63,16 @@
                   <ul>
                     {% for j in i.detailcopo %}
                     <li>
-                      {{j.kuantitas}}
+                      {{j.kuantitas|separator_ribuan}}
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </td>
+                <td>
+                  <ul>
+                    {% for j in i.detailcopo %}
+                    <li>
+                      {{j.Harga|custom_thousands_separator}}
                     </li>
                     {% endfor %}
                   </ul>

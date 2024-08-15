@@ -292,7 +292,7 @@
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Detail Barang Keluar Periode : {{bulan}} </h4>
+                <h4 class="card-title">Detail Transaksi Lain-lain : {{bulan}} </h4>
                     <h5>Rekap Transaksi lain-lain : {{bulan}}</h5>
                     <h5>Total : {{nilailainlain|custom_thousands_separator}} </h5>
                     <table class="table" id="tabeltransaksilainlain">
@@ -301,21 +301,18 @@
                                 
                                 <td>Kode Bahan Baku</td>
                                 <td>Nama Bahan Baku</td>
-                                <td>Harga Satuan</td>
                                 <td>Kuantitas</td>
+                                <td>Harga Satuan</td>
                                 <td>Harga Total</td>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in lainlain %}
+                            {% for produk,item in rekaptransaksilainlain.items %}
                             <tr>
-                                <td>{{forloop.counter}}</td>
-                                <td>{{item.tanggal}}</td>
-                                <td>{{item.KodeProduk.KodeProduk}}</td>
-                                <td>{{item.KodeProduk.NamaProduk}}</td>
-                                <td>{{item.Lokasi}}</td>
-                                <td>{{item.harga|custom_thousands_separator}}</td>
-                                <td>{{item.jumlah|separator_ribuan}}</td>
+                                <td>{{produk.KodeProduk}}</td>
+                                <td>{{produk.NamaProduk}}</td>
+                                <td>{{item.Jumlah|separator_ribuan}}</td>
+                                <td>{{item.Harga}}</td>
                                 <td>{{item.hargatotal|custom_thousands_separator}}</td>
                                 
                             </tr>
@@ -381,14 +378,14 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in transaksibahanbaku %}
+                            {% for produk,item in rekapbahankeluar.items %}
                             <tr>
                                 
-                                <td>{{item.DetailBahan.KodeProduk}}</td>
-                                <td>{{item.DetailBahan.NamaProduk}}</td>
-                                <td>{{item.DetailBahan.unit}}</td>
+                                <td>{{produk.KodeProduk}}</td>
+                                <td>{{produk.NamaProduk}}</td>
+                                <td>{{produk.unit}}</td>
                                 <td>{{item.Jumlah|separator_ribuan}}</td>
-                                <td>{{item.harga|custom_thousands_separator}}</td>
+                                <td>{{item.HargaFG|custom_thousands_separator}}</td>
                                 <td>{{item.hargatotal|custom_thousands_separator}}</td>
                             </tr>
                             {% endfor %}
@@ -396,7 +393,6 @@
                         </tbody>
                     </table>
                     <h5>Detail Bahan Baku Keluar Bulan : {{bulan}}</h5>
-                    <h5>Total : {{nilaitransaksibahanbaku|custom_thousands_separator}} </h5>
                     <table class="table" id="detailtabelransaksibahanbaku">
                         <thead>
                             <tr>

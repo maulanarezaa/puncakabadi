@@ -89,13 +89,13 @@
             <div class="col-md-2">
               <div class="form-group">
                 <label for="kuantitas_{{forloop.counter}}">Kuantitas</label>
-                <input type="text" class="form-control" name="kuantitas[]" value="{{i.kuantitas}}" required />
+                <input type="number" step="any" min="0" class="form-control" name="kuantitas[]" value="{{i.kuantitas}}" required />
               </div>
             </div>
             <div class="col-md-3">
               <div class="form-group">
                 <label for="harga_{{forloop.counter}}">Harga (Rp)</label>
-                <input type="text" class="form-control" name="harga[]" value="{{i.Harga}}" required />
+                <input type="number" step="any" min="0" class="form-control" name="harga[]" value="{{i.Harga}}" required />
               </div>
             </div>
             <div class="col-md-1">
@@ -126,13 +126,13 @@
             <div class="col-md-2">
               <div class="form-group">
                 <label for="kuantitas_{{forloop.counter}}">Kuantitas</label>
-                <input type="text" class="form-control" name="kuantitasdisplay[]" value="{{i.kuantitas}}" required />
+                <input type="number" step="any" class="form-control" name="kuantitasdisplay[]" value="{{i.kuantitas}}" required />
               </div>
             </div>
             <div class="col-md-3">
               <div class="form-group">
                 <label for="harga_{{forloop.counter}}">Harga (Rp)</label>
-                <input type="text" class="form-control" name="hargadisplay[]" value="{{i.Harga}}" required />
+                <input type="number" step="any" class="form-control" name="hargadisplay[]" value="{{i.Harga}}" required />
               </div>
             </div>
             <div class="col-md-1">

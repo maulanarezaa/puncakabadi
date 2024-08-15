@@ -1163,6 +1163,10 @@ def views_penyusun(request):
                                 "Hargakotak": round(hargaperkotak, 2),
                             }
                         )
+                    HargaFGArtikel= None
+                    hargaartikel = models.HargaArtikel.objects.filter(KodeArtikel =get_id_kodeartikel,Tanggal__month = sekarang.month)
+                    if hargaartikel.exists():
+                        HargaFGArtikel = hargaartikel.first().Harga
 
                     return render(
                         request,
@@ -1173,7 +1177,8 @@ def views_penyusun(request):
                             "nilaifg": nilaifg,
                             "versiterpilih": versiterpilih,
                             "dataversi": dataversi,
-                            'dataartikel' : dataartikel
+                            'dataartikel' : dataartikel,
+                            "hargafgartikel" : HargaFGArtikel
                         },
                     )
                 else:

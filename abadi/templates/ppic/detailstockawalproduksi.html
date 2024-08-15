@@ -27,6 +27,8 @@
                                 <td>Kode Bahan Baku</td>
                                 <td>Nama Bahan Baku</td>
                                 <td>Satuan</td>
+                                <td>Jumlah WIP</td>
+                                <td>Jumlah FG</td>
                                 <td>Jumlah</td>
                             </tr>
                         </thead>
@@ -38,6 +40,8 @@
                                 <td>{{artikel.NamaProduk}}</td>
                                 <td>{{artikel.unit}}</td>
                                 <td>{{artikel.jumlahawal_wip|separator_desimal}}</td>
+                                <td>{{artikel.jumlahawal_fg|separator_desimal}}</td>
+                                <td>{{artikel.jumlahkumulatif|separator_desimal}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

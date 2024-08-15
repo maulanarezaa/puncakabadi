@@ -87,7 +87,7 @@
             <div class="col-md-3">
               <div class="form-group">
                 <label for="quantity_1">Harga</label>
-                <input type="number" class="form-control quantity" min="0" name="harga[]" placeholder="Harga">
+                <input type="number" step="any" class="form-control quantity" min="0" name="harga[]" placeholder="Harga">
               </div>
             </div>
           </div>
@@ -152,7 +152,7 @@
 {% block javascripts %}
 <script>
   function addProduct() {
-    let productCounter = document.querySelectorAll('.artikel').length + 1;
+    let productCounter = document.querySelectorAll('#artikels .row').length + 1;
     const productRow = document.createElement('div');
     productRow.className = "row";
     productRow.id = `artikel_${productCounter}`;
@@ -160,29 +160,30 @@
       <div class="col-md-3">
         <div class="form-group">
           <label for="artikel_${productCounter}">Artikel ${productCounter}:</label>
-          <select class="form-control" name="artikel">
-                  {% for item in dataartikel %}
-                  <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
-                  {% endfor %}
-                </select>
+          <select class="form-control" name="artikel[]">
+            <option value="">Pilih Artikel</option>
+            {% for item in dataartikel %}
+            <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
+            {% endfor %}
+          </select>
         </div>
       </div>
       <div class="col-md-3">
         <div class="form-group">
-          <label for="quantity_${productCounter}">Deskripsi</label>
-          <input type="text" class="form-control quantity" name="deskripsi[]" placeholder="Deskripsi">
+          <label for="deskripsi_${productCounter}">Deskripsi</label>
+          <input type="text" class="form-control" name="deskripsi[]" placeholder="Deskripsi">
         </div>
       </div>
       <div class="col-md-2">
         <div class="form-group">
-          <label for="quantity_${productCounter}">Kuantitas</label>
-          <input type="number" class="form-control quantity" min="0" name="kuantitas[]" placeholder="Kuantitas">
+          <label for="kuantitas_${productCounter}">Kuantitas</label>
+          <input type="number" class="form-control" min="0" name="kuantitas[]" placeholder="Kuantitas">
         </div>
       </div>
       <div class="col-md-3">
         <div class="form-group">
-          <label for="quantity_${productCounter}">Harga</label>
-          <input type="number" class="form-control quantity" min="0" name="harga[]" placeholder="Harga">
+          <label for="harga_${productCounter}">Harga</label>
+          <input type="number" class="form-control" min="0" name="harga[]" placeholder="Harga">
         </div>
       </div>
       <div class="col-md-1">
@@ -191,54 +192,54 @@
         <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn-trash"></i></button>
       </div>`;
     document.getElementById('artikels').appendChild(productRow);
-  }
+}
 
   function deleteRow(button) {
     button.closest('.row').remove();
   }
 
   function addDisplay() {
-    let displayCounter = document.querySelectorAll('.display').length + 1;
+    let displayCounter = document.querySelectorAll('#displays .row').length + 1;
     const displayRow = document.createElement('div');
     displayRow.className = "row display-row";
     displayRow.id = `display_row_${displayCounter}`;
-    displayRow.innerHTML = `<div class="col-md-3">
-                              <div class="form-group">
-                                  <label for="display_${displayCounter}">Display ${displayCounter}:</label>
-                                  <select class="form-control" name="display[]">
-                  <option value="">Pilih Display</option>
-
-                  {% for item in datadisplay %}
-                  <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }}</option>
-                  {% endfor %}
-                </select>
-                              </div>
-                          </div>
-                          <div class="col-md-3">
-                              <div class="form-group">
-                                  <label for="deskripsidisplay_${displayCounter}">Deskripsi</label>
-                                  <input required type="text" class="form-control quantity" name="deskripsidisplay[]" placeholder="Deskripsi">
-                              </div>
-                          </div>
-                          <div class="col-md-2">
-                              <div class="form-group">
-                                  <label for="kuantitasdisplay_${displayCounter}">Kuantitas</label>
-                                  <input required type="number" class="form-control quantity" min="0" name="kuantitasdisplay[]" placeholder="Kuantitas">
-                              </div>
-                          </div>
-                          <div class="col-md-3">
-                              <div class="form-group">
-                                  <label for="hargadisplay_${displayCounter}">Harga</label>
-                                  <input required type="number" class="form-control quantity" min="0" name="hargadisplay[]" placeholder="Harga">
-                              </div>
-                          </div>
-                          <div class="col-md-1">
-                              <br>
-                              <label for="hapus${displayCounter}"></label>
-                              <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn-trash"></i></button>
-                          </div>`;
+    displayRow.innerHTML = `
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="display_${displayCounter}">Display ${displayCounter}:</label>
+          <select class="form-control" name="display[]">
+            <option value="">Pilih Display</option>
+            {% for item in datadisplay %}
+            <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="deskripsidisplay_${displayCounter}">Deskripsi</label>
+          <input type="text" class="form-control" name="deskripsidisplay[]" placeholder="Deskripsi">
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="form-group">
+          <label for="kuantitasdisplay_${displayCounter}">Kuantitas</label>
+          <input type="number" class="form-control" min="0" name="kuantitasdisplay[]" placeholder="Kuantitas">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="hargadisplay_${displayCounter}">Harga</label>
+          <input type="number" class="form-control" min="0" name="hargadisplay[]" placeholder="Harga">
+        </div>
+      </div>
+      <div class="col-md-1">
+        <br>
+        <label for="hapus${displayCounter}"></label>
+        <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn-trash"></i></button>
+      </div>`;
     document.getElementById('displays').appendChild(displayRow);
-  }
+}
 </script>
 {% endblock javascripts %}
 {% endblock content %}

@@ -88,8 +88,18 @@
                         </div>
                     </div>
                 </form>
+                <div class="row"></div>
                 <h4 class="card-title">Nilai FG : <span style="font-weight: lighter;">
                         Rp{{nilaifg |custom_thousands_separator}}</span></h4>
+                <h4 class="card-title">Nilai FG Input Manual : 
+                    {% if hargafgartikel != None %}
+                    <span style="font-weight: lighter;">
+                        Rp{{hargafgartikel |custom_thousands_separator}}</span>
+                    {% else %}
+                    <span style="font-weight: lighter;">
+                        Rp -</span>
+                        {% endif %}
+                    </h4>
                 {% endif %}
                 <div class="table-responsive pt-3">
                     {% if data %}
