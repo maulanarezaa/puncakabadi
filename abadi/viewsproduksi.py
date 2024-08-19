@@ -3514,6 +3514,7 @@ def kalkulatorpenyesuaian2(request):
             datakonversiakhir[key] = {'jumlah': value['jumlah'],'konversiakhir':(konversiakhir)}
         
         print(f'Keluar Penyesuaian : {keluarpenyesuaian} Jumlah Keluar : {jumlahkeluar} Saldo Aktual : {saldoaktual} Saldo Data : {saldodata}')
+        print(datakonversiakhir)
         
 
 
