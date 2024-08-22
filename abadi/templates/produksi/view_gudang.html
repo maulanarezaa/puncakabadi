@@ -34,6 +34,7 @@
                     <th>Kode Bahan Baku</th>
                     <th>Jumlah</th>
                     <th>Keterangan</th>
+                    <th>Status ACC</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
@@ -58,7 +59,16 @@
                     <td>{{i.jumlah|intcomma}}</td>
                     <td>{{i.keterangan}}</td>
                     <td>
-                      {% if i.KeteranganACC == True %}
+                      {% if i.KeteranganACC == False %}
+                      Belum ACC Gudang
+                      {% elif i.KeteranganACCPurchasing == False %}
+                      Belum ACC Purchasing
+                      {% else %}
+                      Sudah ACC
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if i.KeteranganACC == True and i.KeteranganACCPurchasing == True %}
                       <button class="btn btn-success">
                           <i class="typcn typcn typcn-tick"></i>                                                    
                       </button>

@@ -26,11 +26,11 @@ def view_gudang(request):
     )
 
     getkeluar = (
-        models.TransaksiGudang.objects.filter(KeteranganACC=False)
+        models.TransaksiGudang.objects.filter(KeteranganACCPurchasing=False)
         .filter(jumlah__gt=0)
         .order_by("tanggal")
     )
-
+    print(getkeluar)
     akhir = datetime.now()
 
     mulai = akhir - timedelta(days=30)

@@ -25,6 +25,7 @@
                                 <th>Detail SPK</th>
                                 <th>Kuantitas</th>
                                 <th>Lokasi</th>
+                                <th>Status Konfirmasi</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -38,11 +39,25 @@
                                 <td>{{i.jumlah|separator_ribuan}}</td>
                                 <td>{{i.Lokasi}}</td>
                                 <td>
+                                    {% if i.KeteranganACC == False and i.KeteranganACCPurchasing == False %}
+                                    Belum ACC Gudang & Purchasing
+                                    {%  elif i.KeteranganACC == True and i.KeteranganACCPurchasing == False %}
+                                    Belum ACC Purchasing
+                                    {% endif %}
+                                </td>
+                                <td>
                                     {% if user.groups.first.name != 'ppic' %}
+                                    {% if i.KeteranganACC == False and i.KeteranganACCPurchasing == False %}
                                     <button onclick="uhuy({{i.IDDetailTransaksiGudang}})" type="button"
-                                        class="btn btn-success">
+                                        class="btn btn-success" >
                                         <i class="typcn typcn typcn-tick"></i>
                                     </button>
+                                    {%  elif i.KeteranganACC == True and i.KeteranganACCPurchasing == False %}
+                                    <button type="button"
+                                        class="btn btn-success" disabled>
+                                        <i class="typcn typcn typcn-tick"></i>
+                                    </button>
+                                    {% endif %}
                                     {% endif %}
                                 </td>
                             </tr>

@@ -95,6 +95,9 @@ def notif_barang_purchasing(request):
     filter_spkobj = models.SPK.objects.filter(KeteranganACC=False).order_by("Tanggal")
     for x in filter_spkobj:
         x.Tanggal = x.Tanggal.strftime("%Y-%m-%d")
+    transaksikeluarbelumacc = models.TransaksiGudang.objects.filter(KeteranganACC = True, KeteranganACCPurchasing = False,jumlah__gte = 0).order_by('-tanggal')
+    for i in transaksikeluarbelumacc:
+        i.tanggal = i.tanggal.strftime("%Y-%m-%d")
     print(filter_spkobj)
     '''
     Algoritma mencari kebutuhan barang
@@ -450,10 +453,22 @@ def notif_barang_purchasing(request):
             "filter_spkobj": filter_spkobj,
             "rekap_pengadaan": rekappengadaanbarang,
             "listproduk": rekapbahandibawahstok,
-            "filtersubkonobj" : filtersubkonobj
+            "filtersubkonobj" : filtersubkonobj,
+            "transaksibelumacc" : transaksikeluarbelumacc
         },
     )
 
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
+def accbarangkeluar(request, id):
+    datagudang = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
+    datagudang.KeteranganACCPurchasing = True
+    datagudang.save()
+    models.transactionlog(user="Purchasing",
+            waktu=datetime.now(),
+            jenis="Update",
+            pesan=f"ACC Barang Keluar {datagudang.tanggal} {datagudang.KodeProduk} {datagudang.jumlah} {datagudang.Lokasi.NamaLokasi}").save()
+    return redirect("notif_purchasing")
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def verifikasi_data(request, id):

@@ -124,6 +124,7 @@ class TransaksiGudang(models.Model):
     jumlah = models.FloatField()
     tanggal = models.DateField()
     KeteranganACC = models.BooleanField()
+    KeteranganACCPurchasing = models.BooleanField()
     Lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
     DetailSPK = models.ForeignKey(
         DetailSPK, on_delete=models.CASCADE, null=True, blank=True

@@ -68,7 +68,7 @@
                       onchange="loadArtikelOptions(this)">
                       <option value="">Masukkan Nomor SPK</option>
                       {% for i in data_spk %}
-                      <option value="{{i.NoSPK}}">{{i.NoSPK}}</option>
+                      <option value="{{i.NoSPK}}">{{i.NoSPK}} - SPK {% if i.StatusDisplay == 1%}Display{% else %}Artikel{%endif%}</option>
                       {% endfor %}
                     </select>
                   </div>

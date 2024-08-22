@@ -236,6 +236,86 @@
     </div>
   </div>
 </div>
+<div class="row">
+  <div class="col-lg-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Notifikasi Bahan Baku Keluar Belum ACC</h4>
+        <div class="table-responsive pt-3">
+         
+          <table class="table table-bordered" id="databarang_notif">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Kode Barang</th>
+                <th>Nama Barang</th>
+                <th>Detail SPK</th>
+                <th>Kuantitas</th>
+                <th>Lokasi</th>
+                <th>Status Konfirmasi</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody id="tableBody">
+              {% for i in transaksibelumacc %}
+              <tr>
+                <td>{{i.tanggal}}</td>
+                <td>{{i.KodeProduk}}</td>
+                <td>{{i.KodeProduk.NamaProduk}}</td>
+                <td>{{i.DetailSPK}}</td>
+                <td>{{i.jumlah|separator_ribuan}}</td>
+                <td>{{i.Lokasi}}</td>
+                <td>
+                  {% if i.KeteranganACC == False and i.KeteranganACCPurchasing == False %}
+                  Belum ACC Gudang & Purchasing
+                  {%  elif i.KeteranganACC == True and i.KeteranganACCPurchasing == False %}
+                  Belum ACC Purchasing
+                  {% endif %}
+              </td>
+              <td>
+                  {% if user.groups.first.name != 'ppic' %}
+                  {% if i.KeteranganACCPurchasing == False %}
+                  <button onclick="uhuy({{i.IDDetailTransaksiGudang}})" type="button"
+                      class="btn btn-success" >
+                      <i class="typcn typcn typcn-tick"></i>
+                  </button>
+                
+                  {% endif %}
+                  {% endif %}
+              </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Konfirmasi ACC</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Apakah Anda yakin ingin ACC data ini?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                <form id="deleteForm" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">ACC</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- <div class="modal fade" id="confirmACCModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
   aria-hidden="true">
@@ -303,5 +383,13 @@
     $('#confirmDeleteModal').modal('show');
   }
 </script> -->
+
+<script>
+  function uhuy(id) {
+      var deleteForm = document.getElementById('deleteForm');
+      deleteForm.action = "acctransaksigudangkeluar/" + id;
+      $('#confirmDeleteModal').modal('show');
+  }
+</script>
 {% endblock javascripts %}
 {% endblock content %}

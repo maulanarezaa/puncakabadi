@@ -1428,6 +1428,7 @@ def add_gudang(request):
                 jumlah=jumlah,
                 keterangan=keterangan,
                 KeteranganACC=False,
+                KeteranganACCPurchasing = False
             )
             
             if detail != "":
@@ -1581,6 +1582,9 @@ def update_gudang(request, id):
         gudangobj.tanggal = tanggal
         gudangobj.jumlah = jumlah
         gudangobj.keterangan = keterangan
+        gudangobj.KeteranganACCPurchasing = False
+        gudangobj.KeteranganACC = False
+        print('tes uopdate keterangan')
         detail_spk = request.POST["detail_spk[]"]
         nomorspk = request.POST["nomor_spk"]
 

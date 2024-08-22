@@ -8,6 +8,7 @@ urlpatterns = [
         viewspurchasing.notif_barang_purchasing,
         name="notif_purchasing",
     ),
+    path('acctransaksigudangkeluar/<str:id>',viewspurchasing.accbarangkeluar),
     path(
         "update_verif_purchasing/<str:id>",
         viewspurchasing.verifikasi_data,
