@@ -44,18 +44,24 @@
                                 <td>{{i.keteranganPurchasing}}</td>
                                 <td>
                                     {% if user.groups.first.name != 'ppic' %}
-                                    <div class="template-demo">
-                                        <a href="{% url 'update_produk' i.KodeProduk %}">
-                                            <button type="button" class="btn btn-warning">
-                                                <i class="typcn typcn-edit"></i>
-                                            </button>
-                                        </a>
-                                        <a>
-                                            <button onclick="confirmDelete('{{ i.KodeProduk }}')" type="button"
+                                    <div class="row">
+                                        <div class="col-lg-6">
+
+                                            <a href="{% url 'update_produk' i.KodeProduk %}">
+                                                <button type="button" class="btn btn-warning">
+                                                    <i class="typcn typcn-edit"></i>
+                                                </button>
+                                            </a>
+                                        </div>
+                                        <div class="col-lg-6">
+
+                                            <a>
+                                                <button onclick="confirmDelete('{{ i.KodeProduk }}')" type="button"
                                                 class="btn btn-danger">
                                                 <i class="typcn typcn typcn-trash"></i>
                                             </button>
                                         </a>
+                                    </div>
                                     </div>
                                     {% endif %}
                                 </td>

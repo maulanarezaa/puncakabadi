@@ -15,13 +15,14 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Detail Barang Masuk Periode : {{bulan}} </h4>
+                <h4>Total : {{totalbiayamasuk|custom_thousands_separator}}</h4>
 
 
 
                 <div class="table-responsive pt-3">
                     {% if sjp %}
 
-                    <h5>Detail Barang Keluar Bulan : {{bulan}}</h5>
+                    
                     <table class="table" id="tabellaporanbarangmasuk">
                         <thead>
                             <tr>
@@ -54,15 +55,7 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <td >Total</td>
-                                <td>{{totalbiayamasuk|custom_thousands_separator}}</td>
-                            </tr>
-                        </thead>
-                    </table>
-
+                    
                    
 
 

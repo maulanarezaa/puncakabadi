@@ -357,7 +357,7 @@ def views_ksbj(request):
         print(getbahanbakuutama)
         if not getbahanbakuutama :
             messages.error(request, "Bahan Baku utama belum di set")
-            return redirect("view_ksbj")
+            return redirect("view_ksbjrnd")
         
         data = models.TransaksiProduksi.objects.filter(KodeArtikel=artikel.id,Jenis = "Mutasi")
         datamasuk = models.TransaksiGudang.objects.filter(DetailSPK__KodeArtikel = artikel.id,KodeProduk = getbahanbakuutama.KodeProduk,tanggal__range=(tanggal_mulai, tanggal_akhir))

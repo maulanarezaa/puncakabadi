@@ -26,7 +26,6 @@
                 <th>Kode Produk Subkon</th>
                 <th>Artikel Peruntukan</th>
                 <th>Jumlah</th>
-                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -37,18 +36,7 @@
                 <td>{{i.IDProdukSubkon.NamaProduk}}</td>
                 <td>{{i.IDProdukSubkon.KodeArtikel.KodeArtikel}}</td>
                 <td>{{i.Jumlah|separator_ribuan}}</td>
-                <td>
-                  <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
-                  {% if user.groups.first.name != 'ppic' %}
-                  <div class="template-demo">
-                    <a href="{% url 'update_saldosubkon' i.IDSaldoAwalProdukSubkon %}">
-                      <button type="button" class="btn btn-warning">
-                        <i class="typcn typcn-edit"></i>
-                      </button>
-                    </a>
-                  </div>
-                  {% endif %}
-                </td>
+                
               </tr>
               {% endfor %}
             </tbody>

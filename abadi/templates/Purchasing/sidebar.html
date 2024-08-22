@@ -29,6 +29,21 @@
         </ul>
       </div>
     </li>
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#rekapstok" aria-expanded="false" aria-controls="produksi">
+        <i class="typcn typcn-document-text menu-icon"></i>
+        <span class="menu-title">Rekap Stok</span>
+        <i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="rekapstok">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="{% url 'rekapgudang2' %}">Rekap Stok Gudang</a></li>
+        </ul>
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="{% url 'view_rekapbarang2' %}">Rekap Stok Produksi</a></li>
+        </ul>
+      </div>
+    </li>
     
     <li class="nav-item">
       <a class="nav-link" href="{% url 'rekap_purchasing' %}" aria-expanded="false" aria-controls="charts">

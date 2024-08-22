@@ -1082,7 +1082,7 @@ def rekap_gudang(request):
         # print(pemusnahan)
         # print(stokakhir)
 
-    combined_list = zip(listproduk, listnama, satuan, liststokakhir)
+    combined_list = zip(listproduk, listnama, satuan, liststokakhir,dataproduk)
 
     # Membuat dictionary sesuai template yang diinginkan
     produk_dict = {
@@ -1090,8 +1090,9 @@ def rekap_gudang(request):
             "NamaProduk": nama_produk,
             "Satuan": satuan,
             "StokAkhir": stok_akhir,
+            "produkobj" : produkobj
         }
-        for kode_produk, nama_produk, satuan, stok_akhir in combined_list
+        for kode_produk, nama_produk, satuan, stok_akhir,produkobj in combined_list
     }
     if date != "":
         sekarang = date
@@ -1103,6 +1104,7 @@ def rekap_gudang(request):
             "kodeproduk": listproduk,
             "date": date,
             "dict_semua": produk_dict,
+            'waktu' : sekarang
         },
     )
     # # batas
@@ -1942,7 +1944,7 @@ def views_penyusun(request):
                                 "Hargakotak": round(hargaperkotak, 2),
                             }
                         )
-
+                    data = models.Artikel.objects.all()
                     return render(
                         request,
                         "purchasing/penyusun.html",

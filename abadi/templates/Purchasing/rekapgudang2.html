@@ -24,7 +24,7 @@
                         </form>
                     </div>
                     <div class="table-responsive pt-3">
-                        <table class="table table-bordered" id="rekapgudang">
+                        <table class="table table-bordered" id="tabelrekapgudang">
                             <thead>
                                 <tr>
                                     <th>No</th>
@@ -41,7 +41,7 @@
                                     <td>{{detail.NamaProduk}}</td>
                                     {% if detail.StokAkhir < 0 %} <td style="background-color: red;">
                                         {{detail.StokAkhir}}</td>
-                                        {% elif detail.StokAkhir == 0 %}
+                                        {% elif detail.StokAkhir < detail.produkobj.Jumlahminimal %}
                                         <td style="background-color: yellow;">{{detail.StokAkhir}}</td>
                                         {% else %}
                                         <td>{{detail.StokAkhir|separator_ribuan}}</td>

@@ -35,27 +35,46 @@
                                 <td>{{i.Keterangan}}</td>
 
                                 <td>
-                                    {% for j in i.detailsppb %}
-                                    <li>{{j.DetailSPK.NoSPK}}</li>
-                                    {% endfor %}
+                                    <ul>
+
+                                        {% for j in i.detailsppb %}
+                                        {% if j.DetailSPKDisplay != None %}
+                                        <li>{{j.DetailSPKDisplay.NoSPK}}</li>
+                                        {% elif j.DetailBahan != None %}
+                                        <li>Bahan Baku</li>
+                                        {% else %}
+                                        <li>{{j.DetailSPK.NoSPK}}</li>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </ul>
                                 </td>
                                 <td>
-                                    {% for j in i.detailsppb %}
-                                    {% if j.DetailSPKDisplay != None %}
-                                    <p>
-                                        {{j.DetailSPKDisplay.KodeDisplay}}
-                                    </p>
-                                    {% elif j.DetailBahan != None %}
-                                    {{j.DetailBahan.KodeProduk}}
-                                    {% else %}
-                                    <p>
-                                        {{j.DetailSPK.KodeArtikel}}
-                                    </p>
-                                    {% endif %}
+                                    <ul>
 
+                                        {% for j in i.detailsppb %}
+                                        {% if j.DetailSPKDisplay != None %}
+                                        <li>
+                                            
+                                            {{j.DetailSPKDisplay.KodeDisplay}}
+                                    </li>
+                                    
+                                    {% elif j.DetailBahan != None %}
+                                    <li>
+
+                                        {{j.DetailBahan.KodeProduk}}
+                                    </li>
+                                    {% else %}
+                                    <li>
+
+                                        {{j.DetailSPK.KodeArtikel}}
+                                    </li>
+                                    
+                                    {% endif %}
+                                    
                                     {% endfor %}
                                     
-
+                                    
+                                </ul>
                                 </td>
                                 <td>
                                     {% for j in i.detailsppb %}
