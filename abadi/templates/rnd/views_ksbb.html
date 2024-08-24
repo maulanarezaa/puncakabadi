@@ -29,7 +29,7 @@
                     <div class="row">
                         <div class="col-lg-4">
                             <div class="form-group">
-                                <input type="text" class="form-control" placeholder="Masukkan Kode Produk"
+                                <input type="text" class="form-control" placeholder="Masukkan Kode Stock"
                                     aria-label="Masukkan Nama Artikel" name="kode_produk" list="listkodeproduk"
                                     id="kodeproduk" value="{{kodeprodukobj}}">
                                 <datalist id="listkodeproduk">
@@ -100,10 +100,10 @@
                             {% for i in data %}
                             <tr>
                                 <td>{{i.Tanggal}}</td>
-                                <td>{{i.Jumlahmasuk}}</td>
+                                <td>{{i.Jumlahmasuk|custom_thousands_separator}}</td>
                                 <td>{{i.Hargamasuksatuan|custom_thousands_separator}}</td>
                                 <td>{{i.Hargamasuktotal|custom_thousands_separator}}</td>
-                                <td>{{i.Jumlahkeluar}}</td>
+                                <td>{{i.Jumlahkeluar|custom_thousands_separator}}</td>
                                 <td>{{i.Hargakeluarsatuan|custom_thousands_separator}}</td>
                                 <td>{{i.Hargakeluartotal|custom_thousands_separator}}</td>
                                 <td>{{i.Sisahariini|custom_thousands_separator}}</td>

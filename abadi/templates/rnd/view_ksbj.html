@@ -24,7 +24,7 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input required type="text" class="form-control" placeholder="Masukkan Nama Artikel"
+                                    <input required type="text" class="form-control" placeholder="Masukkan Kode Artikel"
                                         aria-label="Masukkan Nama Artikel" name="kodeartikel" list="listartikel"
                                         value="{{kodeartikel}}">
                                     <datalist id="listartikel">
@@ -67,7 +67,7 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input required type="text" class="form-control" placeholder="Masukkan Nama Artikel"
+                                    <input required type="text" class="form-control" placeholder="Masukkan Kode Artikel"
                                         aria-label="Masukkan Nama Artikel" name="kodeartikel" list="listartikel">
                                     <datalist id="listartikel">
                                         {% for i in dataartikel %}
@@ -93,17 +93,19 @@
                             <tr>
                                 <td>Tanggal</td>
                                 <td>SPK</td>
-                                <td>Kode</td>
+                                <td>Kode Stock</td>
+                                <td>Nama Bahan Baku</td>
                                 <td>Masuk <br> (Lembar)</td>
                                 <td>Masuk <br> (Konversi)</td>
-                                <td>Hasil</td>
-                                <td>Sisa</td>
+                                <td>Keluar (FG)</td>
+                                <td>Saldo</td>
 
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td>{{saldoawal.Tanggal}} Saldo awal </td>
+                                <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -130,7 +132,10 @@
                                     </ul>
 
                                 </td>
-                                <td>{{i.Kodeproduk.KodeProduk.KodeProduk}}</td>
+                                <td>
+                                        {{i.Kodeproduk.KodeProduk.KodeProduk}}
+                                </td>
+                                <td>{{i.Kodeproduk.KodeProduk.NamaProduk}}</td>
                                 <td>{{i.Masuklembar|custom_thousands_separator}}</td>
                                 <td>{{i.Masukkonversi|separator_ribuan}}</td>
                                 <td>{{i.Hasil|separator_ribuan}}</td>
@@ -155,10 +160,10 @@
                         <thead>
                             <tr>
                                 <td>Tanggal</td>
-                                <td>Penyerahan dari WIP</td>
+                                <td>Masuk (WIP)</td>
                                 <td>SPK</td>
                                 <td>SPPB</td>
-                                <td>Jumlah Kirim</td>
+                                <td>Keluar (Kirim)</td>
                                 <td>Sisa</td>
 
                             </tr>

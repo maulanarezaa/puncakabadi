@@ -10,8 +10,16 @@
 <div class="col-12 grid-margin">
     <div class="card">
         <div class="card-body">
-            <h4 class="card-title">Form Tambah Data Penyusun Artikel : <span style="font-weight: lighter;">
+            <h4 class="card-title">Form Tambah Data : <span style="font-weight: lighter;">
                     {{kodeartikel.KodeArtikel}} </span></h4>
+                    <div class="template-demo">
+                        <a href="{{backurl}}">
+                            <button type="button" class="btn btn-light btn-icon-text">
+                                <i class="typcn typcn-chevron-left btn-icon-prepend"></i>
+                                Kembali
+                            </button>
+                        </a>
+                    </div>
             <div class="template-demo">
             </div>
             <br>
@@ -50,7 +58,7 @@
                     <div class="row" id="artikel_1">
                         <div class="col-md-3">
                             <div class="form-group">
-                                <label class="">Kode Produk</label>
+                                <label class="">Kode Stock</label>
                                 <div class="">
                                     <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
                                         aria-label="Masukkan Nama bahanbaku" name="kodeproduk" list="listproduk"

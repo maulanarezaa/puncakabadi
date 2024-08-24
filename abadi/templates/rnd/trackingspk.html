@@ -4,6 +4,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
+{% load customfilter %}
 
 <!-- Page content  -->
 {% block content %}
@@ -73,7 +74,7 @@
             <div class="form-group">
               <label for="quantity_{{ forloop.counter }}">Jumlah</label>
               <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity"
-                value="{{i.Jumlah}}" readonly>
+                value="{{i.Jumlah|separator_ribuan}}" readonly>
             </div>
           </div>
 
@@ -100,7 +101,7 @@
             <div class="form-group">
               <label for="quantity_{{ forloop.counter }}">Jumlah</label>
               <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity"
-                value="{{i.Jumlah}}" readonly>
+                value="{{i.Jumlah|separator_ribuan}}" readonly>
             </div>
           </div>
 
@@ -120,10 +121,10 @@
         <h4 class="card-title">Rekap SPK</h4>
         <div class="table-responsive pt-3">
           <h5>Kumulasi Permintaan Barang</h5>
-          <table class="table table-bordered">
+          <table class="table table-bordered" id="myTable">
             <thead>
               <tr>
-                <th>Kode Bahan Baku</th>
+                <th>Kode Stock</th>
                 <th>Nama Bahan Baku</th>
                 <th>Satuan</th>
                 <th>Total Permintaan</th>
@@ -135,7 +136,7 @@
                 <td>{{i.KodeProduk__KodeProduk}}</td>
                 <td>{{i.KodeProduk__NamaProduk}}</td>
                 <td>{{i.KodeProduk__unit}}</td>
-                <td>{{i.total}}</td>
+                <td>{{i.total|separator_ribuan_versi2}}</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -143,7 +144,7 @@
         </div>
         <div class="table-responsive pt-3">
           <h5>Kumulasi Pengiriman Barang</h5>
-          <table class="table table-bordered">
+          <table class="table table-bordered" id="myTable">
             <thead>
               <tr>
                 <th>Kode Artikel/Display</th>
@@ -158,7 +159,7 @@
                 {% else %}
                 <td>{{i.DetailSPK__KodeArtikel__KodeArtikel}}</td>
                 {% endif %}
-                <td>{{i.total}}</td>
+                <td>{{i.total|separator_ribuan}}</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -180,13 +181,13 @@
       <div class="table-responsive pt-3">
 
         <h5>Permintaan Barang Ke Gudang</h5>
-        <table class="table table-bordered">
+        <table class="table table-bordered" id="myTable">
           <thead>
             <tr>
               <th>Tanggal</th>
               <th>Nomor SPK</th>
-              <th>Bahan Baku</th>
-              <th>Nama Produk</th>
+              <th>Kode Stock</th>
+              <th>Nama Bahan Baku</th>
               <th>Satuan</th>
               <th>Artikel Peruntukan</th>
               <th>Jumlah</th>
@@ -216,7 +217,7 @@
                   {{i.DetailSPKDisplay.KodeDisplay.KodeDisplay}}
                 {% endif %}
               </td>
-              <td>{{i.jumlah}}</td>
+              <td>{{i.jumlah|separator_ribuan}}</td>
               <td>{{i.Lokasi}}</td>
               <td>{{i.keterangan}}</td>
             </tr>
@@ -227,7 +228,7 @@
       <div class="table-responsive pt-3 mt-3">
 
         <h5>Barang di FG</h5>
-        <table class="table table-bordered">
+        <table class="table table-bordered" id="myTable">
           <thead>
             <tr>
               <th>Tanggal Mutasi</th>
@@ -249,7 +250,7 @@
               <td>{{i.DetailSPK.KodeArtikel.KodeArtikel}}</td>
               {% endif %}
 
-              <td>{{i.Jumlah}}</td>
+              <td>{{i.Jumlah|separator_ribuan}}</td>
               <td>{{i.Keterangan}}</td>
             </tr>
             {% endfor %}
@@ -260,7 +261,7 @@
       <div class="table-responsive pt-3 mt-3">
 
         <h5>Barang dikirim</h5>
-        <table class="table table-bordered">
+        <table class="table table-bordered" id="myTable">
           <thead>
             <tr>
               <th>Tanggal Pengeluaran</th>
@@ -283,7 +284,7 @@
               <td>{{i.DetailSPK.NoSPK}}</td>
               <td>{{i.DetailSPK.KodeArtikel.KodeArtikel}}</td>
               {% endif %}
-              <td>{{i.Jumlah}}</td>
+              <td>{{i.Jumlah|separator_ribuan}}</td>
               <td>{{i.Keterangan}}</td>
             </tr>
             {% endfor %}

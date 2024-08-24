@@ -1208,12 +1208,18 @@ def tambahversi(request, id):
     data = models.Artikel.objects.get(id=id)
     bahanbaku = models.Produk.objects.all()
     tanggal = date.today().strftime("%Y-%m-%d")
+    # print(request.META)
+    # print(request.META['HTTP_REFERER'])
     print(tanggal)
     if request.method == "GET":
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+        else:
+            back_url = '/rnd/penyusun'  # URL default jika tidak ada referer
         return render(
             request,
             "rnd/tambah_versi.html",
-            {"data": data, "versi": tanggal, "dataproduk": bahanbaku},
+            {"data": data, "versi": tanggal, "dataproduk": bahanbaku,'backurl':back_url},
         )
     else:
         print(request.POST)
@@ -1260,6 +1266,10 @@ def tambahdatapenyusun(request, id, versi):
     dataartikelobj = models.Artikel.objects.get(id=id)
     print(versi, "asdas")
     if request.method == "GET":
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+        else:
+            back_url = '/rnd/penyusun'
         dataprodukobj = models.Produk.objects.all()
 
         return render(
@@ -1269,6 +1279,7 @@ def tambahdatapenyusun(request, id, versi):
                 "kodeartikel": dataartikelobj,
                 "dataproduk": dataprodukobj,
                 "versiterpilih": versi,
+                'backurl':back_url
             },
         )
     else:
@@ -1336,6 +1347,10 @@ def tambahdatapenyusun(request, id, versi):
 def updatepenyusun(request, id):
     data = models.Penyusun.objects.get(IDKodePenyusun=id)
     if request.method == "GET":
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+        else:
+            back_url = '/rnd/penyusun'
         datakonversi = models.KonversiMaster.objects.get(
             KodePenyusun=data.IDKodePenyusun
         )
@@ -1351,6 +1366,7 @@ def updatepenyusun(request, id):
                 "data": data,
                 "lokasi": lokasiobj,
                 "konversi": datakonversi,
+                'backurl':back_url
             },
         )
     else:

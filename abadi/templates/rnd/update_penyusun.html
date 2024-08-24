@@ -12,7 +12,7 @@
         <div class="card-body">
             <h4 class="card-title">Edit Artikel : {{data.KodeArtikel}}</h4>
             <div class="template-demo">
-                <a href="/viewproduksi">
+                <a href="{{backurl}}">
                     <button type="button" class="btn btn-light btn-icon-text">
                         <i class="typcn typcn-chevron-left btn-icon-prepend"></i>
                         Kembali
@@ -34,9 +34,9 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Kode Produk</label>
+                            <label class="col-sm-3 col-form-label">Kode Stock</label>
                             <div class="col-sm-9">
                                 <input type="text" class="form-control" required name="kodeproduk"
                                     value="{{data.KodeProduk.KodeProduk}}" id="" list="listkodeproduk">
@@ -49,12 +49,9 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="row">
-
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Nama Produk</label>
+                            <label class="col-sm-3 col-form-label">Nama Bahan Baku</label>
                             <div class="col-sm-9">
                                 <input type="text" value="{{data.KodeProduk.NamaProduk}}" disabled class="form-control">
 
@@ -62,10 +59,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="row">
-
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Satuan</label>
                             <div class="col-sm-9">
@@ -76,6 +70,14 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="row">
+
+                    
+                </div>
+                <div class="row">
+
+                    
                 </div>
                 <div class="row">
                     <div class="col-md-6">
@@ -95,8 +97,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="row">
                     <div class="col-md-6">
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Status</label>
@@ -114,6 +114,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="row">
 
                     <div class="col-md-6">
@@ -127,9 +128,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="row">
-
                     <div class="col-md-6">
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Allowance</label>
@@ -142,6 +140,7 @@
                         </div>
                     </div>
                 </div>
+               
 
                 <button type="submit" class="btn btn-primary mr-2">Submit</button>
             </form>

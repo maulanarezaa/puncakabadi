@@ -14,7 +14,7 @@
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Penyusun Artikel : <span style="font-weight: lighter;">
+                <h4 class="card-title">Konversi Artikel : <span style="font-weight: lighter;">
                         {{kodeartikel}}</span></h4>
                 <form action="" method="get">
                     <div class="row">
@@ -22,7 +22,7 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input required type="text" class="form-control" placeholder="Masukkan Nama Artikel"
+                                    <input required type="text" class="form-control" placeholder="Masukkan Kode Artikel"
                                         aria-label="Masukkan Nama Artikel" name="kodeartikel" list="listartikell" value="{{kodeartikel}}">
                                     <datalist id="listartikell">
                                         {% for i in dataartikel %}
@@ -108,7 +108,7 @@
                             <tr>
                                 <td>No</td>
                                 <td>Kode Stock</td>
-                                <td>Nama</td>
+                                <td>Bahan Baku</td>
                                 <td>Satuan</td>
                                 <td>Lokasi</td>
                                 <td>Utama</td>

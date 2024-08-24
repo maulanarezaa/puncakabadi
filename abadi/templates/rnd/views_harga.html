@@ -4,6 +4,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
+{% load customfilter %}
 
 
 
@@ -40,7 +41,7 @@
                             <tr>
                                 <td>{{i.Tanggal}}</td>
                                 <td>{{i.KodeArtikel}}</td>
-                                <td>{{i.Harga}}</td>
+                                <td>{{i.Harga|custom_thousands_separator}}</td>
                                 <td>
                                     {% if user.groups.first.name != 'ppic' %}
                                     <div class="template-demo">

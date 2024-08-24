@@ -4,6 +4,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
+{% load customfilter %}
 
 <!-- Page content  -->
 {% block content %}
@@ -23,7 +24,7 @@
                 <th>Tanggal</th>
                 <th>Nomor SPK</th>
                 <th>Jenis SPK</th>
-                <th>Produk</th>
+                <th>Artikel</th>
                 <th>Jumlah</th>
                 <th>Keterangan</th>
                 <th>Status Aktif </th>
@@ -65,7 +66,7 @@
                 <td>
                   {% for j in i.detailspk %}
                   <li>
-                    {{j.Jumlah}}
+                    {{j.Jumlah|separator_ribuan}}
                   </li>
                   {% endfor %}
                 </td>

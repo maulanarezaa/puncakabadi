@@ -4,6 +4,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
+{% load customfilter %}
 
 
 
@@ -79,7 +80,7 @@
                                 <td>
                                     {% for j in i.detailsppb %}
                                     <li>
-                                        {{j.Jumlah}}
+                                        {{j.Jumlah|separator_ribuan}}
                                     </li>
                                     {% endfor %}
                                 </td>
