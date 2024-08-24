@@ -1095,7 +1095,7 @@ def update_gudang(request, id):
 
 
 @login_required
-@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
+@logindecorators.allowed_users(allowed_roles=["gudang","purchasing","ppic"])
 def load_produk(request):
     print(request.GET)
     artikel = request.GET.get("artikel")

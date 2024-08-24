@@ -3287,3 +3287,221 @@ def update_saldosubkon(request, id):
         ).save()
 
         return redirect("view_produksubkon")
+
+# Purchase Order
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing","ppic"])
+def view_purchaseorder(request):
+    datapo = models.PurchaseOrder.objects.all().order_by("Tanggal")
+    # datasjb = models.DetailSuratJalanPembelian.objects.all().order_by(
+    #     "NoSuratJalan__Tanggal"
+    # )
+    date = request.GET.get("mulai")
+    dateakhir = request.GET.get("akhir")
+    print(date, dateakhir)
+    if date =="":
+        date = datetime.min.date()
+    if dateakhir == "":
+        dateakhir = datetime.max.date()
+    print(date,dateakhir)
+    if date is not None and dateakhir is not None:
+        datapo = models.PurchaseOrder.objects.filter(
+            Tanggal__range=(date, dateakhir)
+        ).order_by("Tanggal")
+    for item in datapo:
+        item.detailpo = models.DetailPO.objects.filter(KodePO = item.pk)
+        item.Tanggal = item.Tanggal.strftime('%Y-%m-%d')
+    # for i in date:
+    #     i.KodePO.Tanggal = i.KodePO.Tanggal.strftime("%Y-%m-%d")
+
+    if len(datapo) == 0:
+        messages.info(request, "Tidak ada data PO")
+
+    return render(
+        request,
+        "purchasing/purchaseorder.html",
+        {"datasjb": datapo, "date": date, "mulai": date, "akhir": dateakhir},
+    )
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
+def add_purchaseorder(request):
+    if request.method == "GET":
+        detailsj = models.PurchaseOrder.objects.all()
+        getproduk = models.Produk.objects.all()
+
+        return render(
+            request,
+            "purchasing/addpurchaseorder.html",
+            { "detailsj": detailsj, "getproduk": getproduk},
+        )
+    elif request.method == "POST":
+        print(request.POST)
+        # print(asd)
+        kode = request.POST.getlist("kodeproduk")
+        kodepo = request.POST["nomorpo"]
+        tanggal = request.POST["tanggal"]
+
+        
+    #     existing_entry = models.SuratJalanPembelian.objects.filter
+    # (NoSuratJalan=kodepo).exists()
+    #     print(existing_entry)
+    #     # print(asd)
+    #     if existing_entry:
+    #         messages.warning(request,(f'No Surat Jalan {kodepo} sudah terdaftar pada sistem'))
+    #         return redirect("addgudang")
+
+        nomorpoobj = models.PurchaseOrder(
+            KodePO=kodepo, Tanggal=tanggal, Status = False
+        )
+        listkodeproduk = request.POST.getlist("kodeproduk")
+        error = 0
+        for i in listkodeproduk:
+            try:
+                kodeproduk = models.Produk.objects.get(KodeProduk=i)
+            except:
+                error += 1
+        if error == len(listkodeproduk):
+            messages.error(request, "Data tidak ditemukan dalam sistem")
+            return redirect("add_purchaseorder")
+        nomorpoobj.save()
+        nomorpoobj = models.PurchaseOrder.objects.get(
+            KodePO=kodepo
+        )
+        for kodeproduk, jumlah in zip(
+            request.POST.getlist("kodeproduk"), request.POST.getlist("jumlah")
+        ):
+            # print(kodeproduk)
+            try:
+                kodeprodukobj = models.Produk.objects.get(KodeProduk=kodeproduk)
+            except:
+                messages.error(
+                    request, f"Data Bahan Baku {kodeproduk} tidak terdapat dalam sistem"
+                )
+                continue
+            newprodukobj = models.DetailPO(
+                KodeProduk=kodeprodukobj,
+                Jumlah=jumlah,
+                KodePO = nomorpoobj
+            )
+            models.transactionlog(
+                user="Purchasing",
+                waktu=datetime.now(),
+                jenis="Create",
+                pesan=f"No PO: {nomorpoobj.KodePO} Kode Barang : {newprodukobj.KodeProduk} Jumlah : {newprodukobj.Jumlah}",
+            ).save()
+            newprodukobj.save()
+        messages.success(request, "Data berhasil disimpan")
+        return redirect("view_purchaseorder")
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
+def update_purchaseorder(request, id):
+    datapo = models.PurchaseOrder.objects.get(pk=id)
+    datapo.detailpo = models.DetailPO.objects.filter(KodePO = datapo)
+    getproduk = models.Produk.objects.all()
+    datapo.Tanggal = datapo.Tanggal.strftime('%Y-%m-%d')
+    
+    
+    if request.method == "GET":
+
+        return render(
+            request,
+            "Purchasing/update_purchaseorder.html",
+            {
+
+                "datapo": datapo,
+               
+                "getproduk": getproduk,
+            },
+        )
+
+    else:
+        tanggal = request.POST["tanggal"]
+        print(request.POST)
+        kodepo = request.POST.get("kodepo")
+        # try:
+        #     kode_produkobj = models.Produk.objects.get(KodeProduk=kode_produk)
+        # except:
+        #     messages.error(request, f"Data bahan baku {kode_produk} tidak ditemukan")
+        #     return redirect("update_purchaseorder", id=id)
+        status = request.POST.get('status')
+        jumlah = request.POST.get("Jumlah")
+        status = request.POST.get('status')
+        cekexistingrecoed = models.PurchaseOrder.objects.filter(KodePO = kodepo).exclude(pk = id).exists()
+        if cekexistingrecoed:
+            messages.error(request, f"Kode PO {kodepo} Sudah ada dalam sistem")
+            return redirect("update_purchaseorder", id=id)
+        
+
+        datapo.KodePO = kodepo
+        datapo.Tanggal = tanggal
+        datapo.Status = bool(status)
+        datapo.save()
+
+        # iterasi existing obj 
+        idexisting = request.POST.getlist('idexisting')
+        kodeprodukexisting = request.POST.getlist('kodeprodukexisting')
+        jumlahexisting = request.POST.getlist('jumlahexsiting')
+
+        kodeprodukbaru = request.POST.getlist('kodeproduk[]')
+        listjumlahbaru = request.POST.getlist('jumlah[]')
+        for idexist,kodeproduk,jumlah in zip(idexisting,kodeprodukexisting,jumlahexisting):
+            try:
+                produkobj = models.Produk.objects.get(KodeProduk = kodeproduk)
+            except models.Produk.DoesNotExist:
+                messages.error(request,f"Kode Bahan Baku {kodeproduk} tidak ditemukan")
+                continue
+            detailpoobj = models.DetailPO.objects.get(pk=idexist)
+            detailpoobj.KodeProduk = produkobj
+            detailpoobj.Jumlah = jumlah
+            detailpoobj.save()
+        
+        for kodeproduk,jumlahbaru in zip(kodeprodukbaru,listjumlahbaru):
+            try:
+                produkobj = models.Produk.objects.get(KodeProduk = kodeproduk)
+            except models.Produk.DoesNotExist:
+                messages.error(request,f"Kode Bahan Baku {kodeproduk} tidak ditemukan")
+                continue
+            detailpoobj = models.DetailPO(
+                KodePO = datapo,
+                KodeProduk = produkobj,
+                Jumlah = jumlahbaru
+            )
+            detailpoobj.save()
+            
+
+        # print(asd)
+        # datasjp.save()
+        # datasjp.NoSuratJalan.save()
+        messages.success(request, "Data berhasil disimpan")
+        return redirect("view_purchaseorder")
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
+def delete_purchaseorder(request, id):
+    datasbj = models.PurchaseOrder.objects.get(pk=id)
+    models.transactionlog(
+        user="Purchasing",
+        waktu=datetime.now(),
+        jenis="Delete",
+        pesan=f"Purchase Order: {datasbj.KodePO} Tanggal : {datasbj.Tanggal} ",
+    ).save()
+    datasbj.delete()
+    messages.success(request,'Data berhasil dihapus')
+    return redirect("view_purchaseorder")
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
+def delete_detailpurchaseorder(request, id):
+    datapo = models.DetailPO.objects.get(pk=id)
+    idpo = datapo.KodePO.pk
+    models.transactionlog(
+        user="Purchasing",
+        waktu=datetime.now(),
+        jenis="Delete",
+        pesan=f"Purchase Order: {datapo.KodePO} Tanggal : {datapo.KodePO.Tanggal} ",
+    ).save()
+    datapo.delete()
+    messages.success(request,'Data berhasil dihapus')
+    return redirect("update_purchaseorder",id=idpo)
+

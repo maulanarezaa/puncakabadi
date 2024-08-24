@@ -480,3 +480,19 @@ class HargaArtikel(models.Model):
 
     def __str__(self):
         return f'{self.KodeArtikel} - {self.Tanggal} - {self.Harga}'
+
+class PurchaseOrder(models.Model):
+    KodePO = models.CharField(max_length=100, unique=True)
+    Tanggal = models.DateField()
+    Status = models.BooleanField()
+
+    def __str__(self):
+        return f"{self.KodePO} - {self.Tanggal}"
+
+class DetailPO(models.Model):
+    KodePO = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE)
+    KodeProduk = models.ForeignKey(Produk,on_delete=models.CASCADE)
+    Jumlah = models.FloatField()
+
+    def __str__(self):
+        return f"{self.KodePO} - {self.KodeProduk} - {self.jumlah}"

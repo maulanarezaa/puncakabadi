@@ -98,6 +98,8 @@
   <script>
     $(document).ready(function () {
       $('#dataspk').dataTable();
+      $('#tabelpo').dataTable({
+        "order": [[0, "dsc"]],});
       $('#tabelrekapgudang').dataTable();
     });
     $(document).ready(function () {
