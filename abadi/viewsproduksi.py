@@ -5692,6 +5692,52 @@ def update_transaksicat(request, id):
         messages.success(request,"Data Berhasil disimpan")
         return redirect("view_transaksicat")
 
+def trackingartikelspksppb(request):
+    dataartikel = models.Artikel.objects.all()
+    if len(request.GET) == 0:
+        return render(request,'produksi/trackingspksppb.html',{'dataartikel':dataartikel})
+        '''
+        ALGORITMA
+        1. Ambil data artikel
+        2. Filter SPK Berdasarkan artikel tersebut
+        3. Ambil data detail SPPB berdasarkan SPK Tersebut Diurutkan dari tanggal sppb
+        4. Hitung sisa
+
+        datamodels
+        9010 = {SPK1:{detail}}
+        '''
+    else:
+        kodeartikel = request.GET['kodeartikel']
+        artikelobj = models.Artikel.objects.get(KodeArtikel = kodeartikel)
+        filteredspk = models.DetailSPK.objects.filter(KodeArtikel = artikelobj).order_by("NoSPK__Tanggal")
+        datamodels = {}
+        for item in filteredspk:
+            detailsppbobj = models.DetailSPPB.objects.filter(DetailSPK = item).order_by("NoSPPB__Tanggal")
+            item.detailsppb = detailsppbobj
+            sisaspk = item.Jumlah
+            recordsisa = []
+            item.NoSPK.Tanggal = item.NoSPK.Tanggal.strftime('%Y-%m-%d')
+            for detailsppb in detailsppbobj:
+                sisaspk -= detailsppb.Jumlah
+                dummy = {"detailsppb":detailsppb,"sisa":sisaspk}
+                recordsisa.append(dummy)
+                detailsppb.NoSPPB.Tanggal = detailsppb.NoSPPB.Tanggal.strftime('%Y-%m-%d')
+            # datamodels.append({'SPK':item,"data":recordsisa})
+            datamodels[item.NoSPK.NoSPK] = {'spk':item,"data":recordsisa}
+        # print(datamodels)
+        # print(datamodels[2])
+        # for item in datamodels['01/SPK/I-2024']:
+        #     print(item)
+        # print(datamodels['01/SPK/I-2024'])
+        # print(datamodels["01/SPK/I-2024"]['spk'].Jumlah)
+        # for data in datamodels["01/SPK/I-2024"]['data']:
+        #     print(data)
+        return render(request,'produksi/trackingspksppb.html',{'dataartikel':dataartikel,'listdata':datamodels,'kodeartikel':kodeartikel})
+                
+
+
+    
+
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_pemusnahancat(request, id):

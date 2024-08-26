@@ -3395,12 +3395,6 @@ def exportlaporanbulananexcel(request):
 
     buffer = BytesIO()
 
-    # Use pandas to write DataFrame to the BytesIO buffer
-    thin_border = Border(left=Side(style='thin'),
-                         right=Side(style='thin'),
-                         top=Side(style='thin'),
-                         bottom=Side(style='thin'))
-    num_cols_dfstokawalwip = dfdatakeluar.shape[1]
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         # Laporan Persediaan Section
         # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")

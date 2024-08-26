@@ -57,6 +57,8 @@ urlpatterns = [
     path("trackspk/<str:id>", viewspurchasing.track_spk, name="trackspk"),
     # R REKAP HARGA
     path("rekap_harga", viewspurchasing.views_rekapharga, name="rekapharga"),
+    path("exportksbb/<str:kodeproduk>/<str:periode>", viewspurchasing.exportexcelksbb, name="exportksbb"),
+    path("exportkeseluruhanksbb/<str:periode>", viewspurchasing.exportkeseluruhanksbb, name="exportkeseluruhanksbb"),
     path("barangsubkon", viewspurchasing.views_rekaphargasubkon, name="rekaphargasubkon"),
     
     path("acc_subkon/<str:id>", viewspurchasing.acc_subkon, name="acc_subkon"),
