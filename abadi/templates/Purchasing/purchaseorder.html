@@ -120,6 +120,11 @@
                                 {% endif %}
                                 <td>
                                     {% if user.groups.first.name != 'ppic' %}
+                                    <a href="{% url 'trackingpo' i.id %}">
+                                        <button type="button" class="btn btn-primary">
+                                          <i class="typcn typcn-th-list"></i>
+                                        </button>
+                                      </a>
                                     <a href="{% url 'update_purchaseorder' i.pk %}">
                                         <button type="button" class="btn btn-warning">
                                             <i class="typcn typcn-edit"></i>

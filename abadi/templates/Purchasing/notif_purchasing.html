@@ -22,6 +22,7 @@
                 <th>Stok Gudang</th>
                 <th>Jumlah Minimal</th>
                 <th>Kebutuhan Produksi</th>
+                <th>Delay PO</th>
                 <th>Total Pengadaan</th>
               </tr>
             </thead>
@@ -32,10 +33,11 @@
                 <td>{{key}}</td>
                 <td>{{key.NamaProduk}}</td>
                 <td>{{key.unit}}</td>
-                <td>{{value.stokgudang}}</td>
-                <td>{{value.jumlahminimal}}</td>
-                <td>{{value.kebutuhanproduksi}}</td>
-                <td>{{value.totalpengadaan}}</td>
+                <td>{{value.stokgudang|separator_ribuan}}</td>
+                <td>{{value.jumlahminimal|separator_ribuan}}</td>
+                <td>{{value.kebutuhanproduksi|separator_ribuan_versi2}}</td>
+                <td>{{value.totaldelaypo|separator_ribuan}}</td>
+                <td>{{value.totalpengadaan|separator_ribuan}}</td>
               </tr>
               {% endfor %}
             </tbody>

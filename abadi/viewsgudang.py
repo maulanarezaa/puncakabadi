@@ -105,6 +105,19 @@ def masuk_gudang(request):
         {"datasjb": datasjb, "date": date, "mulai": date, "akhir": dateakhir},
     )
 
+def load_detailpo(request):
+    kodeproduk = request.GET.get("kodeproduk")
+    detailpoobj = models.DetailPO.objects.filter(KodeProduk__KodeProduk=kodeproduk,KodePO__Status = False).values_list('KodePO__KodePO',flat=True).distinct()
+
+    print(detailpoobj)
+    # if id_spk.StatusDisplay == False :
+    #     detailspk = models.DetailSPK.objects.filter(NoSPK=id_spk.id,)
+    # else :
+    #     detailspk = models.DetailSPKDisplay.objects.filter(NoSPK = id_spk.id,)
+
+    return render(request, "gudang/opsi_po.html", {"kodepo": detailpoobj})
+
+
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
@@ -121,13 +134,11 @@ def add_gudang(request):
         )
     if request.method == "POST":
         print(request.POST)
+        # print(asd)
         kode = request.POST.getlist("kodeproduk")
         nosuratjalan = request.POST["nosuratjalan"]
         tanggal = request.POST["tanggal"]
         supplier = request.POST["supplier"]
-        nomorpo = request.POST["nomorpo"]
-        if nomorpo == "":
-            nomorpo = "-"
         if supplier == "":
             supplier = "-"
     #     existing_entry = models.SuratJalanPembelian.objects.filter
@@ -139,7 +150,7 @@ def add_gudang(request):
     #         return redirect("addgudang")
 
         nosuratjalanobj = models.SuratJalanPembelian(
-            NoSuratJalan=nosuratjalan, Tanggal=tanggal, supplier=supplier, PO=nomorpo
+            NoSuratJalan=nosuratjalan, Tanggal=tanggal, supplier=supplier
         )
         listkodeproduk = request.POST.getlist("kodeproduk")
         error = 0
@@ -155,8 +166,8 @@ def add_gudang(request):
         nosuratjalanobj = models.SuratJalanPembelian.objects.get(
             NoSuratJalan=nosuratjalan
         )
-        for kodeproduk, jumlah in zip(
-            request.POST.getlist("kodeproduk"), request.POST.getlist("jumlah")
+        for kodeproduk, jumlah, kodepo in zip(
+            request.POST.getlist("kodeproduk"), request.POST.getlist("jumlah"),request.POST.getlist('detailpo')
         ):
             # print(kodeproduk)
             try:
@@ -166,12 +177,18 @@ def add_gudang(request):
                     request, f"Data Bahan Baku {kodeproduk} tidak terdapat dalam sistem"
                 )
                 continue
+            try:
+                detailpoobj = models.DetailPO.objects.get(KodePO__KodePO = kodepo,KodeProduk__KodeProduk = kodeproduk)
+            except models.DetailPO.DoesNotExist:
+                messages.error(request,f'Detail PO tidak ditemukan {kodepo}')
+                detailpoobj = None
             newprodukobj = models.DetailSuratJalanPembelian(
                 KodeProduk=kodeprodukobj,
                 Jumlah=jumlah,
                 KeteranganACC=0,
                 Harga=0,
                 NoSuratJalan=nosuratjalanobj,
+                PO = detailpoobj
             )
             models.transactionlog(
                 user="Gudang",

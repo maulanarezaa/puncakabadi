@@ -14,11 +14,7 @@ urlpatterns = [
         viewspurchasing.verifikasi_data,
         name="update_verif_purchasing",
     ),
-    path(
-        "acc_subkon/<str:id>",
-        viewspurchasing.acc_subkon,
-        name="acc_subkon",
-    ),
+    
     
     path("acc_spk/<str:id>", viewspurchasing.acc_notif_spk, name="acc_spk"),
     # R penyusun
@@ -112,5 +108,6 @@ urlpatterns = [
     path('addpurchaseorder',viewspurchasing.add_purchaseorder,name='add_purchaseorder'),
     path('updatepurchaseorder/<str:id>',viewspurchasing.update_purchaseorder,name='update_purchaseorder'),
     path('deletepurchaseorder/<str:id>',viewspurchasing.delete_purchaseorder,name='delete_purchaseorder'),
-    path('deletedetailpurchaseorder/<str:id>',viewspurchasing.delete_detailpurchaseorder)
+    path('deletedetailpurchaseorder/<str:id>',viewspurchasing.delete_detailpurchaseorder),
+    path('trackingpo/<str:id>',viewspurchasing.trackingpurchaseorder,name='trackingpo')
 ]

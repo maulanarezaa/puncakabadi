@@ -59,12 +59,28 @@ class Lokasi(models.Model):
     def __str__(self):
         return str(self.NamaLokasi)
 
+class PurchaseOrder(models.Model):
+    KodePO = models.CharField(max_length=100, unique=True)
+    Tanggal = models.DateField()
+    Status = models.BooleanField()
+
+    def __str__(self):
+        return f"{self.KodePO} - {self.Tanggal}"
+
+class DetailPO(models.Model):
+    KodePO = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE)
+    KodeProduk = models.ForeignKey(Produk,on_delete=models.CASCADE)
+    Jumlah = models.FloatField()
+
+    def __str__(self):
+        return f"{self.KodePO} - {self.KodeProduk} - {self.Jumlah}"
+
+
 
 class SuratJalanPembelian(models.Model):
     NoSuratJalan = models.CharField(max_length=255, primary_key=True)
     Tanggal = models.DateField()
     supplier = models.CharField(max_length=255)
-    PO = models.CharField(max_length=255)
     NoInvoice = models.CharField(max_length=255,null=True,blank=True)
     TanggalInvoice = models.DateField(blank=True,null=True)
 
@@ -81,6 +97,7 @@ class DetailSuratJalanPembelian(models.Model):
     Harga = models.FloatField()
     HargaDollar = models.FloatField(default=0)
     PPN = models.BooleanField(default=True)
+    PO = models.ForeignKey(DetailPO,on_delete=models.SET_NULL,blank=True,null=True)
 
     def __str__(self):
         return str(self.NoSuratJalan) + " " + str(self.KodeProduk)
@@ -483,18 +500,3 @@ class HargaArtikel(models.Model):
     def __str__(self):
         return f'{self.KodeArtikel} - {self.Tanggal} - {self.Harga}'
 
-class PurchaseOrder(models.Model):
-    KodePO = models.CharField(max_length=100, unique=True)
-    Tanggal = models.DateField()
-    Status = models.BooleanField()
-
-    def __str__(self):
-        return f"{self.KodePO} - {self.Tanggal}"
-
-class DetailPO(models.Model):
-    KodePO = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE)
-    KodeProduk = models.ForeignKey(Produk,on_delete=models.CASCADE)
-    Jumlah = models.FloatField()
-
-    def __str__(self):
-        return f"{self.KodePO} - {self.KodeProduk} - {self.jumlah}"

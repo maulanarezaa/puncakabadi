@@ -47,26 +47,18 @@
               </div>
             </div>
           </div>
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Nomor PO</label>
-              <div class="col-sm-9">
-                <input type="text" class="form-control" name="nomorpo" placeholder="Masukkan Nomor PO" />
-              </div>
-            </div>
-          </div>
         </div>
 
         <h4 class="card-title">Form Data Barang</h4>
 
         <div id="products"><!-- Div ini ditambahkan untuk menampung produk yang ditambahkan dinamis -->
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Kode Barang</label>
                 <div class="col-sm-9">
-                  <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
-                    aria-label="Masukkan Nama bahanbaku" name="kodeproduk" list="listproduk" required>
+                  <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku" id="kodeproduk-1"
+                    aria-label="Masukkan Nama bahanbaku" onchange="loadArtikelOptions(this)" name="kodeproduk" list="listproduk" required>
                   <datalist id="listproduk">
                     {% for i in getproduk %}
                     <option value="{{i.KodeProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
@@ -75,7 +67,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-4">
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Jumlah</label>
                 <div class="col-sm-8">
@@ -83,8 +75,14 @@
                 </div>
               </div>
             </div>
-
-
+            <div class="col-md-4">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Nomor PO</label>
+                <div class="col-sm-8" id="detail_po_1">
+                  {% include 'gudang/opsi_po.html' %}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <button type="button" class="btn btn-outline-info" onclick="addProduct()">Tambahkan produk</button>
@@ -96,40 +94,44 @@
 
 {% block javascripts %}
 <script>
+  let productCounter = 1; // Counter untuk menghitung berapa banyak produk yang sudah ditambahkan
+
   function addProduct() {
-    let productCounter = document.querySelectorAll('.form-group.row').length + 1;
+    productCounter++; // Tambah counter setiap kali produk baru ditambahkan
     const productDiv = document.createElement('div');
     productDiv.className = "row";
-    productDiv.innerHTML = `<div class="col-md-6">
-                                  <div class="form-group row">
-                                      <label class="col-sm-3 col-form-label">Kode Barang</label>
-                                      <div class="col-sm-9">
-                                          <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
-                                              aria-label="Masukkan Nama bahanbaku" name="kodeproduk" list="listproduk" required>
-                                          <datalist id="listproduk">
-                                              {% for i in getproduk %}
-                                              <option value="{{i.KodeProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
-                                              {% endfor %}
-                                          </datalist>
-                                      </div>
-                                  </div>
-                              </div>
-                              <div class="col-md-5">
-                                  <div class="form-group row">
-                                      <label class="col-sm-3 col-form-label">Jumlah</label>
-                                      <div class="col-sm-8">
-                                          <input min="0" value="0" step="any" type="number" class="form-control" name="jumlah" required>
-                                      </div>
-                                  </div>
-                              </div>
-                              <div class="col-md-1">
-                                  <button type="button" class="btn btn-danger " onclick="removeProduct(this)">Hapus</button>
-                              </div>`;
+    productDiv.innerHTML = `<div class="col-md-4">
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Kode Barang</label>
+                                    <div class="col-sm-9">
+                                        <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
+                                            id="kodeproduk-${productCounter}" aria-label="Masukkan Nama bahanbaku"
+                                            name="kodeproduk" list="listproduk" onchange="loadArtikelOptions(this)" required>
+                                        <datalist id="listproduk">
+                                            {% for i in getproduk %}
+                                            <option value="{{i.KodeProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
+                                            {% endfor %}
+                                        </datalist>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Jumlah</label>
+                                    <div class="col-sm-8">
+                                        <input min="0" value="0" step="any" type="number" class="form-control" name="jumlah" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Nomor PO</label>
+                                    <div class="col-sm-8" id="detail_po_${productCounter}">
+                                      {% include 'gudang/opsi_po.html' %}
+                                    </div>
+                                </div>
+                            </div>`;
     document.getElementById('products').appendChild(productDiv);
-    // Hapus baris jika terlalu banyak
-    if (productCounter > 5) { // Misalnya, batas jumlah baris adalah 5
-      removeExcessRows();
-    }
   }
 
   function removeProduct(button) {
@@ -137,12 +139,26 @@
     row.parentNode.removeChild(row);
   }
 
-  function removeExcessRows() {
-    let productsDiv = document.getElementById('products');
-    let rows = productsDiv.getElementsByClassName('row');
-    if (rows.length > 5) { // Misalnya, batas jumlah baris adalah 5
-      productsDiv.removeChild(rows[rows.length - 1]); // Hapus baris terakhir
-    }
+  function loadArtikelOptions(selectElement) {
+    var kodeproduk = selectElement.value;
+    var productCounter = selectElement.id.split('-')[1];
+    var detailSpkDiv = document.getElementById('detail_po_' + productCounter);
+    var url = "{% url 'load_detailpo' %}";
+
+    // Menghapus opsi sebelumnya jika ada
+    detailSpkDiv.innerHTML = '';
+
+    // Memuat opsi baru berdasarkan nomor SPK yang dipilih
+    $.ajax({
+      url: url,
+      data: {
+        'kodeproduk': kodeproduk
+      },
+      dataType: 'html',
+      success: function (data) {
+        detailSpkDiv.innerHTML = data;
+      }
+    });
   }
 </script>
 {% endblock javascripts %}

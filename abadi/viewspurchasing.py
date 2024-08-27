@@ -58,8 +58,8 @@ def acc_subkon(request,id) :
         harga_barang = request.POST["harga_barang"]
         supplier = request.POST["supplier"]
         keterangan = request.POST["keterangan"]
-        tanggalinvoice = request.POST['tanggal_invoice']
-        noinvoice = request.POST['no_invoice']
+        tanggalinvoice = request.POST['tanggalinvoice']
+        noinvoice = request.POST['noinvoice']
         # potongan = request.POST["input_ppn"]
 
         accobj.KeteranganACC = True
@@ -152,7 +152,7 @@ def notif_barang_purchasing(request):
             # if bahanbakuobj.jumlahbahanbaku == None:
                 # pass
     # print(listkebutuhanproduk)
-    print(querysetartikel)
+
     # print(asd)
     # Belum tambah logika PO
     '''Algoritma PO
@@ -165,31 +165,35 @@ def notif_barang_purchasing(request):
     rekappengadaanbarang = {}
     rekapdata = {}
     for produk,jumlah in listkebutuhanproduk.items():
-        print(produk,jumlah)
+
         cachevalue = models.CacheValue.objects.filter(KodeProduk = produk,Tanggal__month = waktusekarang.month).first()
         totalsaldosekarang = cachevalue.Jumlah
         kebutuhan = jumlah
 
         # Cari data PO Aktif 
-        detailpoaktifobj = models.DetailPO.objects.filter(KodeProduk = produk,KodePO__Status = True)
+        detailpoaktifobj = models.DetailPO.objects.filter(KodeProduk = produk,KodePO__Status = False)
         jumlahpo = 0
         if detailpoaktifobj.exists():
             jumlahagregatpo = detailpoaktifobj.aggregate(total = Sum('Jumlah'))['total'] 
             jumlahpo = jumlahagregatpo
-        for detailpo in detailpoaktifobj:
-            datatransaksisjp = models.DetailSuratJalanPembelian.objects.filter(PO = detailpo)
+
+        
+        datatransaksisjp = models.DetailSuratJalanPembelian.objects.filter(PO__in = detailpoaktifobj)
+        totalsjpberdasarkanpo = datatransaksisjp.aggregate(total=Sum('Jumlah'))['total']
+        print(totalsjpberdasarkanpo,produk)
+        if totalsjpberdasarkanpo != None:
+            jumlahpo -= totalsjpberdasarkanpo
 
 
-        selisih = totalsaldosekarang-kebutuhan
+        selisih = totalsaldosekarang-kebutuhan+jumlahpo
         if selisih<0 : 
             rekappengadaanbarang[produk] = math.ceil(abs(selisih))
-            rekapdata[produk] = {'stokgudang':totalsaldosekarang,"jumlahminimal":produk.Jumlahminimal,'kebutuhanproduksi':kebutuhan,'totalpengadaan':math.ceil(abs(selisih))+produk.Jumlahminimal}
+            rekapdata[produk] = {'stokgudang':totalsaldosekarang,"jumlahminimal":produk.Jumlahminimal,'kebutuhanproduksi':kebutuhan,'totaldelaypo':jumlahpo ,'totalpengadaan':math.ceil(abs(selisih))+produk.Jumlahminimal}
         else:
             continue
         # print(cachevalue)
     rekappengadaanbarang = dict(sorted(rekappengadaanbarang.items(), key=lambda item: item[0].KodeProduk))
-    print(rekappengadaanbarang)
-    print(rekapdata)
+
     # print(asd)
     '''BARANG DIBAWAH STOK
     ALGORITMA
@@ -3870,6 +3874,29 @@ def view_purchaseorder(request):
         {"datasjb": datapo, "date": date, "mulai": date, "akhir": dateakhir},
     )
 
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
+def trackingpurchaseorder(request,id):
+    datapo = models.PurchaseOrder.objects.get(id=id)
+    datadetailpo =models.DetailPO.objects.filter(KodePO = datapo)
+    transaksigudang = models.DetailSuratJalanPembelian.objects.filter(PO__KodePO= datapo)
+    # Rekap dan kurang
+    datarekap = transaksigudang.values('KodeProduk__KodeProduk',"KodeProduk__NamaProduk","KodeProduk__unit").annotate(total = Sum('Jumlah'))
+    print(datarekap)
+    for item in datadetailpo:
+        totalpo = item.Jumlah
+        totaltransaksigudangmasuk = 0
+        transaksigudangmasuk = transaksigudang.filter(KodeProduk = item.KodeProduk)
+        if transaksigudangmasuk.exists():
+            totaltransaksigudangmasuk = transaksigudangmasuk.aggregate(total = Sum('Jumlah'))['total']
+        selisih = totalpo-totaltransaksigudangmasuk
+        item.jumlahmasuk = totaltransaksigudangmasuk
+        item.selisih = selisih
+
+    return render(request,'Purchasing/trackingpo.html',{'datapo':datapo,'datadetailpo':datadetailpo,"transaksigudang":transaksigudang,})
+
+
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def add_purchaseorder(request):
@@ -3966,6 +3993,8 @@ def update_purchaseorder(request, id):
     else:
         tanggal = request.POST["tanggal"]
         print(request.POST)
+
+        # print(asd)
         kodepo = request.POST.get("kodepo")
         # try:
         #     kode_produkobj = models.Produk.objects.get(KodeProduk=kode_produk)
@@ -3980,10 +4009,9 @@ def update_purchaseorder(request, id):
             messages.error(request, f"Kode PO {kodepo} Sudah ada dalam sistem")
             return redirect("update_purchaseorder", id=id)
         
-
         datapo.KodePO = kodepo
         datapo.Tanggal = tanggal
-        datapo.Status = bool(status)
+        datapo.Status = (status)
         datapo.save()
 
         # iterasi existing obj 
@@ -4051,4 +4079,5 @@ def delete_detailpurchaseorder(request, id):
     datapo.delete()
     messages.success(request,'Data berhasil dihapus')
     return redirect("update_purchaseorder",id=idpo)
+
 
