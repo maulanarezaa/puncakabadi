@@ -82,6 +82,7 @@ def acc_subkon(request,id) :
         return redirect("notif_purchasing")
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+
 def notif_barang_purchasing(request):
     waktusekarang = datetime.now()
     filtersubkonobj = models.DetailSuratJalanPenerimaanProdukSubkon.objects.filter(KeteranganACC = False).order_by("NoSuratJalan__Tanggal")
@@ -89,7 +90,7 @@ def notif_barang_purchasing(request):
         x.NoSuratJalan.Tanggal = x.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
         if x.NoSuratJalan.TanggalInvoice:
             x.NoSuratJalan.TanggalInvoice = x.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d")
-    print("Data subkon bos!", filtersubkonobj)
+    # print("Data subkon bos!", filtersubkonobj)
     filter_dataobj = models.DetailSuratJalanPembelian.objects.filter(
         KeteranganACC=False
     ).order_by("NoSuratJalan__Tanggal")
@@ -101,7 +102,7 @@ def notif_barang_purchasing(request):
     transaksikeluarbelumacc = models.TransaksiGudang.objects.filter(KeteranganACC = True, KeteranganACCPurchasing = False,jumlah__gte = 0).order_by('-tanggal')
     for i in transaksikeluarbelumacc:
         i.tanggal = i.tanggal.strftime("%Y-%m-%d")
-    print(filter_spkobj)
+    # print(filter_spkobj)
     '''
     Algoritma mencari kebutuhan barang
     1. Ambil data SPK terlebih dahulu yang belum lunas
@@ -117,7 +118,7 @@ def notif_barang_purchasing(request):
         .annotate(kuantitas=Sum("Jumlah"))
         .order_by()
     )
-    print(dataspk)
+    # print(dataspk)
     querysetartikel = []
     for item in dataspk:
         artikelobj  = models.Artikel.objects.get(KodeArtikel=item['KodeArtikel__KodeArtikel'])
@@ -141,7 +142,7 @@ def notif_barang_purchasing(request):
         # print(len(konversimaster))
         for datapenyusun in konversimaster:
             bahanbakuobj = models.Produk.objects.get(KodeProduk = datapenyusun.KodePenyusun.KodeProduk)
-            print(bahanbakuobj)
+            # print(bahanbakuobj)
             if bahanbakuobj not in listkebutuhanproduk :
                 listkebutuhanproduk[bahanbakuobj] = datapenyusun.Allowance * item.Jumlah
             else:
@@ -152,20 +153,44 @@ def notif_barang_purchasing(request):
                 # pass
     # print(listkebutuhanproduk)
     print(querysetartikel)
+    # print(asd)
+    # Belum tambah logika PO
+    '''Algoritma PO
+    1. Ambil data PO Aktif
+    2. Cek kondisi apakah ada data surat jalan masuk dengan PO tersebut
+    3. Kalau ada maka kurangi agregat jumlah PO dengan total agregat jumlah masuk denganPO tersebut
+    4. Kalau tidak ada maka pengurang dari total jumlah PO
+    5. hitung total selisih ulang
+    '''
     rekappengadaanbarang = {}
+    rekapdata = {}
     for produk,jumlah in listkebutuhanproduk.items():
-        # print(jumlah)
+        print(produk,jumlah)
         cachevalue = models.CacheValue.objects.filter(KodeProduk = produk,Tanggal__month = waktusekarang.month).first()
         totalsaldosekarang = cachevalue.Jumlah
         kebutuhan = jumlah
+
+        # Cari data PO Aktif 
+        detailpoaktifobj = models.DetailPO.objects.filter(KodeProduk = produk,KodePO__Status = True)
+        jumlahpo = 0
+        if detailpoaktifobj.exists():
+            jumlahagregatpo = detailpoaktifobj.aggregate(total = Sum('Jumlah'))['total'] 
+            jumlahpo = jumlahagregatpo
+        for detailpo in detailpoaktifobj:
+            datatransaksisjp = models.DetailSuratJalanPembelian.objects.filter(PO = detailpo)
+
+
         selisih = totalsaldosekarang-kebutuhan
         if selisih<0 : 
             rekappengadaanbarang[produk] = math.ceil(abs(selisih))
+            rekapdata[produk] = {'stokgudang':totalsaldosekarang,"jumlahminimal":produk.Jumlahminimal,'kebutuhanproduksi':kebutuhan,'totalpengadaan':math.ceil(abs(selisih))+produk.Jumlahminimal}
         else:
             continue
         # print(cachevalue)
     rekappengadaanbarang = dict(sorted(rekappengadaanbarang.items(), key=lambda item: item[0].KodeProduk))
     print(rekappengadaanbarang)
+    print(rekapdata)
+    # print(asd)
     '''BARANG DIBAWAH STOK
     ALGORITMA
     1. Ambil semua data bahan baku
@@ -454,7 +479,7 @@ def notif_barang_purchasing(request):
         {
             "filterobj": filter_dataobj,
             "filter_spkobj": filter_spkobj,
-            "rekap_pengadaan": rekappengadaanbarang,
+            "rekap_pengadaan": rekapdata,
             "listproduk": rekapbahandibawahstok,
             "filtersubkonobj" : filtersubkonobj,
             "transaksibelumacc" : transaksikeluarbelumacc
@@ -488,6 +513,11 @@ def verifikasi_data(request, id):
         )
     else:
         print(request.POST)
+        try:
+            isppn = request.POST['isppn']
+        except KeyError:
+            isppn = False
+            print('error')
         # print(asd)
         matauang = request.POST['mata_uang']
         harga_barang = request.POST["harga_barang"]
@@ -505,6 +535,7 @@ def verifikasi_data(request, id):
         verifobj.NoSuratJalan.PO = po_barang
         verifobj.NoSuratJalan.NoInvoice = noinvoice
         verifobj.NoSuratJalan.TanggalInvoice=tanggalinvoice
+        verifobj.PPN = isppn
         verifobj.save()
         verifobj.NoSuratJalan.save()
         # print("verif:",verifobj.NoSuratJalan)
@@ -588,11 +619,15 @@ def exportbarang_excel(request):
     # Tambahkan data ke worksheet
     for item in sjball:
         harga_total = item.Jumlah * item.Harga
-        harga_ppn = harga_total * inputppn
-        harga_total_ppn = harga_total + harga_ppn
+        if item.PPN == True:
+            harga_ppn = harga_total * inputppn
+            harga_total_ppn = harga_total + harga_ppn
+        else:
+            harga_ppn = 0
+            harga_total_ppn = 0
         total_ppn += harga_ppn
-        total_harga += harga_total
         total_harga_ppn += harga_total_ppn
+        total_harga += harga_total
         row = [
             item.NoSuratJalan.Tanggal.strftime("%Y-%m-%d"),
             item.NoSuratJalan.supplier,
@@ -690,12 +725,6 @@ def barang_masuk(request):
         )
         print(sjball)
         if len(sjball) > 0:
-            # inputppn = request.GET["input_ppn"]
-            # if len(inputppn) <= 0 :
-            # inputppn = 0.11
-            # else :
-            #     inputppn = inputppn/100
-            # ppn = 0.11
             for x in sjball:
                 harga_total = x.Jumlah * x.Harga
                 x.NoSuratJalan.Tanggal = x.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
@@ -710,9 +739,14 @@ def barang_masuk(request):
                 list_total_ppn.append(harga_total_ppn)
             i = 0
             for item in sjball:
+                
                 item.harga_total = list_harga_total1[i]
-                item.harga_ppn = list_ppn[i]
-                item.harga_total_ppn = list_total_ppn[i]
+                if item.PPN == True:
+                    item.harga_ppn = list_ppn[i]
+                    item.harga_total_ppn = list_total_ppn[i]
+                else:
+                    item.harga_ppn = 0
+                    item.harga_total_ppn = 0
                 i += 1
             print("list hartot", list_harga_total1)
             
@@ -773,8 +807,12 @@ def barang_masuk(request):
             i = 0
             for item in filtersjb:
                 item.harga_total = list_harga_total[i]
-                item.harga_ppn_1 = list_ppn_1[i]
-                item.harga_total_ppn_1 = list_total_ppn_1[i]
+                if item.PPN == True:
+                    item.harga_ppn_1 = list_ppn_1[i]
+                    item.harga_total_ppn_1 = list_total_ppn_1[i]
+                else:
+                    item.harga_ppn_1 = 0
+                    item.harga_total_ppn_1 = 0
                 i += 1
             return render(
                 request,
@@ -818,6 +856,11 @@ def update_barang_masuk(request, id):
         )
     else:
         print(request.POST)
+        try: 
+            isppn = bool(request.POST['isppn'])
+        except KeyError:
+            isppn = False
+            print('error')
         # print(asd)
         harga_barang = request.POST["harga_barang"]
         supplier = request.POST["supplier"]
@@ -825,6 +868,7 @@ def update_barang_masuk(request, id):
         matauang = request.POST['mata_uang']
         noinvoice = request.POST['noinvoice']
         tanggalinvoice = request.POST['tanggalinvoice']
+        
         if noinvoice != "":
             updateobj.NoSuratJalan.NoInvoice = noinvoice
         else :
@@ -839,6 +883,7 @@ def update_barang_masuk(request, id):
         updateobj.Harga = harga_barang
         updateobj.NoSuratJalan.supplier = supplier
         updateobj.NoSuratJalan.PO = po_barang
+        updateobj.PPN = isppn
         updateobj.save()
         updateobj.NoSuratJalan.save()
         print(harga_barang, updateobj.Jumlah)
@@ -857,7 +902,9 @@ def update_barang_masuk(request, id):
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_barangsubkon_masuk(request, id):
     updateobj = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPenerimaanSubkon=id)
-    updateobj.NoSuratJalan.TanggalInvoice = updateobj.NoSuratJalan.TanggalInvoice.strftime('%Y-%m-%d')
+    print(updateobj)
+    if  updateobj.NoSuratJalan.TanggalInvoice:
+        updateobj.NoSuratJalan.TanggalInvoice = updateobj.NoSuratJalan.TanggalInvoice.strftime('%Y-%m-%d')
     # if updateobj.HargaDollar > 0:
     #     updateobj.hargakonversi = updateobj.Harga / updateobj.HargaDollar
     # else:
@@ -875,7 +922,12 @@ def update_barangsubkon_masuk(request, id):
         )
     else:
         print(request.POST)
-
+        try:
+            ispotongan = bool(request.POST['potongan'])
+        except KeyError:
+            ispotongan = False
+            print('error')
+        # print(asd)
         harga_barang = request.POST["harga_barang"]
         matauang = request.POST['mata_uang']
         noinvoice = request.POST['noinvoice']
@@ -893,6 +945,7 @@ def update_barangsubkon_masuk(request, id):
         if matauang == "dollar" :
             updateobj.HargaDollar = request.POST['harga_dollar'] 
         updateobj.Harga = harga_barang
+        updateobj.Potongan = ispotongan
         updateobj.save()
         updateobj.NoSuratJalan.save()
         models.transactionlog(
@@ -3190,11 +3243,16 @@ def exportbarangsubkon_excel(request):
     totalharga_potongan = 0
     for item in sjball:
         harga_total = item.Jumlah * item.Harga
-        harga_potongan = harga_total * inputppn
-        harga_satuan_setelah_pemotognan = math.ceil(item.Harga - (item.Harga * inputppn))
+        if item.Potongan:
+            harga_potongan = harga_total * inputppn
+            harga_satuan_setelah_pemotognan = math.ceil(item.Harga - (item.Harga * inputppn))
+        else:
+            harga_potongan = 0
+            harga_satuan_setelah_pemotognan = 0
         harga_total_setelah_potongan = harga_satuan_setelah_pemotognan * item.Jumlah
         total_harga +=harga_total
-        total_potongan+=harga_potongan
+        print('HARGA POTONGAN :',harga_potongan,total_potongan)
+        total_potongan+=harga_satuan_setelah_pemotognan
         totalharga_potongan += harga_total_setelah_potongan
         row = [
             item.NoSuratJalan.Tanggal.strftime("%Y-%m-%d"),
@@ -3218,11 +3276,11 @@ def exportbarangsubkon_excel(request):
         "",  # Kosongkan kolom Nama Bahan Baku
         "",  # Kosongkan kolom Kuantitas
         "",
-        "",
+        
         "",  # Kosongkan kolom Harga    
         total_harga,  # Total Harga
         total_potongan,  # Total Harga PPN
-        harga_total_setelah_potongan,  # Total Harga Total PPN
+        totalharga_potongan,  # Total Harga Total PPN
         "",  # Kosongkan kolom Tanggal Invoice
         ""  # Kosongkan kolom No Invoice
     ]
@@ -3317,8 +3375,13 @@ def views_rekaphargasubkon(request):
             i = 0
             for item in sjball:
                 item.harga_total = list_harga_total1[i]
-                item.harga_ppn = harga_setelah_ppn[i]
-                item.harga_total_ppn = list_total_ppn[i]
+                if item.Potongan:
+                    item.harga_ppn = harga_setelah_ppn[i]
+                    item.harga_total_ppn = list_total_ppn[i]
+                else:
+                    item.harga_ppn = 0
+                    item.harga_total_ppn =0
+
                 i += 1
             print("list hartot", list_harga_total1)
             
@@ -3371,8 +3434,13 @@ def views_rekaphargasubkon(request):
             i = 0
             for item in filtersjb:
                 item.harga_total = list_harga_total[i]
-                item.harga_ppn_1 = harga_setelah_ppn[i]
-                item.harga_total_ppn_1 = list_total_ppn[i]
+                if item.Potongan:
+
+                    item.harga_ppn_1 = harga_setelah_ppn[i]
+                    item.harga_total_ppn_1 = list_total_ppn[i]
+                else:
+                    item.harga_ppn_1 = 0
+                    item.harga_total_ppn_1 = 0
                 i += 1
             return render(
                 request,

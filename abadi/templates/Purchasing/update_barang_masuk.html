@@ -131,13 +131,23 @@
           </div>
           <div class="col-md-6">
             <div class="form-group row">
-              <label class="col-sm-3 col-form-label">NoInvoice</label>
+              <label class="col-sm-3 col-form-label">No Invoice</label>
               <div class="col-sm-9">
                 {% if updateobj.NoSuratJalan.NoInvoice == None %}
                 <input type="text" class="form-control" name="noinvoice" placeholder="Belum di set" />
                 {% else %}
                 <input type="text" class="form-control" name="noinvoice" value="{{updateobj.NoSuratJalan.NoInvoice}}" />
                 {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-3">
+            <div class="form-group row">
+              <label class="col-sm-7 col-form-label">PPN</label>
+              <div class="col-sm-5">
+                <input style="width: 2rem; height: 2rem;" type="checkbox" class="form-check-input" name="isppn" value="True" {% if updateobj.PPN %} checked {% endif %} />
               </div>
             </div>
           </div>

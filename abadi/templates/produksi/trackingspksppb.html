@@ -79,7 +79,7 @@
 
                 {% if listdata %}
                 {% for spk,data in listdata.items %}
-                <h4 class="mt-5">SPK : <span style="font-weight: lighter;" >{{spk}}</span></h4> 
+                <h4 class="mt-5">{{forloop.counter}}. SPK : <span style="font-weight: lighter;" >{{spk}}</span></h4> 
                 <h4>Jumlah Produksi : <span style="font-weight: lighter;" >{{data.spk.Jumlah}}</span> </h4>
                 <h4>Tanggal Terbit : <span style="font-weight: lighter;" >{{data.spk.NoSPK.Tanggal}}</span> </h4>
                 <div class="table-responsive pt-3">
@@ -101,6 +101,16 @@
                                <td>{{datasppb.sisa}}</td>
                             </tr>
                             {% endfor %}
+
+                            <tr>
+                                <td>
+                                    Total
+                                </td>
+                                <td></td>
+                                <td>{{data.total.jumlahkirim}}</td>
+                                <td>{{data.total.sisa}}</td>
+                            </tr>
+
                         </table>
                         
                     </div>

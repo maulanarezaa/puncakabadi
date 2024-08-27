@@ -5715,15 +5715,18 @@ def trackingartikelspksppb(request):
             detailsppbobj = models.DetailSPPB.objects.filter(DetailSPK = item).order_by("NoSPPB__Tanggal")
             item.detailsppb = detailsppbobj
             sisaspk = item.Jumlah
+            jumlahkirim = 0
             recordsisa = []
             item.NoSPK.Tanggal = item.NoSPK.Tanggal.strftime('%Y-%m-%d')
             for detailsppb in detailsppbobj:
+                jumlahkirim +=detailsppb.Jumlah
                 sisaspk -= detailsppb.Jumlah
                 dummy = {"detailsppb":detailsppb,"sisa":sisaspk}
                 recordsisa.append(dummy)
                 detailsppb.NoSPPB.Tanggal = detailsppb.NoSPPB.Tanggal.strftime('%Y-%m-%d')
             # datamodels.append({'SPK':item,"data":recordsisa})
-            datamodels[item.NoSPK.NoSPK] = {'spk':item,"data":recordsisa}
+
+            datamodels[item.NoSPK.NoSPK] = {'spk':item,"data":recordsisa,'total':{'jumlahkirim':jumlahkirim,'sisa':sisaspk}}
         # print(datamodels)
         # print(datamodels[2])
         # for item in datamodels['01/SPK/I-2024']:

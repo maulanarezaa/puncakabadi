@@ -80,6 +80,7 @@ class DetailSuratJalanPembelian(models.Model):
     KeteranganACC = models.BooleanField()
     Harga = models.FloatField()
     HargaDollar = models.FloatField(default=0)
+    PPN = models.BooleanField(default=True)
 
     def __str__(self):
         return str(self.NoSuratJalan) + " " + str(self.KodeProduk)
@@ -424,6 +425,7 @@ class DetailSuratJalanPenerimaanProdukSubkon(models.Model):
     Keterangan = models.CharField(max_length=255, null=True, blank=True, default="")
     Harga = models.FloatField(default=0)
     KeteranganACC = models.BooleanField(default=False)
+    Potongan = models.BooleanField(default=True)
 
 
     def __str__(self):

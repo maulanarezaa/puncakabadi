@@ -7,7 +7,6 @@
 
 <!-- Page content  -->
 {% block content %}
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
 <div class="col-12 grid-margin">
   <div class="card">
@@ -58,8 +57,8 @@
               <label class="col-sm-3 col-form-label">Mata Uang</label>
               <div class="col-sm-9">
                 <select class="form-control" name="mata_uang" id="mata_uang" onchange="toggle_konversi()">
-                  <option value="rupiah" selected>Rupiah</option>
-                  <option value="dollar">Dollar</option>
+                  <option value="rupiah" {% if updateobj.MataUang == "rupiah" %}selected{% endif %}>Rupiah</option>
+                  <option value="dollar" {% if updateobj.MataUang == "dollar" %}selected{% endif %}>Dollar</option>
                 </select>
               </div>
             </div>
@@ -88,7 +87,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Harga Satuan (Rp)</label>
               <div class="col-sm-9">
-                <input type="number" min="0" step="any" class="form-control" name="harga_barang" id="harga_barang" value="{{updateobj.Harga}}" readonly />
+                <input type="number" min="0" step="any" class="form-control" name="harga_barang" id="harga_barang" value="{{updateobj.Harga}}" />
               </div>
             </div>
           </div>
@@ -106,7 +105,6 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Tanggal Invoice</label>
               <div class="col-sm-9">
-
                 <input type="date" class="form-control" name="tanggalinvoice" value="{{updateobj.NoSuratJalan.TanggalInvoice}}" />
               </div>
             </div>
@@ -124,9 +122,17 @@
             </div>
           </div>
         </div>
+        <div class="row">
+          <div class="col-md-3">
+            <div class="form-group row">
+              <label class="col-sm-7 col-form-label">Potongan</label>
+              <div class="col-sm-5">
+                <input style="width: 2rem; height: 2rem;" type="checkbox" class="form-check-input" name="potongan" value="True" {% if updateobj.Potongan %} checked {% endif %} />
+              </div>
+            </div>
+          </div>
+        </div>
         
-      
-       
         <button type="submit" class="btn btn-primary mr-2">Update</button>
       </form>
     </div>
@@ -140,11 +146,11 @@
     var mata_uang = $("#mata_uang").val();
     if (mata_uang === "dollar") {
       $("#row_konversi").show();
-      $("#harga_barang").prop("readonly", true);
+      $("#harga_barang").prop("readonly", true);  // Disable input jika dollar
     } else {
       $("#row_konversi").hide();
-      $("#harga_barang").prop("readonly", false);
-      $("#harga_barang").val(default_harga_satuan); // Mengembalikan nilai default Harga Satuan
+      $("#harga_barang").prop("readonly", false); // Enable input jika rupiah
+      $("#harga_barang").val(default_harga_satuan); // Set nilai default jika rupiah
     }
     update_harga_total();
   }
@@ -166,7 +172,7 @@
 
     harga_total_barang = kuantitas * harga_satuan;
 
-    $("#harga_total").val(harga_total_barang); // Langsung update tanpa ajax
+    $("#harga_total").val(harga_total_barang); // Update harga total
   }
 
   $(document).ready(function() {
