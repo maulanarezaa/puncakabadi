@@ -97,6 +97,7 @@
                                 <td>Masuk <br> (Lembar)</td>
                                 <td>Masuk <br> (Konversi)</td>
                                 <td>Hasil</td>
+                                <td>Pemusnahan</td>
                                 <td>Sisa</td>
 
                             </tr>
@@ -104,6 +105,7 @@
                         <tbody>
                             <tr>
                                 <td>{{saldoawal.Tanggal}} Saldo awal </td>
+                                <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -134,6 +136,7 @@
                                 <td>{{i.Masuklembar|custom_thousands_separator}}</td>
                                 <td>{{i.Masukkonversi|separator_ribuan}}</td>
                                 <td>{{i.Hasil|separator_ribuan}}</td>
+                                <td>{{i.Keluar|separator_ribuan}}</td>
                                 <td>{{i.Sisa|custom_thousands_separator}}</td>
                             </tr>
 
@@ -159,6 +162,7 @@
                                 <td>SPK</td>
                                 <td>SPPB</td>
                                 <td>Jumlah Kirim</td>
+                                <td>Pemusnahan</td>
                                 <td>Sisa</td>
 
                             </tr>
@@ -166,6 +170,7 @@
                         <tbody>
                             <tr>
                                 <td>{{saldoawal.Tanggal}} Saldo awal </td>
+                                <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -202,6 +207,7 @@
                                 <td>-</td>
                                 <td>-</td>
                                 {% endif %}
+                                <td>{{i.Keluar|separator_ribuan}}</td>
                                 <td>{{i.Sisa|separator_ribuan}}</td>
                             </tr>
                             {% endfor %}

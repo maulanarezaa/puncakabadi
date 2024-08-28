@@ -2040,35 +2040,37 @@ def views_penyusun(request):
                             }
                         )
                     data = models.Artikel.objects.all()
+                    hargafgartikel = models.HargaArtikel.objects.filter(KodeArtikel =get_id_kodeartikel,Tanggal__month = sekarang.month).first().Harga
                     return render(
                         request,
-                        "purchasing/penyusun.html",
+                        "Purchasing/penyusun.html",
                         {
                             "data": datakonversi,
                             "kodeartikel": get_id_kodeartikel,
                             "nilaifg": nilaifg,
                             "versiterpilih": versiterpilih,
                             "dataversi": dataversi,
-                            'dataartikel' : data
+                            'dataartikel' : data,
+                            "hargafgartikel":hargafgartikel
                         },
                     )
                 else:
                     messages.error(request, "Versi tidak ditemukan")
                     return redirect(
-                        f"/rnd/penyusun?kodeartikel={quote(kodeartikel)}&versi="
+                        f"/purchasing/penyusun?kodeartikel={quote(kodeartikel)}&versi="
                     )
             else:
                 messages.error(request, "Kode Artikel Belum memiliki penyusun")
                 return render(
                     request,
-                    "rnd/views_penyusun.html",
+                    "Purchasing/penyusun.html",
                     {"kodeartikel": get_id_kodeartikel},
                 )
         except models.Artikel.DoesNotExist:
             messages.error(request, "Kode Artikel Tidak ditemukan")
             return render(
                 request,
-                "rnd/views_penyusun.html",
+                "Purchasing/penyusun.html",
                 {"dataartikel": models.Artikel.objects.all()},
             )
     # batas
