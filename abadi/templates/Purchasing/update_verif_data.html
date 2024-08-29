@@ -120,7 +120,16 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">PO</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="po_barang" value="{{verifobj.NoSuratJalan.PO}}" required />
+                <select name="po_barang" id="" class="form-control">
+                  {% if verifobj.PO != None %}
+                  <option value="{{verifobj.PO.KodePO}}" selected>{{verifobj.PO.KodePO}}</option>
+                  {% else %}
+                  <option value="">---</option>
+                  {% endif %}
+                  {%  for item in opsipo%}
+                  <option value="{{item.KodePO.KodePO}}">{{item.KodePO}}</option>
+                  {% endfor %}
+                </select>
               </div>
             </div>
           </div>

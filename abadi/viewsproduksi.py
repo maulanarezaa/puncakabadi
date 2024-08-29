@@ -5017,7 +5017,7 @@ def add_subkonprodukmasuk(request):
                     jenis="Create",
                     pesan=f"Detail SJ Terima Produk Subkon. Nama Produk : {produksubkonobj.NamaProduk} Artikel Untuk : {produksubkonobj.KodeArtikel}  Jumlah : {jumlah} Keterangan : {keterangan}",
                 ).save()
-
+            messages.success(request,'Data Berhasil Disimpan')
             return redirect("view_subkonprodukmasuk")
 
 @login_required

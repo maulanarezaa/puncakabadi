@@ -144,9 +144,9 @@ def notif_barang_purchasing(request):
             bahanbakuobj = models.Produk.objects.get(KodeProduk = datapenyusun.KodePenyusun.KodeProduk)
             # print(bahanbakuobj)
             if bahanbakuobj not in listkebutuhanproduk :
-                listkebutuhanproduk[bahanbakuobj] = datapenyusun.Allowance * item.Jumlah
+                listkebutuhanproduk[bahanbakuobj] = math.ceil(datapenyusun.Allowance * item.Jumlah)
             else:
-                listkebutuhanproduk[bahanbakuobj] += datapenyusun.Allowance * item.Jumlah
+                listkebutuhanproduk[bahanbakuobj] += math.ceil(datapenyusun.Allowance * item.Jumlah)
 
 
             # if bahanbakuobj.jumlahbahanbaku == None:
@@ -187,7 +187,7 @@ def notif_barang_purchasing(request):
 
         selisih = totalsaldosekarang-kebutuhan+jumlahpo
         if selisih<0 : 
-            rekappengadaanbarang[produk] = math.ceil(abs(selisih))
+            rekappengadaanbarang[produk] = (abs(selisih))
             rekapdata[produk] = {'stokgudang':totalsaldosekarang,"jumlahminimal":produk.Jumlahminimal,'kebutuhanproduksi':kebutuhan,'totaldelaypo':jumlahpo ,'totalpengadaan':math.ceil(abs(selisih))+produk.Jumlahminimal}
         else:
             continue
@@ -505,6 +505,7 @@ def accbarangkeluar(request, id):
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def verifikasi_data(request, id):
     verifobj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
+    opsipo = models.DetailPO.objects.filter(KodeProduk = verifobj.KodeProduk,KodePO__Status = False)
     if request.method == "GET":
         harga_total = verifobj.Jumlah * verifobj.Harga
         return render(
@@ -513,6 +514,7 @@ def verifikasi_data(request, id):
             {
                 "verifobj": verifobj,
                 "harga_total": harga_total,
+                "opsipo": opsipo
             },
         )
     else:
@@ -628,7 +630,7 @@ def exportbarang_excel(request):
             harga_total_ppn = harga_total + harga_ppn
         else:
             harga_ppn = 0
-            harga_total_ppn = 0
+            harga_total_ppn = harga_total
         total_ppn += harga_ppn
         total_harga_ppn += harga_total_ppn
         total_harga += harga_total
@@ -750,7 +752,7 @@ def barang_masuk(request):
                     item.harga_total_ppn = list_total_ppn[i]
                 else:
                     item.harga_ppn = 0
-                    item.harga_total_ppn = 0
+                    item.harga_total_ppn = item.harga_total
                 i += 1
             print("list hartot", list_harga_total1)
             
@@ -816,7 +818,7 @@ def barang_masuk(request):
                     item.harga_total_ppn_1 = list_total_ppn_1[i]
                 else:
                     item.harga_ppn_1 = 0
-                    item.harga_total_ppn_1 = 0
+                    item.harga_total_ppn_1 = item.harga_total
                 i += 1
             return render(
                 request,
@@ -840,6 +842,9 @@ def barang_masuk(request):
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_barang_masuk(request, id):
     updateobj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
+    detailpotersedia = models.DetailPO.objects.filter(KodeProduk = updateobj.KodeProduk,KodePO__Status = False)
+    print(detailpotersedia)
+    print(updateobj.PO)
     if updateobj.HargaDollar > 0:
         updateobj.hargakonversi = updateobj.Harga / updateobj.HargaDollar
     else:
@@ -856,6 +861,7 @@ def update_barang_masuk(request, id):
             {
                 "updateobj": updateobj,
                 "harga_total": harga_total,
+                "opsipo":detailpotersedia
             },
         )
     else:
@@ -872,6 +878,11 @@ def update_barang_masuk(request, id):
         matauang = request.POST['mata_uang']
         noinvoice = request.POST['noinvoice']
         tanggalinvoice = request.POST['tanggalinvoice']
+
+        if po_barang == "":
+            po_barang = None
+        else:
+            po_barang = models.DetailPO.objects.filter(KodePO__KodePO = po_barang,KodeProduk = updateobj.KodeProduk).first()
         
         if noinvoice != "":
             updateobj.NoSuratJalan.NoInvoice = noinvoice
@@ -886,12 +897,13 @@ def update_barang_masuk(request, id):
             updateobj.HargaDollar = request.POST['harga_dollar'] 
         updateobj.Harga = harga_barang
         updateobj.NoSuratJalan.supplier = supplier
-        updateobj.NoSuratJalan.PO = po_barang
+
         updateobj.PPN = isppn
-        updateobj.save()
+        updateobj.PO = po_barang
         updateobj.NoSuratJalan.save()
+        updateobj.save()
         print(harga_barang, updateobj.Jumlah)
-        harga_total = float(updateobj.Jumlah) * int(harga_barang)
+        harga_total = float(updateobj.Jumlah) * float(harga_barang)
         models.transactionlog(
             user="Purchasing",
             waktu=datetime.now(),
@@ -3926,7 +3938,11 @@ def add_purchaseorder(request):
     #     if existing_entry:
     #         messages.warning(request,(f'No Surat Jalan {kodepo} sudah terdaftar pada sistem'))
     #         return redirect("addgudang")
-
+        # Cari data kode po yang sama 
+        purchaseorderobj = models.PurchaseOrder.objects.filter(KodePO = kodepo)
+        if purchaseorderobj.exists():
+            messages.error(request,f'Kode PO {kodepo} telah terdaftar pada sistem')
+            return redirect('add_purchaseorder')
         nomorpoobj = models.PurchaseOrder(
             KodePO=kodepo, Tanggal=tanggal, Status = False
         )
@@ -4019,7 +4035,8 @@ def update_purchaseorder(request, id):
         # iterasi existing obj 
         idexisting = request.POST.getlist('idexisting')
         kodeprodukexisting = request.POST.getlist('kodeprodukexisting')
-        jumlahexisting = request.POST.getlist('jumlahexsiting')
+        jumlahexisting = request.POST.getlist('jumlahexisting')
+        print(idexisting,kodeprodukexisting,jumlahexisting)
 
         kodeprodukbaru = request.POST.getlist('kodeproduk[]')
         listjumlahbaru = request.POST.getlist('jumlah[]')
@@ -4032,6 +4049,7 @@ def update_purchaseorder(request, id):
             detailpoobj = models.DetailPO.objects.get(pk=idexist)
             detailpoobj.KodeProduk = produkobj
             detailpoobj.Jumlah = jumlah
+            print(idexist,kodeproduk,jumlah)
             detailpoobj.save()
         
         for kodeproduk,jumlahbaru in zip(kodeprodukbaru,listjumlahbaru):

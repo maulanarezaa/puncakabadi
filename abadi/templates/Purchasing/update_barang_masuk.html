@@ -88,7 +88,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Harga Satuan (Rp)</label>
               <div class="col-sm-9">
-                <input type="number" min="0" class="form-control" name="harga_barang" id="harga_barang" value="{{updateobj.Harga}}" readonly />
+                <input type="number" min="0" step="any" class="form-control" name="harga_barang" id="harga_barang" value="{{updateobj.Harga}}" readonly />
               </div>
             </div>
           </div>
@@ -115,7 +115,16 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">PO</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="po_barang" value="{{updateobj.NoSuratJalan.PO}}" />
+                <select name="po_barang" id="" class="form-control">
+                  {% if updateobj.PO != None %}
+                  <option value="{{updateobj.PO.KodePO}}" selected>{{updateobj.PO.KodePO}}</option>
+                  {% else %}
+                  <option value="">---</option>
+                  {% endif %}
+                  {%  for item in opsipo%}
+                  <option value="{{item.KodePO.KodePO}}">{{item.KodePO}}</option>
+                  {% endfor %}
+                </select>
               </div>
             </div>
           </div>
