@@ -104,6 +104,40 @@ urlpatterns = [
         viewsproduksi.delete_pemusnahanbarang,
         name="delete_pemusnahanbarang",
     ),
+    path(
+        "viewpemusnahanproduksubkon", viewsproduksi.view_pemusnahanproduksubkon, name="view_pemusnahanproduksubkon"
+    ),
+    path("addpemusnahanproduksubkon", viewsproduksi.add_pemusnahanproduksubkon, name="add_pemusnahanproduksubkon"),
+    path(
+        "updatepemusnahaproduksubkon/<str:id>",
+        viewsproduksi.update_pemusnahanproduksubkon,
+        name="update_pemusnahanproduksubkon",
+    ),
+    path(
+        "deletepemusnahanproduksubkon/<str:id>",
+        viewsproduksi.delete_pemusnahanproduksubkon,
+        name="delete_pemusnahanproduksubkon",
+    ),
+    path(
+        "viewpemusnahanbarangsubkon",
+        viewsproduksi.view_pemusnahanbarangsubkon,
+        name="view_pemusnahanbarangsubkon",
+    ),
+    path(
+        "addpemusnahanbarangsubkon",
+        viewsproduksi.add_pemusnahanbarangsubkon,
+        name="add_pemusnahanbarangsubkon",
+    ),
+    path(
+        "updatepemusnahanbarangsubkon/<str:id>",
+        viewsproduksi.update_pemusnahanbarangsubkon,
+        name="update_pemusnahanbarangsubkon",
+    ),
+    path(
+        "deletepemusnahanbarangsubkon/<str:id>",
+        viewsproduksi.delete_pemusnahanbarangsubkon,
+        name="delete_pemusnahanbarangsubkon",
+    ),
     path("bahanbakusubkon", viewsproduksi.read_bahansubkon, name="read_bahansubkon"),
     path("addbahansubkon", viewsproduksi.create_bahansubkon, name="create_bahansubkon"),
     path(

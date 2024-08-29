@@ -1,0 +1,109 @@
+{% extends "produksi/base.html" %}
+{% load static %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+<!-- Page content  -->
+{% block content %}
+<div class="col-12 grid-margin">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Form Input Pemusnahan Produk Subkon</h4>
+      <div class="template-demo">
+        <a href="{% url 'view_pemusnahanproduksubkon' %}">
+          <button type="button" class="btn btn-light btn-icon-text">
+            <i class="typcn typcn-chevron-left btn-icon-prepend"></i>
+            Kembali
+          </button>
+        </a>
+      </div>
+      <br>
+      <form class="form-sample" action="" method="post">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Tanggal</label>
+              <div class="col-sm-9">
+                <input type="date" class="form-control" name="tanggal" required id="tanggal" />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Produk Subkon</label>
+              <div class="col-sm-9">
+                <input required type="text" class="form-control kodebarang-input"
+                       placeholder="Masukkan Nama Produk Subkon" aria-label="Masukkan Nama Produk Subkon" list="kodebarang"
+                       id="kodebarangInput_1">
+                <input type="hidden" name="kodebarangHidden" id="kodebarangHidden_1">
+                <datalist id="kodebarang">
+                  {% for i in dataartikel %}
+                  <option data-id="{{i.IDProdukSubkon}}" value="{{i.NamaProduk}} {{i.KodeArtikel}}"></option>
+                  {% endfor %}
+                </datalist>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Jumlah</label>
+              <div class="col-sm-9">
+                <input type="number" min="0" class="form-control" name="jumlah" required />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Keterangan</label>
+              <div class="col-sm-9">
+                <textarea class="form-control" name="keterangan" rows="3"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary mr-2">Submit</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function handleInputEvent(event) {
+    const input = event.target;
+    const list = input.getAttribute('list');
+    const options = document.getElementById(list).childNodes;
+
+    for (let i = 0; i < options.length; i++) {
+      if (options[i].value === input.value) {
+        const hiddenInputId = input.id.replace('kodebarangInput', 'kodebarangHidden');
+        document.getElementById(hiddenInputId).value = options[i].getAttribute('data-id');
+        break;
+      }
+    }
+  }
+
+  function addEventListenersToInputs() {
+    const inputs = document.querySelectorAll('.kodebarang-input');
+    inputs.forEach((input) => {
+      input.removeEventListener('input', handleInputEvent); // Remove previous event listener if exists
+      input.addEventListener('input', handleInputEvent);
+    });
+  }
+
+  // Initialize event listeners when the page loads
+  document.addEventListener('DOMContentLoaded', function() {
+    addEventListenersToInputs();
+
+    // Set the date input to today's date
+    var today = new Date().toISOString().split('T')[0];
+    document.getElementById('tanggal').value = today;
+  });
+</script>
+{% endblock content %}

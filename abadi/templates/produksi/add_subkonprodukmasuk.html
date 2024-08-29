@@ -153,6 +153,7 @@
 
   function addEventListenersToInputs() {
     const inputs = document.querySelectorAll('.kodebarang-input');
+    console.log(inputs);
     inputs.forEach((input) => {
       input.removeEventListener('input', handleInputEvent); // Remove previous event listener if exists
       input.addEventListener('input', handleInputEvent);

@@ -40,6 +40,14 @@ class Display(models.Model):
     def __str__(self):
         return str(self.KodeDisplay)
 
+class BahanBakuSubkon(models.Model):
+    KodeProduk = models.CharField(max_length=20)
+    NamaProduk = models.CharField(max_length=20)
+    unit = models.CharField(max_length=20)
+
+    def __str__(self):
+        return f"{self.KodeProduk} - {self.NamaProduk}"
+
 
 class ProdukSubkon(models.Model):
     IDProdukSubkon = models.AutoField(primary_key=True)
@@ -329,6 +337,29 @@ class PemusnahanBahanBaku(models.Model):
     def __str__(self):
         return str(self.KodeBahanBaku) + "-" + str(self.Tanggal)
 
+class PemusnahanProdukSubkon(models.Model):
+    IDPemusnahanArtikel = models.AutoField(primary_key=True)
+    Tanggal = models.DateField()
+    KodeProdukSubkon = models.ForeignKey(ProdukSubkon, on_delete=models.CASCADE)
+    lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
+    Jumlah = models.IntegerField()
+    Keterangan = models.CharField(max_length=255,null=True, blank=True)
+
+    def __str__(self):
+        return str(self.KodeProdukSubkon) + "-" + str(self.Tanggal)
+
+
+class PemusnahanBahanBakuSubkon(models.Model):
+    IDPemusnahanBahanBaku = models.AutoField(primary_key=True)
+    Tanggal = models.DateField()
+    KodeBahanBaku = models.ForeignKey(BahanBakuSubkon, on_delete=models.CASCADE)
+    lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
+    Jumlah = models.FloatField()
+    Keterangan = models.CharField(max_length=255,null=True, blank=True)
+
+    def __str__(self):
+        return str(self.KodeBahanBaku) + "-" + str(self.Tanggal)
+
 
 class transactionlog(models.Model):
     user = models.CharField(max_length=50)
@@ -371,13 +402,7 @@ class DetailSubkonKirim(models.Model):
         return str(self.IDSubkonKirim) + " " + str(self.KodeProduk)
 
 
-class BahanBakuSubkon(models.Model):
-    KodeProduk = models.CharField(max_length=20)
-    NamaProduk = models.CharField(max_length=20)
-    unit = models.CharField(max_length=20)
 
-    def __str__(self):
-        return f"{self.KodeProduk} - {self.NamaProduk}"
 
 
 """ SECTION SUBKON """
@@ -392,7 +417,7 @@ class TransaksiBahanBakuSubkon(models.Model):
     Jumlah = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"{self.tanggal} - {self.KodeBahanBaku}"
+        return f"{self.Tanggal} - {self.KodeBahanBaku}"
 
 
 # Untuk Surat Jalan Pengriman dari Perusahaan ke vendor Subkon
