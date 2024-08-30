@@ -5190,7 +5190,7 @@ def add_subkonprodukmasuk(request):
     
     if request.method == "POST":
         print(request.POST)
-        print(asd)
+        # print(asd)
         nosuratjalan = request.POST["nosuratjalan"]
         tanggal = request.POST["tanggal"]
 

@@ -177,11 +177,14 @@ def add_gudang(request):
                     request, f"Data Bahan Baku {kodeproduk} tidak terdapat dalam sistem"
                 )
                 continue
-            try:
-                detailpoobj = models.DetailPO.objects.get(KodePO__KodePO = kodepo,KodeProduk__KodeProduk = kodeproduk)
-            except models.DetailPO.DoesNotExist:
-                messages.error(request,f'Detail PO tidak ditemukan {kodepo}')
+            if kodepo == "":
                 detailpoobj = None
+            else:
+                try:
+                    detailpoobj = models.DetailPO.objects.get(KodePO__KodePO = kodepo,KodeProduk__KodeProduk = kodeproduk)
+                except models.DetailPO.DoesNotExist:
+                    messages.error(request,f'Detail PO tidak ditemukan {kodepo}')
+                    detailpoobj = None
             newprodukobj = models.DetailSuratJalanPembelian(
                 KodeProduk=kodeprodukobj,
                 Jumlah=jumlah,

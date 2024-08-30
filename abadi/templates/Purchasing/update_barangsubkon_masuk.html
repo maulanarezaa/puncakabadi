@@ -52,7 +52,6 @@
           </div>
         </div>
         <div class="row">
-         
           <div class="col-md-6">
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Supplier</label>
@@ -98,7 +97,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Harga Satuan (Rp)</label>
               <div class="col-sm-9">
-                <input type="number" min="0" step="any" class="form-control" name="harga_barang" id="harga_barang" value="{{updateobj.Harga}}" />
+                <input type="number" min="0" step="any" class="form-control" name="harga_barang" id="harga_barang" value="{{updateobj.Harga}}" onchange="update_harga_total()"/>
               </div>
             </div>
           </div>
@@ -146,7 +145,25 @@
             <div class="form-group row">
               <label class="col-sm-7 col-form-label">Potongan</label>
               <div class="col-sm-5">
-                <input style="width: 2rem; height: 2rem;" type="checkbox" class="form-check-input" name="potongan" value="True" {% if updateobj.Potongan %} checked {% endif %} />
+                <input style="width: 2rem; height: 2rem;" type="checkbox" class="form-check-input" name="potongan" id="potongan" value="True" {% if updateobj.Potongan %} checked {% endif %} />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Persentase Potongan (%)</label>
+              <div class="col-sm-9">
+                <input type="number" min="0" step="0.01" class="form-control" name="persentase_potongan" id="persentase_potongan" value="2" onchange="update_harga_total()" />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Harga Setelah Potongan (Rp)</label>
+              <div class="col-sm-9">
+                <input type="number" class="form-control" name="harga_setelah_potongan" step="any" id="harga_setelah_potongan" value="{{updateobj.hargapotongan}}"  />
               </div>
             </div>
           </div>
@@ -159,48 +176,56 @@
 </div>
 
 <script type="text/javascript">
-  var default_harga_satuan = {{updateobj.Harga}};
+  var default_harga_satuan = {{ updateobj.Harga }};
+var default_potongan_persen = 2;
 
-  function toggle_konversi() {
+function toggle_konversi() {
     var mata_uang = $("#mata_uang").val();
     if (mata_uang === "dollar") {
-      $("#row_konversi").show();
-      $("#harga_barang").prop("readonly", true);  // Disable input jika dollar
+        $("#row_konversi").show();
+        $("#harga_barang").prop("readonly", true);  // Disable input jika dollar
     } else {
-      $("#row_konversi").hide();
-      $("#harga_barang").prop("readonly", false); // Enable input jika rupiah
-      $("#harga_barang").val(default_harga_satuan); // Set nilai default jika rupiah
+        $("#row_konversi").hide();
+        $("#harga_barang").prop("readonly", false); // Enable input jika rupiah
+        $("#harga_barang").val(default_harga_satuan); // Set nilai default jika rupiah
     }
     update_harga_total();
-  }
+}
 
-  function update_harga_total() {
+function update_harga_total() {
     var kuantitas = $("#kuantitas_masuk").val();
     var harga_satuan;
     var mata_uang = $("#mata_uang").val();
     var harga_total_barang;
+    var persentase_potongan = $("#persentase_potongan").val() || default_potongan_persen;
+    var harga_total_setelah_potongan;
 
     if (mata_uang === "dollar") {
-      var harga_dollar = $("#harga_dollar").val();
-      var harga_konversi = $("#harga_konversi").val();
-      harga_satuan = harga_dollar * harga_konversi;
-      $("#harga_barang").val(harga_satuan);
+        var harga_dollar = $("#harga_dollar").val();
+        var harga_konversi = $("#harga_konversi").val();
+        harga_satuan = harga_dollar * harga_konversi;
+        // Update harga_barang only if it's in dollar mode
+        $("#harga_barang").val(harga_satuan);
     } else {
-      harga_satuan = default_harga_satuan;
+        harga_satuan = $("#harga_barang").val() || default_harga_satuan;
     }
 
     harga_total_barang = kuantitas * harga_satuan;
-
     $("#harga_total").val(harga_total_barang); // Update harga total
-  }
 
-  $(document).ready(function() {
+    // Calculate discount
+    var potongan_amount = harga_satuan-((persentase_potongan / 100) * harga_satuan);
+    harga_total_setelah_potongan = harga_total_barang - potongan_amount;
+    $("#harga_setelah_potongan").val(potongan_amount); // Update harga setelah potongan
+}
+
+$(document).ready(function() {
     toggle_konversi();
-  });
+});
 
-  // Event listener for harga_barang change
-  $("#harga_barang").on('input', function() {
+// Event listener for input changes
+$("#harga_barang, #persentase_potongan, #mata_uang, #harga_dollar, #harga_konversi").on('input', function() {
     update_harga_total();
-  });
+});
 </script>
 {% endblock content %}

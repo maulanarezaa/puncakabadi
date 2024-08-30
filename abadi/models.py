@@ -106,6 +106,9 @@ class DetailSuratJalanPembelian(models.Model):
     HargaDollar = models.FloatField(default=0)
     PPN = models.BooleanField(default=True)
     PO = models.ForeignKey(DetailPO,on_delete=models.SET_NULL,blank=True,null=True)
+    hargappn = models.FloatField(default=0)
+    
+
 
     def __str__(self):
         return str(self.NoSuratJalan) + " " + str(self.KodeProduk)
@@ -468,6 +471,7 @@ class DetailSuratJalanPenerimaanProdukSubkon(models.Model):
     Harga = models.FloatField(default=0)
     KeteranganACC = models.BooleanField(default=False)
     Potongan = models.BooleanField(default=True)
+    hargapotongan = models.FloatField(default=0)
 
 
     def __str__(self):

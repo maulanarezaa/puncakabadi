@@ -60,7 +60,8 @@ def acc_subkon(request,id) :
         keterangan = request.POST["keterangan"]
         tanggalinvoice = request.POST['tanggalinvoice']
         noinvoice = request.POST['noinvoice']
-        # potongan = request.POST["input_ppn"]
+        hargapotongan = request.POST['harga_satuan_setelah_pemotongan']
+        # print(asd)
 
         accobj.KeteranganACC = True
         accobj.Harga = harga_barang
@@ -70,6 +71,7 @@ def acc_subkon(request,id) :
             accobj.NoSuratJalan.TanggalInvoice = tanggalinvoice
         if noinvoice != '':
             accobj.NoSuratJalan.NoInvoice = noinvoice
+        accobj.hargapotongan = hargapotongan
         accobj.save()
         accobj.NoSuratJalan.save()
         models.transactionlog(
@@ -519,6 +521,7 @@ def verifikasi_data(request, id):
         )
     else:
         print(request.POST)
+        # print(asd)
         try:
             isppn = request.POST['isppn']
         except KeyError:
@@ -530,6 +533,7 @@ def verifikasi_data(request, id):
         supplier = request.POST["supplier"]
         po_barang = request.POST["po_barang"]
         tanggalinvoice = request.POST['tanggalinvoice']
+
         if tanggalinvoice == '':
             tanggalinvoice = None
         noinvoice = request.POST['noinvoice']
@@ -542,6 +546,7 @@ def verifikasi_data(request, id):
         verifobj.NoSuratJalan.NoInvoice = noinvoice
         verifobj.NoSuratJalan.TanggalInvoice=tanggalinvoice
         verifobj.PPN = isppn
+
         verifobj.save()
         verifobj.NoSuratJalan.save()
         # print("verif:",verifobj.NoSuratJalan)
@@ -624,6 +629,7 @@ def exportbarang_excel(request):
     total_harga_ppn = 0
     # Tambahkan data ke worksheet
     for item in sjball:
+
         harga_total = item.Jumlah * item.Harga
         if item.PPN == True:
             harga_ppn = harga_total * inputppn
@@ -755,6 +761,21 @@ def barang_masuk(request):
                     item.harga_total_ppn = item.harga_total
                 i += 1
             print("list hartot", list_harga_total1)
+            i = 0
+            for item in sjball:
+                # item.hargatotal = item.Harga * item.Jumlah
+                # item.hargasatuanppn = item.hargappn * item.Jumlah
+                # item.hargatotalppn = item.hargasatuanppn + item.hargatotal
+                # item.harga_total = list_harga_total1[i]
+                if item.PPN == True:
+                    print(item,i)
+                    item.harga_ppn = list_ppn[i]
+                    item.harga_total_ppn = list_total_ppn[i]
+                else:
+                    item.harga_ppn = 0
+                    item.harga_total_ppn = item.harga_total
+                i += 1
+            print("list hartot", list_harga_total1)
             
         
             return render(
@@ -866,6 +887,7 @@ def update_barang_masuk(request, id):
         )
     else:
         print(request.POST)
+        # print(asd)
         try: 
             isppn = bool(request.POST['isppn'])
         except KeyError:
@@ -878,6 +900,7 @@ def update_barang_masuk(request, id):
         matauang = request.POST['mata_uang']
         noinvoice = request.POST['noinvoice']
         tanggalinvoice = request.POST['tanggalinvoice']
+        # hargappn = request.POST['totalppn']
 
         if po_barang == "":
             po_barang = None
@@ -901,6 +924,7 @@ def update_barang_masuk(request, id):
         updateobj.PPN = isppn
         updateobj.PO = po_barang
         updateobj.NoSuratJalan.save()
+        # updateobj.hargappn = hargappn
         updateobj.save()
         print(harga_barang, updateobj.Jumlah)
         harga_total = float(updateobj.Jumlah) * float(harga_barang)
@@ -948,6 +972,7 @@ def update_barangsubkon_masuk(request, id):
         matauang = request.POST['mata_uang']
         noinvoice = request.POST['noinvoice']
         tanggalinvoice = request.POST['tanggalinvoice']
+        hargapotongan = request.POST['harga_setelah_potongan']
         if noinvoice != "":
             updateobj.NoSuratJalan.NoInvoice = noinvoice
         else :
@@ -962,6 +987,7 @@ def update_barangsubkon_masuk(request, id):
             updateobj.HargaDollar = request.POST['harga_dollar'] 
         updateobj.Harga = harga_barang
         updateobj.Potongan = ispotongan
+        updateobj.hargapotongan = hargapotongan
         updateobj.save()
         updateobj.NoSuratJalan.save()
         models.transactionlog(
@@ -3261,17 +3287,21 @@ def exportbarangsubkon_excel(request):
     totalharga_potongan = 0
     for item in sjball:
         harga_total = item.Jumlah * item.Harga
+        item.hargatotalsebelumpotongan = item.Harga * item.Jumlah
         if item.Potongan:
-            harga_potongan = harga_total * inputppn
-            harga_satuan_setelah_pemotognan = math.ceil(item.Harga - (item.Harga * inputppn))
+            item.hargatotalsetelahpemotongan = item.hargapotongan * item.Jumlah
+            # harga_potongan = harga_total * inputppn
+            # harga_satuan_setelah_pemotognan = math.ceil(item.Harga - (item.Harga * inputppn))
         else:
-            harga_potongan = 0
-            harga_satuan_setelah_pemotognan = 0
-        harga_total_setelah_potongan = harga_satuan_setelah_pemotognan * item.Jumlah
+            item.hargapotongan = 0
+            item.hargatotalsetelahpemotongan = item.Harga * item.Jumlah
+        #     harga_potongan = 0
+        #     harga_satuan_setelah_pemotognan = 0
+        # harga_total_setelah_potongan = harga_satuan_setelah_pemotognan * item.Jumlah
         total_harga +=harga_total
-        print('HARGA POTONGAN :',harga_potongan,total_potongan)
-        total_potongan+=harga_satuan_setelah_pemotognan
-        totalharga_potongan += harga_total_setelah_potongan
+        # print('HARGA POTONGAN :',harga_potongan,total_potongan)
+        total_potongan+=item.hargapotongan
+        totalharga_potongan += item.hargatotalsetelahpemotongan
         row = [
             item.NoSuratJalan.Tanggal.strftime("%Y-%m-%d"),
             str(item.NoSuratJalan.Supplier),
@@ -3281,8 +3311,8 @@ def exportbarangsubkon_excel(request):
             item.Jumlah,
             item.Harga,
             harga_total,
-            harga_satuan_setelah_pemotognan,
-            harga_total_setelah_potongan,
+            item.hargapotongan,
+            item.hargatotalsetelahpemotongan,
             item.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d") if item.NoSuratJalan.TanggalInvoice else '',
             str(item.NoSuratJalan.NoInvoice) if item.NoSuratJalan.NoInvoice else ''
         ]
@@ -3379,29 +3409,36 @@ def views_rekaphargasubkon(request):
         # print(asd)
         if len(sjball) > 0:
        
-            for x in sjball:
-                harga_total = x.Jumlah * x.Harga
-                x.NoSuratJalan.Tanggal = x.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
-                if x.NoSuratJalan.TanggalInvoice is not None:
-                    x.NoSuratJalan.TanggalInvoice = x.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d")
-                print(harga_total)
-                list_harga_total1.append(harga_total)
-                harga_setelah_pemotongan = math.ceil(x.Harga - (x.Harga * inputppn))
-                total_harga_setelah_pemotongan = harga_setelah_pemotongan * x.Jumlah
-                harga_setelah_ppn.append(harga_setelah_pemotongan)
-                list_total_ppn.append(total_harga_setelah_pemotongan)
-            i = 0
-            for item in sjball:
-                item.harga_total = list_harga_total1[i]
-                if item.Potongan:
-                    item.harga_ppn = harga_setelah_ppn[i]
-                    item.harga_total_ppn = list_total_ppn[i]
-                else:
-                    item.harga_ppn = 0
-                    item.harga_total_ppn =0
+            # for x in sjball:
+            #     harga_total = x.Jumlah * x.Harga
+            #     x.NoSuratJalan.Tanggal = x.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
+            #     if x.NoSuratJalan.TanggalInvoice is not None:
+            #         x.NoSuratJalan.TanggalInvoice = x.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d")
+            #     print(harga_total)
+            #     list_harga_total1.append(harga_total)
+            #     harga_setelah_pemotongan = math.ceil(x.Harga - (x.Harga * inputppn))
+            #     total_harga_setelah_pemotongan = harga_setelah_pemotongan * x.Jumlah
+            #     harga_setelah_ppn.append(harga_setelah_pemotongan)
+            #     list_total_ppn.append(total_harga_setelah_pemotongan)
+            # i = 0
+            # for item in sjball:
+            #     item.harga_total = list_harga_total1[i]
+            #     if item.Potongan:
+            #         item.harga_ppn = harga_setelah_ppn[i]
+            #         item.harga_total_ppn = list_total_ppn[i]
+            #     else:
+            #         item.harga_ppn = 0
+            #         item.harga_total_ppn =0
 
-                i += 1
-            print("list hartot", list_harga_total1)
+            #     i += 1
+            # print("list hartot", list_harga_total1)
+            for item in sjball:
+                item.hargatotalsebelumpotongan = item.Harga * item.Jumlah
+                item.hargatotalsetelahpemotongan = item.hargapotongan * item.Jumlah
+                if not item.Potongan:
+                    item.hargatotalsetelahpemotongan = item.Harga * item.Jumlah
+                    item.hargapotongan = 0
+                    
             
         
             return render(
@@ -3409,7 +3446,7 @@ def views_rekaphargasubkon(request):
                 "Purchasing/masuk_subkon.html",
                 {
                     "sjball": sjball,
-                    "harga_total": harga_total,
+                    # "harga_total": harga_total,
                     "valueppn" : valueppn
                 },
             )

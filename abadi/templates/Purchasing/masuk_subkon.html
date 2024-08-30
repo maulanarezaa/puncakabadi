@@ -28,14 +28,7 @@
             <button type="submit" class="btn btn-primary mr-2">Cek</button>
           </form>
         </div>
-        <div class="form-group">
-          <form class="form-inline" action="" method="POST">
-            {% csrf_token %}
-              <label class="col-form-label" for="">Potongan(%)</label>
-              <input type="number" class="form-control mb-2 mr-sm-2 ml-2" name="input_ppn" id="input_ppn" value="{{valueppn}}" required>
-              <button type="submit" class="btn btn-primary mr-2">Cek</button>
-          </form> 
-        </div>
+        
 
         <form id="exportButton" action="{% url 'export_excel2' %}" method="get">
           <input type="hidden" name="input_ppn" value="{{ valueppn }}">
@@ -64,7 +57,7 @@
                         <th>Kuantitas</th>
                         <th>Harga</th>
                         <th>Harga Total</th>
-                        <th>Harga Potongan ({{valueppn}}%)</th>
+                        <th>Harga Potongan</th>
                         <th>Harga Total (potongan)</th>
                         <th>Tanggal Invoice</th>
                         <th>No Invoice</th>
@@ -81,9 +74,9 @@
                         <td>{{i.KodeProduk.Unit}}</td>
                         <td>{{i.Jumlah|separator_ribuan}}</td>
                         <td>{{i.Harga|custom_thousands_separator}}</td>
-                        <td>{{i.harga_total|custom_thousands_separator}}</td>
-                        <td>{{i.harga_ppn|custom_thousands_separator}}</td>
-                        <td>{{i.harga_total_ppn|custom_thousands_separator}}</td>
+                        <td>{{i.hargatotalsebelumpotongan|custom_thousands_separator}}</td>
+                        <td>{{i.hargapotongan|custom_thousands_separator}}</td>
+                        <td>{{i.hargatotalsetelahpemotongan|custom_thousands_separator}}</td>
                         <td>
                           {% if i.NoSuratJalan.TanggalInvoice == None %}
                           -

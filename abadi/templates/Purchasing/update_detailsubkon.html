@@ -98,7 +98,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Harga Satuan (Rp)</label>
               <div class="col-sm-9">
-                <input type="number" min="0" step="any" class="form-control" name="harga_barang" id="harga_barang" value="{{accobj.Harga}}" />
+                <input type="number" min="0" step="any" class="form-control" name="harga_barang" id="harga_barang" value="{{accobj.Harga}}" onchange="update_harga_total()" />
               </div>
             </div>
           </div>
@@ -151,6 +151,24 @@
             </div>
           </div>
         </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Potongan (%)</label>
+              <div class="col-sm-9">
+                <input type="number" class="form-control" name="potongan" id="potongan" value="2" min="0" step="any" onchange="update_harga_total()" />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Harga Satuan Setelah Pemotongan (Rp)</label>
+              <div class="col-sm-9">
+                <input type="number" step="any" class="form-control" name="harga_satuan_setelah_pemotongan" id="harga_satuan_setelah_pemotongan" value="{{accobj.Harga}}" />
+              </div>
+            </div>
+          </div>
+        </div>
         
         <button type="submit" class="btn btn-primary mr-2">Update</button>
       </form>
@@ -161,46 +179,50 @@
 <script type="text/javascript">
   var default_harga_satuan = {{accobj.Harga}};
 
-  function toggle_konversi() {
-    var mata_uang = $("#mata_uang").val();
-    if (mata_uang === "dollar") {
-      $("#row_konversi").show();
-      $("#harga_barang").prop("readonly", true);  // Disable input jika dollar
-    } else {
-      $("#row_konversi").hide();
-      $("#harga_barang").prop("readonly", false); // Enable input jika rupiah
-      $("#harga_barang").val(default_harga_satuan); // Set nilai default jika rupiah
-    }
-    update_harga_total();
+function toggle_konversi() {
+  var mata_uang = $("#mata_uang").val();
+  if (mata_uang === "dollar") {
+    $("#row_konversi").show();
+    $("#harga_barang").prop("readonly", true);  // Disable input jika dollar
+  } else {
+    $("#row_konversi").hide();
+    $("#harga_barang").prop("readonly", false); // Enable input jika rupiah
+    $("#harga_barang").val(default_harga_satuan); // Set nilai default jika rupiah
+  }
+  update_harga_total();
+}
+
+function update_harga_total() {
+  var kuantitas = parseFloat($("#kuantitas_masuk").val()) || 0;
+  var mata_uang = $("#mata_uang").val();
+  var harga_satuan;
+  var harga_total_barang;
+  var potongan = parseFloat($("#potongan").val()) || 2; // Default to 2% if not set
+
+  if (mata_uang === "dollar") {
+    var harga_dollar = parseFloat($("#harga_dollar").val()) || 0;
+    var harga_konversi = parseFloat($("#harga_konversi").val()) || 16000; // Default konversi rate
+    harga_satuan = harga_dollar * harga_konversi;
+    $("#harga_barang").val(harga_satuan);
+  } else {
+    harga_satuan = parseFloat($("#harga_barang").val()) || default_harga_satuan;
   }
 
-  function update_harga_total() {
-    var kuantitas = $("#kuantitas_masuk").val();
-    var harga_satuan;
-    var mata_uang = $("#mata_uang").val();
-    var harga_total_barang;
+  // Calculate harga setelah pemotongan
+  console.log(harga_satuan,potongan)
+  var harga_setelah_pemotongan = harga_satuan - (harga_satuan * (potongan / 100));
+  $("#harga_satuan_setelah_pemotongan").val(harga_setelah_pemotongan.toFixed(2));
 
-    if (mata_uang === "dollar") {
-      var harga_dollar = $("#harga_dollar").val();
-      var harga_konversi = $("#harga_konversi").val();
-      harga_satuan = harga_dollar * harga_konversi;
-      $("#harga_barang").val(harga_satuan);
-    } else {
-      harga_satuan = default_harga_satuan;
-    }
+  harga_total_barang = kuantitas * harga_satuan;
 
-    harga_total_barang = kuantitas * harga_satuan;
+  $("#harga_total").val(harga_total_barang.toFixed(2)); // Update harga total
+}
 
-    $("#harga_total").val(harga_total_barang); // Update harga total
-  }
-
-  $(document).ready(function() {
-    toggle_konversi();
-  });
-
-  // Event listener for harga_barang change
-  $("#harga_barang").on('input', function() {
-    update_harga_total();
-  });
+$(document).ready(function() {
+  toggle_konversi();
+  // Call update_harga_total on page load and when relevant fields are changed
+  $("#harga_barang, #kuantitas_masuk, #potongan").on('input', update_harga_total);
+  $("#mata_uang, #harga_dollar, #harga_konversi").on('change', update_harga_total);
+});
 </script>
 {% endblock content %}
