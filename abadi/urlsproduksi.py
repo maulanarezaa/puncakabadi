@@ -39,6 +39,10 @@ urlpatterns = [
     path(
         "deleteproduksi/<str:id>", viewsproduksi.delete_produksi, name="delete_produksi"
     ),
+    path("mutasikodestok",viewsproduksi.view_transaksimutasistok,name='mutasikodestok'),
+    path("addmutasikodestok",viewsproduksi.add_mutasikodestok,name='addmutasikodestok'),
+    path("updatemutasikodestok/<str:id>",viewsproduksi.update_mutasikodestok,name='updatemutasikodestok'),
+    path("deletemutasikodestok/<str:id>", viewsproduksi.delete_mutasikodestok, name="deletemutasikodestok"),
     path("viewdetailsppb", viewsproduksi.view_mutasidetailsppb, name="view_detailmutasisppb"),
     path("viewmutasi", viewsproduksi.view_mutasi, name="view_mutasi"),
     path("addmutasi", viewsproduksi.add_mutasi, name="add_mutasi"),

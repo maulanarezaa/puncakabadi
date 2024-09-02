@@ -1798,6 +1798,11 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi):
     
     datadisplaykeluar=datadisplaykeluar.aggregate(total =Sum('Jumlah'))
 
+    # Mencari data bahan transaksimutasi kodestok 
+    datamutasikodestokkeluar = models.transaksimutasikodestok.objects.filter(Tanggal__range=(tanggal_mulai,tanggal_akhir),KodeProdukAsal = produk,Lokasi__NamaLokasi = lokasi)
+    datamutasikodestokmasuk = models.transaksimutasikodestok.objects.filter(Tanggal__range=(tanggal_mulai,tanggal_akhir),KodeProdukTujuan = produk,Lokasi__NamaLokasi = lokasi)
+
+
     # print(asdas)
     listartikelmaster = []
 
@@ -1878,16 +1883,18 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi):
     tanggalpemusnahan = pemusnahanobj.values_list("Tanggal", flat=True)
     tanggalpemusnahanbahanbaku = pemusnahanbahanbakuobj.values_list('Tanggal',flat=True)
     tanggalpengirimanbarang = datasppb.values_list('NoSPPB__Tanggal',flat=True)
+    tanggalmutasikodestokkeluar = datamutasikodestokkeluar.values_list('Tanggal',flat=True)
+    tanggalmutasikodestokmasuk = datamutasikodestokmasuk.values_list('Tanggal',flat=True)
     # Belum Mempertimbangkan SPK Display
 
     '''BELUM MEMPERTIMBANGKAN KELUAR DISPLAY'''
     if lokasi == 'WIP':
         listtanggal = sorted(
-        list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalpemusnahan).union(tanggalpemusnahanbahanbaku).union(tanggalretur)))
+        list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalpemusnahan).union(tanggalpemusnahanbahanbaku).union(tanggalretur).union(tanggalmutasikodestokmasuk).union(tanggalmutasikodestokkeluar)))
     )
     else:
             listtanggal = sorted(
-        list(set(tanggalmasuk.union(tanggalpemusnahan).union(tanggalpemusnahanbahanbaku).union(tanggalretur).union(tanggalpengirimanbarang)))
+        list(set(tanggalmasuk.union(tanggalpemusnahan).union(tanggalpemusnahanbahanbaku).union(tanggalretur).union(tanggalpengirimanbarang).union(tanggalmutasikodestokmasuk).union(tanggalmutasikodestokkeluar)))
     )
 
 
@@ -1940,6 +1947,8 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi):
         datapemusnahan = pemusnahanobj.filter(Tanggal = i)
         datapemusnahanbahanbaku = pemusnahanbahanbakuobj.filter(Tanggal = i)
         datapengiriman = datasppb.filter(NoSPPB__Tanggal = i)
+        datamutasikodestokkeluarfiltered = datamutasikodestokkeluar.filter(Tanggal=i)
+        datamutasikodestokmasukfiltered = datamutasikodestokmasuk.filter(Tanggal=i)
 
         for k in datamasuk:
             masuk += k.jumlah
@@ -1949,6 +1958,14 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi):
                 # print(masukdisplay)
             else:
                 datadetailmasuk.append(k)
+
+        for k in datamutasikodestokmasukfiltered:
+            masuk += k.Jumlah
+            print(datamutasikodestokmasukfiltered)
+            k.jumlah = k.Jumlah
+            
+            # print(k.DetailSPKDisplay != None)
+            datadetailmasuk.append(k)
 
         sisa  += masuk
         
@@ -2101,6 +2118,14 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi):
             sisa -= totalbahanbakurusak['total']
             datamodelssisa.append(sisa)
             datamodelskeluar.append(totalbahanbakurusak['total'])
+        # Mutasi Kode Stok Keluar
+        if datamutasikodestokkeluarfiltered.exists():
+            # Mengagregat Jumlah Bahan Baku rusak
+            totalkodestokkeluar = datamutasikodestokkeluarfiltered.aggregate(total=Sum('Jumlah'))
+
+            sisa -= totalkodestokkeluar['total']
+            datamodelssisa.append(sisa)
+            datamodelskeluar.append(totalkodestokkeluar['total'])
         # Barang retur
         if datakeluarretur.exists():
             # Mengagregat Jumlah Bahan Baku rusak
@@ -2202,6 +2227,10 @@ def detailksbb(request, id, tanggal,lokasi):
     )
     # Transaksi Pemusnahan Bahan Baku
     datapemusnahanbahanbaku  =models.PemusnahanBahanBaku.objects.filter(Tanggal = tanggal,KodeBahanBaku__KodeProduk = id,lokasi__NamaLokasi=lokasi)
+    # Transaksi Mutasi Kode Stok
+    datamutasikodestokkeluar = models.transaksimutasikodestok.objects.filter(Tanggal=tanggal,KodeProdukAsal__KodeProduk = id,Lokasi__NamaLokasi = lokasi)
+    datamutasikodestokmasuk = models.transaksimutasikodestok.objects.filter(Tanggal=tanggal,KodeProdukTujuan__KodeProduk = id,Lokasi__NamaLokasi = lokasi)
+
     print(datapemusnahanbahanbaku)
     print(datagudang)
     return render(
@@ -2212,7 +2241,9 @@ def detailksbb(request, id, tanggal,lokasi):
             "dataproduksi": dataproduksi,
             "datapemusnahan": datapemusnahan,
             'datapemusnahanbahanbaku' : datapemusnahanbahanbaku,
-            "dataretur" : dataretur
+            "dataretur" : dataretur,
+            'datamutasikodestokkeluar':datamutasikodestokkeluar,
+            'datamutasikodestokmasuk': datamutasikodestokmasuk
         },
     )
 
@@ -6617,7 +6648,157 @@ def views_penyusun(request):
                 "rnd/views_penyusun.html",
                 {"dataartikel": models.Artikel.objects.all()},
             )
-  
+
+def view_transaksimutasistok(request):
+    sekarang = datetime.now().date()
+    awal_tahun = date(sekarang.year,1,1)
+    akhir_tahun = date(sekarang.year,12,31)
+    dataobj = models.transaksimutasikodestok.objects.filter(Tanggal__range=(awal_tahun,akhir_tahun)).order_by(
+        "-Tanggal"
+    )
+    for i in dataobj:
+        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
+
+    return render(request, "produksi/view_transaksimutasikodestok.html", {"dataobj": dataobj})
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def add_mutasikodestok(request):
+    if request.method == "GET":
+        data_produk = models.Produk.objects.all()
+        lokasi = models.Lokasi.objects.filter(NamaLokasi__in=('WIP','FG'))
+
+        listproduk = [produk.NamaProduk for produk in data_produk]
+
+        return render(
+            request,
+            "produksi/add_mutasikodestok.html",
+            {
+                "kode_produk": data_produk,
+                "listproduk": listproduk,
+                'nama_lokasi' : lokasi
+            },
+        )
+
+    if request.method == "POST":
+        print(request.POST)
+        # print(asd)
+        tanggal = request.POST['tanggal']
+        kodeasal = request.POST.getlist('kodeasal')
+        kodetujuan = request.POST.getlist('kodetujuan')
+        listjumlah = request.POST.getlist('jumlah')
+        listlokasi = request.POST.getlist('nama_lokasi')
+        listketerangan = request.POST.getlist('keterangan')
+        # listkode = request.POST.getlist("kode_produk[]")
+        # listlokasi = request.POST.getlist("nama_lokasi[]")
+        # tanggal = request.POST["tanggal"]
+        # listjumlah = request.POST.getlist("jumlah[]")
+        # listketerangan = request.POST.getlist("keterangan[]")
+        # listdetail = request.POST.getlist("detail_spk[]")
+
+        i = 0
+        for produkasal, produktujuan, jumlah,lokasi, keterangan  in zip(
+            kodeasal, kodetujuan, listjumlah, listlokasi, listketerangan
+        ):
+            try:
+                produkasal = models.Produk.objects.get(KodeProduk = produkasal)
+            except models.Produk.DoesNotExist:
+                messages.error(request,f'Kode Stok Asal {produkasal} tidak ditemukan')
+                i+=1
+                continue
+            try:
+                produktujuan = models.Produk.objects.get(KodeProduk = produktujuan)
+            except models.Produk.DoesNotExist:
+                messages.error(request,f'Kode Stok Tujuan {produktujuan} tidak ditemukan')
+                i+=1
+                continue
+            if produkasal == produktujuan:
+                messages.error(request,'Kode Stok Asal dan Tujuan Sama')
+                i+=1
+                continue
+            
+            newdataobj = models.transaksimutasikodestok(
+                KodeProdukAsal = produkasal,
+                KodeProdukTujuan = produktujuan,
+                Jumlah = jumlah,
+                Keterangan = keterangan,
+                Tanggal = tanggal,
+                Lokasi = models.Lokasi.objects.get(pk = lokasi)
+                )
+            
+
+
+            
+            newdataobj.save()
+            messages.success(request, "Data berhasil ditambahkan")
+            print('success')
+                
+        if i == len(kodeasal):
+            return redirect("addmutasikodestok")
+        
+        return redirect("mutasikodestok")
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def delete_mutasikodestok(request, id):
+    dataproduksi = models.transaksimutasikodestok.objects.get(pk=id)
+    dataproduksi.delete()
+    messages.success(request, "Data Berhasil dihapus")
+
+    
+    return redirect("mutasikodestok")
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def update_mutasikodestok(request, id):
+    produksiobj = models.transaksimutasikodestok.objects.get(id=id)
+    dataproduk = models.Produk.objects.all()
+    lokasi = models.Lokasi.objects.filter(NamaLokasi__in=('WIP','FG'))
+
+    if request.method == "GET":
+        tanggal = datetime.strftime(produksiobj.Tanggal, "%Y-%m-%d")
+        return render(
+            request,
+            "produksi/update_mutasikodestock.html",
+            {
+                "datamutasi": produksiobj,
+                "tanggal": tanggal,
+               'allproduk':dataproduk,
+               'datalokasi':lokasi
+            },
+        )
+
+    elif request.method == "POST":
+        print(request.POST)
+        # print(asd)
+        kodestokasal = request.POST['kodestokasal']
+        kodestoktujuan = request.POST['kodestoktujuan'] 
+        tanggal = request.POST["tanggal"]
+        jumlah = request.POST["jumlah"]
+        keterangan = request.POST["keterangan"]
+        lokasi = request.POST['lokasi']
+        try:
+            kodeprodukasalobj = models.Produk.objects.get(KodeProduk=kodestokasal)
+        except models.Produk.DoesNotExist:
+            messages.error(request,f'Kode Stok Asal {kodestokasal} tidak ditemukan ')
+            return redirect('updatemutasikodestok',id=id)
+        try:
+            kodeproduktujuanobj = models.Produk.objects.get(KodeProduk=kodestoktujuan)
+        except models.Produk.DoesNotExist:
+            messages.error(request,f'Kode Stok Tujuan {kodestoktujuan} tidak ditemukan ')
+            return redirect('updatemutasikodestok',id=id)
+
+        produksiobj.KodeProdukAsal = kodeprodukasalobj
+        produksiobj.KodeProdukTujuan = kodeproduktujuanobj
+        produksiobj.Jumlah = float(jumlah)
+        produksiobj.Keterangan = keterangan
+        produksiobj.Lokasi = models.Lokasi.objects.get(pk = lokasi)
+        produksiobj.Tanggal = tanggal
+        produksiobj.save()
+        
+        messages.success(request,f'Data berhasil disimpan ')
+
+        return redirect("mutasikodestok")
 
 
 

@@ -1,6 +1,7 @@
 {% extends "produksi/base.html" %}
 {% load static %}
 {% load humanize %}
+{% load customfilter %}
 
 
 <!-- Specific Page CSS goes HERE  -->
@@ -113,7 +114,7 @@
                                 <td></td>
                                 <td></td>
 
-                                <td>{{saldo.Jumlah|floatformat:2|intcomma}}</td>
+                                <td>{{saldo.Jumlah|separator_desimal}}</td>
 
                             </tr>
                             {% for i in data %}
@@ -145,7 +146,7 @@
                                     <ul>
                                         {% for keluar in i.detailmasuk %}
                                         <li>
-                                            {{keluar.jumlah|floatformat:2|intcomma}}
+                                            {{keluar.jumlah|separator_desimal}}
                                         </li>
                                         {% endfor %}
                                     </ul>
@@ -161,7 +162,7 @@
                                 <td>
                                     <ul>
                                         {% for jumlah in i.Perkotak %}
-                                        <li>{{jumlah|floatformat:2|intcomma}}</li>
+                                        <li>{{jumlah|separator_desimal}}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>
@@ -178,7 +179,7 @@
                                     <ul>
                                         {% for keluar in i.Keluar %}
                                         <li>
-                                            {{keluar|floatformat:2|intcomma}}
+                                            {{keluar|separator_desimal}}
                                         </li>
                                         {% endfor %}
                                     </ul>
@@ -188,7 +189,7 @@
 
                                         {% for sisa in i.Sisa %}
                                         <li>
-                                            {{sisa|floatformat:2|intcomma}}
+                                            {{sisa|separator_desimal}}
                                         </li>
 
                                         {% endfor %}

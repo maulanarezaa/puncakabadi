@@ -550,10 +550,11 @@ class Versi(models.Model):
 
 class transaksimutasikodestok(models.Model):
     KodeProdukAsal = models.ForeignKey(Produk,on_delete=models.CASCADE,related_name='mutasi_produk_asal')
-    kodeProdukTujuan = models.ForeignKey(Produk,on_delete=models.CASCADE,related_name='mutasi_produk_tujuan')
+    KodeProdukTujuan = models.ForeignKey(Produk,on_delete=models.CASCADE,related_name='mutasi_produk_tujuan')
     Jumlah = models.FloatField()
     Keterangan = models.TextField()
     Tanggal = models.DateField()
+    Lokasi = models.ForeignKey(Lokasi,on_delete=models.CASCADE,null=True,blank=True)
     
     def __str__(self):
-        return f'{self.KodeProdukAsal} - {self.kodeProdukTujuan} - {self.Tanggal} - {self.Jumlah}'
+        return f'{self.KodeProdukAsal} - {self.KodeProdukTujuan} - {self.Tanggal} - {self.Jumlah}'
