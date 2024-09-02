@@ -2956,7 +2956,7 @@ def delete_pemusnahan(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_pemusnahanbarang(request):
-    dataproduksi = models.PemusnahanBahanBaku.objects.filter(lokasi__NamaLokasi__in=("WIP","FG")).order_by("-Tanggal")
+    dataproduksi = models.PemusnahanBahanBaku.objects.filter(lokasi__NamaLokasi__in=("WIP","FG"),ismutasi = False).order_by("-Tanggal")
     for i in dataproduksi:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
 

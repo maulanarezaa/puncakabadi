@@ -323,6 +323,7 @@ class PemusnahanArtikel(models.Model):
     KodeArtikel = models.ForeignKey(Artikel, on_delete=models.CASCADE)
     lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
     Jumlah = models.IntegerField()
+    
     Keterangan = models.CharField(max_length=255,null=True, blank=True)
 
     def __str__(self):
@@ -528,4 +529,31 @@ class HargaArtikel(models.Model):
 
     def __str__(self):
         return f'{self.KodeArtikel} - {self.Tanggal} - {self.Harga}'
+class Stokadjustmenproduksi (models.Model):
+    KodeProduk = models.ForeignKey(Produk,on_delete=models.CASCADE)
+    Tanggal = models.DateField()
+    Jumlah = models.FloatField()
+    Keterangan = models.TextField()
+    Timestamp = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f'{self.KodeProduk} - {self.Tanggal} - {self.Jumlah}'
+
+class Versi(models.Model):
+    KodeArtikel = models.ForeignKey(Artikel,on_delete=models.CASCADE)
+    Versi = models.CharField(max_length=50)
+    Tanggal = models.DateField()
+    keterangan = models.TextField()
+
+    def __str__(self):
+        return f'{self.KodeArtikel} - {self.Versi} - {self.keterangan}'
+
+class transaksimutasikodestok(models.Model):
+    KodeProdukAsal = models.ForeignKey(Produk,on_delete=models.CASCADE,related_name='mutasi_produk_asal')
+    kodeProdukTujuan = models.ForeignKey(Produk,on_delete=models.CASCADE,related_name='mutasi_produk_tujuan')
+    Jumlah = models.FloatField()
+    Keterangan = models.TextField()
+    Tanggal = models.DateField()
+    
+    def __str__(self):
+        return f'{self.KodeProdukAsal} - {self.kodeProdukTujuan} - {self.Tanggal} - {self.Jumlah}'
