@@ -48,7 +48,16 @@
 
                                 <button type="button" class="btn btn-success btn-icon-text">
                                     <i class="typcn typcn-plus btn-icon-prepend"></i>
-                                    Tambah Versi
+                                    Tambah Versi old
+                                </button>
+                            </a>
+                        </div>
+                        <div class="col-lg-3">
+                            <a href="{% url 'add_versibaru' kodeartikel.id %}">
+
+                                <button type="button" class="btn btn-success btn-icon-text">
+                                    <i class="typcn typcn-plus btn-icon-prepend"></i>
+                                    Tambah Versi new
                                 </button>
                             </a>
                         </div>
@@ -65,7 +74,7 @@
                         {% endif %}
                         
                         {% endif %}
-                        <div class="col-lg-4">
+                        <div class="col-lg-3">
                             <div class="form-group">
                                 <div class="input-group">
                                     <input type="text" name="kodeartikel" hidden value="{{kodeartikel}}">

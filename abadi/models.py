@@ -165,6 +165,15 @@ class TransaksiGudang(models.Model):
     def __str__(self):
         return f"{self.tanggal} - {self.KodeProduk}"
 
+class Versi(models.Model):
+    KodeArtikel = models.ForeignKey(Artikel,on_delete=models.CASCADE)
+    Versi = models.CharField(max_length=50)
+    Tanggal = models.DateField()
+    Keterangan = models.TextField(null=True,blank=True)
+
+    def __str__(self):
+        return f'{self.KodeArtikel} - {self.Versi} - {self.Keterangan}'
+
 
 class Penyusun(models.Model):
     IDKodePenyusun = models.AutoField(primary_key=True)
@@ -174,6 +183,7 @@ class Penyusun(models.Model):
     Lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
     versi = models.DateField(null=True, blank=True)
     keterangan = models.CharField(max_length=255, default="")
+    KodeVersi = models.ForeignKey(Versi,on_delete=models.CASCADE,null=True,blank=True)
 
     def __str__(self):
         return (
@@ -539,14 +549,7 @@ class Stokadjustmenproduksi (models.Model):
     def __str__(self):
         return f'{self.KodeProduk} - {self.Tanggal} - {self.Jumlah}'
 
-class Versi(models.Model):
-    KodeArtikel = models.ForeignKey(Artikel,on_delete=models.CASCADE)
-    Versi = models.CharField(max_length=50)
-    Tanggal = models.DateField()
-    keterangan = models.TextField()
 
-    def __str__(self):
-        return f'{self.KodeArtikel} - {self.Versi} - {self.keterangan}'
 
 class transaksimutasikodestok(models.Model):
     KodeProdukAsal = models.ForeignKey(Produk,on_delete=models.CASCADE,related_name='mutasi_produk_asal')

@@ -792,45 +792,6 @@ def views_rekapharga(request):
         )
 
 
-@login_required
-@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
-def tambahversi(request, id):
-    data = models.Artikel.objects.get(id=id)
-    tanggal = date.today().strftime("%Y-%m-%d")
-    print(tanggal)
-    if request.method == "GET":
-        return render(
-            request, "rnd/tambah_versi.html", {"data": data, "versi": tanggal}
-        )
-    else:
-
-        kodeproduk = request.POST.getlist("kodeproduk")
-        status = request.POST.getlist("Status")
-        lokasi = request.POST.getlist("lokasi")
-        kuantitas = request.POST.getlist("kuantitas")
-        allowance = request.POST.getlist("allowance")
-        if status.count("True") > 1:
-            messages.error(request, "Terdapat Artikel utama lebih dari 1")
-            return redirect("add_versi", id=id)
-        dataproduk = list(zip(kodeproduk, status, lokasi, kuantitas, allowance))
-
-        for i in dataproduk:
-            newpenyusun = models.Penyusun(
-                KodeProduk=models.Produk.objects.get(KodeProduk=i[0]),
-                KodeArtikel=data,
-                Status=i[1],
-                Lokasi=models.Lokasi.objects.get(NamaLokasi=i[2]),
-                versi=tanggal,
-            ).save()
-            datanewpenyusun = models.Penyusun.objects.all().last()
-            konversimasterobj = models.KonversiMaster(
-                KodePenyusun=datanewpenyusun, Kuantitas=i[3], Allowance=i[4]
-            ).save()
-            print(newpenyusun)
-            print(konversimasterobj)
-        return redirect(f"penyusun_artikel?kodeartikel={data.KodeArtikel}&versi=")
-
-
 """
 REVISI 
 5/13/2024
@@ -1247,6 +1208,81 @@ def tambahversi(request, id):
                 Status=i[1],
                 Lokasi=models.Lokasi.objects.get(NamaLokasi=i[2]),
                 versi=tanggal,
+            )
+            newpenyusun.save()
+            datanewpenyusun = models.Penyusun.objects.all().last()
+            konversimasterobj = models.KonversiMaster(
+                KodePenyusun=datanewpenyusun, Kuantitas=i[3], Allowance=i[4]
+            )
+            konversimasterobj.save()
+
+        return redirect(
+            f"/rnd/penyusun?kodeartikel={quote(data.KodeArtikel)}&versi={tanggal}"
+        )
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
+def tambahversibaru(request, id):
+    data = models.Artikel.objects.get(id=id)
+    bahanbaku = models.Produk.objects.all()
+    tanggal = date.today().strftime("%Y-%m-%d")
+    # print(request.META)
+    # print(request.META['HTTP_REFERER'])
+    print(tanggal)
+    if request.method == "GET":
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+        else:
+            back_url = '/rnd/penyusun'  # URL default jika tidak ada referer
+        return render(
+            request,
+            "rnd/tambah_versibaru.html",
+            {"data": data, "versi": tanggal, "dataproduk": bahanbaku,'backurl':back_url},
+        )
+    else:
+        print(request.POST)
+        # datates = models.Artikel.objects.last()
+        # print(datates)
+        # print(asd)
+        kodeproduk = request.POST.getlist("kodeproduk")
+        status = request.POST.getlist("Status")
+        lokasi = request.POST.getlist("lokasi")
+        kuantitas = request.POST.getlist("kuantitas")
+        tanggal = request.POST["tanggal"]
+        allowance = request.POST.getlist("allowance")
+        kodeversi = request.POST['versi']
+        keteranganversi = request.POST['keterangan']
+        # print(asdas)
+        if status.count("True") > 1:
+            messages.error(request, "Terdapat Artikel utama lebih dari 1")
+            return redirect("add_versibaru", id=id)
+        dataproduk = list(zip(kodeproduk, status, lokasi, kuantitas, allowance))
+        print(dataproduk)
+        # buat data versi
+        cekexistingdata = models.Versi.objects.filter( KodeArtikel = data, Versi = kodeversi)
+        if cekexistingdata.exists():
+            messages.error(request,f'Kode versi {kodeversi} pada artikel {data.KodeArtikel} sudah terdaftar pada sistem')
+            return redirect("add_versibaru", id=id)
+        newversiobj = models.Versi(
+            KodeArtikel = data,
+            Versi = kodeversi,
+            Tanggal = tanggal,
+            Keterangan = keteranganversi
+        )
+        newversiobj.save()
+        for i in dataproduk:
+            try:
+                produkobj = models.Produk.objects.get(KodeProduk=i[0])
+            except:
+                messages.error(request, f"Data artikel {i[0]} tidak ditemukan")
+                continue
+            newpenyusun = models.Penyusun(
+                KodeProduk=produkobj,
+                KodeArtikel=data,
+                Status=i[1],
+                Lokasi=models.Lokasi.objects.get(NamaLokasi=i[2]),
+                versi=tanggal,
+                KodeVersi = models.Versi.objects.last()
             )
             newpenyusun.save()
             datanewpenyusun = models.Penyusun.objects.all().last()
