@@ -28,7 +28,7 @@
                             <label class="col-sm-3 col-form-label">Versi</label>
                             <div class="col-sm-9">
 
-                                <input type="date" name="versi" id="" class="form-control" value="{{data.versi}}">
+                                <input type="text"  id="" class="form-control" value="{{data.KodeVersi.Versi}}" disabled>
                             </div>
                         </div>
                     </div>
@@ -42,8 +42,7 @@
                                     value="{{data.KodeProduk.KodeProduk}}" id="" list="listkodeproduk">
                                 <datalist id="listkodeproduk">
                                     {% for i in kodestok %}
-                                    <option value="{{i.KodeProduk}}" selected> {{i.KodeProduk}}</option>
-                                    {% endfor %}
+                                    <option value="{{i.KodeProduk}}" data-nama="{{i.NamaProduk}}" data-satuan="{{i.unit}}">                                    {% endfor %}
                                 </datalist>
 
                             </div>
@@ -53,9 +52,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Nama Bahan Baku</label>
                             <div class="col-sm-9">
-                                <input type="text" value="{{data.KodeProduk.NamaProduk}}" disabled class="form-control">
-
-                                </select>
+                                <input type="text" name="namabahanbaku" value="{{data.KodeProduk.NamaProduk}}" disabled class="form-control">
                             </div>
                         </div>
                     </div>
@@ -63,10 +60,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Satuan</label>
                             <div class="col-sm-9">
-                                <input type="text" name="" id="" value="{{data.KodeProduk.unit}}" disabled
-                                    class="form-control">
-
-                                </select>
+                                <input type="text" name="satuan" value="{{data.KodeProduk.unit}}" disabled class="form-control">
                             </div>
                         </div>
                     </div>
@@ -147,4 +141,24 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const kodeProdukInput = document.querySelector('input[name="kodeproduk"]');
+        const namaBahanBakuInput = document.querySelector('input[name="namabahanbaku"]');
+        const satuanInput = document.querySelector('input[name="satuan"]');
+    
+        kodeProdukInput.addEventListener('input', function() {
+            const selectedOption = document.querySelector(`#listkodeproduk option[value="${kodeProdukInput.value}"]`);
+            if (selectedOption) {
+                const namaBahanBaku = selectedOption.getAttribute('data-nama');
+                const satuan = selectedOption.getAttribute('data-satuan');
+                namaBahanBakuInput.value = namaBahanBaku;
+                satuanInput.value = satuan;
+            } else {
+                namaBahanBakuInput.value = '';
+                satuanInput.value = '';
+            }
+        });
+    });
+    </script>
 {% endblock content %}

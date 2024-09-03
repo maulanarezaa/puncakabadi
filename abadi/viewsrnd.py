@@ -223,7 +223,7 @@ def updatepenyusun(request, id):
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def delete_penyusun(request, id):
     penyusunobj = models.Penyusun.objects.get(IDKodePenyusun=id)
-    kodeversiobj = models.Versi.objects.get(Versi = penyusunobj.KodeVersi.Versi)
+    kodeversiobj = models.Versi.objects.get(Versi = penyusunobj.KodeVersi.Versi,KodeArtikel = penyusunobj.KodeVersi.KodeArtikel)
     kodeartikel = penyusunobj.KodeArtikel.KodeArtikel
     penyusunobj.delete()
     filterversi = models.Penyusun.objects.filter(KodeVersi = kodeversiobj)
@@ -1511,7 +1511,6 @@ def updatepenyusun(request, id):
 
         kodebahanbaku = models.Produk.objects.all()
         lokasiobj = models.Lokasi.objects.all()
-        data.versi = data.versi.strftime("%Y-%m-%d")
         return render(
             request,
             "rnd/update_penyusun.html",
@@ -1525,15 +1524,15 @@ def updatepenyusun(request, id):
         )
     else:
         print(request.POST)
+        # print(asd)
         kodeproduk = request.POST["kodeproduk"]
         lokasi = request.POST["lokasi"]
         status = request.POST["status"]
         kuantitas = request.POST["kuantitas"]
-        versi = request.POST["versi"]
         allowance = request.POST["allowance"]
 
         datapenyusun = (
-            models.Penyusun.objects.filter(KodeArtikel= data.KodeArtikel,versi=data.versi, Status=True)
+            models.Penyusun.objects.filter(KodeArtikel= data.KodeArtikel,KodeVersi=data.KodeVersi, Status=True)
             .exclude(IDKodePenyusun=id)
             .exists()
         )
@@ -1557,22 +1556,20 @@ def updatepenyusun(request, id):
         data.KodeProduk = produkobj
         data.Lokasi = lokasiobj
         data.Status = status
-        data.versi = versi
+        data.Kuantitas = kuantitas
+        data.Allowance = allowance
 
         data.save()
-        konversiobj.Kuantitas = kuantitas
-        konversiobj.Allowance = allowance
-        konversiobj.save()
         transaksilog = models.transactionlog(
             user="RND",
             waktu=datetime.now(),
             jenis="Update",
-            pesan=f"Penyusun Baru. Kode Artikel : {data.KodeArtikel}, Kode produk : {data.KodeProduk}-{data.KodeProduk.NamaProduk}, Status Utama : {data} versi : {data.versi}, Kuantitas Konversi : {  konversiobj.Kuantitas}",
+            pesan=f"Penyusun Baru. Kode Artikel : {data.KodeArtikel}, Kode produk : {data.KodeProduk}-{data.KodeProduk.NamaProduk}, Status Utama : {data} versi : {data.KodeVersi}, Kuantitas Konversi : {  konversiobj.Kuantitas}",
         )
         transaksilog.save()
         messages.success(request, "Data berhasil disimpan")
         return redirect(
-            f"/rnd/penyusun?kodeartikel={quote(data.KodeArtikel.KodeArtikel)}&versi={data.versi}"
+            f"/rnd/penyusun?kodeartikel={quote(data.KodeArtikel.KodeArtikel)}&versi={data.KodeVersi.Versi}"
         )
 
 
