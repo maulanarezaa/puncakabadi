@@ -43,7 +43,7 @@
                 <form action="" method="get">
                     <div class="row">
                         {% if user.groups.first.name != 'ppic' %}
-                        <div class="col-lg-3">
+                        <!-- <div class="col-lg-3">
                             <a href="{% url 'add_versi' kodeartikel.id %}">
 
                                 <button type="button" class="btn btn-success btn-icon-text">
@@ -51,9 +51,9 @@
                                     Tambah Versi old
                                 </button>
                             </a>
-                        </div>
+                        </div> -->
                         <div class="col-lg-3">
-                            <a href="{% url 'add_versibaru' kodeartikel.id %}">
+                            <a href="{% url 'add_versibaru' id=kodeartikel.pk %}">
 
                                 <button type="button" class="btn btn-success btn-icon-text">
                                     <i class="typcn typcn-plus btn-icon-prepend"></i>
@@ -62,7 +62,7 @@
                             </a>
                         </div>
                         {% if versiterpilih %}
-                        <div class="col-lg-3">
+                        <!-- <div class="col-lg-3">
                             <a href="{% url 'tambah_data_penyusun' id=kodeartikel.id versi=versiterpilih %}">
                                 
                                 <button type="button" class="btn btn-success btn-icon-text">
@@ -70,7 +70,7 @@
                                     Tambah Data
                                 </button>
                             </a>
-                        </div>
+                        </div> -->
                         <div class="col-lg-3">
                             <a href="{% url 'tambah_data_penyusunversi' id=kodeartikel.id versi=versiterpilih %}">
                                 
@@ -104,9 +104,20 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-lg-3" >
+                            
+
+                                <button type="button" class="btn btn-danger btn-icon-text" onclick="confirmDelete('{{versiterpilihobj.pk}}')">
+                                    <i class="typcn typcn-plus btn-icon-prepend"></i>
+                                    Hapus Versi
+                                </button>
+                            
+                        </div>
                     </div>
                 </form>
                 <div class="row"></div>
+                <h4 class="card-title">Versi : <span style="font-weight: lighter;">
+                      {{versiterpilih}}</span></h4>
                 <h4 class="card-title">Nilai FG : <span style="font-weight: lighter;">
                         Rp{{nilaifg |custom_thousands_separator}}</span></h4>
                 <h4 class="card-title">Nilai FG Input Manual : 
@@ -155,7 +166,7 @@
                                     <div class="template-demo">
                                         <a>
                                             <!-- Buat Modal di JS bawah -->
-                                            <button onclick="confirmDelete({{i.Penyusunobj.IDKodePenyusun}})"
+                                            <button onclick="confirmDeletePenyusun({{i.Penyusunobj.IDKodePenyusun}})"
                                                 type="button" class="btn btn-danger">
                                                 <i class="typcn typcn typcn-trash"></i>
                                             </button>
@@ -210,6 +221,13 @@
 {% block javascripts %}
 <script>
     function confirmDelete(id) {
+        console.log(id)
+        var deleteForm = document.getElementById('deleteForm');
+        deleteForm.action = "penyusun/deleteversi/" + id;
+        $('#confirmDeleteModal').modal('show');
+    }
+    function confirmDeletePenyusun(id) {
+        console.log(id)
         var deleteForm = document.getElementById('deleteForm');
         deleteForm.action = "penyusun/delete/" + id;
         $('#confirmDeleteModal').modal('show');

@@ -181,7 +181,6 @@ class Penyusun(models.Model):
     KodeArtikel = models.ForeignKey(Artikel, on_delete=models.CASCADE)
     Status = models.BooleanField()
     Lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
-    versi = models.DateField(null=True, blank=True)
     keterangan = models.CharField(max_length=255, default="",null=True,blank=True)
     KodeVersi = models.ForeignKey(Versi,on_delete=models.CASCADE,null=True,blank=True)
     Kuantitas = models.FloatField(default=0)
@@ -194,7 +193,7 @@ class Penyusun(models.Model):
             + " - "
             + str(self.KodeProduk)
             + " - "
-            + str(self.versi)
+            + str(self.KodeVersi)
         )
 
 

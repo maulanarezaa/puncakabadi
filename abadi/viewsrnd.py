@@ -4,7 +4,7 @@ from django.http import Http404, JsonResponse, HttpResponse
 from django.urls import reverse
 from . import models
 from django.db.models import Sum
-from urllib.parse import quote
+from urllib.parse import quote,urlparse, parse_qs, urlencode
 import pandas as pd
 from io import BytesIO
 from datetime import datetime, timedelta, date
@@ -223,12 +223,40 @@ def updatepenyusun(request, id):
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def delete_penyusun(request, id):
     penyusunobj = models.Penyusun.objects.get(IDKodePenyusun=id)
+    kodeversiobj = models.Versi.objects.get(Versi = penyusunobj.KodeVersi.Versi)
     kodeartikel = penyusunobj.KodeArtikel.KodeArtikel
     penyusunobj.delete()
+    filterversi = models.Penyusun.objects.filter(KodeVersi = kodeversiobj)
+    if not filterversi.exists():
+        kodeversiobj.delete()
     print(penyusunobj)
     print(id)
     messages.success(request,'Data Berhasil terhapus')
     return redirect(f"/rnd/penyusun?kodeartikel={quote(kodeartikel)}&versi=")
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
+def delete_versi(request, id):
+    kodeversi = models.Versi.objects.get(pk = id)
+    kodeversi.delete()
+    messages.success(request,'Data Berhasil terhapus')
+    if 'HTTP_REFERER' in request.META:
+        back_url = request.META['HTTP_REFERER']
+        parsed_url = urlparse(back_url)
+        query_params = parse_qs(parsed_url.query)
+        
+        # Remove the 'versi' parameter from the query parameters
+        if 'versi' in query_params:
+            query_params.pop('versi')
+
+        # Rebuild the URL without the 'versi' parameter
+        updated_query = urlencode(query_params, doseq=True)
+        back_url = parsed_url._replace(query=updated_query).geturl()
+    else:
+        back_url = '/rnd/penyusun'  # Fallback URL if there's no referer
+
+      # URL default jika tidak ada referer
+    return redirect(back_url)
 
 
 # Update Delete Penyusun belum masuk
@@ -1134,7 +1162,8 @@ def views_penyusun(request):
                             "versiterpilih": versiterpilih,
                             "dataversi": dataversi,
                             'dataartikel' : dataartikel,
-                            "hargafgartikel" : HargaFGArtikel
+                            "hargafgartikel" : HargaFGArtikel,
+                            'versiterpilihobj': models.Versi.objects.get(Versi = versiterpilih, KodeArtikel = get_id_kodeartikel)
                         },
                     )
                 else:
@@ -1152,6 +1181,8 @@ def views_penyusun(request):
                             "versiterpilih": versiterpilih,
                             "dataversi": dataversi,
                             'dataartikel' : dataartikel,
+                            'versiterpilihobj': models.Versi.objects.get(Versi = versiterpilih, KodeArtikel = get_id_kodeartikel)
+
                             
                         },)
             else:
@@ -1231,7 +1262,8 @@ def tambahversi(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def tambahversibaru(request, id):
-    data = models.Artikel.objects.get(id=id)
+    print(id)
+    data = models.Artikel.objects.get(pk=id)
     bahanbaku = models.Produk.objects.all()
     tanggal = date.today().strftime("%Y-%m-%d")
     # print(request.META)
@@ -1289,7 +1321,6 @@ def tambahversibaru(request, id):
                 KodeArtikel=data,
                 Status=i[1],
                 Lokasi=models.Lokasi.objects.get(NamaLokasi=i[2]),
-                versi=tanggal,
                 KodeVersi = models.Versi.objects.last()
             )
             newpenyusun.save()
@@ -1300,7 +1331,7 @@ def tambahversibaru(request, id):
             konversimasterobj.save()
 
         return redirect(
-            f"/rnd/penyusun?kodeartikel={quote(data.KodeArtikel)}&versi={tanggal}"
+            f"/rnd/penyusun?kodeartikel={quote(data.KodeArtikel)}&versi={kodeversi}"
         )
 
 
