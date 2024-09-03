@@ -824,24 +824,21 @@ def views_penyusun(request):
         try:
             get_id_kodeartikel = models.Artikel.objects.get(KodeArtikel=kodeartikel)
             data = models.Penyusun.objects.filter(KodeArtikel=get_id_kodeartikel.id)
-            dataversi = data.values_list("versi", flat=True).distinct()
+            versifiltered = models.Versi.objects.filter(KodeArtikel = get_id_kodeartikel)
+            dataversi = versifiltered.values_list("Versi", flat=True).distinct()
             print(dataversi)
             if dataversi.exists():
                 try:
                     if request.GET["versi"] == "":
-                        versiterpilih = dataversi.order_by("-versi").first()
+                        versiterpilih = dataversi.order_by("-Versi").first()
                         print("ini versi terbaru", versiterpilih)
-                        versiterpilih = versiterpilih.strftime("%Y-%m-%d")
                     else:
                         versiterpilih = request.GET["versi"]
                 except:
-                    versiterpilih = dataversi.order_by("-versi").first()
+                    versiterpilih = dataversi.order_by("-Versi").first()
                     print("ini versi terbaru", versiterpilih)
-                    versiterpilih.strftime("%Y-%m-%d")
-
-                data = data.filter(versi=versiterpilih)
-                dataversi = [date.strftime("%Y-%m-%d") for date in dataversi]
-                print(dataversi)
+                
+                data = data.filter(KodeVersi__Versi=versiterpilih)
                 datakonversi = []
                 nilaifg = 0
                 sekarang = date.today()
@@ -852,12 +849,10 @@ def views_penyusun(request):
                     for item in data:
                         hargaterakhir = 0
                         print(item, item.IDKodePenyusun)
-                        konversidataobj = models.KonversiMaster.objects.get(
-                            KodePenyusun=item.IDKodePenyusun
-                        )
-                        kuantitaskonversi = konversidataobj.Kuantitas
-                        kuantitasallowance = konversidataobj.Allowance
-                        cachevalue = models.CacheValue.objects.filter(KodeProduk = konversidataobj.KodePenyusun.KodeProduk, Tanggal__month =sekarang.month).first()
+                        
+                        kuantitaskonversi = item.Kuantitas
+                        kuantitasallowance = item.Allowance
+                        cachevalue = models.CacheValue.objects.filter(KodeProduk = item.KodeProduk, Tanggal__month =sekarang.month).first()
                         if cachevalue:
                             hargasatuanawal = cachevalue.Harga
                         else:
@@ -905,8 +900,8 @@ def views_penyusun(request):
                                 hargaterakhir = 0
                                 hargaperkotak = 0
                                 # print(asd
-                                kuantitaskonversi = konversidataobj.Kuantitas
-                                kuantitasallowance = konversidataobj.Allowance
+                                kuantitaskonversi = item.Kuantitas
+                                kuantitasallowance = item.Allowance
                                 print(item)
                                 # print(asd)
                                 # return redirect("rekapharga")
@@ -1143,11 +1138,24 @@ def views_penyusun(request):
                         },
                     )
                 else:
-                    messages.error(request, "Versi tidak ditemukan")
-                    return redirect(
-                        f"/rnd/penyusun?kodeartikel={quote(kodeartikel)}&versi="
-                    )
+                    print('tes')
+                    print(data)
+                    print(versiterpilih)
+                    messages.error(request, "Versi tidak memiliki penyusun")
+                    return render(
+                        request,
+                        "rnd/views_penyusun.html",
+                        {
+                            "data": datakonversi,
+                            "kodeartikel": get_id_kodeartikel,
+                            "nilaifg": nilaifg,
+                            "versiterpilih": versiterpilih,
+                            "dataversi": dataversi,
+                            'dataartikel' : dataartikel,
+                            
+                        },)
             else:
+                print('asd')
                 messages.error(request, "Kode Artikel Belum memiliki penyusun")
                 return render(
                     request,
@@ -1299,6 +1307,85 @@ def tambahversibaru(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def tambahdatapenyusun(request, id, versi):
+    dataartikelobj = models.Artikel.objects.get(id=id)
+    print(versi, "asdas")
+    if request.method == "GET":
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+        else:
+            back_url = '/rnd/penyusun'
+        dataprodukobj = models.Produk.objects.all()
+
+        return render(
+            request,
+            "rnd/tambah_penyusunversi.html",
+            {
+                "kodeartikel": dataartikelobj,
+                "dataproduk": dataprodukobj,
+                "versiterpilih": versi,
+                'backurl':back_url
+            },
+        )
+    else:
+        print(request.POST)
+        # print(asd)
+        kodeproduk = request.POST.getlist("kodeproduk")
+        statusproduk = request.POST.getlist("status")
+        listlokasi = request.POST.getlist("lokasi")
+        listkuantitas = request.POST.getlist("kuantitas")
+        listallowance = request.POST.getlist("allowance")
+
+        datapenyusunobj = (
+            models.Penyusun.objects.filter(KodeArtikel=id)
+            .filter(Status=True, KodeVersi__Versi=versi)
+            .exists()
+        )
+        for kodeproduk, status, lokasi, kuantitas, allowance in zip(
+            kodeproduk, statusproduk, listlokasi, listkuantitas, listallowance
+        ):
+
+            try:
+
+                newprodukobj = models.Produk.objects.get(KodeProduk=kodeproduk)
+            except:
+                messages.error(
+                    request,
+                    f"Kode bahan baku {kodeproduk} tidak ditemukan dalam sistem",
+                )
+                continue
+            print("\n\n", status)
+            if datapenyusunobj and status == "True":
+                messages.error(
+                    request,
+                    f"Artikel telah memiliki Bahan baku utama sebelumnya, Kode bahan baku {kodeproduk} gagal disimpan",
+                )
+                continue
+            lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
+            penyusunobj = models.Penyusun(
+                Status=status,
+                KodeArtikel=dataartikelobj,
+                KodeProduk=newprodukobj,
+                Lokasi=lokasiobj,
+                KodeVersi=models.Versi.objects.filter(KodeArtikel = dataartikelobj,Versi =versi).first(),
+                Kuantitas=kuantitas,
+                lastedited=datetime.now(),
+                Allowance=allowance,
+            )
+            penyusunobj.save()
+            messages.success(request, "Data penyusun berhasil ditambahkan")
+            models.transactionlog(
+                user="RND",
+                waktu=datetime.now(),
+                jenis="Create",
+                pesan=f"Penyusun. Kode Artikel : {dataartikelobj.KodeArtikel}, Kode produk : {newprodukobj.KodeProduk}-{newprodukobj.NamaProduk}, Status Utama : {statusproduk} versi : {versi}, Kuantitas Konversi : {kuantitas}",
+            ).save()
+        return redirect(
+            f"/rnd/penyusun?kodeartikel={quote(dataartikelobj.KodeArtikel)}&versi="
+        )
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
+def tambahdatapenyusunversi(request, id, versi):
     dataartikelobj = models.Artikel.objects.get(id=id)
     print(versi, "asdas")
     if request.method == "GET":
@@ -1813,3 +1900,40 @@ def deleteharga(request, id):
     dataobj.delete()
     messages.success(request, "Data Berhasil dihapus")
     return redirect("views_harga")
+
+def updatepenyusundarikonversimaster(request):
+    '''Convert Versi ke Harga'''
+    datapenyusun = models.Penyusun.objects.all()
+    # for item in datapenyusun:
+    #     try:
+    #         datakonversimaster = models.KonversiMaster.objects.get(KodePenyusun = item)
+    #     except Exception as e:
+    #         print(item,e)
+    #         continue
+    #     item.Kuantitas = datakonversimaster.Kuantitas
+    #     item.Allowance = datakonversimaster.Allowance
+    #     item.lastedited = datakonversimaster.lastedited
+    #     item.save()
+    '''Buat data Versi'''
+    # dataartikel = models.Artikel.objects.all()
+    # for item in dataartikel:
+    #     datafilterpenyusun = datapenyusun.filter(KodeArtikel = item).values_list('versi',flat=True).distinct()
+    #     print(item,datafilterpenyusun)
+    #     for i in datafilterpenyusun:
+            
+    #         newversi = models.Versi(
+    #             KodeArtikel = item,
+    #             Versi = i,
+    #             Tanggal = i,
+    #             Keterangan = 'Default versi 2024'
+    #         )
+    #         newversi.save()
+    '''Update Foreign Key data Versi pada Penysun'''
+    # for item in datapenyusun:
+    #     item.KodeVersi = models.Versi.objects.filter(KodeArtikel = item.KodeArtikel, Versi = item.versi).first()
+    #     item.save()
+        # print()
+        
+
+        
+    

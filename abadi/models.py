@@ -182,8 +182,11 @@ class Penyusun(models.Model):
     Status = models.BooleanField()
     Lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
     versi = models.DateField(null=True, blank=True)
-    keterangan = models.CharField(max_length=255, default="")
+    keterangan = models.CharField(max_length=255, default="",null=True,blank=True)
     KodeVersi = models.ForeignKey(Versi,on_delete=models.CASCADE,null=True,blank=True)
+    Kuantitas = models.FloatField(default=0)
+    Allowance = models.FloatField(default=0)
+    lastedited = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return (

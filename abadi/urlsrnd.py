@@ -17,6 +17,11 @@ urlpatterns = [
         viewsrnd.tambahdatapenyusun,
         name="tambah_data_penyusun",
     ),
+    path(
+        "penyusun/add/<str:id>/<str:versi>",
+        viewsrnd.tambahdatapenyusun,
+        name="tambah_data_penyusunversi",
+    ),
     path("penyusun/versi/tambah/<str:id>", viewsrnd.tambahversi, name="add_versi"),
     path("penyusun/add/versi/<str:id>", viewsrnd.tambahversibaru, name="add_versibaru"),
     path("penyusun/update/<str:id>", viewsrnd.updatepenyusun, name="update_penyusun"),
@@ -37,4 +42,5 @@ urlpatterns = [
     ),
     path("bulk_addartikel", viewsrnd.bulk_createartikel),
     path("bulk_addpenyusun", viewsrnd.bulk_createpenyusun),
+    path('updatepenyusundarikonvesimaster',viewsrnd.updatepenyusundarikonversimaster)
 ]
