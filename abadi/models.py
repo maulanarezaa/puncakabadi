@@ -336,8 +336,8 @@ class PemusnahanArtikel(models.Model):
     KodeArtikel = models.ForeignKey(Artikel, on_delete=models.CASCADE)
     lokasi = models.ForeignKey(Lokasi, on_delete=models.CASCADE)
     Jumlah = models.IntegerField()
-    
     Keterangan = models.CharField(max_length=255,null=True, blank=True)
+    VersiArtikel = models.ForeignKey(Versi,on_delete=models.CASCADE,null=True,blank=True)
 
     def __str__(self):
         return str(self.KodeArtikel) + "-" + str(self.Tanggal)

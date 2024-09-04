@@ -389,4 +389,6 @@ urlpatterns = [
     path('bulk_createspk',viewsproduksi.bulk_createspk),
     path('bulk_createsppb',viewsproduksi.bulk_createsppb),
     path('bulk_createpenyesuaian',viewsproduksi.bulk_createpenyesuaian),
+    path('updatepenyusundarikonvesimaster',viewsproduksi.updatetransaksiproduksiversi)
+
 ]
