@@ -1,0 +1,7 @@
+<select class="form-control" name="versiartikel">
+    <option value="">Masukkan Kode</option>
+
+    {% for i in opsiversi %}
+   <option value="{{i.pk}}">{{i.Versi}} - {{i.Tanggal}} - {{i.Keterangan}}</option>
+    {% endfor %}
+</select>

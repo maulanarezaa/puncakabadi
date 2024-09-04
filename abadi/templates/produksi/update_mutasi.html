@@ -33,13 +33,13 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Artikel</label>
               <div class="col-sm-9">
                 {% if produksi.KodeArtikel %}
                 <input required type="text" class="form-control" name="kode_artikel" list="listartikel"
-                  value="{{produksi.KodeArtikel}}">
+                  value="{{produksi.KodeArtikel}}" onchange="loadversioption(this)">
                 {% else %}
                 <input required type="text" class="form-control" name="kode_display" list="listdisplay"
                   value="{{produksi.KodeDisplay}}">
@@ -57,8 +57,25 @@
               </div>
             </div>
           </div>
-
-          <div class="col-md-6">
+          {% if produksi.KodeArtikel %}
+          <div class="col-md-4">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Versi</label>
+              <div class="col-sm-9" id="versi">
+                <select name="versiartikel" id="" class="form-control">
+                  {% for i in dataversi %}
+                  {% if i.Versi == produksi.VersiArtikel.Versi %}
+                  <option value="{{i.id}}" selected>{{i.Versi}} - {{i.Tanggal}} - {{i.Keterangan}}</option>
+                  {% else %}
+                  <option value="{{i.id}}" >{{i.Versi}} - {{i.Tanggal}} - {{i.Keterangan}}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          <div class="col-md-4">
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Jumlah</label>
               <div class="col-sm-9">
@@ -147,4 +164,29 @@
     </div>
   </div>
 </div>
+<script>
+  function loadversioption(selectElement) {
+    var kodeartikel = selectElement.value;
+    var versidiv = document.getElementById('versi');
+    console.log(kodeartikel,versidiv)
+
+
+    var url = "{% url 'loadversiartikel' %}";
+    console.log(kodeartikel)
+
+  
+
+    // Memuat opsi baru berdasarkan nomor SPK yang dipilih
+    $.ajax({
+      url: url,
+      data: {
+        'kodeartikel': kodeartikel
+      },
+      dataType: 'html',
+      success: function (data) {
+        versidiv.innerHTML = data;
+      }
+    });
+  }
+</script>
 {% endblock content %}

@@ -287,10 +287,11 @@ class TransaksiProduksi(models.Model):
     DetailSPKDisplay = models.ForeignKey(
         DetailSPKDisplay, on_delete=models.CASCADE, null=True, blank=True
     )
+    VersiArtikel=models.ForeignKey(Versi,on_delete=models.CASCADE,null=True,blank=True)
 
     def __str__(self):
         if self.KodeArtikel is not None:
-            return f"{self.Jenis} - {self.KodeArtikel.KodeArtikel} - {self.Lokasi} - {self.Tanggal} - {self.Jumlah}"
+            return f"{self.Jenis} - {self.KodeArtikel.KodeArtikel} - {self.Lokasi} - {self.Tanggal} - {self.Jumlah} - {self.VersiArtikel}"
         else:
             return f"{self.Jenis} - {self.KodeDisplay.KodeDisplay} - {self.Lokasi} - {self.Tanggal} - {self.Jumlah}"
 

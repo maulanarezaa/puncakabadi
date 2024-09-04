@@ -28,14 +28,9 @@ def dashboard(request):
 
         if data.exists():
             for item in data:
-                item.versi = item.versi.strftime('%Y-%m-%d')
-                konversidataobj = models.KonversiMaster.objects.get(KodePenyusun=item.IDKodePenyusun)
-
                 tanggal_sekarang = datetime.now().date()
                 tanggal_awal = (datetime.now() - timedelta(days=7)).date()
-                konversidataobj.lastedited
-
-                if konversidataobj.lastedited and (tanggal_awal <= konversidataobj.lastedited.date() <= tanggal_sekarang):
+                if item.lastedited and (tanggal_awal <= item.lastedited.date() <= tanggal_sekarang):
                     pass
                 else:
                     continue
@@ -118,9 +113,9 @@ def dashboard(request):
                             hargasatuanawal = 0
 
                 hargaterakhir += hargasatuanawal
-                kuantitaskonversi = konversidataobj.Kuantitas
-                tanggalupdate = konversidataobj.lastedited.strftime("%Y-%m-%d")
-                kuantitasallowance = konversidataobj.Allowance
+                kuantitaskonversi = item.Kuantitas
+                tanggalupdate = item.lastedited.strftime("%Y-%m-%d")
+                kuantitasallowance = item.Allowance
                 hargaperkotak = hargaterakhir * kuantitasallowance
                 nilaifg += hargaperkotak
 
@@ -1025,6 +1020,14 @@ def view_produksi(request):
         request, "produksi/view_produksi.html", {"dataproduksi": dataproduksi}
     )
 
+def loadversiartikel(request):
+    print(request.GET)
+    kodeartikel = request.GET.get('kodeartikel')
+    opsiversi = models.Versi.objects.filter(KodeArtikel__KodeArtikel = kodeartikel).distinct()
+    # id_spk = models.SPK.objects.get(NoSPK=no_spk)
+    print(opsiversi)
+    return render(request, "produksi/opsi_versitransaksiproduksi.html", {"opsiversi": opsiversi})
+
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_mutasi(request):
@@ -1046,6 +1049,8 @@ def add_mutasi(request):
         )
 
     if request.method == "POST":
+        print(request.POST)
+        # print(asd)
         listkode_artikel = request.POST.getlist("kode_artikel[]")
         listkode_display = request.POST.getlist("kode_display[]")
         tanggal = request.POST["tanggal"]
@@ -1053,21 +1058,29 @@ def add_mutasi(request):
         listketerangan = request.POST.getlist("keterangan[]")
         listdetail_spk = request.POST.getlist("detail_spk[]")
 
+
         if listkode_artikel:
+            listversiartikel = request.POST.getlist('versiartikel')
             print(True)
-            for kode, jumlah, keterangan, detail_spk in zip(
-                listkode_artikel, listjumlah, listketerangan, listdetail_spk
+            for kode, jumlah, keterangan, detail_spk, versi in zip(
+                listkode_artikel, listjumlah, listketerangan, listdetail_spk,listversiartikel
             ):
                 try:
                     artikelref = models.Artikel.objects.get(KodeArtikel=kode)
                 except:
                     messages.error(request, "Kode Artikel tidak ditemukan")
-                    return redirect("add_mutasi")
+                    continue
                 
                 try:
                     detailspkref = models.DetailSPK.objects.get(IDDetailSPK=detail_spk)
                 except:
                     detailspkref = None
+                
+                try:
+                    detailversi = models.Versi.objects.get(pk = versi)
+                except:
+                    detailversi = models.Versi.objects.filter(KodeArtikel = artikelref).order_by('Tanggal').last()
+                    messages.error(request,f'Detail Versi {versi} tidak ditemukan pada artikel {kode}\nVersi diset pada versi Tanggal terakhir {detailversi.Versi} - {detailversi.Tanggal}')
 
                 data_produksi = models.TransaksiProduksi(
                     KodeArtikel=artikelref,
@@ -1077,6 +1090,7 @@ def add_mutasi(request):
                     Keterangan=keterangan,
                     Jenis="Mutasi",
                     DetailSPK=detailspkref,
+                    VersiArtikel = detailversi
                 ).save()
                 messages.success(request, "Data berhasil disimpan")
 
@@ -1104,7 +1118,7 @@ def add_mutasi(request):
                     displayref = models.Display.objects.get(KodeDisplay=kode)
                 except:
                     messages.error(request, "Kode Artikel tidak ditemukan")
-                    return redirect("add_mutasi")
+                    continue
                 
                 try:
                     detailspkref = models.DetailSPKDisplay.objects.get(IDDetailSPK=detail_spk)
@@ -1241,6 +1255,7 @@ def update_mutasi(request, id):
     data_spk = models.SPK.objects.all()
     datadetail_spk = models.DetailSPK.objects.all()
     datadetail_spkdisplay = models.DetailSPKDisplay.objects.all()
+    dataversi = models.Versi.objects.filter(KodeArtikel = produksiobj.KodeArtikel)
 
     if request.method == "GET":
         tanggal = datetime.strftime(produksiobj.Tanggal, "%Y-%m-%d")
@@ -1254,16 +1269,20 @@ def update_mutasi(request, id):
                 "kode_display": data_display,
                 "data_spk": data_spk,
                 "datadetail_spk" : datadetail_spk,
-                "datadetail_spkdisplay" : datadetail_spkdisplay
+                "datadetail_spkdisplay" : datadetail_spkdisplay,
+                'dataversi':dataversi
             },
         )
 
     elif request.method == "POST":
+        print(request.POST)
+        # print(asd)
         tanggal = request.POST["tanggal"]
         jumlah = request.POST["jumlah"]
         keterangan = request.POST["keterangan"]
 
         if produksiobj.KodeArtikel:
+            versiartikel = request.POST['versiartikel']
             kode_artikel = request.POST["kode_artikel"]
             getartikel = models.Artikel.objects.get(KodeArtikel=kode_artikel)
             try:
@@ -1271,8 +1290,14 @@ def update_mutasi(request, id):
                 detspkobj = models.DetailSPK.objects.get(IDDetailSPK=detail_spk)
             except:
                 detspkobj = None
+            try:
+                detailversi = models.Versi.objects.get(pk = versiartikel)
+                produksiobj.VersiArtikel = detailversi
+            except:
+                messages.error(request,'Kode Versi Error Tidak ditemukan')
             produksiobj.KodeArtikel = getartikel
             produksiobj.DetailSPK = detspkobj
+            
 
             if detspkobj:
                 models.transactionlog(

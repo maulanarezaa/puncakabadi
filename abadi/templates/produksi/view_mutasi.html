@@ -32,6 +32,7 @@
                 <th>Lokasi</th>
                 <th>No SPK</th>
                 <th>Kode Artikel</th>
+                <th>Versi</th>
                 <th>Jumlah</th>
                 <th>Keterangan</th>
                 <th>Action</th>
@@ -46,9 +47,11 @@
                 {% if i.KodeDisplay == None %}
                 <td>{{i.DetailSPK.NoSPK}} - {{i.DetailSPK.KodeArtikel}}</td>
                 <td>{{i.KodeArtikel}}</td>
+                <td>{{i.VersiArtikel}}</td>
                 {% else %}
                 <td>{{i.DetailSPPBDisplay.DetailSPKDisplay.NoSPK}}</td>
                 <td>{{i.KodeDisplay}}</td>
+                <td>-</td>
 
                 {% endif %}
                 <td>{{i.Jumlah|intcomma}}</td>

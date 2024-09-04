@@ -381,6 +381,7 @@ urlpatterns = [
     ),
     path("trackingartikelspksppb", viewsproduksi.trackingartikelspksppb, name="trackingartikelspksppb"),
     path('konversi',viewsproduksi.views_penyusun,name='konversiproduksi'),
+    path('load_versiartikel',viewsproduksi.loadversiartikel,name='loadversiartikel'),
     # '''BULK CREATE'''d
     path('bulk_createtransaksiproduksi',viewsproduksi.bulkcreate_transaksiproduksi),
     path('bulk_createsaldoawalproduksi',viewsproduksi.bulk_createsaldoawalproduksi),

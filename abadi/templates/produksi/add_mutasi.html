@@ -87,11 +87,11 @@
     productRow.className = "col"; // Added class artikel
     productRow.id = `artikel_${productCounter}`;
     productRow.innerHTML = `<div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                   <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Artikel ${productCounter}</label>
                                     <div class="col-sm-9">
-                                      <input required type="text" class="form-control artikel" name="kode_artikel[]" list="listartikel" >
+                                      <input required type="text" class="form-control artikel" name="kode_artikel[]" id="Artikel-${productCounter}" list="listartikel" onchange="loadversioption(this)">
                                         <datalist  id="listartikel">
                                           {% for i in kode_artikel %}
                                           <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
@@ -100,7 +100,16 @@
                                     </div>
                                   </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class ="col-md-4">
+                                  <div class="form-group row">
+                                     <label class="col-sm-3 col-form-label">Jumlah</label>
+                                     <div class="col-sm-9" id="versi_${productCounter}">
+                                       {% include 'produksi/opsi_versitransaksiproduksi.html' %} 
+                                    </div>
+                                
+                                    </div>
+                                  </div>
+                                <div class="col-md-4">
                                   <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Jumlah</label>
                                     <div class="col-sm-9">
@@ -243,6 +252,30 @@
       dataType: 'html',
       success: function (data) {
         detailSpkDiv.innerHTML = data;
+      }
+    });
+  }
+  function loadversioption(selectElement) {
+    var kodeartikel = selectElement.value;
+    var productCounter = selectElement.id.split('-')[1];
+    var versidiv = document.getElementById('versi_' + productCounter);
+    console.log(kodeartikel,productCounter,versidiv,productCounter)
+
+
+    var url = "{% url 'loadversiartikel' %}";
+    console.log(kodeartikel)
+
+  
+
+    // Memuat opsi baru berdasarkan nomor SPK yang dipilih
+    $.ajax({
+      url: url,
+      data: {
+        'kodeartikel': kodeartikel
+      },
+      dataType: 'html',
+      success: function (data) {
+        versidiv.innerHTML = data;
       }
     });
   }
