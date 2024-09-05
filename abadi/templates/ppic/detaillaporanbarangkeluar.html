@@ -33,8 +33,8 @@
                             {% for artikel,item in rekapartikel.items %}
                             <tr>
                                 <td>{{artikel}}</td>
-                                <td>{{item.Jumlah}}</td>
-                                <td>{{item.HargaFG|custom_thousands_separator}}</td>
+                                <td >{{item.Jumlah}}</td>
+                                <td {% if item.inputmanual == False %} style="background-color: yellow;" {% endif %} >{{item.HargaFG|custom_thousands_separator}}</td>
                                 <td>{{item.hargatotal|custom_thousands_separator}}</td>
                                 
                             </tr>
@@ -62,7 +62,7 @@
                                 <td>{{item.DetailSPK.NoSPK}}</td>
                                 <td>{{item.DetailSPK.KodeArtikel}}</td>
                                 <td>{{item.Jumlah|separator_ribuan}}</td>
-                                <td>{{item.hargafg|custom_thousands_separator}}</td>
+                                <td {% if item.inputmanual == False %} style="background-color: yellow;" {% endif %}>{{item.hargafg|custom_thousands_separator}}</td>
                                 <td>{{item.totalharga|custom_thousands_separator}}</td>
                             </tr>
                             {% endfor %}

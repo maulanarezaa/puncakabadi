@@ -238,7 +238,15 @@ def delete_penyusun(request, id):
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def delete_versi(request, id):
     kodeversi = models.Versi.objects.get(pk = id)
+    print(kodeversi.isdefault)
+    if kodeversi.isdefault == True:
+        dataversibaru = models.Versi.objects.filter(KodeArtikel = kodeversi.KodeArtikel).exclude(pk=id).order_by('Tanggal').first()
+        print(dataversibaru)
+        dataversibaru.isdefault = True
+
+        print('<asukkk')
     kodeversi.delete()
+    dataversibaru.save()
     messages.success(request,'Data Berhasil terhapus')
     if 'HTTP_REFERER' in request.META:
         back_url = request.META['HTTP_REFERER']
@@ -381,7 +389,7 @@ def views_ksbj(request):
         lokasi = request.GET['lokasi']
         lokasiobj = models.Lokasi.objects.get(NamaLokasi = lokasi)
 
-        getbahanbakuutama = models.Penyusun.objects.filter(KodeArtikel=artikel.id, Status=1,versi__range=(tanggal_mulai,tanggal_akhir)).first()
+        getbahanbakuutama = models.Penyusun.objects.filter(KodeArtikel=artikel.id, Status=1).order_by('-KodeVersi__Tanggal').first()
         print(getbahanbakuutama)
         if not getbahanbakuutama :
             messages.error(request, "Bahan Baku utama belum di set")
@@ -436,8 +444,9 @@ def views_ksbj(request):
                 if not penyusunfiltertanggal:
                     penyusunfiltertanggal = models.Penyusun.objects.filter(KodeArtikel = artikel.id, Status = 1, versi__gte = i).order_by('versi').first()
 
-                konversimasterobj = models.KonversiMaster.objects.get(KodePenyusun=penyusunfiltertanggal.IDKodePenyusun)
-                konversi =konversimasterobj.Allowance
+                # konversimasterobj = models.KonversiMaster.objects.get(KodePenyusun=penyusunfiltertanggal.IDKodePenyusun)
+                # konversi =konversimasterobj.Allowance
+                konversi = penyusunfiltertanggal.Allowance
                 # except:
                 #     konversi = round(0)
                 #     messages.error(request,'Data allowance belum di set')
@@ -837,6 +846,27 @@ def read_produk(request):
     print(produkobj[1].keteranganRND)
     return render(request, "rnd/read_produk.html", {"produkobj": produkobj})
 
+def updateversi(request):
+    if request.method == 'POST':
+        print(request.POST)
+        versiartikelobj = models.Versi.objects.get(pk = request.POST['versi'])
+        versiartikelfiltered = models.Versi.objects.filter(KodeArtikel=versiartikelobj.KodeArtikel)
+        for item in versiartikelfiltered :
+            item.isdefault = False
+            item.save()
+        versiartikelobj.isdefault = True
+        versiartikelobj.save()
+        # print(versiartikelfiltered)
+        print(request.META['HTTP_REFERER'])
+        return redirect(request.META['HTTP_REFERER'])
+    else:
+        messages.error(request,'Anda Tidak diizinkan mengakses halaman ini secara langsung')
+        return render(
+                request,
+                "rnd/views_penyusun.html",
+                {"dataartikel": models.Artikel.objects.all()},
+            )
+   
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
@@ -1321,14 +1351,12 @@ def tambahversibaru(request, id):
                 KodeArtikel=data,
                 Status=i[1],
                 Lokasi=models.Lokasi.objects.get(NamaLokasi=i[2]),
-                KodeVersi = models.Versi.objects.last()
+                KodeVersi = models.Versi.objects.last(),
+                Kuantitas=i[3], 
+                Allowance=i[4]
             )
             newpenyusun.save()
-            datanewpenyusun = models.Penyusun.objects.all().last()
-            konversimasterobj = models.KonversiMaster(
-                KodePenyusun=datanewpenyusun, Kuantitas=i[3], Allowance=i[4]
-            )
-            konversimasterobj.save()
+            
 
         return redirect(
             f"/rnd/penyusun?kodeartikel={quote(data.KodeArtikel)}&versi={kodeversi}"
@@ -1505,9 +1533,6 @@ def updatepenyusun(request, id):
             back_url = request.META['HTTP_REFERER']
         else:
             back_url = '/rnd/penyusun'
-        datakonversi = models.KonversiMaster.objects.get(
-            KodePenyusun=data.IDKodePenyusun
-        )
 
         kodebahanbaku = models.Produk.objects.all()
         lokasiobj = models.Lokasi.objects.all()
@@ -1518,7 +1543,6 @@ def updatepenyusun(request, id):
                 "kodestok": kodebahanbaku,
                 "data": data,
                 "lokasi": lokasiobj,
-                "konversi": datakonversi,
                 'backurl':back_url
             },
         )
@@ -1552,7 +1576,6 @@ def updatepenyusun(request, id):
             )
             return redirect("update_penyusun", id=id)
         lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
-        konversiobj = models.KonversiMaster.objects.get(KodePenyusun=id)
         data.KodeProduk = produkobj
         data.Lokasi = lokasiobj
         data.Status = status
@@ -1564,7 +1587,7 @@ def updatepenyusun(request, id):
             user="RND",
             waktu=datetime.now(),
             jenis="Update",
-            pesan=f"Penyusun Baru. Kode Artikel : {data.KodeArtikel}, Kode produk : {data.KodeProduk}-{data.KodeProduk.NamaProduk}, Status Utama : {data} versi : {data.KodeVersi}, Kuantitas Konversi : {  konversiobj.Kuantitas}",
+            pesan=f"Penyusun Baru. Kode Artikel : {data.KodeArtikel}, Kode produk : {data.KodeProduk}-{data.KodeProduk.NamaProduk}, Status Utama : {data} versi : {data.KodeVersi}, Kuantitas Konversi : {  data.Kuantitas}",
         )
         transaksilog.save()
         messages.success(request, "Data berhasil disimpan")
@@ -1961,7 +1984,17 @@ def updatepenyusundarikonversimaster(request):
     #     item.KodeVersi = models.Versi.objects.filter(KodeArtikel = item.KodeArtikel, Versi = item.versi).first()
     #     item.save()
         # print()
-        
+    '''UPDATE DEFAULT VERSI EACH ARTIKEL'''
+    dataartikel = models.Artikel.objects.all()
+    for item in dataartikel:
+        print(item)
+        dataversifilter = models.Versi.objects.filter(KodeArtikel = item).order_by('Tanggal')
+        for i in dataversifilter:
+            i.isdefault = False
+            i.save()
+        dataawal = dataversifilter.first()
+        dataawal.isdefault= True
+        dataawal.save()
 
         
     

@@ -31,17 +31,36 @@
               </div>
             </div>
           </div>
+          
+        </div>
+        <div class="row">
           <div class="col-md-6">
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Artikel</label>
               <div class="col-sm-9">
                 <input type="text" name="artikel" list="listartikel" class="form-control" required
-                  value="{{data.KodeArtikel}}">
+                  value="{{data.KodeArtikel}}" onchange="loadversioption(this)">
                 <datalist id="listartikel">
                   {% for i in dataartikel %}
                   <option value="{{i.KodeArtikel}}">{{i.NamaArtikel}}</option>
                   {% endfor %}
                 </datalist>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Versi</label>
+              <div class="col-sm-9" id="versi">
+                <select name="versiartikel" id="" class="form-control">
+                  {% for i in dataversi %}
+                  {% if i.Versi == produksi.VersiArtikel.Versi %}
+                  <option value="{{i.id}}" selected>{{i.Versi}} - {{i.Tanggal}} - {{i.Keterangan}}</option>
+                  {% else %}
+                  <option value="{{i.id}}" >{{i.Versi}} - {{i.Tanggal}} - {{i.Keterangan}}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
               </div>
             </div>
           </div>
@@ -91,5 +110,28 @@
 
   // Mengatur nilai input tanggal ke tanggal hari ini
   document.getElementById('tanggal').value = today;
+  function loadversioption(selectElement) {
+    var kodeartikel = selectElement.value;
+    var versidiv = document.getElementById('versi');
+    console.log(kodeartikel,versidiv)
+
+
+    var url = "{% url 'loadversiartikel' %}";
+    console.log(kodeartikel)
+
+  
+
+    // Memuat opsi baru berdasarkan nomor SPK yang dipilih
+    $.ajax({
+      url: url,
+      data: {
+        'kodeartikel': kodeartikel
+      },
+      dataType: 'html',
+      success: function (data) {
+        versidiv.innerHTML = data;
+      }
+    });
+  }
 </script>
 {% endblock content %}

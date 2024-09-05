@@ -12,6 +12,8 @@ urlpatterns = [
     path("display/update/<str:id>", viewsrnd.updatedatadisplay, name="update_display"),
     path("display/delete/<str:id>", viewsrnd.deletedisplay, name="delete_display"),
     path("penyusun", viewsrnd.views_penyusun, name="penyusun_artikel"),
+    path('updateversi',viewsrnd.updateversi,name='updateversi'),
+
     path(
         "penyusun/tambah/<str:id>/<str:versi>",
         viewsrnd.tambahdatapenyusun,

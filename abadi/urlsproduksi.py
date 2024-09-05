@@ -123,7 +123,7 @@ urlpatterns = [
         name="delete_pemusnahanproduksubkon",
     ),
     path(
-        "viewpemusnahanbarangsubkon",
+        "viewpemusnahanbahansubkon",
         viewsproduksi.view_pemusnahanbarangsubkon,
         name="view_pemusnahanbarangsubkon",
     ),

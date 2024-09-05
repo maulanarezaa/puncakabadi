@@ -144,9 +144,11 @@ def dashboard(request):
 
 
 def gethargafgterakhirberdasarkanmutasi(KodeArtikel, Tanggaltes, HargaPurchasing):
+    manualinputharga = False
     hargaartikelfg = models.HargaArtikel.objects.filter(KodeArtikel = KodeArtikel, Tanggal__month = Tanggaltes.month)
     if hargaartikelfg.exists():
         totalbiayafg = hargaartikelfg.first().Harga
+        manualinputharga = True
     else:
         cekmutasiwipfg = cekmutasiwipfgterakhir(KodeArtikel, Tanggaltes)
         cekmutasiwip = cekmutasiwipterakhir(KodeArtikel, Tanggaltes)
@@ -221,6 +223,7 @@ def gethargafgterakhirberdasarkanmutasi(KodeArtikel, Tanggaltes, HargaPurchasing
     # print(asd)
     return (
         totalbiayafg,
+        manualinputharga
         # hargakomponen_wip_fgterakhir,
         # hargakomponen_wip_fgterakhir,
         # komponen_wip_terakhir,
@@ -733,6 +736,7 @@ def detaillaporanbarangkeluar(request):
         ) = getbarangkeluar(last_days, index, awaltahun)
         datatransaksikeluar = datatransaksikeluar[index-1]
         rekapartikel,rekaptransaksidisplay,rekapdatabahankeluar,rekapgolongand,rekaptransaksilainlain = create_rekaptransaksikeluar(datatransaksikeluar)
+        print(rekapartikel)
         return render(
             request,
             "ppic/detaillaporanbarangkeluar.html",
@@ -766,11 +770,14 @@ def create_rekaptransaksikeluar (datatransaksikeluar):
     # Rekap Artikel Keluar
     rekapartikel = {}
     for i in rekapsppb:
+        print(i.inputmanual)
         if i.DetailSPK.KodeArtikel in rekapartikel:
             rekapartikel[i.DetailSPK.KodeArtikel]['Jumlah'] += i.Jumlah
         else:
             rekapartikel[i.DetailSPK.KodeArtikel] = {'Jumlah': i.Jumlah, "HargaFG":i.hargafg}
         rekapartikel[i.DetailSPK.KodeArtikel]['hargatotal'] = rekapartikel[i.DetailSPK.KodeArtikel]['Jumlah'] * rekapartikel[i.DetailSPK.KodeArtikel]['HargaFG']
+        rekapartikel[i.DetailSPK.KodeArtikel]['inputmanual'] = i.inputmanual
+
     
     # Rekap Display Keluar
     '''
@@ -1005,6 +1012,7 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
 
                 harga = detailsppb.Jumlah * ge[0]
                 detailsppb.hargafg = ge[0]
+                detailsppb.inputmanual = ge[1]
                 detailsppb.totalharga = harga
 
                 totalbiayakeluar += detailsppb.totalharga
@@ -1265,6 +1273,7 @@ def gethargaartikelfgperbulan(artikel, tanggal, hargaakhirbulanperproduk):
 
     dataartikel = models.Artikel.objects.filter(KodeArtikel=artikel)
     datahargawipartikel = {}
+    print(tanggal)
     for artikel in dataartikel:
         dataperbulan = {}
         """
@@ -1277,26 +1286,26 @@ def gethargaartikelfgperbulan(artikel, tanggal, hargaakhirbulanperproduk):
             # Mengambil data terakhir versi penyusun tiap bulannya
             versiterakhirperbulan = (
                 models.Penyusun.objects.filter(
-                    KodeArtikel=artikel, versi__lte=hari, Lokasi__NamaLokasi="FG"
+                    KodeArtikel=artikel, KodeVersi__isdefault=True, Lokasi__NamaLokasi="FG"
                 )
-                .values_list("versi", flat=True)
+                .values_list("KodeVersi__Tanggal", flat=True)
                 .distinct()
-                .order_by("versi")
+                .order_by("KodeVersi__Tanggal")
                 .last()
             )
             if versiterakhirperbulan is None:
                 versiterakhirperbulan = (
                     models.Penyusun.objects.filter(
-                        KodeArtikel=artikel, versi__gte=hari, Lokasi__NamaLokasi="FG"
+                        KodeArtikel=artikel, KodeVersi__isdefault = True, Lokasi__NamaLokasi="FG"
                     )
-                    .values_list("versi", flat=True)
+                    .values_list("KodeVersi__Tanggal", flat=True)
                     .distinct()
-                    .order_by("-versi")
+                    .order_by("-KodeVersi__Tanggal")
                     .last()
                 )
             penyusunversiterpilih = models.Penyusun.objects.filter(
                 KodeArtikel=artikel,
-                versi=versiterakhirperbulan,
+                KodeVersi__isdefault=True,
                 Lokasi__NamaLokasi="FG",
             )
             datapenyusun = {}
@@ -1351,27 +1360,27 @@ def gethargaartikelwipperbulan(artikel, tanggal, hargaakhirbulanperproduk):
             # Mengambil data terakhir versi penyusun tiap bulannya
             versiterakhirperbulan = (
                 models.Penyusun.objects.filter(
-                    KodeArtikel=artikel, versi__lte=hari, Lokasi__NamaLokasi="WIP"
+                    KodeArtikel=artikel, KodeVersi__isdefault = True, Lokasi__NamaLokasi="WIP"
                 )
-                .values_list("versi", flat=True)
+                .values_list("KodeVersi__Tanggal", flat=True)
                 .distinct()
-                .order_by("versi")
+                .order_by("KodeVersi__Tanggal")
                 .last()
             )
             if versiterakhirperbulan is None:
                 versiterakhirperbulan = (
                     models.Penyusun.objects.filter(
-                        KodeArtikel=artikel, versi__gte=hari, Lokasi__NamaLokasi="WIP"
+                        KodeArtikel=artikel, KodeVersi__isdefault = True, Lokasi__NamaLokasi="WIP"
                     )
-                    .values_list("versi", flat=True)
+                    .values_list("KodeVersi__Tanggal", flat=True)
                     .distinct()
-                    .order_by("-versi")
+                    .order_by("-KodeVersi__Tanggal")
                     .last()
                 )
 
             penyusunversiterpilih = models.Penyusun.objects.filter(
                 KodeArtikel=artikel,
-                versi=versiterakhirperbulan,
+                KodeVersi__isdefault = True,
                 Lokasi__NamaLokasi="WIP",
             )
             # print(versiterakhirperbulan)
@@ -1690,26 +1699,26 @@ def detaillaporanbaranstokgudang(request):
 def getpenyusunartikelpertanggal(tanggal,kodeartikel):
     versiterakhirperbulan = (
                 models.Penyusun.objects.filter(
-                    KodeArtikel__KodeArtikel=kodeartikel, versi__lte=tanggal, Lokasi__NamaLokasi="FG"
+                    KodeArtikel__KodeArtikel=kodeartikel, KodeVersi__isdefault=True, Lokasi__NamaLokasi="FG"
                 )
-                .values_list("versi", flat=True)
+                .values_list("KodeVersi__Tanggal", flat=True)
                 .distinct()
-                .order_by("versi")
+                .order_by("KodeVersi__Tanggal")
                 .last()
             )
     if versiterakhirperbulan is None:
         versiterakhirperbulan = (
                     models.Penyusun.objects.filter(
-                        KodeArtikel__KodeArtikel=kodeartikel, versi__gte=tanggal, Lokasi__NamaLokasi="FG"
+                        KodeArtikel__KodeArtikel=kodeartikel, KodeVersi__isdefault = True, Lokasi__NamaLokasi="FG"
                     )
-                    .values_list("versi", flat=True)
+                    .values_list("KodeVersi__Tanggal", flat=True)
                     .distinct()
-                    .order_by("-versi")
+                    .order_by("-KodeVersi__Tanggal")
                     .last()
                 )
     penyusunversiterpilih = models.Penyusun.objects.filter(
                 KodeArtikel__KodeArtikel=kodeartikel,
-                versi=versiterakhirperbulan,
+                KodeVersi__isdefault = True,
                 Lokasi__NamaLokasi="FG",
             )
     datakonversimaster = models.KonversiMaster.objects.filter(KodePenyusun__in = penyusunversiterpilih)
@@ -2099,13 +2108,8 @@ def cekmutasiwipterakhir(artikel, tanggaltes):
         .order_by("-Tanggal")
         .first()
     )
-    getbahanbakuutama = (
-        models.Penyusun.objects.filter(
-            KodeArtikel=artikel, versi__lte=tanggaltes, Status=True
-        )
-        .order_by("-versi")
-        .first()
-    )
+    getbahanbakuutama = models.Penyusun.objects.filter(KodeArtikel=artikel.id, Status=1, KodeVersi__isdefault = True).order_by('-KodeVersi__Tanggal').first()
+
 
     if getbahanbakuutama:
         transaksigudang = (

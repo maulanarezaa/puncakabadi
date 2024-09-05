@@ -52,7 +52,7 @@
                                 </button>
                             </a>
                         </div> -->
-                        <div class="col-lg-3">
+                        <div class="col-lg-2">
                             <a href="{% url 'add_versibaru' id=kodeartikel.pk %}">
 
                                 <button type="button" class="btn btn-success btn-icon-text">
@@ -71,7 +71,7 @@
                                 </button>
                             </a>
                         </div> -->
-                        <div class="col-lg-3">
+                        <div class="col-lg-2">
                             <a href="{% url 'tambah_data_penyusunversi' id=kodeartikel.id versi=versiterpilih %}">
                                 
                                 <button type="button" class="btn btn-success btn-icon-text">
@@ -90,8 +90,8 @@
 
                                     <select class="form-control" name="versi" id="">
                                         {% for i in dataversi %}
-                                        {% if i == versiterpilih %}
-                                        <option value="{{i}}" selected>{{i}}</option>
+                                        {% if i == versiterpilihobj.Versi %}
+                                        <option value="{{i}}" selected>{{i}} </option>
                                         {% else %}
                                         <option value="{{i}}">{{i}}</option>
                                         {% endif %}
@@ -106,18 +106,28 @@
                         </div>
                         <div class="col-lg-3" >
                             
-
-                                <button type="button" class="btn btn-danger btn-icon-text" onclick="confirmDelete('{{versiterpilihobj.pk}}')">
-                                    <i class="typcn typcn-plus btn-icon-prepend"></i>
-                                    Hapus Versi
-                                </button>
+                            
+                            <button type="button" class="btn btn-danger btn-icon-text" onclick="confirmDelete('{{versiterpilihobj.pk}}')">
+                                <i class="typcn typcn-plus btn-icon-prepend"></i>
+                                Hapus Versi
+                            </button>
                             
                         </div>
                     </div>
                 </form>
-                <div class="row"></div>
+                <div class="row">
+                    <div class="col-lg-3" >
+                        <form action="{% url 'updateversi' %}" method="post">
+                        {% csrf_token %}
+                        <input type="text" hidden value="{{versiterpilihobj.pk}}" name="versi">
+                        <button class="btn btn-warning btn-icon-text" type="submit">Set Default</button>
+                    </form>
+                    </div>
+
+
+                </div>
                 <h4 class="card-title">Versi : <span style="font-weight: lighter;">
-                      {{versiterpilih}}</span></h4>
+                      {{versiterpilihobj.Versi}} {% if versiterpilihobj.isdefault == True %} - Default {% endif %}</span></h4>
                 <h4 class="card-title">Nilai FG : <span style="font-weight: lighter;">
                         Rp{{nilaifg |custom_thousands_separator}}</span></h4>
                 <h4 class="card-title">Nilai FG Input Manual : 

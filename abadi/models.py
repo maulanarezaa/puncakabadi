@@ -170,9 +170,10 @@ class Versi(models.Model):
     Versi = models.CharField(max_length=50)
     Tanggal = models.DateField()
     Keterangan = models.TextField(null=True,blank=True)
+    isdefault = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.KodeArtikel} - {self.Versi} - {self.Keterangan}'
+        return f'{self.KodeArtikel} - {self.Versi} - {self.Keterangan} - {self.isdefault}'
 
 
 class Penyusun(models.Model):
