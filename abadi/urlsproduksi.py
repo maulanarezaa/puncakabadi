@@ -109,7 +109,7 @@ urlpatterns = [
         name="delete_pemusnahanbarang",
     ),
     path(
-        "viewpemusnahanproduksubkon", viewsproduksi.view_pemusnahanproduksubkon, name="view_pemusnahanproduksubkon"
+        "viewpemusnahansubkonproduk", viewsproduksi.view_pemusnahanproduksubkon, name="view_pemusnahanproduksubkon"
     ),
     path("addpemusnahanproduksubkon", viewsproduksi.add_pemusnahanproduksubkon, name="add_pemusnahanproduksubkon"),
     path(
@@ -262,7 +262,7 @@ urlpatterns = [
         viewsproduksi.update_penyesuaianartikel,
         name="update_penyesuaianartikel",
     ),
-    path("penyesuaian", viewsproduksi.penyesuaian, name="view_penyesuaian"),
+    path("penyesuaianbahanbaku", viewsproduksi.penyesuaian, name="view_penyesuaian"),
     path("addpenyesuaian", viewsproduksi.addpenyesuaian, name="addpenyesuaian"),
     path(
         "deletepenyesuaian/<str:id>",

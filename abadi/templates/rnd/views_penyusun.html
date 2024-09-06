@@ -5,8 +5,6 @@
 {% block stylesheets %}
 {% endblock stylesheets %}
 
-
-
 <!-- Page content  -->
 {% load customfilter %}
 {% block content %}
@@ -16,9 +14,10 @@
             <div class="card-body">
                 <h4 class="card-title">Konversi Artikel : <span style="font-weight: lighter;">
                         {{kodeartikel}}</span></h4>
+                
+                <!-- Row pertama: Datalist Artikel -->
                 <form action="" method="get">
                     <div class="row">
-
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
@@ -38,56 +37,15 @@
                         </div>
                     </div>
                 </form>
-                {% if kodeartikel %}
 
+                {% if kodeartikel %}
+                <!-- Row kedua: Pemilihan Versi -->
                 <form action="" method="get">
                     <div class="row">
-                        {% if user.groups.first.name != 'ppic' %}
-                        <!-- <div class="col-lg-3">
-                            <a href="{% url 'add_versi' kodeartikel.id %}">
-
-                                <button type="button" class="btn btn-success btn-icon-text">
-                                    <i class="typcn typcn-plus btn-icon-prepend"></i>
-                                    Tambah Versi old
-                                </button>
-                            </a>
-                        </div> -->
-                        <div class="col-lg-2">
-                            <a href="{% url 'add_versibaru' id=kodeartikel.pk %}">
-
-                                <button type="button" class="btn btn-success btn-icon-text">
-                                    <i class="typcn typcn-plus btn-icon-prepend"></i>
-                                    Tambah Versi new
-                                </button>
-                            </a>
-                        </div>
-                        {% if versiterpilih %}
-                        <!-- <div class="col-lg-3">
-                            <a href="{% url 'tambah_data_penyusun' id=kodeartikel.id versi=versiterpilih %}">
-                                
-                                <button type="button" class="btn btn-success btn-icon-text">
-                                    <i class="typcn typcn-plus btn-icon-prepend"></i>
-                                    Tambah Data
-                                </button>
-                            </a>
-                        </div> -->
-                        <div class="col-lg-2">
-                            <a href="{% url 'tambah_data_penyusunversi' id=kodeartikel.id versi=versiterpilih %}">
-                                
-                                <button type="button" class="btn btn-success btn-icon-text">
-                                    <i class="typcn typcn-plus btn-icon-prepend"></i>
-                                    Tambah Data <Penyusun></Penyusun>
-                                </button>
-                            </a>
-                        </div>
-                        {% endif %}
-                        
-                        {% endif %}
-                        <div class="col-lg-3">
+                        <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
                                     <input type="text" name="kodeartikel" hidden value="{{kodeartikel}}">
-
                                     <select class="form-control" name="versi" id="">
                                         {% for i in dataversi %}
                                         {% if i == versiterpilihobj.Versi %}
@@ -95,7 +53,6 @@
                                         {% else %}
                                         <option value="{{i}}">{{i}}</option>
                                         {% endif %}
-
                                         {% endfor %}
                                     </select>
                                     <div class="input-group-append">
@@ -104,28 +61,48 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-3" >
-                            
-                            
-                            <button type="button" class="btn btn-danger btn-icon-text" onclick="confirmDelete('{{versiterpilihobj.pk}}')">
-                                <i class="typcn typcn-plus btn-icon-prepend"></i>
-                                Hapus Versi
-                            </button>
-                            
-                        </div>
                     </div>
                 </form>
+
+                <!-- Row ketiga: Tombol Tambah Data, Set Default, dan Hapus Data -->
                 <div class="row">
-                    <div class="col-lg-3" >
+                    {% if user.groups.first.name != 'ppic' %}
+                    <div class="col-lg-2">
+                        <a href="{% url 'add_versibaru' id=kodeartikel.pk %}">
+                            <button type="button" class="btn btn-success btn-icon-text">
+                                <i class="typcn typcn-plus btn-icon-prepend"></i>
+                                Tambah Versi
+                            </button>
+                        </a>
+                    </div>
+                    {% if versiterpilih %}
+                    <div class="col-lg-2">
+                        <a href="{% url 'tambah_data_penyusunversi' id=kodeartikel.id versi=versiterpilih %}">
+                            <button type="button" class="btn btn-success btn-icon-text">
+                                <i class="typcn typcn-plus btn-icon-prepend"></i>
+                                Tambah Data Penyusun
+                            </button>
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                    
+                    <div class="col-lg-3">
                         <form action="{% url 'updateversi' %}" method="post">
-                        {% csrf_token %}
-                        <input type="text" hidden value="{{versiterpilihobj.pk}}" name="versi">
-                        <button class="btn btn-warning btn-icon-text" type="submit">Set Default</button>
-                    </form>
+                            {% csrf_token %}
+                            <input type="text" hidden value="{{versiterpilihobj.pk}}" name="versi">
+                            <button class="btn btn-warning btn-icon-text" type="submit">Set Default</button>
+                        </form>
                     </div>
 
-
+                    <div class="col-lg-3">
+                        <button type="button" class="btn btn-danger btn-icon-text" onclick="confirmDelete('{{versiterpilihobj.pk}}')">
+                            <i class="typcn typcn-plus btn-icon-prepend"></i>
+                            Hapus Versi
+                        </button>
+                    </div>
                 </div>
+
                 <h4 class="card-title">Versi : <span style="font-weight: lighter;">
                       {{versiterpilihobj.Versi}} {% if versiterpilihobj.isdefault == True %} - Default {% endif %}</span></h4>
                 <h4 class="card-title">Nilai FG : <span style="font-weight: lighter;">
@@ -137,9 +114,11 @@
                     {% else %}
                     <span style="font-weight: lighter;">
                         Rp -</span>
-                        {% endif %}
-                    </h4>
+                    {% endif %}
+                </h4>
                 {% endif %}
+
+                <!-- Table Data Penyusun -->
                 <div class="table-responsive pt-3">
                     {% if data %}
                     <table class="table table-bordered" id="datapenyusun">
@@ -155,7 +134,7 @@
                                 <td>Allowance </td>
                                 <td>Harga (Rp)</td>
                                 <td>Harga konversi (Rp)</td>
-                                <td>action</td>
+                                <td>Action</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -175,7 +154,6 @@
                                     {% if user.groups.first.name != 'ppic' %}
                                     <div class="template-demo">
                                         <a>
-                                            <!-- Buat Modal di JS bawah -->
                                             <button onclick="confirmDeletePenyusun({{i.Penyusunobj.IDKodePenyusun}})"
                                                 type="button" class="btn btn-danger">
                                                 <i class="typcn typcn typcn-trash"></i>
@@ -190,13 +168,8 @@
                                 </td>
                             </tr>
                             {% endfor %}
-                            <!-- <tr>
-                                <td>Nilai Total</td>
-                                <td colspan="10">{{nilaifg}}</td>
-                            </tr> -->
                         </tbody>
                     </table>
-
                     {% endif %}
                 </div>
             </div>
@@ -204,6 +177,7 @@
     </div>
 </div>
 
+<!-- Modal for Deletion Confirmation -->
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
     aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -231,19 +205,15 @@
 {% block javascripts %}
 <script>
     function confirmDelete(id) {
-        console.log(id)
         var deleteForm = document.getElementById('deleteForm');
         deleteForm.action = "penyusun/deleteversi/" + id;
         $('#confirmDeleteModal').modal('show');
     }
     function confirmDeletePenyusun(id) {
-        console.log(id)
         var deleteForm = document.getElementById('deleteForm');
         deleteForm.action = "penyusun/delete/" + id;
         $('#confirmDeleteModal').modal('show');
     }
-
 </script>
-
 {% endblock javascripts %}
 {% endblock content %}

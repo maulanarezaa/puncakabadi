@@ -237,16 +237,17 @@ def delete_penyusun(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def delete_versi(request, id):
+    print(id)
     kodeversi = models.Versi.objects.get(pk = id)
     print(kodeversi.isdefault)
     if kodeversi.isdefault == True:
         dataversibaru = models.Versi.objects.filter(KodeArtikel = kodeversi.KodeArtikel).exclude(pk=id).order_by('Tanggal').first()
         print(dataversibaru)
         dataversibaru.isdefault = True
+        dataversibaru.save()
 
         print('<asukkk')
     kodeversi.delete()
-    dataversibaru.save()
     messages.success(request,'Data Berhasil terhapus')
     if 'HTTP_REFERER' in request.META:
         back_url = request.META['HTTP_REFERER']
@@ -888,7 +889,7 @@ def views_penyusun(request):
             if dataversi.exists():
                 try:
                     if request.GET["versi"] == "":
-                        versiterpilih = dataversi.order_by("-Versi").first()
+                        versiterpilih = versifiltered.filter(isdefault=True).first().Versi
                         print("ini versi terbaru", versiterpilih)
                     else:
                         versiterpilih = request.GET["versi"]
@@ -1193,7 +1194,7 @@ def views_penyusun(request):
                             "dataversi": dataversi,
                             'dataartikel' : dataartikel,
                             "hargafgartikel" : HargaFGArtikel,
-                            'versiterpilihobj': models.Versi.objects.get(Versi = versiterpilih, KodeArtikel = get_id_kodeartikel)
+                            'versiterpilihobj': models.Versi.objects.get(Versi = versiterpilih,KodeArtikel=get_id_kodeartikel)
                         },
                     )
                 else:

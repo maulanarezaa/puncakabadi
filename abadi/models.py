@@ -198,17 +198,6 @@ class Penyusun(models.Model):
         )
 
 
-class KonversiMaster(models.Model):
-    IDKodeKonversiMaster = models.AutoField(primary_key=True)
-    KodePenyusun = models.ForeignKey(Penyusun, on_delete=models.CASCADE)
-    Kuantitas = models.FloatField()
-    Allowance = models.FloatField(default=0)
-    lastedited = models.DateTimeField(null=True, blank=True)
-
-    def __str__(self):
-        return str(self.KodePenyusun)
-
-
 class Penyesuaian(models.Model):
     IDPenyesuaian = models.AutoField(primary_key=True)
     KodeProduk = models.ForeignKey(Produk,on_delete=models.CASCADE,null=True,blank=True)

@@ -2297,12 +2297,15 @@ def detailksbb(request, id, tanggal,lokasi):
         .values_list("KodeArtikel__KodeArtikel", flat=True)
         .distinct()
     )
-
+    listversi = models.Penyusun.objects.filter(KodeProduk__KodeProduk=id).values_list("KodeVersi", flat=True).distinct()
+    print(listversi)
+    # print(asd)
     # Transaksi Produksi
     dataproduksi = models.TransaksiProduksi.objects.filter(
-        KodeArtikel__KodeArtikel__in=listartikel, Jenis="Mutasi", Tanggal=tanggal
+         VersiArtikel__in=listversi, Jenis="Mutasi", Tanggal=tanggal
     )
     print(dataproduksi)
+    # print(asd)
 
     # Transaksi Pemusnahan
     datapemusnahan = models.PemusnahanArtikel.objects.filter(
@@ -2852,9 +2855,10 @@ def view_rekapproduksi(request):
                         if not penyusunfiltertanggal:
                             penyusunfiltertanggal = models.Penyusun.objects.filter(KodeArtikel = artikel.id, Status = 1, KodeVersi__Tanggal__gte = i).order_by('KodeVersi__Tanggal').first()
 
-                        konversimasterobj = models.KonversiMaster.objects.get(KodePenyusun=penyusunfiltertanggal.IDKodePenyusun)
+                        # konversimasterobj = models.KonversiMaster.objects.get(KodePenyusun=penyusunfiltertanggal.IDKodePenyusun)
+
                         cekpenyesuaian = models.PenyesuaianArtikel.objects.filter(KodeArtikel = artikel, TanggalMulai__lte=i, TanggalMinus__gte=i)
-                        allowance = konversimasterobj.Allowance
+                        allowance = penyusunfiltertanggal.Allowance
                         # print('ini penyesuaian : ', cekpenyesuaian)
                         try:
                             masukpcs = math.ceil(jumlahmasuk/((allowance)))

@@ -337,32 +337,32 @@ def laporanbarangmasuk(request):
         )
 
 
-def gethargafg(penyusunobj):
-    # Mengambil data Konversi master
-    konversiobj = models.KonversiMaster.objects.get(
-        KodePenyusun=penyusunobj.IDKodePenyusun
-    )
-    # Mengambil kuantitas dan ditambahkan 2.5%
-    konversialowance = konversiobj.Allowance
-    # Mengambil data Detail surrat jalan pembelian untuk kode produk sesuai dengan penyusun obj (1 penyusun 1 produk 1 artkel)
-    detailsjpembelian = models.DetailSuratJalanPembelian.objects.filter(
-        KodeProduk=penyusunobj.KodeProduk
-    )
-    hargatotalkodeproduk = 0
-    jumlahtotalkodeproduk = 0
-    for m in detailsjpembelian:
-        hargatotalkodeproduk += m.Harga * m.Jumlah
-        jumlahtotalkodeproduk += m.Jumlah
-    # print("ini jumlah harga total ", hargatotalkodeproduk)
-    try:
-        rataratahargakodeproduk = hargatotalkodeproduk / jumlahtotalkodeproduk
-    except ZeroDivisionError:
-        rataratahargakodeproduk = 0
-    # print("selesai")
-    # print(rataratahargakodeproduk)
-    nilaifgperkodeproduk = rataratahargakodeproduk * konversialowance
-    # print("Harga Konversi : ", nilaifgperkodeproduk)
-    return nilaifgperkodeproduk
+# def gethargafg(penyusunobj):
+#     # Mengambil data Konversi master
+#     konversiobj = models.KonversiMaster.objects.get(
+#         KodePenyusun=penyusunobj.IDKodePenyusun
+#     )
+#     # Mengambil kuantitas dan ditambahkan 2.5%
+#     konversialowance = konversiobj.Allowance
+#     # Mengambil data Detail surrat jalan pembelian untuk kode produk sesuai dengan penyusun obj (1 penyusun 1 produk 1 artkel)
+#     detailsjpembelian = models.DetailSuratJalanPembelian.objects.filter(
+#         KodeProduk=penyusunobj.KodeProduk
+#     )
+#     hargatotalkodeproduk = 0
+#     jumlahtotalkodeproduk = 0
+#     for m in detailsjpembelian:
+#         hargatotalkodeproduk += m.Harga * m.Jumlah
+#         jumlahtotalkodeproduk += m.Jumlah
+#     # print("ini jumlah harga total ", hargatotalkodeproduk)
+#     try:
+#         rataratahargakodeproduk = hargatotalkodeproduk / jumlahtotalkodeproduk
+#     except ZeroDivisionError:
+#         rataratahargakodeproduk = 0
+#     # print("selesai")
+#     # print(rataratahargakodeproduk)
+#     nilaifgperkodeproduk = rataratahargakodeproduk * konversialowance
+#     # print("Harga Konversi : ", nilaifgperkodeproduk)
+#     return nilaifgperkodeproduk
 
 
 def laporanbarangkeluar(request):
@@ -1315,9 +1315,7 @@ def gethargaartikelfgperbulan(artikel, tanggal, hargaakhirbulanperproduk):
                 hargapenyusun = hargaakhirbulanperproduk[penyusun.KodeProduk]["data"][
                     index
                 ]["hargasatuan"]
-                kuantitas = models.KonversiMaster.objects.get(
-                    KodePenyusun=penyusun
-                ).Allowance
+                kuantitas =penyusun.Allowance
 
                 hargabahanbakuwip = hargapenyusun * kuantitas
                 hargawip += hargabahanbakuwip
@@ -1393,8 +1391,7 @@ def gethargaartikelwipperbulan(artikel, tanggal, hargaakhirbulanperproduk):
                 hargapenyusun = hargaakhirbulanperproduk[penyusun.KodeProduk]["data"][
                     index
                 ]["hargasatuan"]
-                kuantitas = models.KonversiMaster.objects.get(KodePenyusun=penyusun)
-                kuantitas = kuantitas.Allowance
+                kuantitas =penyusun.Allowance
                 hargabahanbakuwip = hargapenyusun * kuantitas
                 hargawip += hargabahanbakuwip
                 dummy["totalharga"] = hargabahanbakuwip
@@ -1419,72 +1416,72 @@ def gethargaartikelwipperbulan(artikel, tanggal, hargaakhirbulanperproduk):
     return datahargawipartikel
 
 
-def gethargafgperbulan(last_days, stopindex, awaltahun):
-    hargaakhirbulanperproduk = gethargapurchasingperbulan(
-        last_days, stopindex, awaltahun
-    )
-    # print(hargaakhirbulanperproduk)
-    # print(asd)
-    dataartikel = models.Artikel.objects.all()
-    datahargafgartikel = {}
-    for artikel in dataartikel:
-        dataperbulan = {}
-        """
-        Models perbulan
-        {}
-        """
-        modelsperbulan = {}
-        for index, hari in enumerate(last_days[:stopindex]):
-            # Mengambil data terakhir versi penyusun tiap bulannya
-            versiterakhirperbulan = (
-                models.Penyusun.objects.filter(KodeArtikel=artikel, versi__lte=hari)
-                .values_list("versi", flat=True)
-                .distinct()
-                .order_by("versi")
-                .last()
-            )
-            # SEMENTARA PAKAI .LAST()
-            penyusunversiterpilih = models.Penyusun.objects.filter(
-                KodeArtikel=artikel, versi=versiterakhirperbulan
-            )
-            datapenyusun = {}
-            hargafg = 0
-            for penyusun in penyusunversiterpilih:
-                dummy = {}
-                hargapenyusun = hargaakhirbulanperproduk[penyusun.KodeProduk]["data"][
-                    index
-                ]["hargasatuan"]
-                kuantitas = models.KonversiMaster.objects.get(
-                    KodePenyusun=penyusun
-                ).Allowance
+# def gethargafgperbulan(last_days, stopindex, awaltahun):
+#     hargaakhirbulanperproduk = gethargapurchasingperbulan(
+#         last_days, stopindex, awaltahun
+#     )
+#     # print(hargaakhirbulanperproduk)
+#     # print(asd)
+#     dataartikel = models.Artikel.objects.all()
+#     datahargafgartikel = {}
+#     for artikel in dataartikel:
+#         dataperbulan = {}
+#         """
+#         Models perbulan
+#         {}
+#         """
+#         modelsperbulan = {}
+#         for index, hari in enumerate(last_days[:stopindex]):
+#             # Mengambil data terakhir versi penyusun tiap bulannya
+#             versiterakhirperbulan = (
+#                 models.Penyusun.objects.filter(KodeArtikel=artikel, versi__lte=hari)
+#                 .values_list("versi", flat=True)
+#                 .distinct()
+#                 .order_by("versi")
+#                 .last()
+#             )
+#             # SEMENTARA PAKAI .LAST()
+#             penyusunversiterpilih = models.Penyusun.objects.filter(
+#                 KodeArtikel=artikel, versi=versiterakhirperbulan
+#             )
+#             datapenyusun = {}
+#             hargafg = 0
+#             for penyusun in penyusunversiterpilih:
+#                 dummy = {}
+#                 hargapenyusun = hargaakhirbulanperproduk[penyusun.KodeProduk]["data"][
+#                     index
+#                 ]["hargasatuan"]
+#                 kuantitas = models.KonversiMaster.objects.get(
+#                     KodePenyusun=penyusun
+#                 ).Allowance
 
-                hargabahanbakufg = hargapenyusun * kuantitas
-                hargafg += hargabahanbakufg
-                dummy["totalharga"] = hargabahanbakufg
-                dummy["kuantitas"] = kuantitas
-                dummy["harga"] = hargapenyusun
-                datapenyusun[penyusun.KodeProduk] = dummy
+#                 hargabahanbakufg = hargapenyusun * kuantitas
+#                 hargafg += hargabahanbakufg
+#                 dummy["totalharga"] = hargabahanbakufg
+#                 dummy["kuantitas"] = kuantitas
+#                 dummy["harga"] = hargapenyusun
+#                 datapenyusun[penyusun.KodeProduk] = dummy
 
-            dummy2 = {}
-            dummy2["penyusun"] = datapenyusun
-            dummy2["hargafg"] = hargafg
+#             dummy2 = {}
+#             dummy2["penyusun"] = datapenyusun
+#             dummy2["hargafg"] = hargafg
 
-            dataperbulan[index] = dummy2
-        datahargafgartikel[artikel] = dataperbulan
+#             dataperbulan[index] = dummy2
+#         datahargafgartikel[artikel] = dataperbulan
 
-    """Section Display"""
-    datadisplay = models.Display.objects.all()
-    datahargafgdisplay = {}
+#     """Section Display"""
+#     datadisplay = models.Display.objects.all()
+#     datahargafgdisplay = {}
 
-    # for display in datadisplay:
-    #     dataperbulan = {}
-    #     modelsperbulan = {}
-    #     for index,hari in enumerate(last_days[:stopindex]):
-    #         ambilpenyu
+#     # for display in datadisplay:
+#     #     dataperbulan = {}
+#     #     modelsperbulan = {}
+#     #     for index,hari in enumerate(last_days[:stopindex]):
+#     #         ambilpenyu
 
-    # print(datahargafgartikel)
-    # print(asdasd)
-    return datahargafgartikel
+#     # print(datahargafgartikel)
+#     # print(asdasd)
+#     return datahargafgartikel
 
 
 def getbarangmasuk(last_days, stopindex, awaltahun):
@@ -1721,9 +1718,9 @@ def getpenyusunartikelpertanggal(tanggal,kodeartikel):
                 KodeVersi__isdefault = True,
                 Lokasi__NamaLokasi="FG",
             )
-    datakonversimaster = models.KonversiMaster.objects.filter(KodePenyusun__in = penyusunversiterpilih)
+    # datakonversimaster = models.KonversiMaster.objects.filter(KodePenyusun__in = penyusunversiterpilih)
 
-    datapenyusun = datakonversimaster.values('KodePenyusun__KodeProduk__KodeProduk').annotate(total = Sum('Allowance'))
+    datapenyusun = penyusunversiterpilih.values('KodeProduk__KodeProduk').annotate(total = Sum('Allowance'))
     # print(datapenyusun)
 
     return datapenyusun
@@ -1854,10 +1851,10 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
                     total_artikeljadi = abs(total_mutasi)
                     penggunaanbahanbakufg = i['total'] * total_artikeljadi
                     # print(penggunaanbahanbakufg)
-                    if i['KodePenyusun__KodeProduk__KodeProduk'] in totalpenggunaanbahanbaku:
-                        totalpenggunaanbahanbaku[i['KodePenyusun__KodeProduk__KodeProduk']] += penggunaanbahanbakufg
+                    if i['KodeProduk__KodeProduk'] in totalpenggunaanbahanbaku:
+                        totalpenggunaanbahanbaku[i['KodeProduk__KodeProduk']] += penggunaanbahanbakufg
                     else:
-                        totalpenggunaanbahanbaku[i['KodePenyusun__KodeProduk__KodeProduk']] = penggunaanbahanbakufg
+                        totalpenggunaanbahanbaku[i['KodeProduk__KodeProduk']] = penggunaanbahanbakufg
                 # print(total_artikeljadi,kode_artikel,konversibahanbaku)
                 # print(totalpenggunaanbahanbaku)
                 # print(asd)
