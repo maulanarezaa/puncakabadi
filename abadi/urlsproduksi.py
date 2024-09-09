@@ -239,7 +239,7 @@ urlpatterns = [
         name="create_transaksi_subkon_terima",
     ),
     path(
-        "updatetransaksisubkonterima/<str:id>",
+        "updatetransaksisubkonkeluar/<str:id>",
         viewsproduksi.update_transaksi_subkon_terima,
         name="update_transaksi_subkon_terima",
     ),
