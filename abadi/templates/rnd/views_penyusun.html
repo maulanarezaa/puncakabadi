@@ -77,7 +77,7 @@
                     </div>
                     {% if versiterpilih %}
                     <div class="col-lg-2">
-                        <a href="{% url 'tambah_data_penyusunversi' id=kodeartikel.id versi=versiterpilih %}">
+                        <a href="{% url 'tambah_data_penyusunversi' id=kodeartikel.id versi=versiterpilihobj.pk %}">
                             <button type="button" class="btn btn-success btn-icon-text">
                                 <i class="typcn typcn-plus btn-icon-prepend"></i>
                                 Tambah Data Penyusun

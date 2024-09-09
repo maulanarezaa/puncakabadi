@@ -735,8 +735,11 @@ def detaillaporanbarangkeluar(request):
             datatransaksikeluar
         ) = getbarangkeluar(last_days, index, awaltahun)
         datatransaksikeluar = datatransaksikeluar[index-1]
-        rekapartikel,rekaptransaksidisplay,rekapdatabahankeluar,rekapgolongand,rekaptransaksilainlain = create_rekaptransaksikeluar(datatransaksikeluar)
-        print(rekapartikel)
+        rekapartikel,rekaptransaksidisplay,rekapdatabahankeluar,rekapgolongand,rekaptransaksilainlain,rekappemusnahanartikel,rekappemusnahanbahanbaku = create_rekaptransaksikeluar(datatransaksikeluar)
+        # print(rekapartikel)
+        # print(datatransaksikeluar['Pemusnahanartikel'])
+        print(rekappemusnahanbahanbaku)
+        print(rekappemusnahanartikel)
         return render(
             request,
             "ppic/detaillaporanbarangkeluar.html",
@@ -754,11 +757,17 @@ def detaillaporanbarangkeluar(request):
                 "nilaigold": datatransaksikeluar['Transaksigolongand']['totalbiaya'],
                 "transaksibahanbaku":datatransaksikeluar["Transaksibahanbaku"]['datatransaksi'],
                 "nilaitransaksibahanbaku":datatransaksikeluar["Transaksibahanbaku"]['totalbiaya'],
+                'pemusnahanbahanbaku' : datatransaksikeluar['Pemusnahanbahanbaku']['datatransaksi'],
+                'nilaipemusnahanbahanbaku' : datatransaksikeluar['Pemusnahanbahanbaku']['totalbiaya'],
+                'pemusnahanartikel' : datatransaksikeluar['Pemusnahanartikel']['transaksipemusnahan'],
+                'nilaipemusnahanartikel':datatransaksikeluar['Pemusnahanartikel']['totalbiayapemusnahan'],
                 "rekapartikel" : rekapartikel,
                 'rekapgolongand':rekapgolongand,
                 'rekaptransaksidisplay' : rekaptransaksidisplay,
                 'rekapbahankeluar' : rekapdatabahankeluar,
-                'rekaptransaksilainlain' : rekaptransaksilainlain
+                'rekaptransaksilainlain' : rekaptransaksilainlain,
+                'rekappemusnahanartikel' : rekappemusnahanartikel,
+                'rekappemusnahanbahanbaku' : rekappemusnahanbahanbaku
                 
                 
             },
@@ -777,6 +786,22 @@ def create_rekaptransaksikeluar (datatransaksikeluar):
             rekapartikel[i.DetailSPK.KodeArtikel] = {'Jumlah': i.Jumlah, "HargaFG":i.hargafg}
         rekapartikel[i.DetailSPK.KodeArtikel]['hargatotal'] = rekapartikel[i.DetailSPK.KodeArtikel]['Jumlah'] * rekapartikel[i.DetailSPK.KodeArtikel]['HargaFG']
         rekapartikel[i.DetailSPK.KodeArtikel]['inputmanual'] = i.inputmanual
+
+    '''Digunakan untuk membuat rekapitulasi pemusnahan artikel'''
+    datapemusnahanartikel = datatransaksikeluar["Pemusnahanartikel"]["transaksipemusnahan"]
+    # Rekap Artikel Keluar
+    rekappemusnahanartikel = {}
+    for i in datapemusnahanartikel:
+        # print(i.inputmanual)
+        if i.KodeArtikel in rekappemusnahanartikel:
+            rekappemusnahanartikel[i.KodeArtikel]['Jumlah'] += i.Jumlah
+        else:
+            rekappemusnahanartikel[i.KodeArtikel] = {'Jumlah': i.Jumlah, "HargaFG":i.hargafg}
+        rekappemusnahanartikel[i.KodeArtikel]['hargatotal'] = rekappemusnahanartikel[i.KodeArtikel]['Jumlah'] * rekappemusnahanartikel[i.KodeArtikel]['HargaFG']
+        rekappemusnahanartikel[i.KodeArtikel]['inputmanual'] = i.inputmanual
+    
+    print(rekappemusnahanartikel)
+    # print(asd)
 
     
     # Rekap Display Keluar
@@ -817,6 +842,18 @@ def create_rekaptransaksikeluar (datatransaksikeluar):
         else:
             rekapdatabahankeluar[i.DetailBahan] = {'Jumlah': i.Jumlah, "HargaFG":i.harga}
         rekapdatabahankeluar[i.DetailBahan]['hargatotal'] = rekapdatabahankeluar[i.DetailBahan]['Jumlah'] * rekapdatabahankeluar[i.DetailBahan]['HargaFG']
+    
+    # Rekap pemusnahan bahan baku
+    datapemusnahanbahanbaku = datatransaksikeluar["Pemusnahanbahanbaku"]['datatransaksi']
+    rekapdatapemusnahanbahanbaku = {}
+    for i in datapemusnahanbahanbaku:
+        if i.KodeBahanBaku in rekapdatapemusnahanbahanbaku:
+            rekapdatapemusnahanbahanbaku[i.KodeBahanBaku]['Jumlah'] += i.Jumlah
+        else:
+            rekapdatapemusnahanbahanbaku[i.KodeBahanBaku] = {'Jumlah': i.Jumlah, "HargaFG":i.harga}
+        rekapdatapemusnahanbahanbaku[i.KodeBahanBaku]['hargatotal'] = rekapdatapemusnahanbahanbaku[i.KodeBahanBaku]['Jumlah'] * rekapdatapemusnahanbahanbaku[i.KodeBahanBaku]['HargaFG']
+
+    print(rekapdatapemusnahanbahanbaku)
     # Rekap Golongan D Keluar
     rekapgold = datatransaksikeluar['Transaksigolongand']['datatransaksi']
     rekapgolongand = {}
@@ -838,7 +875,7 @@ def create_rekaptransaksikeluar (datatransaksikeluar):
         else:
             rekaptransaksilainlain[i.KodeProduk] = {'Jumlah' : i.jumlah, "Harga" : i.harga}
         rekaptransaksilainlain[i.KodeProduk]['hargatotal'] = rekaptransaksilainlain[i.KodeProduk]['Jumlah'] * rekaptransaksilainlain[i.KodeProduk]['Harga']
-    return rekapartikel,rekaptransaksidisplay,rekapdatabahankeluar,rekapgolongand,rekaptransaksilainlain
+    return rekapartikel,rekaptransaksidisplay,rekapdatabahankeluar,rekapgolongand,rekaptransaksilainlain,rekappemusnahanartikel,rekapdatapemusnahanbahanbaku
 
 
 def gethargapurchasingperbulanperproduk(tanggal,kodeproduk):
@@ -935,6 +972,16 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
             'detailpenyusun' : None,
 
     }
+        datamodelspemusnahanartikel = {
+            'transaksipemusnahan':None,
+            'totalbiayapemusnahan':None
+
+    }
+        datamodelspemusnahandisplay = {
+            'transaksipemusnahan':None,
+            'totalbiayapemusnahan':None
+
+    }
 
         datamodeldisplay ={
             'SPPBDisplay': None,
@@ -950,6 +997,10 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
             'totalbiaya' : None
         }
         datamodeltransaksibahanbaku = {
+            'datatransaksi' : None,
+            'totalbiaya' : None
+        }
+        datamodelpemusnahanbahanbaku = {
             'datatransaksi' : None,
             'totalbiaya' : None
         }
@@ -979,6 +1030,8 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
             datatransaksibahanbaku = models.DetailSPPB.objects.filter(
             DetailBahan__isnull = False,NoSPPB__Tanggal__range = (awaltahun,hari)
             )
+            datapemusnahanbahanbaku = models.PemusnahanBahanBaku.objects.filter(Tanggal__range = (awaltahun,hari))
+            datapemusnahanartikel = models.PemusnahanArtikel.objects.filter(Tanggal__range = (awaltahun,hari))
             
         else:
             datadetailsppb = models.DetailSPPB.objects.filter(
@@ -1003,6 +1056,9 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
             datatransaksibahanbaku = models.DetailSPPB.objects.filter(
             DetailBahan__isnull = False,NoSPPB__Tanggal__range = (last_days[index-1],hari)
             )
+            datapemusnahanbahanbaku = models.PemusnahanBahanBaku.objects.filter(Tanggal__range = (last_days[index-1],hari))
+            datapemusnahanartikel = models.PemusnahanArtikel.objects.filter(Tanggal__range = (last_days[index-1],hari))
+
 
         if datadetailsppb.exists():
             for detailsppb in datadetailsppb:
@@ -1071,6 +1127,38 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
         datamodeltransaksibahanbaku["datatransaksi"] = (datatransaksibahanbaku)
         datamodeltransaksibahanbaku["totalbiaya"] = (nilaitransaksibahan)
 
+        nilaipemusnahanbahanbaku = 0
+        for item in datapemusnahanbahanbaku:
+            
+            harga = hargapurchasingperbulan[item.KodeBahanBaku]["data"][index][
+                "hargasatuan"
+            ]
+            item.harga = harga
+            item.hargatotal = harga * item.Jumlah
+            # print(harga)
+            nilaipemusnahanbahanbaku += item.hargatotal
+
+        datamodelpemusnahanbahanbaku['datatransaksi'] = datapemusnahanbahanbaku
+        datamodelpemusnahanbahanbaku["totalbiaya"] = nilaipemusnahanbahanbaku
+
+        nilaipemusnahanartikel = 0
+        for item in datapemusnahanartikel:
+            ge = gethargafgterakhirberdasarkanmutasi(
+                   item.KodeArtikel, hari, hargapurchasingperbulan
+                )
+            
+
+            harga = item.Jumlah * ge[0]
+            item.hargafg = ge[0]
+            item.inputmanual = ge[1]
+            item.totalharga = harga
+
+            nilaipemusnahanartikel += item.totalharga
+        
+        datamodelspemusnahanartikel['transaksipemusnahan'] = datapemusnahanartikel
+        # datamodelssppb["detailpenyusun"] = datapenyusun
+        datamodelspemusnahanartikel['totalbiayapemusnahan'] = nilaipemusnahanartikel
+
         for display in datatransaksisppbdisplay:
 
             
@@ -1111,7 +1199,7 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
         datamodeldisplay['totalbiayasppb']= (totalbiayadisplay)
 
 
-        biayakeluar[index] = totalbiayakeluar + nilaigold + nilailainlain + totalbiayadisplay + nilaitransaksibahan
+        biayakeluar[index] = totalbiayakeluar + nilaigold + nilailainlain + totalbiayadisplay + nilaitransaksibahan + nilaipemusnahanartikel + nilaipemusnahanbahanbaku
         detailbiaya[index] = {
             "artikelkeluar": totalbiayakeluar,
             "nilaigold": nilaigold,
@@ -1122,7 +1210,7 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
         # print("\n\n\n\n", biayakeluar, detailbiaya)
         # pritn(asd)
         
-        listdatakeluar.append({'SPPBArtikel':datamodelssppb,'SPPBDisplay': datamodeldisplay,'Transaksigolongand':datamodeltransaksigolongand,"Transaksibahanbaku":datamodeltransaksibahanbaku,"Transaksilainlain":datamodeltransaksilainlain,'datapenyusunartikel':datapenyusun,"totalkeluar":totalbiayakeluar + nilaigold + nilailainlain + totalbiayadisplay + nilaitransaksibahan})
+        listdatakeluar.append({'SPPBArtikel':datamodelssppb,'SPPBDisplay': datamodeldisplay,'Transaksigolongand':datamodeltransaksigolongand,"Transaksibahanbaku":datamodeltransaksibahanbaku,"Transaksilainlain":datamodeltransaksilainlain,'datapenyusunartikel':datapenyusun,"totalkeluar":totalbiayakeluar + nilaigold + nilailainlain + totalbiayadisplay + nilaitransaksibahan + nilaipemusnahanbahanbaku + nilaipemusnahanartikel,'Pemusnahanbahanbaku':datamodelpemusnahanbahanbaku,'Pemusnahanartikel':datamodelspemusnahanartikel,})
 
         
     return (
@@ -2943,7 +3031,7 @@ def exportlaporanbulananexcel(request):
     ) = getbarangkeluar(last_days, index, awaltahun,hargapurchasing)
     waktugetbarangkeluar = time.time()
     datatransaksikeluar = datatransaksikeluar[index-1]
-    rekapartikel,rekaptransaksidisplay,rekapdatabahankeluar,rekapgolongand,rekaptransaksilainlain = create_rekaptransaksikeluar(datatransaksikeluar)
+    rekapartikel,rekaptransaksidisplay,rekapdatabahankeluar,rekapgolongand,rekaptransaksilainlain,rekappemusnahanartikel,rekappemusnahanbahanbaku = create_rekaptransaksikeluar(datatransaksikeluar)
     """SECTION BARANG MASUK"""
     waktustartdatatransaksimasuk = time.time()
     barangmasuk = getbarangmasuk(last_days, index, awaltahun)
@@ -3054,6 +3142,31 @@ def exportlaporanbulananexcel(request):
     # print(datamodelkeluar)
     totalbiayakeluar = sum(datamodelkeluar["Total Biaya"])
     dfdatakeluar = pd.DataFrame(datamodelkeluar)
+
+    datamodelkeluar = {
+        "Tanggal": [],
+        "Artikel": [],
+        'Lokasi' : [],
+        "Jumlah": [],
+        "Harga FG": [],
+        "Total Biaya": [],
+    }
+    print(datatransaksikeluar['SPPBArtikel'])
+    for data in datatransaksikeluar['Pemusnahanartikel']['transaksipemusnahan']:
+        # print(data)
+
+        datamodelkeluar["Tanggal"].append(data.Tanggal)
+        datamodelkeluar["Jumlah"].append(data.Jumlah)
+        datamodelkeluar['Lokasi'].append(data.lokasi)
+        datamodelkeluar["Artikel"].append(data.KodeArtikel)
+        datamodelkeluar["Harga FG"].append(data.hargafg)
+        datamodelkeluar["Total Biaya"].append(data.totalharga)
+
+    # print(datamodelkeluar)
+    totalbiayapemusnahanartikel = sum(datamodelkeluar["Total Biaya"])
+    dfdatapemusnahanartikel = pd.DataFrame(datamodelkeluar)
+    # print(dfdatapemusnahanartikel)
+    # print(asd)
     
     datamodelstransaksigold = {
         "Kode Produk": [],
@@ -3119,6 +3232,27 @@ def exportlaporanbulananexcel(request):
     dftransaksibahanbaku = pd.DataFrame(datamodelstransaksibahanbaku)
     # print(dftransaksibahanbaku)
     totalbiayakeluartransaksibahanbaku = sum(datamodelstransaksibahanbaku["Total Biaya"])
+    datamodelspemusnahanbahanbaku = {
+        "Kode Produk": [],
+        "Nama Produk": [],
+        "Unit": [],
+        "Harga Satuan": [],
+        "Jumlah": [],
+        "Total Biaya": [],
+    }
+
+    for item in datatransaksikeluar['Pemusnahanbahanbaku']['datatransaksi']:
+        datamodelspemusnahanbahanbaku["Kode Produk"].append(item.KodeBahanBaku.KodeProduk)
+        datamodelspemusnahanbahanbaku["Unit"].append(item.KodeBahanBaku.unit)
+        datamodelspemusnahanbahanbaku["Nama Produk"].append(item.KodeBahanBaku.NamaProduk)
+        datamodelspemusnahanbahanbaku["Jumlah"].append(item.Jumlah)
+        datamodelspemusnahanbahanbaku["Total Biaya"].append(item.hargatotal)
+        datamodelspemusnahanbahanbaku["Harga Satuan"].append(item.harga)
+    
+    dfpemusnahanbahanbaku = pd.DataFrame(datamodelspemusnahanbahanbaku)
+    print(dfpemusnahanbahanbaku)
+    # print(asd)
+    totalbiayapemusnahanbahanbaku = sum(datamodelspemusnahanbahanbaku["Total Biaya"])
     # Transaksi Display
     datamodeldisplay = {
         "Tanggal Keluar": [],
@@ -3160,8 +3294,21 @@ def exportlaporanbulananexcel(request):
         datamodelsrekapartikelkeluar["Jumlah"].append( data['Jumlah'])
     
     dfrekapartikelkeluar = pd.DataFrame(datamodelsrekapartikelkeluar)
-    print(dfrekapartikelkeluar)
-    print(rekaptransaksidisplay)
+    datamodelsrekappemusnahanartikel = {
+        'Kode Artikel' : [],
+        'Jumlah' : [],
+        'Harga FG' : [],
+        'Harga Total': []
+    }
+    for artikel,data in rekappemusnahanartikel.items():
+        datamodelsrekappemusnahanartikel['Kode Artikel'].append( artikel.KodeArtikel)
+        datamodelsrekappemusnahanartikel["Harga FG"].append( data['HargaFG'])
+        datamodelsrekappemusnahanartikel['Harga Total'].append( data['hargatotal'])
+        datamodelsrekappemusnahanartikel["Jumlah"].append( data['Jumlah'])
+    
+    dfrekappemusnahanartikel = pd.DataFrame(datamodelsrekappemusnahanartikel)
+    print(dfrekappemusnahanartikel)
+    # print(rekaptransaksidisplay)
     
     # Rekap transaksi display
     datamodelsdisplaykeluar = {
@@ -3201,6 +3348,26 @@ def exportlaporanbulananexcel(request):
     
     dfrekapbahanbakukeluar = pd.DataFrame(datamodelstransaksibahanbaku)
     print(dfrekapbahanbakukeluar)
+    print(rekapgolongand)
+
+    datamodelspemusnahanbahanbaku = {
+        'Kode Bahan Baku' : [],
+        'Nama Bahan Baku' : [],
+        'Satuan' : [],
+        'Jumlah' : [],
+        'Harga FG' : [],
+        'Harga Total': []
+    }
+    for artikel,data in rekappemusnahanbahanbaku.items():
+        datamodelspemusnahanbahanbaku['Kode Bahan Baku'].append( artikel.KodeProduk)
+        datamodelspemusnahanbahanbaku['Nama Bahan Baku'].append( artikel.NamaProduk)
+        datamodelspemusnahanbahanbaku['Satuan'].append( artikel.unit)
+        datamodelspemusnahanbahanbaku["Harga FG"].append( data['HargaFG'])
+        datamodelspemusnahanbahanbaku['Harga Total'].append( data['hargatotal'])
+        datamodelspemusnahanbahanbaku["Jumlah"].append( data['Jumlah'])
+    
+    dfrekappemusnahanbahanbaku = pd.DataFrame(datamodelspemusnahanbahanbaku)
+    print(dfrekappemusnahanbahanbaku)
     print(rekapgolongand)
 
     datamodelstransaksigolongand = {
@@ -3420,7 +3587,7 @@ def exportlaporanbulananexcel(request):
             apply_borders_thin(writer.sheets['Barang Masuk'],2,maxrow+2,maxcol)
             adjust_column_width(writer.sheets['Barang Masuk'],df2,1,1)
         '''LAPORAN REKAP BARANG KELUAR'''
-        if not dfrekapartikelkeluar.empty or not dfrekapdisplaykeluar.empty or not dfrekaptransaksilainlain.empty or not dfrekapgolongand.empty:
+        if not dfrekapartikelkeluar.empty or not dfrekapdisplaykeluar.empty or not dfrekaptransaksilainlain.empty or not dfrekapgolongand.empty or not dfrekappemusnahanartikel or not dfrekappemusnahanbahanbaku:
             # Artikel Keluar
             maxcol = 0
             maxrow = 0
@@ -3437,7 +3604,7 @@ def exportlaporanbulananexcel(request):
                 writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+2, column=maxcol, value=totalbiayakeluar)
                 writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=maxrow+3, start_column=1, end_row=maxrow+3, end_column=maxcol-1)
                 writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column=1).value = f"Total Harga Keluar Bulan {listbulan[waktuobj.month - 1]}"
-                writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column=maxcol, value=totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain)
+                writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column=maxcol, value=totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain + totalbiayapemusnahanbahanbaku + totalbiayapemusnahanartikel)
                 apply_number_format(writer.sheets['Rekap Barang Keluar'], 2, maxrow+3, 1, maxcol)
                 apply_borders_thin(writer.sheets['Rekap Barang Keluar'], 2, maxrow+3, maxcol)
                 adjust_column_width(writer.sheets['Rekap Barang Keluar'], dfrekapartikelkeluar, 1, 1)
@@ -3480,9 +3647,35 @@ def exportlaporanbulananexcel(request):
                 apply_number_format(writer.sheets['Rekap Barang Keluar'], 2, maxrow+2, maxcolprevdf+2, maxcol)
                 apply_borders_thin(writer.sheets['Rekap Barang Keluar'], 2, maxrow+2, maxcol, maxcolprevdf+2)
                 adjust_column_width(writer.sheets['Rekap Barang Keluar'], dfrekapgolongand, 1, maxcolprevdf+2)
+            
+            if not dfrekappemusnahanartikel.empty:
+                dfrekappemusnahanartikel.to_excel(writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Rekap Barang Keluar")
+                maxcolprevdf = maxcol
+                writer.sheets["Rekap Barang Keluar"].cell(row=1, column=maxcol+2, value='Rekap Pemusnahan Artikel')
+                maxrow = len(dfrekappemusnahanartikel) + 1
+                maxcol = len(dfrekappemusnahanartikel.columns) + maxcol + 1
+                writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2, end_row=maxrow+2, end_column=maxcol-1)
+                writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+2, column=maxcolprevdf+2).value = "Total Harga"
+                writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+2, column=maxcol, value=totalbiayapemusnahanartikel)
+                apply_number_format(writer.sheets['Rekap Barang Keluar'], 2, maxrow+2, maxcolprevdf+2, maxcol)
+                apply_borders_thin(writer.sheets['Rekap Barang Keluar'], 2, maxrow+2, maxcol, maxcolprevdf+2)
+                adjust_column_width(writer.sheets['Rekap Barang Keluar'], dfrekappemusnahanartikel, 1, maxcolprevdf+2)
+
+            if not dfrekappemusnahanbahanbaku.empty:
+                dfrekappemusnahanbahanbaku.to_excel(writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Rekap Barang Keluar")
+                maxcolprevdf = maxcol
+                writer.sheets["Rekap Barang Keluar"].cell(row=1, column=maxcol+2, value='Rekap Pemusnahan Bahan Baku')
+                maxrow = len(dfrekappemusnahanbahanbaku) + 1
+                maxcol = len(dfrekappemusnahanbahanbaku.columns) + maxcol + 1
+                writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2, end_row=maxrow+2, end_column=maxcol-1)
+                writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+2, column=maxcolprevdf+2).value = "Total Harga"
+                writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+2, column=maxcol, value=totalbiayapemusnahanbahanbaku)
+                apply_number_format(writer.sheets['Rekap Barang Keluar'], 2, maxrow+2, maxcolprevdf+2, maxcol)
+                apply_borders_thin(writer.sheets['Rekap Barang Keluar'], 2, maxrow+2, maxcol, maxcolprevdf+2)
+                adjust_column_width(writer.sheets['Rekap Barang Keluar'], dfrekappemusnahanbahanbaku, 1, maxcolprevdf+2)
 
         '''LAPORAN BARANG KELUAR'''
-        if not dfdatakeluar.empty or not dfdatakeluardisplay.empty or not dftransaksibahanbaku.empty or not dftransaksigold.empty or not dftransaksilainlain.empty:
+        if not dfdatakeluar.empty or not dfdatakeluardisplay.empty or not dftransaksibahanbaku.empty or not dftransaksigold.empty or not dftransaksilainlain.empty or not dfpemusnahanbahanbaku or not dfdatapemusnahanartikel:
         # Artikel Keluar
             maxcol = 0
             maxrow = 0
@@ -3500,7 +3693,7 @@ def exportlaporanbulananexcel(request):
                 writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayakeluar)
                 writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+3, start_column=1,end_row = maxrow+3,end_column= maxcol-1)
                 writer.sheets["Barang Keluar"].cell(row=maxrow+3, column = 1).value = f"Total Harga Keluar Bulan {listbulan[waktuobj.month - 1]}"
-                writer.sheets["Barang Keluar"].cell(row=maxrow+3, column = maxcol,value = totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain)
+                writer.sheets["Barang Keluar"].cell(row=maxrow+3, column = maxcol,value = totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain + totalbiayapemusnahanartikel + totalbiayapemusnahanbahanbaku)
                 apply_number_format(writer.sheets['Barang Keluar'],2,maxrow+3,1,maxcol)
                 # print(totalbiayakeluar,totalbiayakeluargold,totalbiayakeluardisplay,totalbiayakeluartransaksibahanbaku,totalbiayakeluartransaksilainlain)
                 apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+3,maxcol)
@@ -3569,6 +3762,38 @@ def exportlaporanbulananexcel(request):
                 apply_number_format(writer.sheets['Barang Keluar'],2,maxrow+2,maxcolprevdf+2,maxcol)
                 apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
                 adjust_column_width(writer.sheets['Barang Keluar'],dftransaksigold,1,maxcolprevdf+2)
+
+            if not dfpemusnahanbahanbaku.empty:
+            # Transaksi Golongan D
+                dfpemusnahanbahanbaku.to_excel(
+                                writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Barang Keluar"
+                )
+                maxcolprevdf = maxcol
+                writer.sheets["Barang Keluar"].cell(row=1, column = maxcol+2,value ='Pemusnahan Bahan Baku')
+                maxrow = len(dfpemusnahanbahanbaku)+1
+                maxcol = len(dfpemusnahanbahanbaku.columns)+ maxcol + 1
+                writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
+                writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
+                writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayapemusnahanbahanbaku)
+                apply_number_format(writer.sheets['Barang Keluar'],2,maxrow+2,maxcolprevdf+2,maxcol)
+                apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
+                adjust_column_width(writer.sheets['Barang Keluar'],dfpemusnahanbahanbaku,1,maxcolprevdf+2)
+
+            if not dfdatapemusnahanartikel.empty:
+            # Transaksi Golongan D
+                dfdatapemusnahanartikel.to_excel(
+                                writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Barang Keluar"
+                )
+                maxcolprevdf = maxcol
+                writer.sheets["Barang Keluar"].cell(row=1, column = maxcol+2,value ='Pemusnahan Artikel')
+                maxrow = len(dfdatapemusnahanartikel)+1
+                maxcol = len(dfdatapemusnahanartikel.columns)+ maxcol + 1
+                writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2,end_row = maxrow+2,end_column= maxcol-1)
+                writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcolprevdf+2).value = "Total Harga"
+                writer.sheets["Barang Keluar"].cell(row=maxrow+2, column = maxcol,value = totalbiayapemusnahanartikel)
+                apply_number_format(writer.sheets['Barang Keluar'],2,maxrow+2,maxcolprevdf+2,maxcol)
+                apply_borders_thin(writer.sheets['Barang Keluar'],2,maxrow+2,maxcol ,maxcolprevdf+2)
+                adjust_column_width(writer.sheets['Barang Keluar'],dfdatapemusnahanartikel,1,maxcolprevdf+2)
 
         '''LAPORAN SALDO AWAL GUDANG'''
         if not dfstokgudang.empty:
@@ -3880,12 +4105,27 @@ def exportlaporanbulananexcelkeseluruhan(request):
     listdatabahanbakukeluar = []
     listtransaksilainlain = []
     listtransaksigolongand = []
+    listpemusnahanbahanbaku = []
+    listpemusnahanartikel = []
+
+    listrekapdatamodelkeluar = []
+    listrekapdatadisplaykeluar = []
+    listrekapdatabahanbakukeluar = []
+    listrekaptransaksilainlain = []
+    listrekaptransaksigolongand = []
+    listrekappemusnahanbahanbaku = []
+    listrekappemusnahanartikel = []
+    
     totalbiayatransaksiartikel = 0
     totalbiayatransaksidisplay = 0
     totalbiayatransaksibahanbaku = 0
     totalbiayatransaksigolongand = 0
     totalbiayatransaksilainlain= 0
+    totalbiayapemusnahanartikel = 0
+    totalbiayapemusnahanbahanbaku = 0
     for item in datatransaksikeluar:
+
+        '''Detail Transaksi'''
         datamodelkeluar = {
             "Tanggal Keluar": [],
             "No SPPB": [],
@@ -3909,6 +4149,27 @@ def exportlaporanbulananexcelkeseluruhan(request):
         totalbiayatransaksiartikel += totalbiayakeluar
         listdatamodelkeluar.append([df,totalbiayakeluar])
 
+        datamodelkeluar = {
+"Tanggal": [],
+        "Artikel": [],
+        'Lokasi' : [],
+        "Jumlah": [],
+        "Harga FG": [],
+        "Total Biaya": [],
+        }
+        for data in item['Pemusnahanartikel']['transaksipemusnahan']:
+            print(data)
+            datamodelkeluar["Tanggal"].append(data.Tanggal)
+            datamodelkeluar["Jumlah"].append(data.Jumlah)
+            datamodelkeluar['Lokasi'].append(data.lokasi)
+            datamodelkeluar["Artikel"].append(data.KodeArtikel)
+            datamodelkeluar["Harga FG"].append(data.hargafg)
+            datamodelkeluar["Total Biaya"].append(data.totalharga)
+        df = pd.DataFrame(datamodelkeluar)
+        biayapemusnahanartikel = sum(datamodelkeluar["Total Biaya"])
+        totalbiayapemusnahanartikel += biayapemusnahanartikel
+        listpemusnahanartikel.append([df,biayapemusnahanartikel])
+
         
         datamodelstransaksigold = {
         "Kode Produk": [],
@@ -3930,6 +4191,29 @@ def exportlaporanbulananexcelkeseluruhan(request):
         totalbiayakeluargold = sum(datamodelstransaksigold["Total Biaya"])
         totalbiayatransaksigolongand +=totalbiayakeluargold
         listtransaksigolongand.append([dftransaksigold,totalbiayakeluargold])
+
+        datamodelspemusnahanbahanbaku = {
+                "Kode Produk": [],
+        "Nama Produk": [],
+        "Unit": [],
+        "Harga Satuan": [],
+        "Jumlah": [],
+        "Total Biaya": [],
+        }
+    
+        for data in item['Pemusnahanbahanbaku']['datatransaksi']:
+           
+            datamodelspemusnahanbahanbaku["Kode Produk"].append(data.KodeBahanBaku.KodeProduk)
+            datamodelspemusnahanbahanbaku["Unit"].append(data.KodeBahanBaku.unit)
+            datamodelspemusnahanbahanbaku["Nama Produk"].append(data.KodeBahanBaku.NamaProduk)
+            datamodelspemusnahanbahanbaku["Jumlah"].append(data.Jumlah)
+            datamodelspemusnahanbahanbaku["Total Biaya"].append(data.hargatotal)
+            datamodelspemusnahanbahanbaku["Harga Satuan"].append(data.harga)
+    
+        df = pd.DataFrame(datamodelspemusnahanbahanbaku)
+        biayapemusnahanbahanbaku = sum(datamodelspemusnahanbahanbaku["Total Biaya"])
+        totalbiayapemusnahanbahanbaku +=biayapemusnahanbahanbaku
+        listpemusnahanbahanbaku.append([df,biayapemusnahanbahanbaku])
 
 
         datamodelstransaksilainlain = {
@@ -4002,6 +4286,130 @@ def exportlaporanbulananexcelkeseluruhan(request):
         totalbiayatransaksidisplay += totalbiayakeluardisplay
         listdatadisplaykeluar.append([dfdatakeluardisplay,totalbiayakeluardisplay])
 
+        '''Rekap Artikel Keluar'''
+        rekapartikel,rekaptransaksidisplay,rekapdatabahankeluar,rekapgolongand,rekaptransaksilainlain,rekappemusnahanartikel,rekappemusnahanbahanbaku = create_rekaptransaksikeluar(item)
+        datamodelsrekapartikelkeluar = {
+        'Kode Artikel' : [],
+        'Jumlah' : [],
+        'Harga FG' : [],
+        'Harga Total': []
+    }
+        for artikel,data in rekapartikel.items():
+            datamodelsrekapartikelkeluar['Kode Artikel'].append( artikel.KodeArtikel)
+            datamodelsrekapartikelkeluar["Harga FG"].append( data['HargaFG'])
+            datamodelsrekapartikelkeluar['Harga Total'].append( data['hargatotal'])
+            datamodelsrekapartikelkeluar["Jumlah"].append( data['Jumlah'])
+        dfrekapartikelkeluar = pd.DataFrame(datamodelsrekapartikelkeluar)
+        listrekapdatamodelkeluar.append((dfrekapartikelkeluar,totalbiayatransaksiartikel))
+
+        datamodelsrekappemusnahanartikel = {
+        'Kode Artikel' : [],
+        'Jumlah' : [],
+        'Harga FG' : [],
+        'Harga Total': []
+    }
+        for artikel,data in rekappemusnahanartikel.items():
+            datamodelsrekappemusnahanartikel['Kode Artikel'].append( artikel.KodeArtikel)
+            datamodelsrekappemusnahanartikel["Harga FG"].append( data['HargaFG'])
+            datamodelsrekappemusnahanartikel['Harga Total'].append( data['hargatotal'])
+            datamodelsrekappemusnahanartikel["Jumlah"].append( data['Jumlah'])
+        
+        dfrekappemusnahanartikel = pd.DataFrame(datamodelsrekappemusnahanartikel)
+        listrekappemusnahanartikel.append([dfrekappemusnahanartikel,totalbiayapemusnahanartikel])
+
+        datamodelsdisplaykeluar = {
+        'Kode Display' : [],
+        'No SPK' : [],
+        'Jumlah' : [],
+        'Harga Satuan' : [],
+        'Harga Total': []
+    }
+        for display, data_nospk in rekaptransaksidisplay.items():
+            for spk, details in data_nospk['NoSPK'].items():
+                datamodelsdisplaykeluar['Kode Display'].append(display)
+                datamodelsdisplaykeluar['No SPK'].append(spk)
+                datamodelsdisplaykeluar['Jumlah'].append(details['Jumlah'])
+                datamodelsdisplaykeluar['Harga Satuan'].append(details['hargasatuan'])
+                datamodelsdisplaykeluar['Harga Total'].append(details['Hargatotal'])
+        dfrekapdisplaykeluar = pd.DataFrame(datamodelsdisplaykeluar)
+        listrekapdatadisplaykeluar.append([dfrekapdisplaykeluar,totalbiayatransaksidisplay])
+
+        datamodelstransaksibahanbaku = {
+        'Kode Bahan Baku' : [],
+        'Nama Bahan Baku' : [],
+        'Satuan' : [],
+        'Jumlah' : [],
+        'Harga FG' : [],
+        'Harga Total': []
+    }
+        for artikel,data in rekapdatabahankeluar.items():
+            datamodelstransaksibahanbaku['Kode Bahan Baku'].append( artikel.KodeProduk)
+            datamodelstransaksibahanbaku['Nama Bahan Baku'].append( artikel.NamaProduk)
+            datamodelstransaksibahanbaku['Satuan'].append( artikel.unit)
+            datamodelstransaksibahanbaku["Harga FG"].append( data['HargaFG'])
+            datamodelstransaksibahanbaku['Harga Total'].append( data['hargatotal'])
+            datamodelstransaksibahanbaku["Jumlah"].append( data['Jumlah'])
+        
+        dfrekapbahanbakukeluar = pd.DataFrame(datamodelstransaksibahanbaku)
+        listrekapdatabahanbakukeluar.append([dfrekapbahanbakukeluar,totalbiayatransaksibahanbaku])
+
+        datamodelspemusnahanbahanbaku = {
+        'Kode Bahan Baku' : [],
+        'Nama Bahan Baku' : [],
+        'Satuan' : [],
+        'Jumlah' : [],
+        'Harga FG' : [],
+        'Harga Total': []
+    }
+        for artikel,data in rekappemusnahanbahanbaku.items():
+            datamodelspemusnahanbahanbaku['Kode Bahan Baku'].append( artikel.KodeProduk)
+            datamodelspemusnahanbahanbaku['Nama Bahan Baku'].append( artikel.NamaProduk)
+            datamodelspemusnahanbahanbaku['Satuan'].append( artikel.unit)
+            datamodelspemusnahanbahanbaku["Harga FG"].append( data['HargaFG'])
+            datamodelspemusnahanbahanbaku['Harga Total'].append( data['hargatotal'])
+            datamodelspemusnahanbahanbaku["Jumlah"].append( data['Jumlah'])
+        
+        dfrekappemusnahanbahanbaku = pd.DataFrame(datamodelspemusnahanbahanbaku)
+        listrekappemusnahanbahanbaku.append([dfrekappemusnahanbahanbaku,totalbiayapemusnahanbahanbaku])
+
+        datamodelstransaksigolongand = {
+        'Kode Bahan Baku' : [],
+        'Nama Bahan Baku' : [],
+        'Satuan' : [],
+        'Jumlah' : [],
+        'Harga FG' : [],
+        'Harga Total': []
+    }
+        for artikel,data in rekapgolongand.items():
+            datamodelstransaksigolongand['Kode Bahan Baku'].append( artikel.KodeProduk)
+            datamodelstransaksigolongand['Nama Bahan Baku'].append( artikel.NamaProduk)
+            datamodelstransaksigolongand['Satuan'].append( artikel.unit)
+            datamodelstransaksigolongand["Harga FG"].append( data['Harga'])
+            datamodelstransaksigolongand['Harga Total'].append( data['hargatotal'])
+            datamodelstransaksigolongand["Jumlah"].append( data['Jumlah'])
+        
+        dfrekapgolongand = pd.DataFrame(datamodelstransaksigolongand)
+        listrekaptransaksigolongand.append([dfrekapgolongand,totalbiayatransaksigolongand])
+
+        datamodelstransaksilainlain = {
+        'Kode Bahan Baku' : [],
+        'Nama Bahan Baku' : [],
+        'Satuan' : [],
+        'Jumlah' : [],
+        'Harga FG' : [],
+        'Harga Total': []
+    }
+        for artikel,data in rekaptransaksilainlain.items():
+            datamodelstransaksilainlain['Kode Bahan Baku'].append( artikel.KodeProduk)
+            datamodelstransaksilainlain['Nama Bahan Baku'].append( artikel.NamaProduk)
+            datamodelstransaksilainlain['Satuan'].append( artikel.unit)
+            datamodelstransaksilainlain["Harga FG"].append( data['Harga'])
+            datamodelstransaksilainlain['Harga Total'].append( data['hargatotal'])
+            datamodelstransaksilainlain["Jumlah"].append( data['Jumlah'])
+        
+        dfrekaptransaksilainlain = pd.DataFrame(datamodelstransaksilainlain)
+        listrekaptransaksilainlain.append([dfrekaptransaksilainlain,totalbiayatransaksilainlain])
+
     # print(listdatamodelkeluar)
     # print(listtransaksigolongand)
     # print(listdatabahanbakukeluar)
@@ -4014,6 +4422,8 @@ def exportlaporanbulananexcelkeseluruhan(request):
         'Total Transaksi Bahan Baku': [totalbiayatransaksibahanbaku],
         'Total Transaksi Golongan D': [totalbiayatransaksigolongand],
         'Total Transaksi Lain-Lain': [totalbiayatransaksilainlain],
+        'Total Pemusnahan Artikel' : [totalbiayapemusnahanartikel],
+        'Total Pemusnahan Bahan Baku' : [totalbiayapemusnahanbahanbaku]
     }
     dataframetransaksikeluar = pd.DataFrame(tabeltransaksi)
     """4. Sheet Stock Bahan Baku Gudang"""
@@ -4234,9 +4644,231 @@ def exportlaporanbulananexcelkeseluruhan(request):
         print(len(listdatabahanbakukeluar),len(listdatamodelkeluar),len(listdatadisplaykeluar))
         print(listdatabahanbakukeluar)
         # print(asd)
+        '''LAPORAN REKAP BARANG KELUAR'''
+
+        if len(listrekapdatabahanbakukeluar) != 0 or len(listrekapdatamodelkeluar)!=0 or len(listrekapdatadisplaykeluar) !=0 or len(listrekaptransaksigolongand)!=0 or len(listrekaptransaksilainlain) !=0 or len(listrekappemusnahanbahanbaku) !=0 or len(listrekappemusnahanartikel) !=0:
+            maxcolumn  = 0
+            maxrow = 0
+            maxcolprevdf = 0
+            # ARTIKEL KELUAR (SPPB)
+            if len(listrekapdatamodelkeluar) != 0:
+                startrow = 0
+                for i, datakeluar in enumerate(listrekapdatamodelkeluar):
+                    if len(datakeluar[0]) == 0:
+                        continue 
+                    datakeluar[0].to_excel(
+                    writer, index=False,startcol = 0, startrow=startrow+1, sheet_name="Rekap Barang Keluar"
+                )
+                    maxrow = len(datakeluar[0])+1
+                    maxcol = len(datakeluar[0].columns)
+                    writer.sheets["Rekap Barang Keluar"].cell(row=startrow+1, column = 1,value =listbulan[i])
+                    writer.sheets["Rekap Barang Keluar"].cell(row=1, column = 2,value ='Artikel Keluar')
+                    writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=maxrow+startrow+2, start_column=1,end_row = maxrow+startrow+2,end_column= maxcol-1)
+                    writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+startrow+2, column = 1).value = "Total Harga"
+                    writer.sheets["Rekap Barang Keluar"].cell(row=startrow+maxrow+2, column = maxcol,value = datakeluar[1])
+                    # writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=maxrow+3, start_column=1,end_row = maxrow+3,end_column= maxcol-1)
+                    # writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column = 1).value = f"Total Harga Keluar Bulan {listbulan[waktuobj.month - 1]}"
+                    # writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column = maxcol,value = totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain)
+                    apply_number_format(writer.sheets['Rekap Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+1,maxcol+maxcolprevdf)
+                    apply_borders_thin(writer.sheets['Rekap Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+maxcol,maxcolprevdf+1)
+                    adjust_column_width(writer.sheets['Rekap Barang Keluar'],datakeluar[0],startrow+2,maxcolprevdf+1)
+                    startrow +=maxrow+3
+                maxcolprevdf += maxcol+1
+
+            # DISPLAY KELUAR (SPPB)
+            if len(listrekapdatadisplaykeluar) != 0:
+                startrow = 0
+                for i, datakeluar in enumerate(listrekapdatadisplaykeluar):
+                    if len(datakeluar[0]) == 0:
+                        continue 
+                    
+                    datakeluar[0].to_excel(
+                    writer, index=False,startcol = maxcolprevdf, startrow=startrow+1, sheet_name="Rekap Barang Keluar"
+                )
+                    
+                    maxrow = len(datakeluar[0])+1
+                    maxcol = len(datakeluar[0].columns)
+                    print(maxcolprevdf,startrow,maxrow,maxcol)
+                    # print(asd)
+                    writer.sheets["Rekap Barang Keluar"].cell(row=startrow+1, column = maxcolprevdf+1,value =listbulan[i])
+                    writer.sheets["Rekap Barang Keluar"].cell(row=1, column = maxcolprevdf+2,value ='Display Keluar')
+                    # writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=startrow+maxrow+2, start_column=maxcolprevdf+1,end_row = maxrow+2,end_column= maxcolprevdf+maxcol-1)
+                    writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+startrow+2, column = maxcolprevdf+1).value = "Total Harga"
+                    writer.sheets["Rekap Barang Keluar"].cell(row=startrow+maxrow+2, column = maxcolprevdf+maxcol,value = datakeluar[1])
+                    # writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=maxrow+3, start_column=1,end_row = maxrow+3,end_column= maxcol-1)
+                    # writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column = 1).value = f"Total Harga Keluar Bulan {listbulan[waktuobj.month - 1]}"
+                    # writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column = maxcol,value = totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain)
+                    apply_number_format(writer.sheets['Rekap Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+1,maxcol+maxcolprevdf)
+                    apply_borders_thin(writer.sheets['Rekap Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+maxcol,maxcolprevdf+1)
+                    adjust_column_width(writer.sheets['Rekap Barang Keluar'],datakeluar[0],startrow+2,maxcolprevdf+1)
+                    startrow +=maxrow+3
+                maxcolprevdf += maxcol+1
+            
+            # Bahan Baku Keluar (SPPB)
+            if len(listrekapdatabahanbakukeluar) != 0:
+                startrow = 0
+                for i, datakeluar in enumerate(listrekapdatabahanbakukeluar):
+                    if len(datakeluar[0]) == 0:
+                        continue 
+        
+                    datakeluar[0].to_excel(
+                    writer, index=False,startcol = maxcolprevdf, startrow=startrow+1, sheet_name="Rekap Barang Keluar"
+                )
+                    
+                    maxrow = len(datakeluar[0])+1
+                    maxcol = len(datakeluar[0].columns)
+                    print(maxcolprevdf,startrow,maxrow,maxcol)
+                    # print(asd)
+                    writer.sheets["Rekap Barang Keluar"].cell(row=startrow+1, column = maxcolprevdf+1,value =listbulan[i])
+                    writer.sheets["Rekap Barang Keluar"].cell(row=1, column = maxcolprevdf+2,value ='Bahan Baku Keluar')
+                    writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=startrow+maxrow+2, start_column=maxcolprevdf+1,end_row = startrow+maxrow+2,end_column= maxcolprevdf+maxcol-1)
+                    writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+startrow+2, column = maxcolprevdf+1).value = "Total Harga"
+                    writer.sheets["Rekap Barang Keluar"].cell(row=startrow+maxrow+2, column = maxcolprevdf+maxcol,value = datakeluar[1])
+                    # writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=maxrow+3, start_column=1,end_row = maxrow+3,end_column= maxcol-1)
+                    # writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column = 1).value = f"Total Harga Keluar Bulan {listbulan[waktuobj.month - 1]}"
+                    # writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column = maxcol,value = totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain)
+                    apply_number_format(writer.sheets['Rekap Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+1,maxcol+maxcolprevdf)
+                    apply_borders_thin(writer.sheets['Rekap Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+maxcol,maxcolprevdf+1)
+                    adjust_column_width(writer.sheets['Rekap Barang Keluar'],datakeluar[0],startrow+2,maxcolprevdf+1)
+                    startrow +=maxrow+3
+                maxcolprevdf += maxcol+1
+
+            # TRANSAKSI GOL D (TRANSAKSI Gudang)
+            if len(listrekaptransaksigolongand) != 0:
+                startrow = 0
+                print(maxcolprevdf)
+                print(adjust_column_width)
+                for i, datakeluar in enumerate(listrekaptransaksigolongand):
+                    if len(datakeluar[0]) == 0:
+                        continue 
+                    
+                    datakeluar[0].to_excel(
+                    writer, index=False,startcol = maxcolprevdf, startrow=startrow+1, sheet_name="Rekap Barang Keluar"
+                )
+                    
+                    maxrow = len(datakeluar[0])+1
+                    maxcol = len(datakeluar[0].columns)
+                    print(maxcolprevdf,startrow,maxrow,maxcol)
+                    # print(asd)
+                    writer.sheets["Rekap Barang Keluar"].cell(row=startrow+1, column = maxcolprevdf+1,value =listbulan[i])
+                    writer.sheets["Rekap Barang Keluar"].cell(row=1, column = maxcolprevdf+2,value ='Transaksi Golongan D')
+                    writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=startrow+maxrow+2, start_column=maxcolprevdf+1,end_row = startrow+maxrow+2,end_column= maxcolprevdf+maxcol-1)
+                    writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+startrow+2, column = maxcolprevdf+1).value = "Total Harga"
+                    writer.sheets["Rekap Barang Keluar"].cell(row=startrow+maxrow+2, column = maxcolprevdf+maxcol,value = datakeluar[1])
+                    # writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=maxrow+3, start_column=1,end_row = maxrow+3,end_column= maxcol-1)
+                    # writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column = 1).value = f"Total Harga Keluar Bulan {listbulan[waktuobj.month - 1]}"
+                    # writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column = maxcol,value = totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain)
+                    apply_number_format(writer.sheets['Rekap Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+1,maxcol+maxcolprevdf)
+                    apply_borders_thin(writer.sheets['Rekap Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+maxcol,maxcolprevdf+1)
+                    adjust_column_width(writer.sheets['Rekap Barang Keluar'],datakeluar[0],startrow+2,maxcolprevdf+1)
+                    startrow +=maxrow+3
+                maxcolprevdf += maxcol+1
+            
+            # TRANSAKSI LAIN LAIN (TRANSAKSI GUDANG)
+            if len(listrekaptransaksilainlain) != 0:
+                startrow = 0
+                print(maxcolprevdf)
+                print(adjust_column_width)
+                for i, datakeluar in enumerate(listrekaptransaksilainlain):
+                    if len(datakeluar[0]) == 0:
+                        continue 
+                    
+                    datakeluar[0].to_excel(
+                    writer, index=False,startcol = maxcolprevdf, startrow=startrow+1, sheet_name="Rekap Barang Keluar"
+                )
+                    
+                    maxrow = len(datakeluar[0])+1
+                    maxcol = len(datakeluar[0].columns)
+                    print(maxcolprevdf,startrow,maxrow,maxcol)
+                    # print(asd)
+                    writer.sheets["Rekap Barang Keluar"].cell(row=startrow+1, column = maxcolprevdf+1,value =listbulan[i])
+                    writer.sheets["Rekap Barang Keluar"].cell(row=1, column = maxcolprevdf+2,value ='Transaksi Lain-lain')
+                    writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=startrow+maxrow+2, start_column=maxcolprevdf+1,end_row =startrow+ maxrow+2,end_column= maxcolprevdf+maxcol-1)
+                    writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+startrow+2, column = maxcolprevdf+1).value = "Total Harga"
+                    writer.sheets["Rekap Barang Keluar"].cell(row=startrow+maxrow+2, column = maxcolprevdf+maxcol,value = datakeluar[1])
+                    # writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=maxrow+3, start_column=1,end_row = maxrow+3,end_column= maxcol-1)
+                    # writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column = 1).value = f"Total Harga Keluar Bulan {listbulan[waktuobj.month - 1]}"
+                    # writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column = maxcol,value = totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain)
+                    apply_number_format(writer.sheets['Rekap Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+1,maxcol+maxcolprevdf)
+                    apply_borders_thin(writer.sheets['Rekap Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+maxcol,maxcolprevdf+1)
+                    adjust_column_width(writer.sheets['Rekap Barang Keluar'],datakeluar[0],startrow+2,maxcolprevdf+1)
+                    startrow +=maxrow+3
+                maxcolprevdf += maxcol+1
+            
+            # Pemusnahan Artikel
+            if len(listrekappemusnahanartikel) != 0:
+                startrow = 0
+                print(maxcolprevdf)
+                print(adjust_column_width)
+                for i, datakeluar in enumerate(listrekappemusnahanartikel):
+                    if len(datakeluar[0]) == 0:
+                        continue 
+                    
+                    datakeluar[0].to_excel(
+                    writer, index=False,startcol = maxcolprevdf, startrow=startrow+1, sheet_name="Rekap Barang Keluar"
+                )
+                    
+                    maxrow = len(datakeluar[0])+1
+                    maxcol = len(datakeluar[0].columns)
+                    print(maxcolprevdf,startrow,maxrow,maxcol)
+                    # print(asd)
+                    writer.sheets["Rekap Barang Keluar"].cell(row=startrow+1, column = maxcolprevdf+1,value =listbulan[i])
+                    writer.sheets["Rekap Barang Keluar"].cell(row=1, column = maxcolprevdf+2,value ='Pemusnahan Artikel')
+                    writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=startrow+maxrow+2, start_column=maxcolprevdf+1,end_row =startrow+ maxrow+2,end_column= maxcolprevdf+maxcol-1)
+                    writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+startrow+2, column = maxcolprevdf+1).value = "Total Harga"
+                    writer.sheets["Rekap Barang Keluar"].cell(row=startrow+maxrow+2, column = maxcolprevdf+maxcol,value = datakeluar[1])
+                    # writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=maxrow+3, start_column=1,end_row = maxrow+3,end_column= maxcol-1)
+                    # writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column = 1).value = f"Total Harga Keluar Bulan {listbulan[waktuobj.month - 1]}"
+                    # writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column = maxcol,value = totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain)
+                    apply_number_format(writer.sheets['Rekap Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+1,maxcol+maxcolprevdf)
+                    apply_borders_thin(writer.sheets['Rekap Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+maxcol,maxcolprevdf+1)
+                    adjust_column_width(writer.sheets['Rekap Barang Keluar'],datakeluar[0],startrow+2,maxcolprevdf+1)
+                    startrow +=maxrow+3
+                maxcolprevdf += maxcol+1
+            
+            # Pemusnahan Bahan Baku
+            if len(listrekappemusnahanbahanbaku) != 0:
+                startrow = 0
+                print(maxcolprevdf)
+                print(adjust_column_width)
+                for i, datakeluar in enumerate(listrekappemusnahanbahanbaku):
+                    if len(datakeluar[0]) == 0:
+                        continue 
+                    
+                    datakeluar[0].to_excel(
+                    writer, index=False,startcol = maxcolprevdf, startrow=startrow+1, sheet_name="Rekap Barang Keluar"
+                )
+                    
+                    maxrow = len(datakeluar[0])+1
+                    maxcol = len(datakeluar[0].columns)
+                    print(maxcolprevdf,startrow,maxrow,maxcol)
+                    # print(asd)
+                    writer.sheets["Rekap Barang Keluar"].cell(row=startrow+1, column = maxcolprevdf+1,value =listbulan[i])
+                    writer.sheets["Rekap Barang Keluar"].cell(row=1, column = maxcolprevdf+2,value ='Pemusnahan Bahan Baku')
+                    writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=startrow+maxrow+2, start_column=maxcolprevdf+1,end_row =startrow+ maxrow+2,end_column= maxcolprevdf+maxcol-1)
+                    writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+startrow+2, column = maxcolprevdf+1).value = "Total Harga"
+                    writer.sheets["Rekap Barang Keluar"].cell(row=startrow+maxrow+2, column = maxcolprevdf+maxcol,value = datakeluar[1])
+                    # writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=maxrow+3, start_column=1,end_row = maxrow+3,end_column= maxcol-1)
+                    # writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column = 1).value = f"Total Harga Keluar Bulan {listbulan[waktuobj.month - 1]}"
+                    # writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+3, column = maxcol,value = totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain)
+                    apply_number_format(writer.sheets['Rekap Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+1,maxcol+maxcolprevdf)
+                    apply_borders_thin(writer.sheets['Rekap Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+maxcol,maxcolprevdf+1)
+                    adjust_column_width(writer.sheets['Rekap Barang Keluar'],datakeluar[0],startrow+2,maxcolprevdf+1)
+                    startrow +=maxrow+3
+                maxcolprevdf += maxcol+1
+
+
+
+            startrow = 0
+            dataframetransaksikeluar.to_excel(
+                    writer, index=False,startcol = maxcolprevdf, startrow=startrow+1, sheet_name="Rekap Barang Keluar"
+                )
+            apply_number_format(writer.sheets['Rekap Barang Keluar'],startrow+1,startrow+3,maxcolprevdf,maxcolprevdf+6)
+            apply_borders_thin(writer.sheets['Rekap Barang Keluar'],startrow+2,startrow+3,maxcolprevdf+7,maxcolprevdf+1)
+            adjust_column_width(writer.sheets['Rekap Barang Keluar'],dataframetransaksikeluar,startrow+1,maxcolprevdf+1)
         '''LAPORAN BARANG KELUAR'''
 
-        if len(listdatabahanbakukeluar) != 0 or len(listdatamodelkeluar)!=0 or len(listdatadisplaykeluar) !=0 or len(listtransaksigolongand)!=0 or len(listtransaksilainlain) !=0 :
+        if len(listdatabahanbakukeluar) != 0 or len(listdatamodelkeluar)!=0 or len(listdatadisplaykeluar) !=0 or len(listtransaksigolongand)!=0 or len(listtransaksilainlain) !=0 or len(listpemusnahanbahanbaku) !=0 or len(listpemusnahanartikel) !=0:
             maxcolumn  = 0
             maxrow = 0
             maxcolprevdf = 0
@@ -4385,6 +5017,69 @@ def exportlaporanbulananexcelkeseluruhan(request):
                     startrow +=maxrow+3
                 maxcolprevdf += maxcol+1
             
+            # Pemusnahan Artikel
+            if len(listpemusnahanartikel) != 0:
+                startrow = 0
+                print(maxcolprevdf)
+                print(adjust_column_width)
+                for i, datakeluar in enumerate(listpemusnahanartikel):
+                    if len(datakeluar[0]) == 0:
+                        continue 
+                    
+                    datakeluar[0].to_excel(
+                    writer, index=False,startcol = maxcolprevdf, startrow=startrow+1, sheet_name="Barang Keluar"
+                )
+                    
+                    maxrow = len(datakeluar[0])+1
+                    maxcol = len(datakeluar[0].columns)
+                    print(maxcolprevdf,startrow,maxrow,maxcol)
+                    # print(asd)
+                    writer.sheets["Barang Keluar"].cell(row=startrow+1, column = maxcolprevdf+1,value =listbulan[i])
+                    writer.sheets["Barang Keluar"].cell(row=1, column = maxcolprevdf+2,value ='Pemusnahan Artikel')
+                    writer.sheets["Barang Keluar"].merge_cells(start_row=startrow+maxrow+2, start_column=maxcolprevdf+1,end_row =startrow+ maxrow+2,end_column= maxcolprevdf+maxcol-1)
+                    writer.sheets["Barang Keluar"].cell(row=maxrow+startrow+2, column = maxcolprevdf+1).value = "Total Harga"
+                    writer.sheets["Barang Keluar"].cell(row=startrow+maxrow+2, column = maxcolprevdf+maxcol,value = datakeluar[1])
+                    # writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+3, start_column=1,end_row = maxrow+3,end_column= maxcol-1)
+                    # writer.sheets["Barang Keluar"].cell(row=maxrow+3, column = 1).value = f"Total Harga Keluar Bulan {listbulan[waktuobj.month - 1]}"
+                    # writer.sheets["Barang Keluar"].cell(row=maxrow+3, column = maxcol,value = totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain)
+                    apply_number_format(writer.sheets['Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+1,maxcol+maxcolprevdf)
+                    apply_borders_thin(writer.sheets['Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+maxcol,maxcolprevdf+1)
+                    adjust_column_width(writer.sheets['Barang Keluar'],datakeluar[0],startrow+2,maxcolprevdf+1)
+                    startrow +=maxrow+3
+                maxcolprevdf += maxcol+1
+            
+            # Pemusnahan Bahan Baku
+            if len(listpemusnahanbahanbaku) != 0:
+                startrow = 0
+                print(maxcolprevdf)
+                print(adjust_column_width)
+                for i, datakeluar in enumerate(listpemusnahanbahanbaku):
+                    if len(datakeluar[0]) == 0:
+                        continue 
+                    
+                    datakeluar[0].to_excel(
+                    writer, index=False,startcol = maxcolprevdf, startrow=startrow+1, sheet_name="Barang Keluar"
+                )
+                    
+                    maxrow = len(datakeluar[0])+1
+                    maxcol = len(datakeluar[0].columns)
+                    print(maxcolprevdf,startrow,maxrow,maxcol)
+                    # print(asd)
+                    writer.sheets["Barang Keluar"].cell(row=startrow+1, column = maxcolprevdf+1,value =listbulan[i])
+                    writer.sheets["Barang Keluar"].cell(row=1, column = maxcolprevdf+2,value ='Pemusnahan Bahan Baku')
+                    writer.sheets["Barang Keluar"].merge_cells(start_row=startrow+maxrow+2, start_column=maxcolprevdf+1,end_row =startrow+ maxrow+2,end_column= maxcolprevdf+maxcol-1)
+                    writer.sheets["Barang Keluar"].cell(row=maxrow+startrow+2, column = maxcolprevdf+1).value = "Total Harga"
+                    writer.sheets["Barang Keluar"].cell(row=startrow+maxrow+2, column = maxcolprevdf+maxcol,value = datakeluar[1])
+                    # writer.sheets["Barang Keluar"].merge_cells(start_row=maxrow+3, start_column=1,end_row = maxrow+3,end_column= maxcol-1)
+                    # writer.sheets["Barang Keluar"].cell(row=maxrow+3, column = 1).value = f"Total Harga Keluar Bulan {listbulan[waktuobj.month - 1]}"
+                    # writer.sheets["Barang Keluar"].cell(row=maxrow+3, column = maxcol,value = totalbiayakeluar+totalbiayakeluargold+totalbiayakeluardisplay+totalbiayakeluartransaksibahanbaku+totalbiayakeluartransaksilainlain)
+                    apply_number_format(writer.sheets['Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+1,maxcol+maxcolprevdf)
+                    apply_borders_thin(writer.sheets['Barang Keluar'],startrow+2,startrow+maxrow+2,maxcolprevdf+maxcol,maxcolprevdf+1)
+                    adjust_column_width(writer.sheets['Barang Keluar'],datakeluar[0],startrow+2,maxcolprevdf+1)
+                    startrow +=maxrow+3
+                maxcolprevdf += maxcol+1
+
+
 
             startrow = 0
             dataframetransaksikeluar.to_excel(
