@@ -45,21 +45,27 @@
                                 <td>{{i.Jumlah|separator_ribuan}}</td>
                                 <td>{{i.Keterangan}}</td>
                                 <td>
-                                    {% if user.groups.first.name != 'ppic' %}
-                                    <a href="{% url 'update_subkonprodukmasuk' i.pk %}">
-                                        <button type="button" class="btn btn-warning">
-                                            <i class="typcn typcn-edit"></i>
-                                        </button>
-                                    </a>
-                                    <button onclick="confirmDelete({{i.pk}})" type="button"
+                                    <div class="template-demo">
+
+                                        {% if user.groups.first.name != 'ppic' %}
+                                        <a href="{% url 'update_subkonprodukmasuk' i.pk %}">
+                                            <button type="button" class="btn btn-warning">
+                                                <i class="typcn typcn-edit"></i>
+                                            </button>
+                                        </a>
+                                        <a >
+                                            <button onclick="confirmDelete({{i.pk}})" type="button"
                                         class="btn btn-danger">
+                                        
                                         <i class="typcn typcn typcn-trash"></i>
                                     </button>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
+                                </a>
+                            </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
                     </table>
                 </div>
             </div>

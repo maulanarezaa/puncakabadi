@@ -80,10 +80,10 @@
               <div class="col-sm-9">
                 <select class="form-control" name="nomor_spk" hx-get="{% url 'load_detailspk' %}" hx-trigger="change"
                   hx-indicator=".htmx-indicator" hx-target="#detail">
+                  <option selected value="{{gudang.DetailSPK.NoSPK.NoSPK}}">{{gudang.DetailSPK.NoSPK.NoSPK}}</option>
                   <option value="">Masukkan Nomor SPK</option>
                   {% for i in data_spk %}
                   {% if i.NoSPK == gudang.DetailSPK.NoSPK.NoSPK %}
-                  <option selected value="{{i.NoSPK}}">{{i.NoSPK}}</option>
                   {% else %}
                   <option value="{{i.NoSPK}}">{{i.NoSPK}}</option>
                   {% endif %}
