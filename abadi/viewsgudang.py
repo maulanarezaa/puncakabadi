@@ -110,6 +110,7 @@ def load_detailpo(request):
     detailpoobj = models.DetailPO.objects.filter(KodeProduk__KodeProduk=kodeproduk,KodePO__Status = False).values_list('KodePO__KodePO',flat=True).distinct()
 
     print(detailpoobj)
+    print('tets')
     # if id_spk.StatusDisplay == False :
     #     detailspk = models.DetailSPK.objects.filter(NoSPK=id_spk.id,)
     # else :
@@ -233,72 +234,6 @@ def accgudang(request, id):
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
-def update_gudang(request, id):
-    datasjp = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
-    datasjp2 = models.DetailSuratJalanPembelian.objects.all()
-    datasj = models.SuratJalanPembelian.objects.all()
-    getproduk = models.Produk.objects.all()
-    datasjp_getobj = models.SuratJalanPembelian.objects.get(
-        NoSuratJalan=datasjp.NoSuratJalan.NoSuratJalan
-    )
-    detailsjp_filtered = models.DetailSuratJalanPembelian.objects.filter(
-        NoSuratJalan=datasjp_getobj.NoSuratJalan
-    )
-    if request.method == "GET":
-        # tanggal = datetime.strftime(datasjp.NoSuratJalan.Tanggal, '%Y-%m-%d')
-        # jumlah = datasjp.Jumlah
-        # kodeproduk = datasjp.KodeProduk
-        # print(kodeproduk)
-        # print(getproduk)
-        # return render(request, 'gudang/updategudang.html', {
-        #     'datasjp' : datasjp,
-        #     'datasjp2' : datasjp2,
-        #     'datasj' : datasj,
-        #     'getproduk' : getproduk,
-        #     'kodeproduk' : kodeproduk,
-        #     'tanggal' : tanggal,
-        #     'jumlah' : jumlah,
-        # })
-
-        return render(
-            request,
-            "gudang/updategudang2.html",
-            {
-                "datasjp": datasjp_getobj,
-                "detailsjp": datasjp,
-                "datasj": datasj,
-                "detailsj": datasjp2,
-                "tanggal": datetime.strftime(datasjp_getobj.Tanggal, "%Y-%m-%d"),
-            },
-        )
-
-    else:
-        tanggal = request.POST["tanggal"]
-        print(request.POST)
-        kode_produk = request.POST.get("kodeproduk")
-        kode_produkobj = models.Produk.objects.get(KodeProduk=kode_produk)
-        jumlah = request.POST["jumlah"]
-
-        datasjp.KodeProduk = kode_produkobj
-        datasjp.Jumlah = jumlah
-        datasjp.KeteranganACC = datasjp.KeteranganACC
-        datasjp.Harga = datasjp.Harga
-        datasjp.NoSuratJalan = datasjp.NoSuratJalan
-        datasjp.NoSuratJalan.Tanggal = tanggal
-        datasjp.save()
-        datasjp.NoSuratJalan.save()
-        models.transactionlog(
-            user="Gudang",
-            waktu=datetime.now(),
-            jenis="Update",
-            pesan=f"Kode Barang Lama : {datasjp.KodeProduk} Jumlah Lama : {datasjp.Jumlah} Kode Barang Baru : {kode_produk} Jumlah Baru : {jumlah}",
-        ).save()
-
-        return redirect("baranggudang")
-
-
-@login_required
-@logindecorators.allowed_users(allowed_roles=["gudang"])
 def delete_gudang(request, id):
     datasbj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
     models.transactionlog(
@@ -308,6 +243,7 @@ def delete_gudang(request, id):
         pesan=f"No Surat Jalan : {datasbj.NoSuratJalan} Kode Barang : {datasbj.KodeProduk}",
     ).save()
     datasbj.delete()
+    messages.success(request,'Data berhasil dihapus')
     return redirect("baranggudang")
 
 
@@ -682,6 +618,10 @@ def spk(request):
     dataspk = models.SPK.objects.all().order_by("-Tanggal")
     for i in dataspk:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
+        if i.StatusDisplay == True:
+            i.detailspk = models.DetailSPKDisplay.objects.filter(NoSPK = i)
+        else:
+            i.detailspk = models.DetailSPK.objects.filter(NoSPK = i)
     return render(request, "gudang/spkgudang.html", {"dataspk": dataspk})
 
 
@@ -806,6 +746,8 @@ def addgudang3(request):
             KeteranganACC=acc,
             Lokasi=models.Lokasi.objects.get(NamaLokasi=lokasi),
             DetailSPK=None,
+            KeteranganACCPurchasing = False
+
         )
         models.transactionlog(
             user="Gudang",
@@ -852,6 +794,7 @@ def updatetransaksilainlain(request, id):
         gudangobj.tanggal = tanggal
         gudangobj.jumlah = jumlah
         gudangobj.keterangan = keterangan
+        gudangobj.KeteranganACCPurchasing = False
 
         gudangobj.save()
         messages.success(request, "Data berhasil disimpan")
@@ -901,6 +844,7 @@ def update_produk_gudang(request, id):
             jenis="Update",
             pesan=f"Jumlah Minimal : {produkobj.Jumlahminimal} Keterangan : {produkobj.keteranganGudang}",
         ).save()
+        messages.success(request,'Data berhasil disimpan')
         return redirect("readprodukgudang")
 
 
@@ -1064,6 +1008,7 @@ def update_saldo(request, id):
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def update_gudang(request, id):
     datasjp = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
+    availablepo= models.DetailPO.objects.filter(KodeProduk=datasjp.KodeProduk,KodePO__Status = 0 )
     datasjp2 = models.DetailSuratJalanPembelian.objects.all()
     datasj = models.SuratJalanPembelian.objects.all()
     getproduk = models.Produk.objects.all()
@@ -1088,12 +1033,14 @@ def update_gudang(request, id):
                     "%Y-%m-%d",
                 ),
                 "getproduk": getproduk,
+                'availablepo':availablepo,
             },
         )
 
     else:
         tanggal = request.POST["tanggal"]
         print(request.POST)
+        # print(asd)
         kode_produk = request.POST.get("kodeproduk")
         try:
             kode_produkobj = models.Produk.objects.get(KodeProduk=kode_produk)
@@ -1101,6 +1048,15 @@ def update_gudang(request, id):
             messages.error(request, f"Data bahan baku {kode_produk} tidak ditemukan")
             return redirect("updategudang", id=id)
         jumlah = request.POST["jumlah"]
+        detailpo = request.POST['detailpo']
+        if detailpo != '':
+            try:
+                detailpoobj = models.DetailPO.objects.get(KodePO__KodePO = detailpo,KodeProduk__KodeProduk = kode_produk)
+            except models.DetailPO.DoesNotExist:
+                messages.error(request,f'Detail PO tidak ditemukan {detailpo}')
+                detailpoobj = None
+        else:
+            detailpoobj = None
 
         datasjp.KodeProduk = kode_produkobj
         datasjp.Jumlah = jumlah
@@ -1108,6 +1064,8 @@ def update_gudang(request, id):
         datasjp.Harga = datasjp.Harga
         datasjp.NoSuratJalan = datasjp.NoSuratJalan
         datasjp.NoSuratJalan.Tanggal = tanggal
+        datasjp.KeteranganACC = False
+        datasjp.PO = detailpoobj
         datasjp.save()
         datasjp.NoSuratJalan.save()
         messages.success(request, "Data berhasil disimpan")
@@ -1489,7 +1447,7 @@ def delete_pemusnahanbarang(request, id):
         jenis="Delete",
         pesan=f"Pemusnahan Bahan Baku. Kode Bahan Baku : {dataobj.KodeBahanBaku.KodeProduk} Jumlah : {dataobj.Jumlah} Lokasi : {dataobj.lokasi.NamaLokasi}",
     ).save()
-
+    messages.success(request,'Data berhasil dihapus')
     return redirect('read_pemusnahanbahangudang')
 
 def readcachevalue(request):

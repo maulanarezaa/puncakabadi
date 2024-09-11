@@ -50,27 +50,18 @@
               </div>
             </div>
           </div>
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Nomor PO</label>
-              <div class="col-sm-9">
-                <input type="text" class="form-control" name="nomorpo" placeholder="Masukkan Nomor PO"
-                  value="{{datasjp.PO}}" />
-              </div>
-            </div>
-          </div>
         </div>
 
         <h4 class="card-title">Form Data Barang</h4>
         <div id="products"><!-- Div ini ditambahkan untuk menampung produk yang ditambahkan dinamis -->
           <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-2">
               <div class="form-group ">
                 <label class="">Kode Produk</label>
                 <div class="">
                   <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
                     aria-label="Masukkan Nama bahanbaku" name="kodeproduk" list="listproduk" required
-                    value="{{detailsjp.KodeProduk.KodeProduk}}" onchange="loadproduk(this)" id="artikel">
+                    value="{{detailsjp.KodeProduk.KodeProduk}}" onchange="loadproduk(this);loadArtikelOptions(this)" id="kodeproduk-1">
                   <datalist id="listproduk">
                     {% for i in getproduk %}
                     <option value="{{i.KodeProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
@@ -80,7 +71,7 @@
               </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
               <div class="form-group ">
                 <label>Nama Produk</label>
                 <div>
@@ -100,12 +91,31 @@
               </div>
 
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <div class="form-group ">
                 <label>Jumlah</label>
                 <div>
                   <input min="0" step="any" type="number" value="{{detailsjp.Jumlah}}" class="form-control"
                     name="jumlah" required>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group ">
+                <label>Kode PO</label>
+                <div id="detail_po_1">
+                  <select class="form-control" name="detailpo">
+                    {% if i.PO == None %}
+                    <option value="" selected>Masukkan Kode</option>
+                    {% endif %}
+                    {% for i in availablepo %}
+                    {% if i == detailsjp.PO %}
+                    <option value="{{i.KodePO.KodePO}}" selected > {{i}}</option>
+                    {% else %}
+                    <option value="{{i.KodePO.KodePO}}">{{i}}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
                 </div>
               </div>
             </div>
@@ -119,6 +129,28 @@
   </div>
 </div>
 <script>
+  function loadArtikelOptions(selectElement) {
+    var kodeproduk = selectElement.value;
+    var productCounter = selectElement.id.split('-')[1];
+    var detailSpkDiv = document.getElementById('detail_po_' + productCounter);
+    var url = "{% url 'load_detailpo' %}";
+
+    // Menghapus opsi sebelumnya jika ada
+    detailSpkDiv.innerHTML = '';
+
+    // Memuat opsi baru berdasarkan nomor SPK yang dipilih
+    $.ajax({
+      url: url,
+      data: {
+        'kodeproduk': kodeproduk
+      },
+      dataType: 'html',
+      success: function (data) {
+        detailSpkDiv.innerHTML = data;
+      }
+    });
+  }
+
   function loadproduk(selectElement) {
     var artikel = selectElement.value;
     var productCounter = selectElement.id.split('_')[1];

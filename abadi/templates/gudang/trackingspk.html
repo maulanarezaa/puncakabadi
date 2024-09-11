@@ -1,6 +1,6 @@
 {% extends "gudang/base.html" %}
 {% load static %}
-
+{% load customfilter %}
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
@@ -72,7 +72,7 @@
             <div class="form-group">
               <label for="quantity_{{ forloop.counter }}">Jumlah</label>
               <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity"
-                value="{{i.Jumlah}}" readonly>
+                value="{{i.Jumlah|separator_ribuan}}" readonly>
             </div>
           </div>
 

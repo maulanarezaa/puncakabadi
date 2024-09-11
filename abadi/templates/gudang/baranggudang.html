@@ -62,6 +62,7 @@
                                 <th>Kuantitas</th>
                                 <th>Satuan</th>
                                 <th>Keterangan</th>
+                                <th>PO</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -79,6 +80,13 @@
                                 {% else %}
                                 <td>Belum ACC</td>
                                 {% endif %}
+                                <td>
+                                    {% if i.PO != None %}
+                                    {{i.PO.KodePO}}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
                                 <td>
                                     {% if user.groups.first.name != 'ppic' %}
                                     <a href="{% url 'updategudang' i.IDDetailSJPembelian %}">

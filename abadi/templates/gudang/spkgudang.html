@@ -4,6 +4,7 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
+{% load customfilter %}
 
 <!-- Page content  -->
 {% block content %}
@@ -22,6 +23,8 @@
               <tr>
                 <th>Tanggal</th>
                 <th>Nomor SPK</th>
+                <th>Produk</th>
+                <th>Jumlah</th>
                 <th>Keterangan</th>
                 <th>Status Aktif</th>
                 <th>Action</th>
@@ -32,6 +35,26 @@
               <tr>
                 <td>{{i.Tanggal}}</td>
                 <td>{{i.NoSPK}}</td>
+                <td>
+                  <ul>
+
+                    {% for item in i.detailspk %}
+                    {% if i.StatusDisplay == True %}
+                    <li>{{item.KodeDisplay}}</li>
+                    {%  else %}
+                    <li>{{item.KodeArtikel}}</li>
+                    {% endif %}
+                    {% endfor %}
+                  </ul>
+                </td>
+                <td>
+                  <ul>
+
+                    {% for item in i.detailspk %}
+                    <li>{{item.Jumlah|separator_ribuan}}</li>
+                    {% endfor %}
+                  </ul>
+                </td>
                 <td>{{i.Keterangan}}</td>
                 <td>
                   {% if i.StatusAktif == True %}
