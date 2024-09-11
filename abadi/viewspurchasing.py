@@ -135,15 +135,18 @@ def notif_barang_purchasing(request):
     # Cari versi terakhir dari tiap artikel
     listkebutuhanproduk = {}
     for item in querysetartikel:
-        versiterakhir = models.Penyusun.objects.filter(KodeArtikel = item).values_list('versi',flat=True).distinct().order_by("versi").last()
+        # versiterakhir = models.Penyusun.objects.filter(KodeVersi__KodeArtikel = item).values_list('versi',flat=True).distinct().order_by("versi").last()
         # print(versiterakhir)
-        penyusunobj = models.Penyusun.objects.filter(KodeArtikel = item, versi = versiterakhir)
+        # penyusunobj = models.Penyusun.objects.filter(KodeArtikel = item, versi = versiterakhir)
+        penyusunobj = models.Penyusun.objects.filter(KodeArtikel = item, KodeVersi__isdefault = True)
+        print(penyusunobj)
+        print(item)
+        # print(asd)
         # print(len(penyusunobj))
-        konversimaster = models.KonversiMaster.objects.filter(KodePenyusun__in = penyusunobj)
         # print(konversimaster)
         # print(len(konversimaster))
-        for datapenyusun in konversimaster:
-            bahanbakuobj = models.Produk.objects.get(KodeProduk = datapenyusun.KodePenyusun.KodeProduk)
+        for datapenyusun in penyusunobj:
+            bahanbakuobj = models.Produk.objects.get(KodeProduk = datapenyusun.KodeProduk.KodeProduk)
             # print(bahanbakuobj)
             if bahanbakuobj not in listkebutuhanproduk :
                 listkebutuhanproduk[bahanbakuobj] = math.ceil(datapenyusun.Allowance * item.Jumlah)
@@ -559,6 +562,7 @@ def verifikasi_data(request, id):
 
         # tes = models.transactionlog.objects.filter(user = "Purchasing")
         # print("Tes ae : ",tes)
+        messages.success(request,'Data berhasil disimpan')
         return redirect("notif_purchasing")
 
 
@@ -3278,7 +3282,7 @@ def exportbarangsubkon_excel(request):
     worksheet.title = 'Barang Masuk'
 
     # Definisikan header untuk worksheet
-    headers = ['Tanggal', 'Supplier', 'Kode Bahan Baku Subkon', 'Nama Bahan Baku Subkon', 'Satuan', 'Kuantitas', 'Harga', 'Harga Total', f'Harga Potongan {valueppn}%', 'Harga Total Setelah Potongan', 'Tanggal Invoice', 'No Invoice']
+    headers = ['Tanggal', 'Supplier', 'Kode Bahan Baku Subkon', 'Nama Bahan Baku Subkon', 'Satuan', 'Kuantitas', 'Harga', 'Harga Total', f'Harga Potongan ', 'Harga Total Setelah Potongan', 'Tanggal Invoice', 'No Invoice']
     worksheet.append(headers)
 
     # Tambahkan data ke worksheet
@@ -3294,7 +3298,7 @@ def exportbarangsubkon_excel(request):
             # harga_satuan_setelah_pemotognan = math.ceil(item.Harga - (item.Harga * inputppn))
         else:
             item.hargapotongan = 0
-            item.hargatotalsetelahpemotongan = item.Harga * item.Jumlah
+            item.hargatotalsetelahpemotongan = item.hargatotalsebelumpotongan
         #     harga_potongan = 0
         #     harga_satuan_setelah_pemotognan = 0
         # harga_total_setelah_potongan = harga_satuan_setelah_pemotognan * item.Jumlah
@@ -3433,6 +3437,7 @@ def views_rekaphargasubkon(request):
             #     i += 1
             # print("list hartot", list_harga_total1)
             for item in sjball:
+                item.NoSuratJalan.Tanggal = item.NoSuratJalan.Tanggal.strftime('%Y-%m-%d')
                 item.hargatotalsebelumpotongan = item.Harga * item.Jumlah
                 item.hargatotalsetelahpemotongan = item.hargapotongan * item.Jumlah
                 if not item.Potongan:

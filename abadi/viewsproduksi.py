@@ -5342,6 +5342,7 @@ def add_subkonprodukmasuk(request):
         # print(asd)
         nosuratjalan = request.POST["nosuratjalan"]
         tanggal = request.POST["tanggal"]
+        supplier = request.POST['supplier']
 
         datasj = models.SuratJalanPenerimaanProdukSubkon.objects.filter(NoSuratJalan=nosuratjalan).exists()
         if datasj:
@@ -5362,7 +5363,7 @@ def add_subkonprodukmasuk(request):
             if error == len(listkode):
                 messages.error(request,"Kode Produk Subkon tidak terdapat dalam sistem")
                 return redirect('add_subkonprodukmasuk')
-            subkonkirimobj = models.SuratJalanPenerimaanProdukSubkon(NoSuratJalan=nosuratjalan, Tanggal=tanggal)
+            subkonkirimobj = models.SuratJalanPenerimaanProdukSubkon(NoSuratJalan=nosuratjalan, Tanggal=tanggal,Supplier = supplier)
             subkonkirimobj.save()
 
             models.transactionlog(

@@ -113,6 +113,24 @@
         <div class="row">
           <div class="col-md-6">
             <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Persentase Potongan (%)</label>
+              <div class="col-sm-9">
+                <input type="number" min="0" step="0.01" class="form-control" name="persentase_potongan" id="persentase_potongan" value="2" onchange="update_harga_total()" />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Harga Setelah Potongan (Rp)</label>
+              <div class="col-sm-9">
+                <input type="number" class="form-control" name="harga_setelah_potongan" step="any" id="harga_setelah_potongan" value="{{updateobj.hargapotongan}}"  />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
               <label class="col-sm-3 col-form-label">Tanggal Invoice</label>
               <div class="col-sm-9">
                 <input type="date" class="form-control" name="tanggalinvoice" value="{{updateobj.NoSuratJalan.TanggalInvoice}}" />
@@ -150,24 +168,7 @@
             </div>
           </div>
         </div>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Persentase Potongan (%)</label>
-              <div class="col-sm-9">
-                <input type="number" min="0" step="0.01" class="form-control" name="persentase_potongan" id="persentase_potongan" value="2" onchange="update_harga_total()" />
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Harga Setelah Potongan (Rp)</label>
-              <div class="col-sm-9">
-                <input type="number" class="form-control" name="harga_setelah_potongan" step="any" id="harga_setelah_potongan" value="{{updateobj.hargapotongan}}"  />
-              </div>
-            </div>
-          </div>
-        </div>
+
         
         <button type="submit" class="btn btn-primary mr-2">Update</button>
       </form>

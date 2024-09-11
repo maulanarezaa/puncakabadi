@@ -28,6 +28,7 @@
                             <tr>
                                 <th>Tanggal</th>
                                 <th>No. SJ Subkon</th>
+                                <th>Supplier</th>
                                 <th>Nama Produk</th>
                                 <th>Artikel Perutukan</th>
                                 <th>Kuantitas</th>
@@ -40,6 +41,11 @@
                             <tr>
                                 <td>{{i.NoSuratJalan.Tanggal}}</td>
                                 <td>{{i.NoSuratJalan.NoSuratJalan}}</td>
+                                <td> {% if i.NoSuratJalan.Supplier == None %}
+                                    -
+                                    {% else %}
+                                    {{i.NoSuratJalan.Supplier}}</td>
+                                    {% endif %}
                                 <td>{{i.KodeProduk.NamaProduk}}</td>
                                 <td>{{i.KodeProduk.KodeArtikel}}</td>
                                 <td>{{i.Jumlah|separator_ribuan}}</td>
