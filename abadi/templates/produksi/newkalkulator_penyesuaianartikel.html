@@ -14,45 +14,29 @@
             <div class="card-body">
                 <h4 class="card-title">Simulasi Perhitungan Penyesuaian Artikel: <span style="font-weight: lighter;">
                         {{kodebarang}}</span></h4>
-                <h4 class="card-title">Nama Barang : <span style="font-weight: lighter;">
-                        {{nama}}</span></h4>
-                <h4 class="card-title">Satuan : <span style="font-weight: lighter;">
-                        {{satuan}}</span></h4>
+                
+                <h4 class="card-title">Versi default : <span style="font-weight: lighter;">
+                        {{versidefault.Versi}}</span></h4>
                 <h4 class="card-title">Lokasi : <span style="font-weight: lighter;">
                         {{lokasi}}</span></h4>
                 <form action="" method="get">
                     {% if kodebarang %}
                     <div class="row">
                         <div class="col-lg-3">
-                            <label for="">Kode Bahan Baku</label>
+                            <label for="">Kode Artikel</label>
                             <div class="form-group">
                                 <div class="input-group">
                                     <input type="text" class="form-control" placeholder="Masukkan Kode Barang"
-                                        aria-label="Masukkan Kode Barang" name="kodebarang" value="{{kodebarang}}" list="listbahanbaku">
-                                        <datalist id="listbahanbaku">
-                                            {% for item in kodeproduk %}
-                                            <option value="{{item.KodeProduk}}">{{item.NamaProduk}}</option>
+                                        aria-label="Masukkan Kode Barang" name="kodebarang" value="{{kodebarang}}" list="kodebarang">
+                                        <datalist id="kodebarang">
+                                            {% for item in kodeprodukobj %}
+                                            <option value="{{item.KodeArtikel}}">{{item.KodeArtikel}}</option>
                                             {% endfor %}
                                         </datalist>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-2">
-                            <label for="">Lokasi</label>
-                            <div class="form-group">
-                                <div class="input-group">
-                                    <select name="lokasi" id="" class="form-control">
-                                        {% if lokasi == 'WIP' %}
-                                        <option value="WIP" selected>WIP</option>
-                                        <option value="FG">FG</option>
-                                        {% else %}
-                                        <option value="WIP">WIP</option>
-                                        <option value="FG" selected>FG</option>
-                                        {% endif %}
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
+
                         <div class="col-lg-2">
                             <div class="form-group">
                                 <label for="">Tanggal Awal </label>
@@ -172,6 +156,7 @@
 <h4>Penyesuaian Baru : {{penyesuaian}}</h4>
                 <div class="table-responsive pt-3">
                     {% if data %}
+                    {% if lokasi == 'WIP' %}
                     <table class="table table-bordered" id="tabelksbb">
                         <thead>
                             <tr>
@@ -179,6 +164,7 @@
                                 <th>Masuk (Lembar)</th>
                                 <th>Masuk (Konversi)</th>
                                 <th>Hasil</th>
+                                <th>Pemusnahan</th>
                                 <th style="text-align:center;">Sisa</th>
                             </tr>
                         </thead>
@@ -193,9 +179,10 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
+                                <td></td>
 
 
-                                <td>{{saldo|custom_thousands_separator}}</td>
+                                <td>{{saldo.Jumlah|custom_thousands_separator}}</td>
 
                             </tr>
                             {% for i in data %}
@@ -207,6 +194,7 @@
                                 <td>{{i.Masuklembar|separator_ribuan}}</td>
                                 <td>{{i.Masukkonversi|separator_ribuan}}</td>
                                 <td>{{i.Hasil|separator_ribuan}}</td>
+                                <td>{{i.Keluar}}</td>
                                 
                                 <td>
                                     
@@ -218,6 +206,9 @@
                             {% endfor %}
 
                     </table>
+                    {% elif lokasi == "FG"%}
+                    
+                    {% endif %}
                     {% endif %}
                 </div>
 

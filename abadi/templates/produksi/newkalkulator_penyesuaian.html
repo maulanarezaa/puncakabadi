@@ -259,14 +259,14 @@
                             {% for i in data %}
                             <tr>
                                 <td>
-
+                                    
                                     {{i.Tanggal}}
                                 </td>
                                 <td>
                                     <ul>
-
+                                            
                                         {% for artikel in i.Artikel %}
-                                        <li>{{artikel.KodeArtikel}}</li>
+                                        <li>{{artikel}}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>

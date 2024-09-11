@@ -87,7 +87,7 @@
                 </form>
 
                 <div class="table-responsive pt-3">
-                    {% if data.count > 0 and kodeartikel and lokasi == 'WIP' %}
+                    {% if lokasi == 'WIP' %}
                     <table class="table table-bordered" id="tabelksbjwip">
                         <thead>
                             <tr>
@@ -153,7 +153,7 @@
                             {% endif %}
                         </tbody>
                     </table>
-                    {% elif data.count > 0 and kodeartikel and lokasi == 'FG'%}
+                    {% elif lokasi == 'FG'%}
                     <table class="table table-bordered" id="tabelksbjfg">
                         <thead>
                             <tr>
@@ -226,7 +226,7 @@
                     </table>
                     {% else %}
                     {% endif %}
-                    {% if data.count == 0 %}
+                    {% if listdata.count == 0 %}
                     <h4>Tidak ditemukan data Transaki Produksi</h4>
                     {% endif %}
 
