@@ -21,7 +21,6 @@ urlpatterns = [
     path("penyusun", viewspurchasing.views_penyusun, name="penyusunpurchasing"),
     # CR kebutuhan barang
     path("kebutuhan_barang", viewspurchasing.kebutuhan_barang, name="kebutuhan_barang"),
-    # path("kebutuhan_barang/",viewspurchasing.kebutuhan_barang,name="kebutuhan_barang"),
     # barang_masuk
     path("barang_masuk", viewspurchasing.barang_masuk, name="barang_masuk"),
     path("export_excel",viewspurchasing.exportbarang_excel, name="export_excel"),

@@ -1,6 +1,6 @@
 {% extends "Purchasing/base.html" %}
 {% load static %}
-
+{% load customfilter %}
 <!-- Page content  -->
 {% block content %}
 
@@ -57,7 +57,7 @@
                                 <td>
                                     {% for j in i.detailspk %}
                                     <li>
-                                        {{j.Jumlah}}
+                                        {{j.Jumlah|separator_ribuan}}
                                     </li>
                                     {% endfor %}
                                 </td>

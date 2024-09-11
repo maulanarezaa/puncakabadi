@@ -77,8 +77,10 @@ def updatehargapurchasing(sender, instance, **kwargs):
     # Cek bulan dengan data yang tidak kosong
     non_zero_months = full_year_df[full_year_df['Balance'] > 0].index
     print(full_year_df)
-    full_year_df.fillna({'Balance': 0, 'EndOfMonthPrice': 0}, inplace=True)
+    # full_year_df.fillna({'Balance': 0, 'EndOfMonthPrice': 0}, inplace=True)
+    full_year_df = full_year_df.ffill()
     print(full_year_df)
+    # print(full_year_df.ffill())
     # print(asd)
 
     # if not non_zero_months.empty:
@@ -160,7 +162,7 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
     
     
     if saldoawalobj:
-            print("ada data")
+            # print("ada data")
             saldoawal = saldoawalobj.Jumlah
             hargasatuanawal = saldoawalobj.Harga
             hargatotalawal = saldoawal * hargasatuanawal
@@ -182,9 +184,9 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
     tanggalretur = returobj.values_list("tanggal", flat=True)
     tanggalpemusnahan = pemusnahanobj.values_list("Tanggal",flat=True)
     tanggalmasuk = masukobj.values_list("NoSuratJalan__Tanggal", flat=True)
-    print('tanggal keluar :',tanggalkeluar)
-    print('tanggal retur : ',tanggalretur)
-    print('tanggal pemusnahan : ',tanggalpemusnahan)
+    # print('tanggal keluar :',tanggalkeluar)
+    # print('tanggal retur : ',tanggalretur)
+    # print('tanggal pemusnahan : ',tanggalpemusnahan)
     listtanggal = sorted(list(set(tanggalkeluar.union(tanggalretur).union(tanggalpemusnahan).union(tanggalmasuk))))
     listdata = []
     listdata.append({
@@ -219,9 +221,9 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
                 hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
             except ZeroDivisionError:
                 hargamasuksatuanperhari =0
-            print("data SJP ada")
-            print(hargamasuksatuanperhari)
-            print(jumlahmasukperhari)
+            # print("data SJP ada")
+            # print(hargamasuksatuanperhari)
+            # print(jumlahmasukperhari)
             dumy = {
                 "Tanggal": i,
                 "Jumlahstokawal": saldoawal,
@@ -242,13 +244,13 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
                 hargasatuanawal = hargasatuanawal
                 # print(asd)
 
-            print("Sisa Stok Hari Ini : ", saldoawal)
-            print("harga awal Hari Ini :", hargasatuanawal)
-            print("harga total Hari Ini :", hargatotalawal, "\n")
+            # print("Sisa Stok Hari Ini : ", saldoawal)
+            # print("harga awal Hari Ini :", hargasatuanawal)
+            # print("harga total Hari Ini :", hargatotalawal, "\n")
             dumy["Sisahariini"] = saldoawal
             dumy["Hargasatuansisa"] = hargasatuanawal
             dumy["Hargatotalsisa"] = hargatotalawal
-            print(dumy)
+            # print(dumy)
             statusmasuk = True
             listdata.append(dumy)
             # print(asdasd)
@@ -293,18 +295,18 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
             jumlahmasukperhari = 0
 
 
-        print("Tanggal : ", i)
-        print("Sisa Stok Hari Sebelumnya : ", saldoawal)
-        print("harga awal Hari Sebelumnya :", hargasatuanawal)
-        print("harga total Hari Sebelumnya :", hargatotalawal)
-        print("Jumlah Masuk : ", jumlahmasukperhari)
-        print("Harga Satuan Masuk : ", hargamasuksatuanperhari)
-        print("Harga Total Masuk : ", hargamasuktotalperhari)
-        print("Jumlah Keluar : ", jumlahkeluarperhari)
-        print("Harga Keluar : ", hargakeluarsatuanperhari)
-        print(
-            "Harga Total Keluar : ", hargakeluarsatuanperhari * jumlahkeluarperhari
-        )
+        # print("Tanggal : ", i)
+        # print("Sisa Stok Hari Sebelumnya : ", saldoawal)
+        # print("harga awal Hari Sebelumnya :", hargasatuanawal)
+        # print("harga total Hari Sebelumnya :", hargatotalawal)
+        # print("Jumlah Masuk : ", jumlahmasukperhari)
+        # print("Harga Satuan Masuk : ", hargamasuksatuanperhari)
+        # print("Harga Total Masuk : ", hargamasuktotalperhari)
+        # print("Jumlah Keluar : ", jumlahkeluarperhari)
+        # print("Harga Keluar : ", hargakeluarsatuanperhari)
+        # print(
+        #     "Harga Total Keluar : ", hargakeluarsatuanperhari * jumlahkeluarperhari
+        # )
 
 
         dumy = {
@@ -328,15 +330,15 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
         """
         saldoawal += jumlahmasukperhari - jumlahkeluarperhari
         hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
-        print(hargatotalawal, saldoawal)
+        # print(hargatotalawal, saldoawal)
         try:
             hargasatuanawal = hargatotalawal / saldoawal
         except :
             hargasatuanawal = hargasatuanawal
 
-        print("Sisa Stok Hari Ini : ", saldoawal)
-        print("harga awal Hari Ini :", hargasatuanawal)
-        print("harga total Hari Ini :", hargatotalawal, "\n")
+        # print("Sisa Stok Hari Ini : ", saldoawal)
+        # print("harga awal Hari Ini :", hargasatuanawal)
+        # print("harga total Hari Ini :", hargatotalawal, "\n")
         dumy["Sisahariini"] = saldoawal
         dumy["Hargasatuansisa"] = hargasatuanawal
         dumy["Hargatotalsisa"] = hargatotalawal

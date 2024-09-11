@@ -1015,6 +1015,8 @@ def rekap_purchasing(request):
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def view_rekapbarang(request):
     tanggal_akhir = request.GET.get("periode")
+    if tanggal_akhir == '':
+        tanggal_akhir = datetime.now().date().strftime('%Y-%m-%d')
 
     sekarang = datetime.now()
     tahun = sekarang.year
@@ -1022,6 +1024,7 @@ def view_rekapbarang(request):
     tanggal_mulai = datetime(year=tahun, month=1, day=1)
 
     dataproduk = models.Produk.objects.all()
+    # dataproduk = models.Produk.objects.filter(KodeProduk = 'A-001-07')
     try:
 
         lokasi = request.GET['lokasi']
@@ -1029,13 +1032,25 @@ def view_rekapbarang(request):
         lokasi = "WIP"
 
     if tanggal_akhir:
+        waktustart = time.time()
         for produk in dataproduk:
-            listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, tanggal_akhir,lokasi)
+            # cektransaksiproduksi = models.TransaksiGudang.objects.filter(KodeProduk = produk).exists()
+            # cekpemusnahanproduksi = models.PemusnahanBahanBaku.objects.filter(KodeBahanBaku = produk).exists()
+            # cekpenyusun = models.Penyusun.objects.filter(KodeProduk = produk).values_list('KodeVersi__Versi',flat=True)
+            # cekversitransaksiproduksi = models.TransaksiProduksi.objects.filter(VersiArtikel__Versi__in = cekpenyusun).exists()
+            # cekpemusnahanartikel  = models.PemusnahanArtikel.objects.filter(VersiArtikel__in = cekpenyusun).exists()
+            # cekmutasikodestok = models.transaksimutasikodestok.objects.filter(KodeProdukAsal=produk).exists()
+            # cekmutasikodestokkelua = models.transaksimutasikodestok.objects.filter(KodeProdukTujuan=produk).exists()
+            # if cektransaksiproduksi or cekpemusnahanartikel or cekpemusnahanproduksi or cekversitransaksiproduksi or cekmutasikodestok or cekmutasikodestokkelua:
 
-            if listdata:
-                produk.kuantitas = listdata[-1]["Sisa"][0]
-            else:
-                produk.kuantitas = 0
+                listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, tanggal_akhir,lokasi)
+
+                if listdata:
+                    produk.kuantitas = listdata[-1]["Sisa"][0]
+                else:
+                    produk.kuantitas = 0
+        endtime = time.time()
+        print('waktu iterasi : ', endtime - waktustart)
     else:
         for produk in dataproduk:
             listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, sekarang,lokasi)
@@ -1771,6 +1786,7 @@ def rekap_harga(request):
 def views_penyusun(request):
     print(request.GET)
     data = request.GET
+    dataartikel  = models.Artikel.objects.all()
     if len(request.GET) == 0:
         data = models.Artikel.objects.all()
 
@@ -1781,24 +1797,21 @@ def views_penyusun(request):
         try:
             get_id_kodeartikel = models.Artikel.objects.get(KodeArtikel=kodeartikel)
             data = models.Penyusun.objects.filter(KodeArtikel=get_id_kodeartikel.id)
-            dataversi = data.values_list("versi", flat=True).distinct()
+            versifiltered = models.Versi.objects.filter(KodeArtikel = get_id_kodeartikel)
+            dataversi = versifiltered.values_list("Versi", flat=True).distinct()
             print(dataversi)
             if dataversi.exists():
                 try:
                     if request.GET["versi"] == "":
-                        versiterpilih = dataversi.order_by("-versi").first()
+                        versiterpilih = versifiltered.filter(isdefault=True).first().Versi
                         print("ini versi terbaru", versiterpilih)
-                        versiterpilih = versiterpilih.strftime("%Y-%m-%d")
                     else:
                         versiterpilih = request.GET["versi"]
                 except:
-                    versiterpilih = dataversi.order_by("-versi").first()
+                    versiterpilih = dataversi.order_by("-Versi").first()
                     print("ini versi terbaru", versiterpilih)
-                    versiterpilih.strftime("%Y-%m-%d")
-
-                data = data.filter(versi=versiterpilih)
-                dataversi = [date.strftime("%Y-%m-%d") for date in dataversi]
-                print(dataversi)
+                
+                data = data.filter(KodeVersi__Versi=versiterpilih)
                 datakonversi = []
                 nilaifg = 0
                 sekarang = date.today()
@@ -1809,12 +1822,10 @@ def views_penyusun(request):
                     for item in data:
                         hargaterakhir = 0
                         print(item, item.IDKodePenyusun)
-                        konversidataobj = models.KonversiMaster.objects.get(
-                            KodePenyusun=item.IDKodePenyusun
-                        )
-                        kuantitaskonversi = konversidataobj.Kuantitas
-                        kuantitasallowance = konversidataobj.Allowance
-                        cachevalue = models.CacheValue.objects.filter(KodeProduk = konversidataobj.KodePenyusun.KodeProduk, Tanggal__month =sekarang.month).first()
+                        
+                        kuantitaskonversi = item.Kuantitas
+                        kuantitasallowance = item.Allowance
+                        cachevalue = models.CacheValue.objects.filter(KodeProduk = item.KodeProduk, Tanggal__month =sekarang.month).first()
                         if cachevalue:
                             hargasatuanawal = cachevalue.Harga
                         else:
@@ -1862,8 +1873,8 @@ def views_penyusun(request):
                                 hargaterakhir = 0
                                 hargaperkotak = 0
                                 # print(asd
-                                kuantitaskonversi = konversidataobj.Kuantitas
-                                kuantitasallowance = konversidataobj.Allowance
+                                kuantitaskonversi = item.Kuantitas
+                                kuantitasallowance = item.Allowance
                                 print(item)
                                 # print(asd)
                                 # return redirect("rekapharga")
@@ -2081,8 +2092,11 @@ def views_penyusun(request):
                                 "Hargakotak": round(hargaperkotak, 2),
                             }
                         )
-                    data = models.Artikel.objects.all()
-                    hargafgartikel = models.HargaArtikel.objects.filter(KodeArtikel =get_id_kodeartikel,Tanggal__month = sekarang.month).first().Harga
+                    HargaFGArtikel= None
+                    hargaartikel = models.HargaArtikel.objects.filter(KodeArtikel =get_id_kodeartikel,Tanggal__month = sekarang.month)
+                    if hargaartikel.exists():
+                        HargaFGArtikel = hargaartikel.first().Harga
+
                     return render(
                         request,
                         "Purchasing/penyusun.html",
@@ -2092,15 +2106,12 @@ def views_penyusun(request):
                             "nilaifg": nilaifg,
                             "versiterpilih": versiterpilih,
                             "dataversi": dataversi,
-                            'dataartikel' : data,
-                            "hargafgartikel":hargafgartikel
+                            'dataartikel' : dataartikel,
+                            "hargafgartikel" : HargaFGArtikel,
+                            'versiterpilihobj': models.Versi.objects.get(Versi = versiterpilih,KodeArtikel=get_id_kodeartikel)
                         },
                     )
-                else:
-                    messages.error(request, "Versi tidak ditemukan")
-                    return redirect(
-                        f"/purchasing/penyusun?kodeartikel={quote(kodeartikel)}&versi="
-                    )
+
             else:
                 messages.error(request, "Kode Artikel Belum memiliki penyusun")
                 return render(
@@ -2406,52 +2417,53 @@ def kebutuhan_barang(request):
                     continue
                 art_code = getidartikel
 
-                try:
-                    versipenyusunterakhir = models.Penyusun.objects.filter(KodeArtikel =art_code).order_by('-versi').first()
-                    print("versi terakhir",versipenyusunterakhir, art_code)
-                    listpenyusun = models.Penyusun.objects.filter(KodeArtikel = art_code, versi = versipenyusunterakhir.versi).values_list('IDKodePenyusun',flat=True)
-                    print(listpenyusun)
-                    # print(asd)
+                # versipenyusunterakhir = models.Penyusun.objects.filter(KodeArtikel =art_code).order_by('-versi').first()
+                versipenyusunterakhir = models.Versi.objects.filter(KodeArtikel =art_code,isdefault = True).first()
+                print("versi terakhir",versipenyusunterakhir, art_code)
+                # listpenyusun = models.Penyusun.objects.filter(KodeArtikel = art_code, versi = versipenyusunterakhir.versi).values_list('IDKodePenyusun',flat=True)
+                listpenyusun = models.Penyusun.objects.filter(KodeArtikel = art_code, KodeVersi = versipenyusunterakhir).values_list('IDKodePenyusun',flat=True)
+                print(listpenyusun)
+                # print(asd)
 
-                    # print(asd)
-                    konversi_art = (
-                        models.KonversiMaster.objects.filter(
-                            KodePenyusun__KodeArtikel=art_code, KodePenyusun__in=listpenyusun
-                        )
-                        .annotate(
-                            kode_art=F("KodePenyusun__KodeArtikel__KodeArtikel"),
-                            kode_produk=F("KodePenyusun__KodeProduk"),
-                            nilai_konversi=F("Allowance"),
-                            nama_bb=F("KodePenyusun__KodeProduk__NamaProduk"),
-                        )
-                        .values("kode_art", "kode_produk", "Kuantitas", "nama_bb")
-                        .distinct()
+                # print(asd)
+                # konversi_art = (
+                #     models.Penyusun.objects.filter(
+                #         KodeArtikel=art_code, KodePenyusun__in=listpenyusun
+                #     )
+                #     .annotate(
+                #         kode_art=F("KodePenyusun__KodeArtikel__KodeArtikel"),
+                #         kode_produk=F("KodePenyusun__KodeProduk"),
+                #         nilai_konversi=F("Allowance"),
+                #         nama_bb=F("KodePenyusun__KodeProduk__NamaProduk"),
+                #     )
+                #     .values("kode_art", "kode_produk", "Kuantitas", "nama_bb")
+                #     .distinct()
+                # )
+                konversi_art = listpenyusun.annotate(kode_art=F("KodeArtikel__KodeArtikel"),
+                        kode_produk=F("KodeProduk"),
+                        nilai_konversi=F("Allowance"),
+                        nama_bb=F("KodeProduk__NamaProduk"),).values("kode_art", "kode_produk", "nilai_konversi", "nama_bb")
+
+                for item2 in konversi_art:
+                    print(item2)
+
+                    kode_artikel = art_code.KodeArtikel
+                    kode_produk = item2["kode_produk"]
+                    nilai_conv = item2["nilai_konversi"]
+                    nama_bb = item2["nama_bb"]
+
+                    hasil_conv = math.ceil(jumlah_art * nilai_conv)
+
+                    list_hasil_conv.append(
+                        {
+                            "Kode Artikel": kode_artikel,
+                            "Jumlah Artikel": jumlah_art,
+                            "Kode Produk": kode_produk,
+                            "Nama Produk": nama_bb,
+                            "Hasil Konversi": hasil_conv,
+                        }
                     )
-
-                    for item2 in konversi_art:
-                        print(item2)
-
-                        kode_artikel = art_code.KodeArtikel
-                        kode_produk = item2["kode_produk"]
-                        nilai_conv = item2["Kuantitas"]
-                        nama_bb = item2["nama_bb"]
-
-                        hasil_conv = math.ceil(jumlah_art * nilai_conv)
-
-                        list_hasil_conv.append(
-                            {
-                                "Kode Artikel": kode_artikel,
-                                "Jumlah Artikel": jumlah_art,
-                                "Kode Produk": kode_produk,
-                                "Nama Produk": nama_bb,
-                                "Hasil Konversi": hasil_conv,
-                            }
-                        )
-                    # pritn(asd)
-
-                except Exception as e :
-                    messages.error(request,f'Error {e}')
-                    continue
+                # pritn(asd)
 
             for item in list_hasil_conv:
                 print(list_hasil_conv)
@@ -2462,6 +2474,9 @@ def kebutuhan_barang(request):
                 datacachevalue = models.CacheValue.objects.filter(KodeProduk = kode_produk,Tanggal__year = waktusekarang.year, Tanggal__month = waktusekarang.month).first()
                 print(datacachevalue)
                 print(kode_produk)
+                if datacachevalue.KodeProduk.KodeProduk == 'A-001-02':
+                    print(datacachevalue.Jumlah)
+                    # print(asd)
                 gudang_jumlah = datacachevalue.Jumlah
                 hasil_akhir = gudang_jumlah - hasil_konversi
                 # print(asd)
@@ -2529,9 +2544,10 @@ def kebutuhan_barang(request):
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def views_rekapharga(request):
     kodeprodukobj = models.Produk.objects.all()
+    tahun = datetime.now().year
     if len(request.GET) == 0:
         return render(
-            request, "Purchasing/views_ksbb.html", {"kodeprodukobj": kodeprodukobj}
+            request, "Purchasing/views_ksbb.html", {"kodeprodukobj": kodeprodukobj,'tahun':tahun}
         )
     else:
         kode_produk = request.GET["kode_produk"]

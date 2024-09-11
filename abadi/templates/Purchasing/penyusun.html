@@ -15,7 +15,7 @@
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Penyusun Artikel : <span style="font-weight: lighter;">
+                <h4 class="card-title">Konversi Artikel : <span style="font-weight: lighter;">
                         {{kodeartikel}}</span></h4>
                 <form action="" method="get">
                     <div class="row">
@@ -68,6 +68,8 @@
                         </div>
                     </div>
                 </form>
+                <h4 class="card-title">Versi : <span style="font-weight: lighter;">
+                    {{versiterpilihobj.Versi}} {% if versiterpilihobj.isdefault == True %} - Default {% endif %}</span></h4>
                 <h4 class="card-title">Nilai FG : <span style="font-weight: lighter;">
                     Rp{{nilaifg |custom_thousands_separator}}</span></h4>
                     <h4 class="card-title">Nilai FG Input Manual : 

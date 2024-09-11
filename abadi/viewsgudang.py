@@ -1458,7 +1458,7 @@ def readcachevalue(request):
 def updatecache(request):
     waktustart = time.time()
     allprodukobj = models.Produk.objects.all()
-    allprodukobj = models.Produk.objects.filter(KodeProduk = 'A-004-01')
+    # allprodukobj = models.Produk.objects.filter(KodeProduk = 'A-004-01')
     for produk in allprodukobj:
         newpemusnahan = models.PemusnahanBahanBaku(
             Tanggal = datetime.now().date(),

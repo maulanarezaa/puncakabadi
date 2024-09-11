@@ -32,7 +32,7 @@
             <div class="col-lg-4">
               <div class="form-group">
                 <div class="input-group">
-                  <input required type="date" class="form-control" value="{{tanggal_akhir}}"
+                  <input type="date" class="form-control" value="{{tanggal_akhir}}"
                     placeholder="Masukkan Periode" id="tanggal" min="2024" aria-label="Masukkan Periode" name="periode">
                   <div class="input-group-append">
                     <button class="btn btn-sm btn-primary" type="submit">Filter</button>
@@ -76,11 +76,5 @@
   </div>
 </div>
 
-<script>
-  // Mendapatkan tanggal hari ini dalam format YYYY-MM-DD
-  var today = new Date().toISOString().split('T')[0];
 
-  // Mengatur nilai input tanggal ke tanggal hari ini
-  document.getElementById('tanggal').value = today;
-</script>
 {% endblock content %}
