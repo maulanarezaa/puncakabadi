@@ -50,7 +50,7 @@
 
                 </td>
                 <td>{{i.Keterangan}}</td>
-                <td>
+                <td data-order="{% if i.StatusAktif == True %} 1 {% else %} 0 {% endif %}">
                   {% if i.StatusAktif == True %}
                   <button class="btn btn-success">
                     <i class="typcn typcn typcn-tick"></i>
@@ -61,7 +61,7 @@
                   </button>
                   {% endif %}
                 </td>
-                <td>
+                <td data-order="{% if i.KeteranganACC == True %} 1 {% else %} 0 {% endif %}">
                   {% if i.KeteranganACC == True %}
                   <button class="btn btn-success">
                     <i class="typcn typcn typcn-tick"></i>

@@ -34,6 +34,8 @@ urlpatterns = [
     path("harga/update/<str:id>", viewsrnd.updatedataharga, name="update_harga"),
     path("harga/delete/<str:id>", viewsrnd.deleteharga, name="delete_harga"),
     path("ksbj", viewsrnd.views_ksbj, name="view_ksbjrnd"),
+    path("ksbb", viewsrnd.views_ksbb, name="view_ksbbrnd"),
+    
     path("sppb", viewsrnd.views_sppb, name="views_sppbrnd"),
     path("spk", viewsrnd.view_spk, name="views_spkrnd"),
     path("rekapharga", viewsrnd.views_rekapharga, name="rekaphargarnd"),

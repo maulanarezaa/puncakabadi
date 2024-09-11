@@ -87,7 +87,7 @@
                 </form>
 
                 <div class="table-responsive pt-3">
-                    {% if data.count > 0 and kodeartikel and lokasi == 'WIP' %}
+                    {% if lokasi == 'WIP' %}
                     <table class="table table-bordered" id="ksbjrnd">
                         <thead>
                             <tr>
@@ -155,7 +155,7 @@
                             {% endif %}
                         </tbody>
                     </table>
-                    {% elif data.count > 0 and kodeartikel and lokasi == 'FG'%}
+                    {% elif lokasi == 'FG'%}
                     <table class="table table-bordered" id="ksbjrnd">
                         <thead>
                             <tr>

@@ -47,7 +47,6 @@
                         </tbody>
                     </table>
                     {% else %}
-                    <h5>Tidak ada data SPK </h5>
                     {% endif %}
                 </div>
             </div>
@@ -132,7 +131,6 @@
                         </tbody>
                     </table>
                     {% else %}
-                    <h5>Tidak ada data SPK </h5>
                     {% endif %}
                 </div>
             </div>
@@ -168,45 +166,59 @@
                                 <td>{{i.Tanggal}}</td>
                                 <td>{{i.Keterangan}}</td>
                                 <td>
-                                    {% for j in i.detailsppb %}
-                                    {% if j.DetailSPKDisplay == None %}
-                                    <p>
-                                        {{j.DetailSPK.NoSPK}}
-                                    </p>
-                                    {% else %}
+                                    <ul>
 
-                                    <p>
-
-                                        {{j.DetailSPKDisplay.NoSPK}}
-                                    </p>
-                                    {% endif %}
-
-                                    {% endfor %}
-                                </td>
+                                        {% for j in i.detailsppb %}
+                                            
+                                        {% if j.DetailSPKDi != None %}
+                                        <li>
+                                            {{j.DetailSPK.NoSPK}}
+                                        </li>
+                                        {% elif j.DetailSPKDisplay != None %}
+                                        <li>
+                                            {{j.DetailSPKDisplay.NoSPK}}
+                                        </li>
+                                        {% else %}
+                                        <li>
+                                            Bahan Baku
+                                        </li>
+                                        {% endif %}
+                                        
+                                        {% endfor %}
+                                    </ul>
+                                    </td>
                                 <td>
-                                    {% for j in i.detailsppb %}
-                                    {% if j.DetailSPKDisplay != None %}
-                                    <p>
-                                        {{j.DetailSPKDisplay.KodeDisplay}}
-                                    </p>
-                                    {% elif j.DetailBahan != None %}
-                                    {{j.DetailBahan.KodeProduk}}
-                                    {% else %}
-                                    <p>
-                                        {{j.DetailSPK.KodeArtikel}}
-                                    </p>
-                                    {% endif %}
+                                    <ul>
 
-                                    {% endfor %}
-                                </td>
+                                        {% for j in i.detailsppb %}
+                                        {% if j.DetailSPKDisplay != None %}
+                                        <li>
+                                            {{j.DetailSPKDisplay.KodeDisplay}}
+                                        </li>
+                                        {% elif j.DetailBahan != None %}
+                                        <li>
 
+                                            {{j.DetailBahan.KodeProduk}}
+                                        </li>
+                                        {% else %}
+                                        <li>
+                                            {{j.DetailSPK.KodeArtikel}}
+                                        </li>
+                                        {% endif %}
+                                        
+                                        {% endfor %}
+                                    </ul>
+                                    </td>
+                                    
                                 <td>
-                                    {% for j in i.detailsppb %}
-                                    <p>
+                                    <ul>
 
-                                        {{j.Jumlah|separator_ribuan}}
-                                    </p>
-                                    {% endfor %}
+                                        {% for j in i.detailsppb %}
+                                        <li>
+                                            {{j.Jumlah|separator_ribuan}}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
                                 </td>
 
                             </tr>
@@ -214,7 +226,6 @@
                         </tbody>
                     </table>
                     {% else %}
-                    <h5>Tidak ada data SPK </h5>
                     {% endif %}
                 </div>
             </div>

@@ -248,7 +248,7 @@
                                       <label for="artikel_1">Artikel ${productCounter}:</label>
                                       <select class="form-control artikel" name="kode_artikel-${productCounter}" id="kode_artikel-${productCounter}" onchange="loadArtikelOptions(this)">
                                         <option value="">Masukkan Kode Artikel</option>
-                                          {% for item in data %}
+                                          {% for item in artikel %}
                                           <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
                                           {% endfor %}
                                       </select>
@@ -313,7 +313,7 @@
                             <div class="col-md-2">
                               <div class="form-group">
                                   <label for="jumlah_${displayCounter}">Jumlah</label>
-                                  <input type="number" class="form-control" name="quantitydisplay[]" id="jumlah_${displayCounter}" placeholder="Jumlah">
+                                  <input type="number" class="form-control" name="quantitydisplay[]" id="jumlah_${displayCounter}" placeholder="Quantity">
                               </div>
                             </div>
                             <div class="col-md-3">

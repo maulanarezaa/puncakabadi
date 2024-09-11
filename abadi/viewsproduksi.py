@@ -242,6 +242,8 @@ def add_spk(request):
         return render(request, "produksi/add_spk.html", {"data": dataartikel,'datadisplay':datadisplay})
 
     if request.method == "POST":
+        print(request.POST)
+        # print(asd)
         nomor_spk = request.POST["nomor_spk"]
         tanggal = request.POST["tanggal"]
         keterangan = request.POST["keterangan"]
@@ -301,6 +303,7 @@ def add_spk(request):
                             jenis="Create",
                             pesan=f"Detail Surat Perintah Kerja. No SPK : {no_spk.NoSPK} Kode Artikel : {kode_artikel.KodeArtikel} Jumlah : {jumlah}",
                         ).save()
+                        datadetailspk.save()
                         messages.success(request, "Data berhasil disimpan")
                     except models.Artikel.DoesNotExist:
                         messages.error(request,f"Artikel {produk} tidak ditemukan dalam sistem")
@@ -986,25 +989,47 @@ def delete_detailsppb(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_mutasi(request):
-    dataproduksi = models.TransaksiProduksi.objects.filter(Jenis="Mutasi").order_by(
+    if len(request.GET) == 0:
+        tanggalakhir = datetime.now().date()
+        tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
+        tanggalakhir = tanggalakhir.strftime('%Y-%m-%d')
+    else :
+        tanggalawal = request.GET['mulai']
+        tanggalakhir = request.GET['akhir']
+        if tanggalawal == '':
+            tanggalawal = datetime.min
+        if tanggalakhir == '':
+            tanggalakhir = datetime.max
+    dataproduksi = models.TransaksiProduksi.objects.filter(Jenis="Mutasi",Tanggal__range = (tanggalawal,tanggalakhir)).order_by(
         "-Tanggal", "KodeArtikel"
     )
     for i in dataproduksi:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
 
-    return render(request, "produksi/view_mutasi.html", {"dataproduksi": dataproduksi})
+    return render(request, "produksi/view_mutasi.html", {"dataproduksi": dataproduksi,'tanggalawal':tanggalawal,'tanggalakhir':tanggalakhir})
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_mutasidetailsppb(request):
-    dataproduksi = models.DetailSPPB.objects.all().order_by(
+    if len(request.GET) == 0:
+        tanggalakhir = datetime.now().date()
+        tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
+        tanggalakhir = tanggalakhir.strftime('%Y-%m-%d')
+    else :
+        tanggalawal = request.GET['mulai']
+        tanggalakhir = request.GET['akhir']
+        if tanggalawal == '':
+            tanggalawal = datetime.min
+        if tanggalakhir == '':
+            tanggalakhir = datetime.max
+    dataproduksi = models.DetailSPPB.objects.filter(NoSPPB__Tanggal__range=(tanggalawal,tanggalakhir)).order_by(
         "-NoSPPB__Tanggal"
     )
     for i in dataproduksi:
         i.NoSPPB.Tanggal = i.NoSPPB.Tanggal.strftime("%Y-%m-%d")
 
     return render(
-        request, "produksi/view_mutasisppb.html", {"dataproduksi": dataproduksi}
+        request, "produksi/view_mutasisppb.html", {"dataproduksi": dataproduksi,'tanggalawal':tanggalawal,'tanggalakhir':tanggalakhir}
     )
 
 @login_required
@@ -1387,18 +1412,40 @@ def delete_mutasi(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_gudang(request):
-    datagudang = models.TransaksiGudang.objects.filter(jumlah__gt=0).order_by(
+    if len(request.GET) == 0:
+        tanggalakhir = datetime.now().date()
+        tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
+        tanggalakhir = tanggalakhir.strftime('%Y-%m-%d')
+    else :
+        tanggalawal = request.GET['mulai']
+        tanggalakhir = request.GET['akhir']
+        if tanggalawal == '':
+            tanggalawal = datetime.min
+        if tanggalakhir == '':
+            tanggalakhir = datetime.max
+    datagudang = models.TransaksiGudang.objects.filter(jumlah__gt=0,tanggal__range=(tanggalawal,tanggalakhir)).order_by(
         "-tanggal", "KodeProduk"
     )
     for i in datagudang:
         i.tanggal = i.tanggal.strftime("%Y-%m-%d")
 
-    return render(request, "produksi/view_gudang.html", {"datagudang": datagudang})
+    return render(request, "produksi/view_gudang.html", {"datagudang": datagudang,'tanggalawal':tanggalawal,'tanggalakhir':tanggalakhir})
 
 @login_required  
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_gudangretur(request):
-    datagudang = models.TransaksiGudang.objects.filter(jumlah__lt=0).order_by(
+    if len(request.GET) == 0:
+        tanggalakhir = datetime.now().date()
+        tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
+        tanggalakhir = tanggalakhir.strftime('%Y-%m-%d')
+    else :
+        tanggalawal = request.GET['mulai']
+        tanggalakhir = request.GET['akhir']
+        if tanggalawal == '':
+            tanggalawal = datetime.min
+        if tanggalakhir == '':
+            tanggalakhir = datetime.max
+    datagudang = models.TransaksiGudang.objects.filter(jumlah__lt=0,tanggal__range =(tanggalawal,tanggalakhir)).order_by(
         "-tanggal", "KodeProduk"
     )
     for data in datagudang:
@@ -1406,7 +1453,7 @@ def view_gudangretur(request):
     for i in datagudang:
         i.tanggal = i.tanggal.strftime("%Y-%m-%d")
 
-    return render(request, "produksi/view_gudangretur.html", {"datagudang": datagudang})
+    return render(request, "produksi/view_gudangretur.html", {"datagudang": datagudang,'tanggalawal':tanggalawal,'tanggalakhir':tanggalakhir})
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
@@ -1544,6 +1591,7 @@ def add_gudangretur(request):
                 jumlah=-int(jumlah),
                 keterangan=keterangan,
                 KeteranganACC=False,
+                KeteranganACCPurchasing = False
             ).save()
             messages.success(request, "Data berhasil ditambahkan")
 
