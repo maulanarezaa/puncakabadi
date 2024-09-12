@@ -6,6 +6,7 @@
 {% endblock stylesheets %}
 {% load customfilter %}
 
+
 <!-- Page content  -->
 {% block content %}
 <div class="row">
@@ -182,7 +183,7 @@
                                 <td></td>
 
 
-                                <td>{{saldo.Jumlah|custom_thousands_separator}}</td>
+                                <td>{{saldo.Jumlah|separator_ribuan}}</td>
 
                             </tr>
                             {% for i in data %}

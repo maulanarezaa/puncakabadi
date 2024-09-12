@@ -567,14 +567,31 @@ def detailco(request, id):
     data.tanggal = data.tanggal.strftime("%Y-%m-%d")
     data.detailcopodisplay = detailcopodisplay
     detailsppb = models.DetailSPPB.objects.filter(IDCO=data)
+    detailsppbartikel = detailsppb.filter(DetailSPK__isnull = False)
+    detailsppbdisplay = detailsppb.filter(DetailSPKDisplay__isnull = False)
+    detailsppbbahan = detailsppb.filter(DetailBahan__isnull = False)
     data.detailsppb = detailsppb
-    print(detailsppb)
-    datajumlah = detailsppb.values("DetailSPK__KodeArtikel__KodeArtikel").annotate(
+    print(detailsppbdisplay)
+    datajumlah = detailsppbartikel.values("DetailSPK__KodeArtikel__KodeArtikel").annotate(
         total=Sum("Jumlah")
-    )
-    print(datajumlah)
 
-    return render(request, "ppic/detailco.html", {"dataco": data, "jumlah": datajumlah})
+    )
+    datajumlahdisplay = detailsppbdisplay.values("DetailSPKDisplay__KodeDisplay__KodeDisplay").annotate(
+        total=Sum("Jumlah")
+
+    )
+    datajumlahbahan = detailsppbbahan.values("DetailBahan__KodeProduk").annotate(
+        total=Sum("Jumlah")
+
+    )
+
+    
+
+    print(datajumlah)
+    print(datajumlahdisplay)
+    print(datajumlahbahan)
+
+    return render(request, "ppic/detailco.html", {"dataco": data, "jumlah": datajumlah,'jumlahdisplay':datajumlahdisplay,'jumlahbahan':datajumlahbahan})
 
 
 def updateco(request, id):
@@ -604,10 +621,10 @@ def updateco(request, id):
         kepada = request.POST["kepada"]
         perihal = request.POST["perihal"]
         status = request.POST["status"]
-        artikel = request.POST.getlist("artikel[]")
-        kuantitas = request.POST.getlist("kuantitas[]")
-        harga = request.POST.getlist("harga[]")
-        deskripsi = request.POST.getlist("deskripsi[]")
+        listartikel = request.POST.getlist("artikel[]")
+        listkuantitas = request.POST.getlist("kuantitas[]")
+        listharga = request.POST.getlist("harga[]")
+        listdeskripsi = request.POST.getlist("deskripsi[]")
         listid = request.POST.getlist("id[]")
         listiddisplay = request.POST.getlist("iddisplay[]")
         display = request.POST.getlist("display[]")
@@ -615,6 +632,8 @@ def updateco(request, id):
         hargadisplay = request.POST.getlist("hargadisplay[]")
         deskripsidisplay = request.POST.getlist("deskripsidisplay[]")
 
+        # print(listid, artikel, kuantitas, harga, deskripsi)
+        # print(asd)
         data.tanggal = tanggaladd
         data.nomorco = nomorco
         data.kepada = kepada
@@ -623,11 +642,11 @@ def updateco(request, id):
 
         data.save()
 
-        for listid, artikel, kuantitas, harga, deskripsi in zip(
-            listid, artikel, kuantitas, harga, deskripsi
+        for artikelid, artikel, kuantitas, harga, deskripsi in zip(
+            listid, listartikel, listkuantitas, listharga, listdeskripsi
         ):
             # print(artikel, kuantitas, harga, deskripsi)
-            if listid == "":
+            if artikelid == "":
                 detailconfirmationobj = models.detailconfirmationorder(
                     confirmationorder=data,
                     Artikel=models.Artikel.objects.get(KodeArtikel=artikel),
@@ -637,7 +656,7 @@ def updateco(request, id):
                 )
             else:
                 detailconfirmationobj = models.detailconfirmationorder.objects.get(
-                    id=listid
+                    id=artikelid
                 )
                 detailconfirmationobj.confirmationorder = data
                 detailconfirmationobj.Artikel = models.Artikel.objects.get(
@@ -668,7 +687,7 @@ def updateco(request, id):
                 )
             else:
                 detailconfirmationobj = models.detailconfirmationorder.objects.get(
-                    id=listid
+                    id=iddisplay
                 )
                 detailconfirmationobj.confirmationorder = data
 
@@ -2982,7 +3001,7 @@ def detaillaporanbaranstokawalgudang(request):
 def read_transactionlog(request):
     waktuobj = datetime.now().date()
     
-    dataobj = models.transactionlog.objects.all()
+    dataobj = models.transactionlog.objects.all().order_by('-waktu')
     for i in dataobj:
         i.waktu = i.waktu.strftime("%Y-%m-%d %H:%M:%S")
     # dataobj = LogEntry.objects.filter(action_time__month = waktuobj.month)
@@ -3587,7 +3606,7 @@ def exportlaporanbulananexcel(request):
             apply_borders_thin(writer.sheets['Barang Masuk'],2,maxrow+2,maxcol)
             adjust_column_width(writer.sheets['Barang Masuk'],df2,1,1)
         '''LAPORAN REKAP BARANG KELUAR'''
-        if not dfrekapartikelkeluar.empty or not dfrekapdisplaykeluar.empty or not dfrekaptransaksilainlain.empty or not dfrekapgolongand.empty or not dfrekappemusnahanartikel or not dfrekappemusnahanbahanbaku:
+        if not dfrekapartikelkeluar.empty or not dftransaksibahanbaku.empty or not dfrekapdisplaykeluar.empty or not dfrekaptransaksilainlain.empty or not dfrekapgolongand.empty or not dfrekappemusnahanartikel or not dfrekappemusnahanbahanbaku:
             # Artikel Keluar
             maxcol = 0
             maxrow = 0
@@ -3621,6 +3640,19 @@ def exportlaporanbulananexcel(request):
                 apply_number_format(writer.sheets['Rekap Barang Keluar'], 2, maxrow+2, maxcolprevdf+2, maxcol)
                 apply_borders_thin(writer.sheets['Rekap Barang Keluar'], 2, maxrow+2, maxcol, maxcolprevdf+2)
                 adjust_column_width(writer.sheets['Rekap Barang Keluar'], dfrekapdisplaykeluar, 1, maxcolprevdf+2)
+
+            if not dfrekapbahanbakukeluar.empty:
+                dfrekapbahanbakukeluar.to_excel(writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Rekap Barang Keluar")
+                maxcolprevdf = maxcol
+                writer.sheets["Rekap Barang Keluar"].cell(row=1, column=maxcol+2, value='Bahan Baku Keluar')
+                maxrow = len(dfrekapbahanbakukeluar) + 1
+                maxcol = len(dfrekapbahanbakukeluar.columns) + maxcol + 1
+                writer.sheets["Rekap Barang Keluar"].merge_cells(start_row=maxrow+2, start_column=maxcolprevdf + 2, end_row=maxrow+2, end_column=maxcol-1)
+                writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+2, column=maxcolprevdf+2).value = "Total Harga"
+                writer.sheets["Rekap Barang Keluar"].cell(row=maxrow+2, column=maxcol, value=totalbiayakeluartransaksibahanbaku)
+                apply_number_format(writer.sheets['Rekap Barang Keluar'], 2, maxrow+2, maxcolprevdf+2, maxcol)
+                apply_borders_thin(writer.sheets['Rekap Barang Keluar'], 2, maxrow+2, maxcol, maxcolprevdf+2)
+                adjust_column_width(writer.sheets['Rekap Barang Keluar'], dfrekapbahanbakukeluar, 1, maxcolprevdf+2)
 
             if not dfrekaptransaksilainlain.empty:
                 dfrekaptransaksilainlain.to_excel(writer, index=False, startrow=1, startcol=maxcol+1, sheet_name="Rekap Barang Keluar")

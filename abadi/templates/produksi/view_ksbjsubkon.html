@@ -1,6 +1,6 @@
 {% extends "produksi/base.html" %}
 {% load static %}
-{% load humanize %}
+{% load customfilter %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -97,7 +97,7 @@
                                 </td>
                                 <td></td>
                                 <td></td>
-                                <td>{{saldo.Jumlah|intcomma}}</td>
+                                <td>{{saldo.Jumlah|separator_ribuan}}</td>
                             </tr>
                             {% for i in data %}
                             <tr>
@@ -105,13 +105,13 @@
                                     {{i.Tanggal}}
                                 </td>
                                 <td>
-                                    {{i.Masuk|intcomma}}
+                                    {{i.Masuk|separator_ribuan}}
                                 </td>
                                 <td>
-                                    {{i.Keluar|intcomma}}
+                                    {{i.Keluar|separator_ribuan}}
                                 </td>
                                 <td>
-                                    {{i.Sisa|intcomma}}
+                                    {{i.Sisa|separator_ribuan}}
                                 </td>
                             </tr>
                             {% endfor %}

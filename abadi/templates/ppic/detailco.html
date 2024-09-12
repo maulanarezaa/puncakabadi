@@ -135,7 +135,7 @@
               <td>Tanggal</td>
               <td>No SPPB</td>
               <td>No SPK</td>
-              <td>Artikel Keluar</td>
+              <td>Produk Keluar</td>
               <td>Jumlah</td>
             </tr>
           </thead>
@@ -144,8 +144,23 @@
             <tr>
               <td>{{i.NoSPPB.Tanggal}}</td>
               <td>{{i.NoSPPB.NoSPPB}}</td>
-              <td>{{i.DetailSPK.NoSPK}}</td>
-              <td>{{i.DetailSPK.KodeArtikel}}</td>
+              <td>
+                {% if i.DetailSPK != None %}
+                {{i.DetailSPK.NoSPK}}</td>
+                {% elif i.DetailSPKDisplay != None %}
+                {{i.DetailSPKDisplay.NoSPK}}</td>
+                {% else %}
+                -
+                {% endif %}
+              <td>
+                {% if i.DetailSPK != None %}
+                {{i.DetailSPK.KodeArtikel}}
+                {% elif i.DetailSPKDisplay != None %}
+                {{i.DetailSPKDisplay.KodeDisplay}}
+                {% else %}
+                {{i.DetailBahan.KodeProduk}}
+                {% endif %}
+              </td>
               <td>{{i.Jumlah}}</td>
             </tr>
             {% endfor %}
@@ -168,7 +183,27 @@
           <tbody>
             {% for i in jumlah %}
             <tr>
-              <td>{{i.DetailSPK__KodeArtikel__KodeArtikel}}</td>
+              <td>
+                {{i.DetailSPK__KodeArtikel__KodeArtikel}}
+              </td>
+              <td>{{i.total}}</td>
+
+            </tr>
+            {% endfor %}
+            {% for i in jumlahdisplay %}
+            <tr>
+              <td>
+                {{i.DetailSPKDisplay__KodeDisplay__KodeDisplay}}
+              </td>
+              <td>{{i.total}}</td>
+
+            </tr>
+            {% endfor %}
+            {% for i in jumlahbahan %}
+            <tr>
+              <td>
+                {{i.DetailBahan__KodeProduk}}
+              </td>
               <td>{{i.total}}</td>
 
             </tr>

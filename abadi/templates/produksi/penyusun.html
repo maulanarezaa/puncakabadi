@@ -70,6 +70,8 @@
                 </form>
 
                 {% endif %}
+                <h4 class="card-title">Versi : <span style="font-weight: lighter;">
+                    {{versiterpilihobj.Versi}} {% if versiterpilihobj.isdefault == True %} - Default {% endif %}</span></h4>
                 <div class="table-responsive pt-3">
                     {% if data %}
                     <table class="table table-bordered" id="datapenyusun">

@@ -1,6 +1,7 @@
 {% extends "produksi/base.html" %}
 {% load static %}
 {% load humanize %}
+{% load customfilter %}
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
@@ -125,7 +126,7 @@
                                 <td></td>
                                 <td></td>
 
-                                <td>{{saldo.Jumlah|floatformat:2|intcomma}}</td>
+                                <td>{{saldo.Jumlah|separator_ribuan}}</td>
 
                             </tr>
                             {% for i in data %}
@@ -148,25 +149,25 @@
                                 <td>
                                     <ul>
                                         {% for jumlah in i.Artikel %}
-                                        <li>{{jumlah.totalkeluar|floatformat:2|intcomma}}</li>
+                                        <li>{{jumlah.totalkeluar|separator_ribuan}}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>
                                 <td>
                                     <ul>
                                         {% for konversi in i.Artikel %}
-                                        <li>{{konversi.konversi|floatformat:4|intcomma}}</li>
+                                        <li>{{konversi.konversi|separator_desimal5angka}}</li>
                                         {% endfor %}
                                     </ul>
                                 </td>
                                 <td>
-                                    {{i.Masuk|floatformat:2|intcomma}}
+                                    {{i.Masuk|separator_ribuan}}
                                 </td>
                                 <td>
                                     <ul>
                                         {% for keluar in i.Artikel %}
                                         <li>
-                                            {{keluar.konversikeluar|floatformat:2|intcomma}}
+                                            {{keluar.konversikeluar|separator_ribuan}}
                                         </li>
                                         {% endfor %}
                                     </ul>
@@ -176,7 +177,7 @@
 
                                         {% for sisa in i.Artikel %}
                                         <li>
-                                            {{sisa.sisa|floatformat:2|intcomma}}
+                                            {{sisa.sisa|separator_ribuan}}
                                         </li>
                                         {% endfor %}
                                     </ul>
@@ -204,7 +205,7 @@
                                         {{i}}
                                     </td>
                                     <td>
-                                        {{j|floatformat:2|intcomma}}
+                                        {{j|separator_ribuan}}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -226,7 +227,7 @@
                                         {{i}}
                                     </td>
                                     <td>
-                                        {{j|floatformat:2|intcomma}}
+                                        {{j|separator_ribuan}}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -236,13 +237,13 @@
                     <div class="col-lg-3">
                         <ul>
                             <li>
-                                Saldo Data {{datasisaminus|floatformat:2|intcomma}}
+                                Saldo Data {{datasisaminus|separator_ribuan}}
                             </li>
                             <li>
-                                Saldo Fisik {{jumlahaktual|floatformat:2|intcomma}}
+                                Saldo Fisik {{jumlahaktual|separator_ribuan}}
                             </li>
                             <li>
-                                Keluar data {{datajumlah|floatformat:2|intcomma}}
+                                Keluar data {{datajumlah|separator_ribuan}}
                             </li>
                         </ul>
                     </div>
@@ -261,7 +262,7 @@
                                         {{i}}
                                     </td>
                                     <td>
-                                        {{j|floatformat:2|intcomma}}
+                                        {{j|separator_ribuan}}
                                     </td>
                                 </tr>
                                 {% endfor %}

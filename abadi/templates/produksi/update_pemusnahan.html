@@ -52,9 +52,10 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Versi</label>
               <div class="col-sm-9" id="versi">
+                
                 <select name="versiartikel" id="" class="form-control">
                   {% for i in dataversi %}
-                  {% if i.Versi == produksi.VersiArtikel.Versi %}
+                  {% if i.Versi == data.VersiArtikel.Versi %}
                   <option value="{{i.id}}" selected>{{i.Versi}} - {{i.Tanggal}} - {{i.Keterangan}}</option>
                   {% else %}
                   <option value="{{i.id}}" >{{i.Versi}} - {{i.Tanggal}} - {{i.Keterangan}}</option>

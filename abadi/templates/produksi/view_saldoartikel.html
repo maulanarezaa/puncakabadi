@@ -1,6 +1,6 @@
 {% extends "produksi/base.html" %}
 {% load static %}
-{% load humanize %}
+{% load customfilter %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -43,7 +43,7 @@
                 <td>{{i.Tanggal}}</td>
                 <td>{{i.IDArtikel.KodeArtikel}}</td>
                 <td>{{i.IDLokasi}}</td>
-                <td>{{i.Jumlah|intcomma}}</td>
+                <td data-order="{{i.Jumlah}}">{{i.Jumlah|separator_ribuan}}</td>
                 <td>
                   <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                   {% if user.groups.first.name != 'ppic' %}

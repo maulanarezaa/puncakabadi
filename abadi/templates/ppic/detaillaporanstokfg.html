@@ -41,8 +41,8 @@
                                 <td>{{forloop.counter}}</td>
                                 <td>{{item.KodeArtikel}}</td>
                                 <td>{{item.total}}</td>
-                                <td>{{item.hargafg|custom_thousands_separator}}</td>
-                                <td>{{item.totalsaldo|custom_thousands_separator}}</td>
+                                <td data-order="{{item.hargafg}}">{{item.hargafg|custom_thousands_separator}}</td>
+                                <td data-order="{{item.totalsaldo}}">{{item.totalsaldo|custom_thousands_separator}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -85,8 +85,8 @@
                                 <td>{{forloop.counter}}</td>
                                 <td>{{item.KodeDisplay}}</td>
                                 <td>{{item.total}}</td>
-                                <td>{{item.hargafg|custom_thousands_separator}}</td>
-                                <td>{{item.totalsaldo|custom_thousands_separator}}</td>
+                                <td data-order="{{item.hargafg}}">{{item.hargafg|custom_thousands_separator}}</td>
+                                <td data-order="{{item.totalsaldo}}" >{{item.totalsaldo|custom_thousands_separator}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -135,9 +135,9 @@
                                 <td>{{item.KodeProduk}}</td>
                                 <td>{{item.KodeProduk.NamaProduk}}</td>
                                 <td>{{item.KodeProduk.unit}}</td>
-                                <td>{{item.hargasatuan|custom_thousands_separator}}</td>
-                                <td>{{item.total|custom_thousands_separator}}</td>
-                                <td>{{item.hargatotal|custom_thousands_separator}}</td>
+                                <td data-order="{{item.hargasatuan}}" >{{item.hargasatuan|custom_thousands_separator}}</td>
+                                <td data-order="{{item.total}}" >{{item.total|custom_thousands_separator}}</td>
+                                <td data-order="{{item.hargatotal}}" >{{item.hargatotal|custom_thousands_separator}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
