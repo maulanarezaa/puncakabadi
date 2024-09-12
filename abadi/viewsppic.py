@@ -1914,6 +1914,7 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
         # print(pengiriman_dict)
         # print(asd)
         all_kode_artikel = models.Artikel.objects.all().values_list("KodeArtikel",flat=True)
+        all_kode_artikel = models.Artikel.objects.filter(KodeArtikel = '9010 AC').values_list("KodeArtikel",flat=True)
         # all_kode_artikel = models.Artikel.objects.filter(KodeArtikel = "penyusun display AC Medium").values_list("KodeArtikel",flat=True)
         all_kode_display = models.Display.objects.all()
         result = []
@@ -1937,6 +1938,8 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
             total_saldoawal = saldoawal_dict.get(kode_artikel, 0)
             startkonversi = time.time()
             konversibahanbaku = getpenyusunartikelpertanggal(hari,kode_artikel)
+            print(konversibahanbaku)
+            # print(asd)
             akhirkonversi = time.time()
             nilaiwaktukonversi += akhirkonversi - startkonversi
             if not has_saldoawalartikel.exists() and  not has_transaksiproduksi.exists() and  not has_detailsppb.exists():
@@ -1957,7 +1960,8 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
                     # print(asd)
                     total_artikeljadi = abs(total_mutasi)
                     penggunaanbahanbakufg = i['total'] * total_artikeljadi
-                    # print(penggunaanbahanbakufg)
+                    print(penggunaanbahanbakufg,i,total_artikeljadi)
+                    # print(asd)
                     if i['KodeProduk__KodeProduk'] in totalpenggunaanbahanbaku:
                         totalpenggunaanbahanbaku[i['KodeProduk__KodeProduk']] += penggunaanbahanbakufg
                     else:
