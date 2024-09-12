@@ -91,7 +91,7 @@
               <div class="form-group">
                 <label for="artikel_1">Artikel 1:</label>
                 <select class="form-control artikel" name="kode_artikel-1" id="kode_artikel-1"
-                  onchange="loadArtikelOptions(this)">
+                  onchange="loadArtikelOptions(this);loadversioption(this)">
                   <option value="">Masukkan Kode Artikel</option>
                   {% for item in artikel %}
                   <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
@@ -99,7 +99,7 @@
                 </select>
               </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <div class="form-group">
                 <label for="artikel_1">Nomor SPK</label>
                 <div id="detail_spk_1">
@@ -113,7 +113,15 @@
                 <input  type="number" min="0" class="form-control quantity" name="quantity[]" placeholder="Quantity">
               </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
+              <div class="form-group">
+                <label for="versi_1">Versi</label>
+                <div  id="versi_1">
+                  {% include 'produksi/opsi_versi.html' %}
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2">
               <div class="form-group">
                 <label>Purchase Order</label>
                 <select name="purchaseorderartikel" id="" class="form-control">
@@ -246,7 +254,7 @@
     productRow.innerHTML = `<div class="col-md-3">
                                   <div class="form-group">
                                       <label for="artikel_1">Artikel ${productCounter}:</label>
-                                      <select class="form-control artikel" name="kode_artikel-${productCounter}" id="kode_artikel-${productCounter}" onchange="loadArtikelOptions(this)">
+                                      <select class="form-control artikel" name="kode_artikel-${productCounter}" id="kode_artikel-${productCounter}" onchange="loadArtikelOptions(this);loadversioption(this)">
                                         <option value="">Masukkan Kode Artikel</option>
                                           {% for item in artikel %}
                                           <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
@@ -254,7 +262,7 @@
                                       </select>
                                   </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                   <div class="form-group">
                                       <label for="artikel_1">Nomor SPK</label>
                                       <div id="detail_spk_${productCounter}">
@@ -268,7 +276,15 @@
                                       <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity">
                                   </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
+                                  <div class="form-group">
+                                      <label for="versi_${productCounter}">Jumlah</label>
+                                      <div id = "versi_${productCounter}">
+                                        {% include 'produksi/opsi_versi.html' %}
+                                        </div>
+                                  </div>
+                                </div>
+                                <div class="col-md-2">
                                   <div class="form-group">
                                     <label>Purchase Order</label>
                                     <select name="purchaseorderartikel" id="" class="form-control">
@@ -339,6 +355,30 @@
     button.closest('.row').remove();
   }
 
+  function loadversioption(selectElement) {
+    var kodeartikel = selectElement.value;
+    var productCounter = selectElement.id.split('-')[1];
+    var versidiv = document.getElementById('versi_' + productCounter);
+    console.log(kodeartikel,productCounter,versidiv,productCounter)
+
+
+    var url = "{% url 'loadversiartikel' %}";
+    console.log(kodeartikel)
+
+  
+
+    // Memuat opsi baru berdasarkan nomor SPK yang dipilih
+    $.ajax({
+      url: url,
+      data: {
+        'kodeartikel': kodeartikel
+      },
+      dataType: 'html',
+      success: function (data) {
+        versidiv.innerHTML = data;
+      }
+    });
+  }
   function loadArtikelOptions(selectElement) {
     var spkNumber = selectElement.value;
     var productCounter = selectElement.id.split('-')[1];

@@ -257,6 +257,8 @@ class DetailSPPB(models.Model):
     IDCO = models.ForeignKey(
         confirmationorder, on_delete=models.SET_NULL, null=True, blank=True
     )
+    VersiArtikel=models.ForeignKey(Versi,on_delete=models.CASCADE,null=True,blank=True)
+
 
     def __str__(self):
         return f"{self.IDDetailSPPB} - {self.NoSPPB} - {self.NoSPPB.Tanggal} - {self.DetailSPK} - {self.Jumlah}"

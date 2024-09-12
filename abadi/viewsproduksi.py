@@ -606,7 +606,8 @@ def add_sppb(request):
         displaylist = request.POST.getlist("detail_spkdisplay[]")
         jumlahdisplay = request.POST.getlist('quantitydisplay[]')
         confirmationorderdisplay = request.POST.getlist("purchaseorderdisplay")
-
+        print(request.POST)
+        # print(asd)
         datasppb = models.SPPB.objects.filter(NoSPPB=nomor_sppb).exists()
         if datasppb:
             messages.error(request, "Nomor SPPB sudah ada")
@@ -615,6 +616,7 @@ def add_sppb(request):
             artikel_list = request.POST.getlist("detail_spk[]")
             jumlah_list = request.POST.getlist("quantity[]")
             confirmationorderartikel = request.POST.getlist("purchaseorderartikel")
+            listversi = request.POST.getlist('versiartikel')
 
             bahan_list = request.POST.getlist("kode_bahan[]")
             jumlahbahan = request.POST.getlist("quantitybahan[]")
@@ -665,16 +667,21 @@ def add_sppb(request):
                         pesan=f"Detail Surat Perintah Pengiriman Barang. Nomor SPPB : {no_sppb.NoSPPB} Kode Bahan Baku : {kode_bahan.NamaProduk} Jumlah : {jumlah} CO : { datadetailspk.IDCO if datadetailspk.IDCO is not None  else None}",
                     ).save()
 
-                for artikel, jumlah, confirmationorder in zip(artikel_list, jumlah_list,confirmationorderartikel):
+                for artikel, jumlah, confirmationorder,versi in zip(artikel_list, jumlah_list,confirmationorderartikel,listversi):
                     if artikel == '' or jumlah == '':
                         continue
 
                     kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel)
                     jumlah_produk = jumlah
 
+                    try:
+                        versiobj = models.Versi.objects.get(pk = versi)
+                    except:
+                        versiobj = models.Versi.objects.filter(KodeArtikel = kode_artikel.KodeArtikel,isdefault = True)
+
                     # Simpan data ke dalam model DetailSPK
                     datadetailspk = models.DetailSPPB(
-                        NoSPPB=no_sppb, DetailSPK=kode_artikel, Jumlah=jumlah_produk
+                        NoSPPB=no_sppb, DetailSPK=kode_artikel, Jumlah=jumlah_produk,VersiArtikel = versiobj
                     )
 
                     if not confirmationorder == "":
@@ -734,6 +741,9 @@ def detail_sppb(request, id):
     datadetailsppbdisplay = models.DetailSPPB.objects.filter(NoSPPB=datasppb.id,DetailSPK = None,DetailBahan = None)
     purchaseorderdata = models.confirmationorder.objects.filter(StatusAktif =True)
 
+    for item in datadetailsppbArtikel:
+        item.opsiversi = models.Versi.objects.filter(KodeArtikel = item.DetailSPK.KodeArtikel)
+
     if request.method == "GET":
         tanggal = datetime.strftime(datasppb.Tanggal, "%Y-%m-%d")
 
@@ -767,6 +777,7 @@ def detail_sppb(request, id):
         artikel_list = request.POST.getlist("detail_spkawal[]")
         jumlah_list = request.POST.getlist("quantity[]")
         confirmationorderartikel = request.POST.getlist("purchaseorderartikel")
+        listversi = request.POST.getlist('versiasli')
 
         display_list = request.POST.getlist("detail_spkdisplayawal[]")
         jumlahdisplay_list = request.POST.getlist('quantitydisplay[]')
@@ -775,6 +786,8 @@ def detail_sppb(request, id):
         artikel_baru = request.POST.getlist('detail_spk[]')
         jumlah_baru = request.POST.getlist('quantitybaru[]')
         purchaseorder_artikelbaru = request.POST.getlist('purchaseorderartikelbaru')
+        listversibaru = request.POST.getlist('versiartikel')
+        
 
         display_baru = request.POST.getlist('detail_spkdisplay[]')
         jumlahdisplay_baru = request.POST.getlist('quantitydisplaybaru[]')
@@ -786,6 +799,8 @@ def detail_sppb(request, id):
 
         datasppbbaru = models.SPPB.objects.filter(NoSPPB=nomor_sppb)
         existsppb = datasppbbaru.exists()
+        print(request.POST)
+        # print(asd)
         if existsppb and datasppb != datasppbbaru.first():
             messages.error(request, "Nomor SPPB sudah ada")
             return redirect("detail_sppb", id=id)
@@ -824,12 +839,17 @@ def detail_sppb(request, id):
 
 
         if datadetailsppbArtikel:
-            for detail, artikel_id, jumlah, confirmationorder in zip(
-                datadetailsppbArtikel, artikel_list, jumlah_list, confirmationorderartikel
+            for detail, artikel_id, jumlah, confirmationorder,versi in zip(
+                datadetailsppbArtikel, artikel_list, jumlah_list, confirmationorderartikel,listversi
             ):
                 kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel_id)
                 detail.DetailSPK = kode_artikel
                 detail.Jumlah = jumlah
+                try:
+                    versiobj = models.Versi.objects.get(id = versi)
+                except:
+                    versiobj = models.Versi.objects.filter(kode_artikel = detail.DetailSPK.KodeArtikel, isdefault = True).first()
+                detail.VersiArtikel  = versiobj
 
                 if not confirmationorder == "":
                     detail.IDCO = models.confirmationorder.objects.get(pk=confirmationorder)
@@ -893,8 +913,8 @@ def detail_sppb(request, id):
                 ).save()
 
         if artikel_baru:
-            for artikel_id, jumlah,confirmationorder in zip(
-                artikel_baru,jumlah_baru,purchaseorder_artikelbaru
+            for artikel_id, jumlah,confirmationorder,versi in zip(
+                artikel_baru,jumlah_baru,purchaseorder_artikelbaru,listversibaru
             ):
                 kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel_id)
                 new_detail = models.DetailSPPB(
@@ -902,7 +922,11 @@ def detail_sppb(request, id):
                     DetailSPK=kode_artikel,
                     Jumlah=jumlah,
                 )
-
+                try:
+                    versiobj = models.Versi.objects.get(pk = versi)
+                except:
+                    versiobj = models.Versi.objects.filter(isdefault = True,KodeArtikel = kode_artikel.KodeArtikel)
+                new_detail.VersiArtikel = versiobj
                 if not confirmationorder == "":
                     new_detail.IDCO = models.confirmationorder.objects.get(pk=confirmationorder)
                 new_detail.save()
@@ -2080,48 +2104,75 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,
 
         '''
         '''KONDISI CEK UNTUK PENYUSUN DENGAN VERSI PERLU DITINJAU ULANG'''
-        # if lokasi == 'WIP':
-        for j in datakeluar:
-            print(j)
-            # print(datakeluar)
-            penyesuaianobj = models.Penyesuaian.objects.filter( KodeProduk = produk ,KodeArtikel = j.KodeArtikel, TanggalMulai__range = (tanggal_mulai,tanggal_akhir)).order_by('TanggalMulai')
-            penyusunartikelkeluar = models.Penyusun.objects.filter(KodeArtikel = j.KodeArtikel, KodeProduk = produk, KodeVersi = j.VersiArtikel).aggregate(total = Sum('Allowance'))['total']
-            if penyusunartikelkeluar == None:
-                penyusunartikelkeluar = 0
-                continue
-            totalartikelmutasi = j.Jumlah
-            konversi = penyusunartikelkeluar
-            penyesuaianobj = models.Penyesuaian.objects.filter(KodeProduk = produk,KodeArtikel = j.KodeArtikel, TanggalMulai__lte = i, TanggalMinus__gte = i).last()
-            # print(penyesuaianobj)
-            if penyesuaianobj:
+        if lokasi == 'WIP':
+            for j in datakeluar:
+                print(j)
+                # print(datakeluar)
+                penyesuaianobj = models.Penyesuaian.objects.filter( KodeProduk = produk ,KodeArtikel = j.KodeArtikel, TanggalMulai__range = (tanggal_mulai,tanggal_akhir)).order_by('TanggalMulai')
+                penyusunartikelkeluar = models.Penyusun.objects.filter(KodeArtikel = j.KodeArtikel, KodeProduk = produk, KodeVersi = j.VersiArtikel).aggregate(total = Sum('Allowance'))['total']
+                if penyusunartikelkeluar == None:
+                    penyusunartikelkeluar = 0
+                    continue
+                totalartikelmutasi = j.Jumlah
+                konversi = penyusunartikelkeluar
+                penyesuaianobj = models.Penyesuaian.objects.filter(KodeProduk = produk,KodeArtikel = j.KodeArtikel, TanggalMulai__lte = i, TanggalMinus__gte = i).last()
                 # print(penyesuaianobj)
-                konversi = penyesuaianobj.konversi
-                # print('Masuk penyesuaian')
-                # print(penyesuaianobj)
+                if penyesuaianobj:
+                    # print(penyesuaianobj)
+                    konversi = penyesuaianobj.konversi
+                    # print('Masuk penyesuaian')
+                    # print(penyesuaianobj)
+                    # print(asd)
+                if startdate != None and enddate !=None:
+                    if startdate.date()<=i<=enddate.date():
+                        if kalkulator:
+                            konversi = penyusunartikelkeluar
+                # print(konversi)
+                # print(produk,i,konversi,j.KodeArtikel)
                 # print(asd)
-            if startdate != None and enddate !=None:
-                if startdate.date()<=i<=enddate.date():
-                    if kalkulator:
-                        konversi = penyusunartikelkeluar
-            # print(konversi)
-            # print(produk,i,konversi,j.KodeArtikel)
-            # print(asd)
-            totalpenggunaanbahanbaku = totalartikelmutasi * konversi
-            # print(produk,totalartikelmutasi,totalpenggunaanbahanbaku,j.KodeArtikel)
-            datamodelskonversi.append(konversi)
-            datamodelskeluar.append(totalpenggunaanbahanbaku)
-            datamodelsartikel.append(j.KodeArtikel.KodeArtikel)
-            datamodelsperkotak.append(j.Jumlah)
-            sisa -= totalpenggunaanbahanbaku
-            datamodelssisa.append(sisa)
-        # else:
-        #     print(i)
-        #     for j in datapengiriman:
-        #         jumlahkirim = j.Jumlah
-        #         # penyusunartikelkeluar = models.Penyusun.objects.filter(KodeArtikel = j.DetailSPK.KodeArtikel, KodeProduk = produk, KodeVersi = j.).aggregate(total = Sum('Allowance'))['total']
-        #         if penyusunartikelkeluar == None:
-        #             penyusunartikelkeluar = 0
-        #             continue
+                totalpenggunaanbahanbaku = totalartikelmutasi * konversi
+                # print(produk,totalartikelmutasi,totalpenggunaanbahanbaku,j.KodeArtikel)
+                datamodelskonversi.append(konversi)
+                datamodelskeluar.append(totalpenggunaanbahanbaku)
+                datamodelsartikel.append(j.KodeArtikel.KodeArtikel)
+                datamodelsperkotak.append(j.Jumlah)
+                sisa -= totalpenggunaanbahanbaku
+                datamodelssisa.append(sisa)
+        else:
+            print(i)
+            for j in datapengiriman:
+                penyusunartikelkeluar = models.Penyusun.objects.filter(KodeArtikel = j.DetailSPK.KodeArtikel, KodeProduk = produk, KodeVersi = j.VersiArtikel).aggregate(total = Sum('Allowance'))['total']
+                if penyusunartikelkeluar == None:
+                    penyusunartikelkeluar = 0
+                    continue
+                if penyusunartikelkeluar == None:
+                    penyusunartikelkeluar = 0
+                    continue
+                totalartikelmutasi = j.Jumlah
+                konversi = penyusunartikelkeluar
+                penyesuaianobj = models.Penyesuaian.objects.filter(KodeProduk = produk,KodeArtikel = j.DetailSPK.KodeArtikel, TanggalMulai__lte = i, TanggalMinus__gte = i).last()
+                # print(penyesuaianobj)
+                if penyesuaianobj:
+                    # print(penyesuaianobj)
+                    konversi = penyesuaianobj.konversi
+                    # print('Masuk penyesuaian')
+                    # print(penyesuaianobj)
+                    # print(asd)
+                if startdate != None and enddate !=None:
+                    if startdate.date()<=i<=enddate.date():
+                        if kalkulator:
+                            konversi = penyusunartikelkeluar
+                # print(konversi)
+                # print(produk,i,konversi,j.KodeArtikel)
+                # print(asd)
+                totalpenggunaanbahanbaku = totalartikelmutasi * konversi
+                # print(produk,totalartikelmutasi,totalpenggunaanbahanbaku,j.KodeArtikel)
+                datamodelskonversi.append(konversi)
+                datamodelskeluar.append(totalpenggunaanbahanbaku)
+                datamodelsartikel.append(j.DetailSPK.KodeArtikel)
+                datamodelsperkotak.append(j.Jumlah)
+                sisa -= totalpenggunaanbahanbaku
+                datamodelssisa.append(sisa)
 
 
             # print(asd)
@@ -7466,10 +7517,17 @@ def bulk_createpenyesuaian(request):
     return render(request, "produksi/bulk_createproduk.html")
 
 def updatetransaksiproduksiversi(request):
-    datatransaksiproduksiall = models.TransaksiProduksi.objects.filter(Jenis = 'Mutasi')
-    print(datatransaksiproduksiall.count())
-    for item in datatransaksiproduksiall:
-        versiobj = models.Versi.objects.filter(KodeArtikel = item.KodeArtikel).first()
+    # datatransaksiproduksiall = models.TransaksiProduksi.objects.filter(Jenis = 'Mutasi')
+    # print(datatransaksiproduksiall.count())
+    # for item in datatransaksiproduksiall:
+    #     versiobj = models.Versi.objects.filter(KodeArtikel = item.KodeArtikel).first()
+    #     item.VersiArtikel = versiobj
+    #     print(item)
+    #     item.save()
+    datadetailsppb = models.DetailSPPB.objects.filter(DetailSPK__isnull = False)
+    for item in datadetailsppb:
+        versiobj = models.Versi.objects.filter(KodeArtikel = item.DetailSPK.KodeArtikel).first()
+        if versiobj == None:
+            print(item.DetailSPK.KodeArtikel)
         item.VersiArtikel = versiobj
-        print(item)
         item.save()

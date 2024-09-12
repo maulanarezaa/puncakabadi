@@ -1884,7 +1884,8 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
         waktuambildata = time.time()
         
         jumlahmutasiartikel = datamutasiartikel.values('KodeArtikel__KodeArtikel').annotate(total = Sum('Jumlah'))
-        # print(jumlahmutasiartikel)
+        print(jumlahmutasiartikel)
+        # print(asd)
 
         jumlahmutasidisplay = datamutasidisplay.values('KodeDisplay__KodeDisplay').annotate(total = Sum('Jumlah'))
         # print(jumlahmutasidisplay)
@@ -1914,7 +1915,7 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
         # print(pengiriman_dict)
         # print(asd)
         all_kode_artikel = models.Artikel.objects.all().values_list("KodeArtikel",flat=True)
-        all_kode_artikel = models.Artikel.objects.filter(KodeArtikel = '9010 AC').values_list("KodeArtikel",flat=True)
+        # all_kode_artikel = models.Artikel.objects.filter(KodeArtikel = '9010 AC').values_list("KodeArtikel",flat=True)
         # all_kode_artikel = models.Artikel.objects.filter(KodeArtikel = "penyusun display AC Medium").values_list("KodeArtikel",flat=True)
         all_kode_display = models.Display.objects.all()
         result = []
@@ -1936,6 +1937,9 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
             total_mutasi = mutasi_dict.get(kode_artikel, 0)
             total_pengiriman = pengiriman_dict.get(kode_artikel, 0)
             total_saldoawal = saldoawal_dict.get(kode_artikel, 0)
+            sisaakhirbulan = total_mutasi + total_saldoawal -total_pengiriman
+            print(sisaakhirbulan)
+            # print(asd)
             startkonversi = time.time()
             konversibahanbaku = getpenyusunartikelpertanggal(hari,kode_artikel)
             print(konversibahanbaku)
@@ -1954,20 +1958,20 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
             # print(total_pengiriman)
             # print(asd)
             
-            if (total_mutasi != 0) and konversibahanbaku.exists():
+            if (sisaakhirbulan != 0) and konversibahanbaku.exists():
                 for i in konversibahanbaku:
                     # print(i)
                     # print(asd)
-                    total_artikeljadi = abs(total_mutasi)
+                    total_artikeljadi = abs(sisaakhirbulan)
                     penggunaanbahanbakufg = i['total'] * total_artikeljadi
-                    print(penggunaanbahanbakufg,i,total_artikeljadi)
+                    print(penggunaanbahanbakufg,i,total_artikeljadi,kode_artikel)
                     # print(asd)
                     if i['KodeProduk__KodeProduk'] in totalpenggunaanbahanbaku:
                         totalpenggunaanbahanbaku[i['KodeProduk__KodeProduk']] += penggunaanbahanbakufg
                     else:
                         totalpenggunaanbahanbaku[i['KodeProduk__KodeProduk']] = penggunaanbahanbakufg
-                # print(total_artikeljadi,kode_artikel,konversibahanbaku)
-                # print(totalpenggunaanbahanbaku)
+                print(total_artikeljadi,kode_artikel,konversibahanbaku)
+                print(totalpenggunaanbahanbaku)
                 # print(asd)
             waktuhargaawal = time.time()
             hargaterakhir = gethargafgterakhirberdasarkanmutasi(models.Artikel.objects.get(KodeArtikel = kode_artikel),hari,hargapurchasing)

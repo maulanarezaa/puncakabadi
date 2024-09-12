@@ -48,8 +48,8 @@
                 <th>No SPPB</th>
                 <th>No SPK</th>
                 <th>Kode Artikel</th>
+                <th>Versi</th>
                 <th>Jumlah</th>
-
                 <th>Action</th>
               </tr>
             </thead>
@@ -72,12 +72,15 @@
                 {% if i.DetailSPK != None %}
                   <td>{{i.DetailSPK.NoSPK}}</td>
                   <td>{{i.DetailSPK.KodeArtikel}}</td>
+                  <td>{{i.VersiArtikel}}</td>
                   {% elif i.DetailSPKDisplay != None %}
                   <td>{{i.DetailSPKDisplay.NoSPK}}</td>
                   <td>{{i.DetailSPKDisplay.KodeDisplay}}</td>
+                  <td>-</td>
                   {% else %}
                   <td>-</td>
                   <td>{{i.DetailBahan.KodeProduk}}</td>
+                  <td>-</td>
                   
                   {% endif %}
                 <td>{{i.Jumlah|intcomma}}</td>
