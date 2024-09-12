@@ -9,7 +9,7 @@
         <div class="card">
             <div class="card-body">
                 {% if user.groups.first.name != 'ppic' %}
-                <h4 class="card-title">Produk Subkon Keluar</h4>
+                <h4 class="card-title">Produk Jadi Subkon Keluar</h4>
                 <div class="template-demo" style="margin-top: 30px;">
                     <a href="{% url 'create_transaksi_subkon_terima' %}">
                         <button type="button" class="btn btn-success btn-icon-text">
@@ -39,11 +39,7 @@
                                 <td>{{i.KodeProduk.NamaProduk}}</td>
                                 <td>{{i.KodeProduk.KodeArtikel}}</td>
                                 <td>{{i.Jumlah|intcomma}}</td>
-                                {% if i.Jumlah >= 0 %}
-                                <td>Barang masuk dari Subkon ke Pabrik</td>
-                                {% else %}
-                                <td>Barang bermutasi ke WIP</td>
-                                {% endif %}
+                                <td>{{i.Keterangan}}</td>
                                 <td>
                                     {% if user.groups.first.name != 'ppic' %}
                                     <div class="template-demo">

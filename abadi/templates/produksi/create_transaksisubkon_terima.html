@@ -37,7 +37,7 @@
 
         <div id="products">
           <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-4">
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Produk 1:</label>
                 <div class="col-sm-9">
@@ -53,11 +53,19 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-3">
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Jumlah</label>
                 <div class="col-sm-9">
                   <input type="number" min="0" class="form-control" name="jumlah[]" id="jumlah" required />
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Keterangan</label>
+                <div class="col-sm-9">
+                  <input type="text" class="form-control" name="keterangan" required />
                 </div>
               </div>
             </div>
@@ -86,7 +94,7 @@
     const productDiv = document.createElement('div');
     productDiv.className = "row product-row";
     productDiv.innerHTML = `
-                            <div class="col-md-5">
+                            <div class="col-md-4">
                               <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Produk ${productCounter}:</label>
                                 <div class="col-sm-9">
@@ -102,7 +110,7 @@
                                 </div>
                               </div>
                             </div>
-                            <div class="col-md-5">
+                            <div class="col-md-2">
                               <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Jumlah</label>
                                 <div class="col-sm-9">
@@ -110,6 +118,14 @@
                                 </div>
                               </div>
                             </div>
+                            <div class="col-md-4">
+              <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Keterangan</label>
+                <div class="col-sm-9">
+                  <input type="text" class="form-control" name="keterangan" required />
+                </div>
+              </div>
+            </div>
                             <div class="col-md-1">
                               <button type="button" class="btn btn-danger" onclick="removeProduct(this)"><i class="typcn typcn typcn-trash"></i></button>
                             </div>

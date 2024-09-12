@@ -536,8 +536,8 @@ def barang_keluar(request):
             {
                 "datalokasi": datalokasi,
                 "data": data,
-                "date": date,
-                "date2": date2,
+                "date": tanggalawal,
+                "date2": tanggalakhir,
                 "lok": lok,
             },
         )

@@ -4497,24 +4497,24 @@ def kalkulatorpenyesuaianartikel(request):
                     
                     # Update Masukkonversi dengan pembulatan
                     item['Masukkonversi'] =(item['Masukkonversi'] * penyesuaianbaru)
+                    pemusnahan = item['Keluar']
                     
                     if i == 0:
                         # Hitung selisih dan update hasilsisa untuk item pertama
                         selisihhasilawal = item['Masukkonversi'] - jumlahawal
-                        hasilsisa = item['Sisa'] + selisihhasilawal
+                        hasilsisa = item['Sisa'] + selisihhasilawal - pemusnahan
                         item['Sisa'] = hasilsisa
                     else:
                         # Update Sisa berdasarkan hasilsisa dan Masukkonversi - Hasil
-                        hasilsisa = hasilsisa + item['Masukkonversi'] - item['Hasil']
+                        hasilsisa = hasilsisa + item['Masukkonversi'] - item['Hasil'] - pemusnahan
                         item['Sisa'] = hasilsisa
                     
                     # print('Masukkonversi:', item['Masukkonversi'])
                     # print('Sisa setelah update:', item['Sisa'])
-                    
                     # Update iterasi
                     item['Masukkonversi'] =round(item['Masukkonversi'])
                     item['Sisa'] =round(item['Sisa'])
-                    i += 1
+                    i += 1 
                 
                 elif tanggaldata < tanggalawaldatetime:
                     continue
@@ -5825,10 +5825,11 @@ def create_transaksi_subkon_terima(request):
         tanggal = request.POST["tanggal"]
         list_nama_kode = request.POST.getlist("kodebarangHidden")
         listjumlah = request.POST.getlist("jumlah[]")
+        listketerangan = request.POST.getlist('keterangan')
 
         print(list_nama_kode)
 
-        for nama_kode, jumlah in zip(list_nama_kode,listjumlah):
+        for nama_kode, jumlah,keterangan in zip(list_nama_kode,listjumlah,listketerangan):
 
             try:
                 produksubkonobj = models.ProdukSubkon.objects.get(IDProdukSubkon=nama_kode)
@@ -5841,6 +5842,7 @@ def create_transaksi_subkon_terima(request):
                 Tanggal=tanggal,
                 Jumlah=jumlah,
                 KodeProduk=produksubkonobj,
+                Keterangan = keterangan
             )
             new_produk.save()
             messages.success(request, "Data berhasil disimpan")
@@ -5870,6 +5872,7 @@ def update_transaksi_subkon_terima(request, id):
         jumlah = request.POST["jumlah"]
         nama_kode = request.POST["kodebarangHidden"]
         tanggal = request.POST["tanggal"]
+        keterangan = request.POST['keterangan']
 
         try:
             produksubkonobj = models.ProdukSubkon.objects.get(
@@ -5883,6 +5886,7 @@ def update_transaksi_subkon_terima(request, id):
         produkobj.KodeProduk = produksubkonobj
         produkobj.Jumlah = jumlah
         produkobj.Tanggal = tanggal
+        produkobj.Keterangan = keterangan
         
         produkobj.save()
         messages.success(request, "Data berhasil disimpan")

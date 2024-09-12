@@ -49,23 +49,26 @@
                                     <div class="input-group-append">
                                         <button class="btn btn-sm btn-primary" type="submit">Search</button>
                                     </div>
-                                    {% if kode_produk %}
-                                    <div class="input-group-append">
-                                        <a href="{% url 'exportksbb' kode_produk tahun%}"
-                                        class="btn btn-success ml-3">Export
-                                        Excel</a> </div>
-                                        {% endif %}
-                                    </div>
+                                    
                             </div>
                         </div>
-                        <div class="col-lg-2">
-                            
-                                <a href="{% url 'exportkeseluruhanksbb' tahun%}"
-                                class="btn btn-success ml-3">Export
-                                Excel Keseluruhan</a> 
-                        </div>
+                        
                         
                     </div>
+                    {% if kode_produk %}
+                                    <div class="col-lg-2">
+                                        <a href="{% url 'exportksbb' kode_produk tahun%}"
+                                        class="btn btn-success ml-3">Export
+                                        Excel</a>
+                                    </div>
+                                        
+                                        <div class="col-lg-2">
+                                        <a href="{% url 'exportkeseluruhanksbb' tahun%}"
+                                        class="btn btn-success ml-3">Export
+                                        Excel Keseluruhan</a>     
+                                    </div>
+                                        {% endif %}
+                                    </div>
                 </form>
                 {% if kodeartikel %}
                 <a href="{% url 'tambah_data_penyusun' kodeartikel.id %}">

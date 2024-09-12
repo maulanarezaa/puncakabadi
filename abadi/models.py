@@ -490,6 +490,7 @@ class TransaksiSubkon(models.Model):
     KodeProduk = models.ForeignKey(ProdukSubkon, on_delete=models.CASCADE)
     Tanggal = models.DateField()
     Jumlah = models.IntegerField()
+    Keterangan = models.TextField(null=True)
 
     def __str__(self):
         return str(self.IDProdukSubkon.NamaProduk) + "-" + str(self.Tanggal)
