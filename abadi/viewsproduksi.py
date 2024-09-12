@@ -730,6 +730,7 @@ def add_sppb(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def detail_sppb(request, id):
+    
     databahan = models.Produk.objects.all()
     dataartikel = models.Artikel.objects.all()
     datadisplay = models.Display.objects.all()
@@ -740,12 +741,17 @@ def detail_sppb(request, id):
     datadetailsppbArtikel = models.DetailSPPB.objects.filter(NoSPPB=datasppb.id,DetailSPKDisplay = None,DetailBahan = None)
     datadetailsppbdisplay = models.DetailSPPB.objects.filter(NoSPPB=datasppb.id,DetailSPK = None,DetailBahan = None)
     purchaseorderdata = models.confirmationorder.objects.filter(StatusAktif =True)
+    
 
     for item in datadetailsppbArtikel:
         item.opsiversi = models.Versi.objects.filter(KodeArtikel = item.DetailSPK.KodeArtikel)
 
     if request.method == "GET":
         tanggal = datetime.strftime(datasppb.Tanggal, "%Y-%m-%d")
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+        else:
+            back_url = '/produksi/viewdetailsppb'
 
         return render(
             request,
@@ -761,7 +767,8 @@ def detail_sppb(request, id):
                 "datadetail": datadetailsppbArtikel,
                 "datadetaildisplay": datadetailsppbdisplay,
                 "tanggal": tanggal,
-                'purchaseorder':purchaseorderdata
+                'purchaseorder':purchaseorderdata,
+                'backurl':back_url
             },
         )
 
