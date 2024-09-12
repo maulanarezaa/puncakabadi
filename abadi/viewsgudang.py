@@ -6,7 +6,7 @@ from . import models
 from django.db.models import Sum, Value
 from django.db.models.functions import Coalesce
 from datetime import datetime
-from datetime import timedelta
+from datetime import timedelta,date
 from django.db.models.functions import ExtractYear
 from . import logindecorators
 from django.contrib.auth.decorators import login_required
@@ -15,6 +15,7 @@ from django.db.models import FloatField
 import time
 import re
 from django.db.models import Q
+
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
@@ -487,31 +488,40 @@ def detailksbb(request, id, tanggal,lokasi):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def barang_keluar(request):
+    
     datalokasi = models.Lokasi.objects.filter(NamaLokasi__in=("WIP", "FG","Lain-Lain"))
     data = models.TransaksiGudang.objects.filter(jumlah__gt=0).order_by("tanggal")
-    for i in data:
-        i.tanggal = i.tanggal.strftime("%Y-%m-%d")
-    print(data)
+    
+    
     if len(request.GET) == 0:
+        tanggalakhir = datetime.now().date()
+        tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
+        tanggalakhir = tanggalakhir.strftime('%Y-%m-%d')
+        data = data.filter(tanggal__range=(tanggalawal,tanggalakhir))
+        for i in data:
+            i.tanggal = i.tanggal.strftime("%Y-%m-%d")
+
         return render(
             request,
             "gudang/barangkeluar.html",
             {
                 "datalokasi": datalokasi,
                 "data": data,
+                "date": tanggalawal,
+                "date2": tanggalakhir,
             },
         )
     else:
-        date = request.GET.get("mulai")
-        date2 = request.GET.get("akhir")
+        tanggalawal = request.GET.get("mulai")
+        tanggalakhir = request.GET.get("akhir")
         lok = request.GET.get("lokasi")
-        if date == '':
-            date = datetime.min
-        if date2 == "":
-            date2 = datetime.max
+        if tanggalawal == '':
+            tanggalawal = datetime.min
+        if tanggalakhir == "":
+            tanggalakhir = datetime.max
 
         data = data.filter(
-            tanggal__range=(date, date2), Lokasi__NamaLokasi=lok, jumlah__gt=0
+            tanggal__range=(tanggalawal, tanggalakhir), Lokasi__NamaLokasi=lok, jumlah__gt=0
         ).order_by("tanggal")
 
         for i in data:
