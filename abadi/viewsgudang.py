@@ -1296,7 +1296,10 @@ def bulk_createtransaksigudang(request):
                     print(f"Index {index}: Tanggal adalah NaT")
                 else:
                     if pd.isna(row['Tanggal']):
-                        tanggal = listtanggal[-1]
+                        try:
+                            tanggal = listtanggal[-1]
+                        except:
+                            continue
                     else:
                         tanggal = row['Tanggal']
                     # try:
@@ -1310,7 +1313,7 @@ def bulk_createtransaksigudang(request):
                             tanggal=tanggal,
                             KeteranganACC=True,
                             KodeProduk=models.Produk.objects.get(KodeProduk=item),
-                            Lokasi=models.Lokasi.objects.get(NamaLokasi = 'WIP'),
+                            Lokasi=models.Lokasi.objects.get(NamaLokasi = 'FG'),
                             KeteranganACCPurchasing = True
                         )
                     if not pd.isna(row['Keterangan']):
@@ -1326,7 +1329,7 @@ def bulk_createtransaksigudang(request):
                                 Jumlah = 0
                             )
                             print(tesartikel.first())
-                            simpan = detailspk.full_clean()
+                            simpan = detailspk.save()
                         
                         transaksiobj.DetailSPK = detailspk
                         
@@ -1334,7 +1337,7 @@ def bulk_createtransaksigudang(request):
                     print(row['Tanggal'])
                     print(item)
                     print(tanggal)
-                    transaksiobj.full_clean()
+                    transaksiobj.save()
                     tanggal = row['Tanggal']
                     # except Exception as e:
                     #     produkerror.append([item,e])
