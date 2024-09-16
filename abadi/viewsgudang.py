@@ -1300,14 +1300,18 @@ def bulk_createtransaksigudang(request):
                     else:
                         tanggal = row['Tanggal']
                     # try:
-                    tanggal = datetime.strftime(tanggal,"%Y-%m-%d")
+                    try:
+                        tanggal = datetime.strftime(tanggal,"%Y-%m-%d")
+                    except:
+                        continue
                     transaksiobj = models.TransaksiGudang(
                             keterangan="-",
                             jumlah=row['Masuk'],
                             tanggal=tanggal,
                             KeteranganACC=True,
                             KodeProduk=models.Produk.objects.get(KodeProduk=item),
-                            Lokasi=models.Lokasi.objects.get(NamaLokasi = 'FG'),
+                            Lokasi=models.Lokasi.objects.get(NamaLokasi = 'WIP'),
+                            KeteranganACCPurchasing = True
                         )
                     if not pd.isna(row['Keterangan']):
                         keterangan = clean_string(row['Keterangan'])
@@ -1322,7 +1326,7 @@ def bulk_createtransaksigudang(request):
                                 Jumlah = 0
                             )
                             print(tesartikel.first())
-                            simpan = detailspk.save()
+                            simpan = detailspk.full_clean()
                         
                         transaksiobj.DetailSPK = detailspk
                         
@@ -1330,7 +1334,7 @@ def bulk_createtransaksigudang(request):
                     print(row['Tanggal'])
                     print(item)
                     print(tanggal)
-                    transaksiobj.save()
+                    transaksiobj.full_clean()
                     tanggal = row['Tanggal']
                     # except Exception as e:
                     #     produkerror.append([item,e])
