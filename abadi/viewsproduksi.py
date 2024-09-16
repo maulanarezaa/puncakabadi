@@ -9,6 +9,7 @@ from . import logindecorators
 from django.contrib.auth.decorators import login_required
 import math
 from urllib.parse import quote
+import openpyxl
 
 
 # Dashboard Produksi
@@ -7137,12 +7138,13 @@ def update_mutasikodestok(request, id):
 
 def bulkcreate_transaksiproduksi(request):
     '''
-    Input dari KSBB Produksi 
+    Input dari KSBB Produksi GOLONGAN A
     '''
     if request.method == "POST" and request.FILES["file"]:
         file = request.FILES["file"]
         # print(asd)
         excel_file = pd.ExcelFile(file)
+        wb = openpyxl.load_workbook(file, data_only=True)
         
 
         # Mendapatkan daftar nama sheet
@@ -7150,6 +7152,11 @@ def bulkcreate_transaksiproduksi(request):
         produkerror = []
 
         for item in sheet_names:
+            sheet = wb[item]
+    
+   
+            if sheet.sheet_state != 'visible':
+                continue
             df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=6)
             print(item)
             print(df)
@@ -7261,7 +7268,7 @@ def bulkcreate_saldoawalartikel(request):
         file = request.FILES["file"]
         excel_file = pd.ExcelFile(file)
 
-        kodeartikel = '10451 AC-M'
+        kodeartikel = '5145 C#1 <Condotti>'
         artikeobj = models.Artikel.objects.get(KodeArtikel = kodeartikel)
 
         # Mendapatkan daftar nama sheet
@@ -7335,6 +7342,16 @@ def bulkcreate_saldoawalartikel(request):
                     if not pd.isna(row['Unnamed: 4']):
                         nosppb = row['Unnamed: 4']
                     try:
+                        try:
+                            nomorsppb = models.SPPB.objects.get(NoSPPB= nosppb)
+                        except models.SPPB.DoesNotExist:
+                            sppbobj = models.SPPB(
+                                NoSPPB = nosppb,
+                                Tanggal = datetime.now(),
+                                Keterangan = 'Cek kembali tanggal'
+                            ).save()
+                            # nomorsppb = models.SPPB.objects.get(NoSPPB = nosppb)
+
                         saldoawalwip = models.DetailSPPB(
                             NoSPPB = models.SPPB.objects.get(NoSPPB= nosppb),
                             DetailSPK = models.DetailSPK.objects.get(NoSPK__NoSPK = row['Kirim Barang'],KodeArtikel = artikeobj),
@@ -7542,3 +7559,4 @@ def updatetransaksiproduksiversi(request):
             print(item.DetailSPK.KodeArtikel)
         item.VersiArtikel = versiobj
         item.save()
+

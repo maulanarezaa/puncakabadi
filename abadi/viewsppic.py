@@ -2006,7 +2006,7 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
             print(datamutasidisplay)
             # print(asd)
             nilaijumlahkirim = total_pengiriman
-           
+            sisapermintaan = 0
             if total_mutasi > 0 or total_pengiriman > 0:
                 valid = False
                 for num,datadetailmutasidisplay in enumerate(datamutasidisplay):

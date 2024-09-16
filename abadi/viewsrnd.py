@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from urllib.parse import urlencode, quote
 import math
 from .viewsproduksi import calculate_ksbj,calculate_KSBB
+import re
 
 
 # Create your views here.
@@ -1898,3 +1899,46 @@ def updatepenyusundarikonversimaster(request):
 
         
     
+def createhargafg (request):
+    if request.method == "POST" and request.FILES["file"]:
+        file = request.FILES["file"]
+        excel_file = pd.ExcelFile(file)
+        print(excel_file)
+        # print(asd)
+
+        # Mendapatkan daftar nama sheet
+        sheet_names = excel_file.sheet_names
+        listerror = []
+
+        for item in sheet_names:
+            df = pd.read_excel(file, engine="openpyxl", sheet_name=item)
+            print(item)
+            print(df)
+            # print(asd)
+
+
+            for index, row in df.iterrows():
+                    print("Saldo Akhir")
+                    print(row)
+                    try:
+                        kodeartikel = (row['Kode Artikel'])
+                        artikelobj = models.Artikel.objects.get(KodeArtikel = kodeartikel)
+                    except Exception as e:
+                        listerror.append([row, e])
+                        continue
+                    # print(asd) 
+                    datahargaobj = models.HargaArtikel(
+                        Tanggal = row['Tanggal'],
+                        KodeArtikel = artikelobj,
+                        Harga = row['HargaFG']
+                    )
+                    datahargaobj.save()
+
+        return render(request,'error/errorsjp.html',{'data':listerror})
+
+    return render(request, "produksi/bulk_createproduk.html")
+
+def clean_string(s):
+    # Remove "Art" and any non-alphanumeric characters
+    s = re.sub(r'Art', '', s)
+    return re.sub(r'[^a-zA-Z0-9]', ' ', s).strip()

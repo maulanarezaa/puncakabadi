@@ -47,5 +47,6 @@ urlpatterns = [
     ),
     path("bulk_addartikel", viewsrnd.bulk_createartikel),
     path("bulk_addpenyusun", viewsrnd.bulk_createpenyusun),
-    path('updatepenyusundarikonvesimaster',viewsrnd.updatepenyusundarikonversimaster)
+    path('updatepenyusundarikonvesimaster',viewsrnd.updatepenyusundarikonversimaster),
+    path('createhargafgbulk',viewsrnd.createhargafg)
 ]
