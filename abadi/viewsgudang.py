@@ -1105,8 +1105,8 @@ def bulk_createsjp(request):
 
         # Mendapatkan daftar nama sheet
         sheet_names = excel_file.sheet_names
-        sheet_names = ['A-004-154','A-004-155','A-005-158','B-012-10']
-        sheet_names = ['A-004-117']
+        # sheet_names = ['A-004-154','A-004-155','A-005-158','B-012-10']
+        # sheet_names = ['A-004-117']
 
         for item in sheet_names:
             df = pd.read_excel(file, engine="openpyxl", sheet_name=item, header=3)
@@ -1141,7 +1141,7 @@ def bulk_createsjp(request):
                             NoSuratJalan=f"SJP/{row['Tanggal']}",
                             Tanggal=row["Tanggal"],
                             supplier="-",
-                            PO="-",
+                            
                         ).save()
                         detailsjp = models.DetailSuratJalanPembelian(
                             Jumlah=row["Masuk "],
