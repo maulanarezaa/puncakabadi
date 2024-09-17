@@ -20,6 +20,24 @@ from django.db.models import Q
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def view_gudang(request):
+    '''
+    Fitur ini digunakan untuk menampilkan dashboard Gudang.
+    Dashboard Gudang berisi 3 bagian 
+    1. Menampilkan Notifikasi Barang keluar belum ACC
+    2. Notifikasi barang retur belum ACC
+    3. Notifikasi SPK 30 hari kebelakang
+
+    Algortima
+    1. Menampilkan Notifikasi Barang keluar belum ACC
+        A. Mengambil data dari tabel TransaksiGudang dengan kriteria Jumlah lebih dari 0 dan KeteranganACCPurchasing = False.
+        B. Mengubah data Tanggal sesuai format (YYYY-MM-DD) yang awalnya adalah (Tanggal,Bulan,Tahun)
+    2. Notifikasi Barang retur belum ACC
+        A. Mengambil data barang retur dari TransaksiGudang dengan kriteria KeteranganACC = False dan jumlah kurang dari 0 
+        B. Mengubah data Tanggal sesuai format (YYYY-MM-DD) yang awalnya adalah (Tanggal,Bulan,Tahun)
+    3. Notifikasi SPK 30 hari kebelakang
+        B. Mengubah data Tanggal sesuai format (YYYY-MM-DD) yang awalnya adalah (Tanggal,Bulan,Tahun)
+    
+    '''
     getretur = (
         models.TransaksiGudang.objects.filter(KeteranganACC=False)
         .filter(jumlah__lt=0)
@@ -79,19 +97,30 @@ def view_gudang(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def masuk_gudang(request):
+    '''
+    Fitur ini digunakan untuk menampilkan semua data Transaksi Pembelian Barang pada Surat Jalan Pembelian
+    Secara default akan menampilkan data kedatangan barang pada rentang bulan ini
+    Algoritma
+    1. Mengambil data DetailSuratJalanPembelian 
+    2. Mengubah data Tanggal sesuai format (YYYY-MM-DD) yang awalnya adalah (Tanggal,Bulan,Tahun)
+    '''
     datasjb = models.DetailSuratJalanPembelian.objects.all().order_by(
         "NoSuratJalan__Tanggal"
     )
-    date = request.GET.get("mulai")
-    dateakhir = request.GET.get("akhir")
-    print(date, dateakhir)
-    if date =="":
-        date = datetime.min
-    if dateakhir == "":
-        dateakhir = datetime.max
-    if date is not None and dateakhir is not None:
+    if len(request.GET) == 0 :
+        sekarang = datetime.now().date()
+        tanggalawal = date(sekarang.year,sekarang.month,1).strftime('%Y-%m-%d')
+        tanggalakhir = sekarang.strftime('%Y-%m-%d')
+    else:
+        tanggalawal = request.GET.get("mulai")
+        tanggalakhir = request.GET.get("akhir")
+    if tanggalawal == '':
+        tanggalawal = datetime.min
+    if tanggalakhir == '':
+        tanggalakhir = datetime.max
+    if tanggalawal is not None and tanggalakhir is not None:
         datasjb = models.DetailSuratJalanPembelian.objects.filter(
-            NoSuratJalan__Tanggal__range=(date, dateakhir)
+            NoSuratJalan__Tanggal__range=(tanggalawal, tanggalakhir)
         ).order_by("NoSuratJalan__Tanggal")
 
     for i in datasjb:
@@ -103,7 +132,7 @@ def masuk_gudang(request):
     return render(
         request,
         "gudang/baranggudang.html",
-        {"datasjb": datasjb, "date": date, "mulai": date, "akhir": dateakhir},
+        {"datasjb": datasjb, "date": tanggalawal, "mulai": tanggalawal, "akhir": tanggalakhir},
     )
 
 def load_detailpo(request):
@@ -124,6 +153,16 @@ def load_detailpo(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def add_gudang(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data Surat Jalan Pembelian dan Detail Surat Jalan Pembelian
+    Algoritma
+    1. Menampilkan form input SJP ( Nomor Surat Jalan, Tanggal, dan Supplier untuk membuat data SJP)
+    2. Menampilkan form input Detail SJP  ( Kode Stok bahan baku, Jumlah kedatangan, Po, KeteranganACC diset menjadi False (untuk di ACC Purcahsing), Harga diset 0 (Gudang tidak boleh tau Harga))
+    3. Menyimpan SJP pada database
+    4. Mengambil data SJP Terakhir
+    5. Apabila detail PO ada, maka akan mengambil data detail PO. Apabila tidak ada maka data detail PO dikosongkan
+    5. Menyimpan Detail SJP pada database
+    '''
     if request.method == "GET":
         detailsjp = models.DetailSuratJalanPembelian.objects.all()
         detailsj = models.SuratJalanPembelian.objects.all()
@@ -227,6 +266,13 @@ def add_gudang2(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def accgudang(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan ACC Gudang pada transaksi Notifikasi Barang Keluar dan Notifikasi Barang Retur 
+    Algoritma
+    1. Mengambil data TransaksiGudang dengan id yang dipilih
+    2. Mengubah keteranganACC menjadi True yang menandakan sudah di ACC oleh Gudang
+    3. Menyimpan perubahan pada database.
+    '''
     datagudang = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     datagudang.KeteranganACC = True
     datagudang.save()
@@ -236,6 +282,12 @@ def accgudang(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def delete_gudang(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data transaksi DetailSuratJalanPembelian atau data kedatangan barang
+    Algoritma
+    1. Mendapatkan data DetailSuratJalanPembelian dengan parameter IDDetailSJPembelian = id. id didapatkan dari passing value halaman awal menu bahan baku masuk
+    2. Menghapus data detail surat jalan pembelian
+    '''
     datasbj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
     models.transactionlog(
         user="Gudang",
@@ -251,6 +303,26 @@ def delete_gudang(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def rekap_gudang(request):
+    '''
+    Fitur ini digunakan untuk mendapatkan rekapitulasi hasil akhir dari setiap bahan baku  per tanggal pada gudang
+    Algoritma
+    1. Ambil data semua bahan baku 
+    2. Mengiterasi setiap bahan baku
+        3. Mengambil data pemusnahan bahan baku dengan kriteria KodeBahanBaku = input kodeproduk, Tahun = input tahun, lokasi = Gudang (untuk melihat pemusnahan bahan baku pada gudang saja)
+        4. Mengambil data TransaksiGudang dengan kriteria KodeProduk = input kode stok, Tahun = input tahun, Jumlah > 0 (mengindikasikan barang keluar)
+        5. Mengambil data retur TransaksiGudang dengan kriteria KodeProduk = input kode stok, Tahun = input tahun, Jumlah < 0 (mengindikasikan barang retur)
+        6. Mengambil data Saldo Awal Bahan Baku dengan kriteria KodeProduk = input kode stok, Tahun = input tahun, lokasi = Gudang 
+        7. Mengambil data kedatangan barang pada DetailSuratJalanPembelian dengan kritreria KodeProduk = input kode stok, tahun = input tahun
+        8. Membuat listtanggal dari semua data pemusnahan bahan baku, transaksi gudang, retur gudang, dan kedatangan barang
+        9. Mengiterasi setiap tanggal dari  data pemusnahan bahan baku, transaksi gudang, retur gudang, dan kedatangan barang
+        10. Untuk setiap hari, rumus kode stok adalah
+            Sisa = Jumlah Barang Masuk + Jumlah Barang retur - Jumlah Transaksi Gudang - Jumlah pemusnahan bahan baku
+        11. Pada tanggal pertama Sisa akan ditambahkan dengan total saldo awal pada Gudang
+            Sisa hari 1 = Sisa + saldo awal gudang
+        12. Data sisa pada hari terakhir akan dijadikan hasil akhir bahan baku tersebut
+    13. Menampilkan rekapitulasi semua sisa bahan baku
+
+    '''
     sekarang = datetime.now().strftime('%Y-%m-%d')
     listproduk = []
     listnama = []
@@ -342,6 +414,22 @@ def rekap_gudang(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def detail_barang(request):
+    '''
+    Fitur ini digunakan untuk menampilkan KSBB Gudang 
+    Algoritma
+    1. User menginputkan tahun dan kode stok bahan baku yang akan dicek
+    2. Mengambil data pemusnahan bahan baku dengan kriteria KodeBahanBaku = input kodeproduk, Tahun = input tahun, lokasi = Gudang (untuk melihat pemusnahan bahan baku pada gudang saja)
+    3. Mengambil data TransaksiGudang dengan kriteria KodeProduk = input kode stok, Tahun = input tahun, Jumlah > 0 (mengindikasikan barang keluar)
+    4. Mengambil data retur TransaksiGudang dengan kriteria KodeProduk = input kode stok, Tahun = input tahun, Jumlah < 0 (mengindikasikan barang retur)
+    5. Mengambil data Saldo Awal Bahan Baku dengan kriteria KodeProduk = input kode stok, Tahun = input tahun, lokasi = Gudang 
+    6. Mengambil data kedatangan barang pada DetailSuratJalanPembelian dengan kritreria KodeProduk = input kode stok, tahun = input tahun
+    7. Membuat listtanggal dari semua data pemusnahan bahan baku, transaksi gudang, retur gudang, dan kedatangan barang
+    8. Mengiterasi setiap tanggal dari  data pemusnahan bahan baku, transaksi gudang, retur gudang, dan kedatangan barang
+    9. Untuk setiap hari, rumus kode stok adalah
+        Sisa = Jumlah Barang Masuk + Jumlah Barang retur - Jumlah Transaksi Gudang - Jumlah pemusnahan bahan baku
+    10. Pada tanggal pertama Sisa akan ditambahkan dengan total saldo awal pada Gudang
+        Sisa hari 1 = Sisa + saldo awal gudang
+    '''
     datagudang = models.TransaksiGudang.objects.all()
     dataproduk = models.Produk.objects.all()
     if len(request.GET) == 0:
@@ -461,6 +549,14 @@ def detail_barang(request):
         )
 
 def detailksbb(request, id, tanggal,lokasi):
+    '''
+    Fitur ini digunakan untuk menampilkan detail transaksi dari KSBB
+    pada fitur ini akan ada 4 bagian detail yang mencakup
+    1. Barang Masuk : Diambil dari data DetailSuratJalanPembelian
+    2. Barang keluar Gudang : Diambil dari data TransaksiGudang dengan kriteria Jumlah > 0
+    3. Barang retur ke Gudang : Diambil dari data TransaksiGudang dengan kriteria Jumlah < 0
+    4. Pemusnahan barang : Diambil dari data pemusnahan bahan baku gudang 
+    '''
     tanggal = datetime.strptime(tanggal, "%Y-%m-%d")
     tanggal = tanggal.strftime("%Y-%m-%d")
     # SJP
@@ -488,7 +584,12 @@ def detailksbb(request, id, tanggal,lokasi):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def barang_keluar(request):
-    
+    '''
+    Fitur ini digunakan untuk menampilkan semua Transaksi Barang keluar pada TransaksiGudang
+    Algoritma
+    1. mengambil data TransaksiGudang dengan kriteria jumlah > 0 (mengindikasikan barang keluar)
+    2. Mengubah tanggal dengan format (YYYY-MM-DD)
+    '''
     datalokasi = models.Lokasi.objects.filter(NamaLokasi__in=("WIP", "FG","Lain-Lain"))
     data = models.TransaksiGudang.objects.filter(jumlah__gt=0).order_by("tanggal")
     
@@ -546,6 +647,12 @@ def barang_keluar(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def barang_retur(request):
+    '''
+    Fitur ini digunakan untuk menampilkan semua data barang retur ke gudang
+    Algoritma
+    1. Mengambil semua data transaksigudang dengan kriteria jumlah < 0 (mengindikasikan retur)
+    2. Mengubah tanggal seusai format (YYYY-MM-DD)
+    '''
     datalokasi = models.Lokasi.objects.all()
     data = models.TransaksiGudang.objects.filter(jumlah__lt=0).order_by("tanggal")
     for i in data:
@@ -599,6 +706,9 @@ def barang_retur(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def accgudang2(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan ACC pada Transaksi Gudang barang retur melalui fitur halaman Barang Retur
+    '''
     datagudang = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     datagudang.KeteranganACC = True
     datagudang.save()
@@ -609,6 +719,10 @@ def accgudang2(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def accgudang3(request, id):
+    '''
+        Fitur ini digunakan untuk melakukan ACC pada Transaksi Gudang barang keluar melalui fitur halaman Bahan Baku Keluar
+
+    '''
     datagudang = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     datagudang.KeteranganACC = True
     datagudang.save()
@@ -625,6 +739,14 @@ def accgudang3(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def spk(request):
+    '''
+    Fitur ini digunakan untuk menampilkan data SPK 
+    Algoritma
+    1. Mendapatkan data spk dari tabel SPK
+    2. Mengiterasi setiap item SPK
+    3. Memfilter detail SPK tiap kode SPK untuk mendapatkan Artikel yang diproduksi pada SPK Terkait
+    4. Menyesuaikan tanggal menjadi (YYYY-MM-DD)
+    '''
     dataspk = models.SPK.objects.all().order_by("-Tanggal")
     for i in dataspk:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
@@ -638,6 +760,21 @@ def spk(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def tracking_spk(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan tracking pada SPK
+    pada bagian ini ada beberapa section antara lain
+    1. Informasi SPK
+    2. Rekap Kumulasi permintaan barang
+    3. Tracking detail permitnaan barang ke SPK
+
+    Algoritma
+    1. Informasi SPK
+        A. Mengambil data detail SPK dan SPK terkait dengan kode SPK id = id, dimana id didapatkan dari passing values pada halaman awal SPK
+    2. Rekap Kumulasi permintaan barang
+        A. Menghitung agregasi jumlah permintaan barang tiap bahan baku melalui tabel Transaksi Gudang dengan kriteria NoSPK = id dan jumlah > 0
+    3. Tracking detail permitnaan barang ke SPK
+        A. Mengambil data transaksi permintaan barang tiap bahan baku melalui tabel Transaksi Gudang dengan kriteria NoSPK = id dan jumlah > 0
+    '''
     dataartikel = models.Artikel.objects.all()
     dataspk = models.SPK.objects.get(id=id)
     datadetail = models.DetailSPK.objects.filter(NoSPK=dataspk.id)
@@ -708,24 +845,32 @@ def tracking_spk(request, id):
             },
         )
 
+'''Tidak dipakai'''
+# @login_required
+# @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
+# def cobaform(request):
+#     databahanbaku = models.Produk.objects.all()
+#     if request.method == "POST":
+#         print(request.POST)
+#         nomor_nota = request.POST.get("nomor_nota")
+#         produk_list = request.POST.getlist("produk[]")
+#         print(len(produk_list))
+#         print(produk_list)
 
-@login_required
-@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
-def cobaform(request):
-    databahanbaku = models.Produk.objects.all()
-    if request.method == "POST":
-        print(request.POST)
-        nomor_nota = request.POST.get("nomor_nota")
-        produk_list = request.POST.getlist("produk[]")
-        print(len(produk_list))
-        print(produk_list)
-
-    return render(request, "gudang/cobaform.html", {"data": databahanbaku})
+#     return render(request, "gudang/cobaform.html", {"data": databahanbaku})
 
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def addgudang3(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data transaksi lain-lain pada gudang
+    Transaksi Lain-Lain = Semua transaksi gudang yang ditujukan untuk keperluan selain non produksi (tidak masuk data KSBB Produksi WIP/FG)
+    Algoritma
+    1. Menampilkan form Transaksi Gudang 
+    2. Mengambil data input berupa Kode Stok Bahan Baku, Tanggal, Keterangan, Jumlah, Lokasi =  Lain-Lain, Keterangan ACC = True
+    3. Menyimpan data Transaksi Gudang 
+    '''
     if request.method == "GET":
         detailspk = models.DetailSPK.objects.all()
         getproduk = models.Produk.objects.all()
@@ -773,6 +918,9 @@ def addgudang3(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def updatetransaksilainlain(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update transaksi lain lain
+    '''
     gudangobj = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     allproduk = models.Produk.objects.all()
     if request.method == "GET":
@@ -814,6 +962,7 @@ def updatetransaksilainlain(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def deletetransaksilainlain(request, id):
+    '''fitur ini digunakan untuk menghapus data transaksi lain lain'''
     datagudang = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     datagudang.delete()
     messages.success(request, "Data Berhasil dihapus")
@@ -831,6 +980,7 @@ def deletetransaksilainlain(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def read_produk(request):
+    '''Fitur ini digunakan untuk menampilkan semua bahan baku yang memiliki kode stok pada database'''
     produkobj = models.Produk.objects.all()
     return render(request, "gudang/read_produk.html", {"produkobj": produkobj})
 
@@ -838,6 +988,10 @@ def read_produk(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def update_produk_gudang(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update bahan baku.
+    Data yang dapat diubah adalah KeteranganGudang, dan jumlah minimal saja sedangkan sisanya dari Purchasing
+    '''
     produkobj = models.Produk.objects.get(KodeProduk=id)
     if request.method == "GET":
         return render(request, "gudang/update_produk.html", {"produkobj": produkobj})
@@ -861,6 +1015,12 @@ def update_produk_gudang(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def read_saldoawal(request):
+    '''
+    Fitur ini digunakan untuk melihat data saldo awal bahan baku pada gudang
+    Algorimta
+    1. Mengambil semua data saldo awal bahan baku pada gudang 
+    2. Mengubah format tanggal menjadi (YYYY-MM-DD)
+    '''
     dataproduk = models.SaldoAwalBahanBaku.objects.filter(
         IDLokasi__NamaLokasi="Gudang"
     ).order_by("-Tanggal")
@@ -875,6 +1035,14 @@ def read_saldoawal(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def addsaldo(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data Saldo awal bahan baku pada gudang.
+    Hanya ada 1 data saldo awal pada bahan baku pada setiap tahunnya
+    Algoritma
+    1. Menampilkan form input data saldo awal bahan baku. (Kode Stok, Nama Lokasi disetting Gudang, Jumlah, dan Tanggal (hanya diambil tahun)
+    2. Melakukan cek apakah data saldo awal untuk bahan baku terpilih dan tahun terpilih sudah ada ?. Apabila ada maka menampilkan tulisan error apabila tidak maka lanjut ke tahapn selanjutnya
+    2. Menyimpan data saldoawal pada database
+    '''
     databarang = models.Produk.objects.all()
     datalokasi = models.Lokasi.objects.all()
     if request.method == "GET":
@@ -937,6 +1105,9 @@ def addsaldo(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def delete_saldo(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data saldo awal bahan baku gudang
+    '''
     dataobj = models.SaldoAwalBahanBaku.objects.get(IDSaldoAwalBahanBaku=id)
     models.transactionlog(
         user="Gudang",
@@ -952,6 +1123,14 @@ def delete_saldo(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def update_saldo(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update data saldo awal bahan baku gudang
+    Algoritma
+    1. Mengambil data saldo awal bahan baku dengan kriteria IDSaldoAwalBahanBaku = id. id didapatkan dari passing values pada halaman awal saldo awal bahan baku
+    2. mengambil data Kode Produk, Lokasi (disetting gudang), Jumlah , dan tanggal
+    3. Cek apakah sudah ada data kodeproduk terkait pada tahun yang diinput dengan mengecualikan id saldo awal bahan baku terpilh. Apabila ada maka akan menamplkan pesan error, apabila tidak maka lanjut
+    4. Menyimpan perubahan pada database
+    '''
     databarang = models.Produk.objects.all()
     dataobj = models.SaldoAwalBahanBaku.objects.get(IDSaldoAwalBahanBaku=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -1017,6 +1196,13 @@ def update_saldo(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def update_gudang(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update pada Transaksi DetailSuratJalanPembelian yang sudah ada
+    Algoritma
+    1. Mendapatkan data DetailSuratJalanPembelian dengan kode IDDetailSJPembelian = id. id didapatkan dari passing value url pada halaman awal menu bahan baku masuk
+    2. Mengirimkan parameter berupa Kode Produk, Tanggal, Jumlah, DetailPO (berisi id detailPO)
+    3. Menyimpan data update
+    '''
     datasjp = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
     availablepo= models.DetailPO.objects.filter(KodeProduk=datasjp.KodeProduk,KodePO__Status = 0 )
     datasjp2 = models.DetailSuratJalanPembelian.objects.all()
@@ -1085,6 +1271,9 @@ def update_gudang(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","purchasing","ppic"])
 def load_produk(request):
+    '''
+    AJAX Support : untuk meloading bahan baku 
+    '''
     print(request.GET)
     artikel = request.GET.get("artikel")
     produkobj = models.Produk.objects.get(KodeProduk=artikel)
