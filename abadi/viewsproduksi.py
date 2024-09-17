@@ -335,8 +335,8 @@ def add_spk(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def detail_spk(request, id):
-    dataartikel = models.Artikel.objects.all()
-    datadisplay =models.Display.objects.all()
+    dataartikel = models.Artikel.objects.all().order_by('KodeArtikel')
+    datadisplay =models.Display.objects.all().order_by('KodeDisplay')
     dataspk = models.SPK.objects.get(id=id)
     if dataspk.StatusDisplay == False:
         datadetail = models.DetailSPK.objects.filter(NoSPK=dataspk.id)
@@ -733,8 +733,8 @@ def add_sppb(request):
 def detail_sppb(request, id):
     
     databahan = models.Produk.objects.all()
-    dataartikel = models.Artikel.objects.all()
-    datadisplay = models.Display.objects.all()
+    dataartikel = models.Artikel.objects.all().order_by('KodeArtikel')
+    datadisplay = models.Display.objects.all().order_by('KodeDisplay')
     datadetailspk = models.DetailSPK.objects.all()
     datadetailspkdisplay = models.DetailSPKDisplay.objects.all()
     datasppb = models.SPPB.objects.get(id=id)
@@ -7268,7 +7268,7 @@ def bulkcreate_saldoawalartikel(request):
         file = request.FILES["file"]
         excel_file = pd.ExcelFile(file)
 
-        kodeartikel = '5145 C#1 <Condotti>'
+        kodeartikel = '5111 BW'
         artikeobj = models.Artikel.objects.get(KodeArtikel = kodeartikel)
 
         # Mendapatkan daftar nama sheet

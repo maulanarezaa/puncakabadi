@@ -36,8 +36,8 @@
                             <tr>
                                 <td>{{artikel}}</td>
                                 <td >{{item.Jumlah}}</td>
-                                <td {% if item.inputmanual == False %} style="background-color: yellow;" {% endif %} >{{item.HargaFG|custom_thousands_separator}}</td>
-                                <td>{{item.hargatotal|custom_thousands_separator}}</td>
+                                <td data-order="{{item.HargaFG}}" {% if item.inputmanual == False %} style="background-color: yellow;" {% endif %} >{{item.HargaFG|custom_thousands_separator}}</td>
+                                <td data-order="{{item.hargatotal}}">{{item.hargatotal|custom_thousands_separator}}</td>
                                 
                             </tr>
                             {% endfor %}
