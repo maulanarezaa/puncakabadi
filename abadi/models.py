@@ -535,6 +535,8 @@ class HargaArtikel(models.Model):
 
     def __str__(self):
         return f'{self.KodeArtikel} - {self.Tanggal} - {self.Harga}'
+
+# Gadipakai
 class Stokadjustmenproduksi (models.Model):
     KodeProduk = models.ForeignKey(Produk,on_delete=models.CASCADE)
     Tanggal = models.DateField()

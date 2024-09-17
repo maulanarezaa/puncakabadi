@@ -7560,3 +7560,41 @@ def updatetransaksiproduksiversi(request):
         item.VersiArtikel = versiobj
         item.save()
 
+def createhargafg (request):
+    if request.method == "POST" and request.FILES["file"]:
+        file = request.FILES["file"]
+        excel_file = pd.ExcelFile(file)
+        print(excel_file)
+        # print(asd)
+
+        # Mendapatkan daftar nama sheet
+        sheet_names = ['SPPB2024']
+        listerror = []
+
+        for item in sheet_names:
+            df = pd.read_excel(file, engine="openpyxl", sheet_name=item)
+            print(item)
+            print(df)
+            # print(asd)
+
+
+            for index, row in df.iterrows():
+                    print("Saldo Akhir")
+                    print(row)
+                    # print(asd)
+                    try:
+                        if not pd.isna(row['Tanggal']):
+                            tanggal = row['Tanggal']
+                            NoSPK = row['No. SPPB']
+                            spkobj=models.SPPB(
+                                NoSPPB = NoSPK,
+                                Tanggal = tanggal,
+                                Keterangan = "-",
+                            )
+                            spkobj.save()
+                    except Exception as e :
+                        listerror.append([row,e])
+
+        return render(request,'error/errorsjp.html',{'data':listerror})
+
+    return render(request, "produksi/bulk_createproduk.html")

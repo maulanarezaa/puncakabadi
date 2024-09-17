@@ -48,9 +48,9 @@
                                 <td>{{item.KodeProduk}}</td>
                                 <td>{{item.KodeProduk.NamaProduk}}</td>
                                 <td>{{item.KodeProduk.unit}}</td>
-                                <td>{{item.Harga|custom_thousands_separator}}</td>
+                                <td data-order="{{item.Harga}}">{{item.Harga|custom_thousands_separator}}</td>
                                 <td>{{item.Jumlah}}</td>
-                                <td>{{item.totalbiaya|custom_thousands_separator}}</td>
+                                <td data-order="{{item.totalbiaya}}">{{item.totalbiaya|custom_thousands_separator}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
