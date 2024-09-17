@@ -412,6 +412,63 @@ def views_ksbb(request):
             'tahun': tahun,
             'lokasi' : lokasi
         })
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['rnd','ppic'])
+def detailksbb(request, id, tanggal,lokasi):
+    tanggal = datetime.strptime(tanggal, "%Y-%m-%d")
+    tanggal = tanggal.strftime("%Y-%m-%d")
+
+    # Transaksi Gudang
+    datagudang = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk__KodeProduk=id,Lokasi__NamaLokasi=(lokasi),jumlah__gte=0)
+    dataretur = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk__KodeProduk=id,Lokasi__NamaLokasi=(lokasi),jumlah__lt=0)
+    for item in dataretur:
+        item.jumlah = item.jumlah * -1
+    listartikel = (
+        models.Penyusun.objects.filter(KodeProduk__KodeProduk=id)
+        .values_list("KodeArtikel__KodeArtikel", flat=True)
+        .distinct()
+    )
+    listversi = models.Penyusun.objects.filter(KodeProduk__KodeProduk=id).values_list("KodeVersi", flat=True).distinct()
+    print(listversi)
+    # print(asd)
+    # Transaksi Produksi
+    dataproduksi = models.TransaksiProduksi.objects.filter(
+         VersiArtikel__in=listversi, Jenis="Mutasi", Tanggal=tanggal
+    )
+    print(dataproduksi)
+    # print(asd)
+
+    # Transaksi Pemusnahan
+    datapemusnahan = models.PemusnahanArtikel.objects.filter(
+        KodeArtikel__KodeArtikel__in=listartikel, Tanggal=tanggal,
+    )
+    # Transaksi Pemusnahan Bahan Baku
+    datapemusnahanbahanbaku  =models.PemusnahanBahanBaku.objects.filter(Tanggal = tanggal,KodeBahanBaku__KodeProduk = id,lokasi__NamaLokasi=lokasi)
+    # Transaksi Mutasi Kode Stok
+    datamutasikodestokkeluar = models.transaksimutasikodestok.objects.filter(Tanggal=tanggal,KodeProdukAsal__KodeProduk = id,Lokasi__NamaLokasi = lokasi)
+    datamutasikodestokmasuk = models.transaksimutasikodestok.objects.filter(Tanggal=tanggal,KodeProdukTujuan__KodeProduk = id,Lokasi__NamaLokasi = lokasi)
+    kodeversiincludebahanbaku = models.Penyusun.objects.filter(KodeProduk__KodeProduk = id).values_list('KodeVersi__Versi',flat=True).distinct()
+    print(kodeversiincludebahanbaku)
+    datapengirimanbarang = models.DetailSPPB.objects.filter(NoSPPB__Tanggal = tanggal)
+    print(datapengirimanbarang[0].VersiArtikel)
+    print(datapengirimanbarang)
+    # print(datapemusnahanbahanbakuasd)
+    # print(datagudang)
+    return render(
+        request,
+        "rnd/view_detailksbb.html",
+        {
+            "datagudang": datagudang,
+            "dataproduksi": dataproduksi,
+            "datapemusnahan": datapemusnahan,
+            'datapemusnahanbahanbaku' : datapemusnahanbahanbaku,
+            "dataretur" : dataretur,
+            'datamutasikodestokkeluar':datamutasikodestokkeluar,
+            'datamutasikodestokmasuk': datamutasikodestokmasuk
+        },
+    )
+
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def views_ksbj(request):
@@ -1886,17 +1943,25 @@ def updatepenyusundarikonversimaster(request):
     #     item.save()
         # print()
     '''UPDATE DEFAULT VERSI EACH ARTIKEL'''
-    dataartikel = models.Artikel.objects.all()
-    for item in dataartikel:
-        print(item)
-        dataversifilter = models.Versi.objects.filter(KodeArtikel = item).order_by('Tanggal')
-        for i in dataversifilter:
-            i.isdefault = False
-            i.save()
-        dataawal = dataversifilter.first()
-        dataawal.isdefault= True
-        dataawal.save()
-
+    # dataartikel = models.Artikel.objects.all()
+    # for item in dataartikel:
+    #     print(item)
+    #     dataversifilter = models.Versi.objects.filter(KodeArtikel = item).order_by('Tanggal')
+    #     for i in dataversifilter:
+    #         i.isdefault = False
+    #         i.save()
+    #     dataawal = dataversifilter.first()
+    #     dataawal.isdefault= True
+    #     dataawal.save()
+    datadetailsppb = models.DetailSPPB.objects.all()
+    for item in datadetailsppb :
+        print(item.VersiArtikel, item.DetailSPK.KodeArtikel,item.NoSPPB.Tanggal)
+        # if item.VersiArtikel == None:
+        kodeversidefault = models.Versi.objects.filter(KodeArtikel = item.DetailSPK.KodeArtikel,isdefault = True).first()
+        print(kodeversidefault,item,item)
+        # print(asd)
+        item.VersiArtikel = kodeversidefault
+        item.save()
         
     
 def createhargafg (request):

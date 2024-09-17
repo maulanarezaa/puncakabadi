@@ -1921,6 +1921,7 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
         result = []
         resultdengansaldoawal = []
         totalpenggunaanbahanbaku = {}
+        totalpenggunaanbahanbakukirim = {}
         totalsaldoartikel = 0
         timegeneratedata = time.time()
         # print('waktugeneratedata : ',timegeneratedata-awal)
@@ -1958,7 +1959,7 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
             # print(total_pengiriman)
             # print(asd)
             
-            if (sisaakhirbulan != 0) and konversibahanbaku.exists():
+            if  konversibahanbaku.exists():
                 for i in konversibahanbaku:
                     # print(i)
                     # print(asd)
@@ -1970,8 +1971,18 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
                         totalpenggunaanbahanbaku[i['KodeProduk__KodeProduk']] += penggunaanbahanbakufg
                     else:
                         totalpenggunaanbahanbaku[i['KodeProduk__KodeProduk']] = penggunaanbahanbakufg
+
+                    penggunaanbahanbakufgmutasiartikel = total_pengiriman * i['total']
+                    if i['KodeProduk__KodeProduk'] in totalpenggunaanbahanbakukirim:
+                        totalpenggunaanbahanbakukirim[i['KodeProduk__KodeProduk']] += penggunaanbahanbakufgmutasiartikel
+                    else:
+                        totalpenggunaanbahanbakukirim[i['KodeProduk__KodeProduk']] = penggunaanbahanbakufgmutasiartikel
+                    print(i)
+                    print(total_pengiriman)
+                    # print(asd)
                 print(total_artikeljadi,kode_artikel,konversibahanbaku)
                 print(totalpenggunaanbahanbaku)
+                print(totalpenggunaanbahanbakukirim)
                 # print(asd)
             waktuhargaawal = time.time()
             hargaterakhir = gethargafgterakhirberdasarkanmutasi(models.Artikel.objects.get(KodeArtikel = kode_artikel),hari,hargapurchasing)
@@ -2078,16 +2089,22 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
         sisabahanbaku = []
         totalsaldobahanbaku = 0
         bahanbakuall = models.Produk.objects.all()
-        # bahanbakuall = models.Produk.objects.filter(KodeProduk = "tesbahanbaku")
+        # bahanbakuall = models.Produk.objects.filter(KodeProduk = "C-005-06")
         waktubahan = time.time()
         for item in bahanbakuall:
             total_permintaanbarang = permintaanbahanbaku_dict.get(item.KodeProduk, 0)
             total_saldoawalbahanbaku = saldoawalbahanbaku_dict.get(item.KodeProduk,0)
             totalbahanbaku = total_permintaanbarang + total_saldoawalbahanbaku
+            print(totalbahanbaku,total_permintaanbarang,total_saldoawalbahanbaku)
             if item.KodeProduk in totalpenggunaanbahanbaku.keys():
                 # print(f"item {item} ada di penggunaanbahanbaku")
                 jumlahpenggunaan = totalpenggunaanbahanbaku[item.KodeProduk]
                 totalbahanbaku -= jumlahpenggunaan
+                print(totalpenggunaanbahanbaku)
+            if item.KodeProduk in totalpenggunaanbahanbakukirim.keys():
+                jumlahpenggunaan = totalpenggunaanbahanbakukirim[item.KodeProduk]
+                totalbahanbaku -= jumlahpenggunaan
+
             permintaanterakhir = models.TransaksiGudang.objects.filter(Lokasi__NamaLokasi = "FG",tanggal__range=(awaltahun,hari),KodeProduk = item).order_by('-tanggal').first()
             hargaterakhir = 0
             if permintaanterakhir:
