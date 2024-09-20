@@ -14,17 +14,17 @@ urlpatterns = [
     path("penyusun", viewsrnd.views_penyusun, name="penyusun_artikel"),
     path('updateversi',viewsrnd.updateversi,name='updateversi'),
 
-    path(
-        "penyusun/tambah/<str:id>/<str:versi>",
-        viewsrnd.tambahdatapenyusun,
-        name="tambah_data_penyusun",
-    ),
+    # path(
+    #     "penyusun/tambah/<str:id>/<str:versi>",
+    #     viewsrnd.tambahdatapenyusun,
+    #     name="tambah_data_penyusun",
+    # ),
     path(
         "penyusun/add/<str:id>/<str:versi>",
         viewsrnd.tambahdatapenyusun,
         name="tambah_data_penyusunversi",
     ),
-    path("penyusun/versi/tambah/<str:id>", viewsrnd.tambahversi, name="add_versi"),
+    # path("penyusun/versi/tambah/<str:id>", viewsrnd.tambahversi, name="add_versi"),
     path("penyusun/tambahversi/<str:id>", viewsrnd.tambahversibaru, name="add_versibaru"),
     path("penyusun/update/<str:id>", viewsrnd.updatepenyusun, name="update_penyusun"),
     path("penyusun/delete/<str:id>", viewsrnd.delete_penyusun, name="delete_penyusun"),

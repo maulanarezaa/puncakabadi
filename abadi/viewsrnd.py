@@ -48,6 +48,28 @@ def gethargafg(penyusunobj):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def dashboard(request):
+    '''
+    Fitur ini digunakan untuk menampilkan dashboard dari RND
+    pada dashboard RND terdapat beberapa section antara lain 
+    1. Notifikasi Bahan Baku Baru
+    2. Notifikasi SPK Baru
+    3. Notifikasi SPPB Baru
+    Algoritma
+    1. Notifikasi Bahan Baku Baru
+        A. Mendapatkan data dari tabel Produk dengan kriteria filter tanggalpembuatan mulai dan akhir antara hari ini dan 30 hari kebelakang
+        B. Menampilkan data Bahan Baku
+    2. Notifikasi SPK Baru 
+        A. Mendapatkan data Tanggal SPK dengan kriteria Tanggal mulai dari hari ini dan 30 hari kebelakang
+        B. Mengiterasi tiap data SPK yang didapatkan
+        C. Memfilter detailSPK berdasarkan iterasi kode SPK
+        D. Menambahkan atribut baru pada objek SPK untuk query set detailSPK
+    3. Notifikasi SPPB Baru
+        A. Mendapatkan data Tanggal SPPB dengan kriteria Tanggal mulai dari Hari ini dan 30 hari kebelakang
+        B. Mengiterasi tiap data SPPB yang didapatkan
+        C. Memfilter detailSPPB berdasarkan iterasi kode SPPB
+        D. Menambahkan atribut baru detailsppb yang berisi queryset detailSPPB
+
+    '''
     tanggalsekarang = date.today()
     selisihwaktu = timedelta(days=30)
     dataspk = models.SPK.objects.filter(
@@ -83,6 +105,16 @@ def dashboard(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def views_artikel(request):
+    '''
+    FItur ini digunakan untuk manajemen data Artikel pada sistem
+    Algoritma
+    1. Mendapatkan semua data Artikel pada tabel Artikel
+    2. Mengiterasi semua data Artikel pada tabel
+    3. Mencari kode bahan baku penyusun utama tiap artikel 
+    4. Apabila ada data penysuun utama maka akan menambahkan kedapat detailartikelobj untuk objek penyusunnya
+    5. Apabila ada lebih dari 1 bahan baku utama (multiple version) maka akan diambil yang terakhir
+    6. Apabila tidak ada bahan baku penyusun utama maka akan menambhakan keterangan "Belum diset"
+    '''
     datakirim = []
     data = models.Artikel.objects.all()
     for item in data:
@@ -90,7 +122,7 @@ def views_artikel(request):
             Status=1
         )
         if detailartikelobj.exists():
-            datakirim.append([item, detailartikelobj[0]])
+            datakirim.append([item, detailartikelobj.last()])
         else:
             datakirim.append([item, "Belum diset"])
     return render(request, "rnd/views_artikel.html", {"data": datakirim})
@@ -99,6 +131,14 @@ def views_artikel(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def tambahdataartikel(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data artikel pada sistem
+    Algoritma
+    1. Menampilkan form input artikel berisi Kode Artikel dan Keterangan
+    2. User menginput form
+    3. Apabila kode artikel telah ada pada sistem maka akan menampilkan pesan error
+    4. Apabila tidak ada maka data artikel akan disimpan kedalam sistem beserta keterangannya
+    '''
     if request.method == "GET":
         return render(request, "rnd/tambah_artikel.html")
     if request.method == "POST":
@@ -127,6 +167,14 @@ def tambahdataartikel(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def updatedataartikel(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update data artikel yang sudah ada pada sistem
+    Alogirtma
+    1. Menampilkan form update artikel berisi Kode Artikel dan Keterangan
+    2. User menginput form
+    3. Apabila kode artikel telah ada pada sistem kecuali kodeproduk yang diedit maka akan menampilkan pesan error
+    4. Apabila tidak ada maka data artikel akan disimpan kedalam sistem beserta keterangannya
+    '''
     data = models.Artikel.objects.get(id=id)
     if request.method == "GET":
         return render(request, "rnd/update_artikel.html", {"artikel": data})
@@ -161,6 +209,12 @@ def updatedataartikel(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def deleteartikel(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data Artikel.
+    Algoritma
+    1. Mendapatkan data ID dari passing values melalui halaman awal menu Artikel
+    2. Menghapus data objek artikel
+    '''
     dataobj = models.Artikel.objects.get(id=id)
     models.transactionlog(
         user="RND",
@@ -175,55 +229,10 @@ def deleteartikel(request, id):
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
-def updatepenyusun(request, id):
-    data = models.Penyusun.objects.get(IDKodePenyusun=id)
-    if request.method == "GET":
-        datakonversi = models.KonversiMaster.objects.get(
-            KodePenyusun=data.IDKodePenyusun
-        )
-        datakonversi.allowance = datakonversi.Kuantitas + (
-            datakonversi.Kuantitas * 0.025
-        )
-        kodebahanbaku = models.Produk.objects.all()
-        lokasiobj = models.Lokasi.objects.all()
-        return render(
-            request,
-            "rnd/update_penyusun.html",
-            {
-                "kodestok": kodebahanbaku,
-                "data": data,
-                "lokasi": lokasiobj,
-                "konversi": datakonversi,
-            },
-        )
-    else:
-        print(request.POST)
-        kodeproduk = request.POST["kodeproduk"]
-        lokasi = request.POST["lokasi"]
-        status = request.POST["status"]
-        kuantitas = request.POST["kuantitas"]
-        produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
-        lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
-        konversiobj = models.KonversiMaster.objects.get(KodePenyusun=id)
-        data.KodeProduk = produkobj
-        data.Lokasi = lokasiobj
-        data.Status = status
-        data.save()
-        konversiobj.Kuantitas = kuantitas
-        konversiobj.save()
-        transaksilog = models.transactionlog(
-            user="RND",
-            waktu=datetime.now(),
-            jenis="Update",
-            pesan=f"Penyusun Baru. Kode Artikel : {data.KodeArtikel}, Kode produk : {data.KodeProduk}-{data.NamaProduk}, Status Utama : {data} versi : {data.versi}, Kuantitas Konversi : {  konversiobj.Kuantitas}",
-        )
-        transaksilog.save()
-        return redirect("penyusun_artikel")
-
-
-@login_required
-@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def delete_penyusun(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus salah satu penyusun dari versi yang ada
+    '''
     penyusunobj = models.Penyusun.objects.get(IDKodePenyusun=id)
     kodeversiobj = models.Versi.objects.get(Versi = penyusunobj.KodeVersi.Versi,KodeArtikel = penyusunobj.KodeVersi.KodeArtikel)
     kodeartikel = penyusunobj.KodeArtikel.KodeArtikel
@@ -239,6 +248,9 @@ def delete_penyusun(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def delete_versi(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus keseluruhan versi lengkap dengan penyusunnya
+    '''
     print(id)
     kodeversi = models.Versi.objects.get(pk = id)
     print(kodeversi.isdefault)
@@ -451,8 +463,8 @@ def detailksbb(request, id, tanggal,lokasi):
     kodeversiincludebahanbaku = models.Penyusun.objects.filter(KodeProduk__KodeProduk = id).values_list('KodeVersi__Versi',flat=True).distinct()
     print(kodeversiincludebahanbaku)
     datapengirimanbarang = models.DetailSPPB.objects.filter(NoSPPB__Tanggal = tanggal)
-    print(datapengirimanbarang[0].VersiArtikel)
-    print(datapengirimanbarang)
+    # print(datapengirimanbarang[0].VersiArtikel)
+    # print(datapengirimanbarang)
     # print(datapemusnahanbahanbakuasd)
     # print(datagudang)
     return render(
@@ -789,6 +801,9 @@ def read_produk(request):
     return render(request, "rnd/read_produk.html", {"produkobj": produkobj})
 
 def updateversi(request):
+    '''
+    Fitur ini digunakan untuk melakukan update status default pada sistem
+    '''
     if request.method == 'POST':
         print(request.POST)
         versiartikelobj = models.Versi.objects.get(pk = request.POST['versi'])
@@ -813,6 +828,24 @@ def updateversi(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def views_penyusun(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data konversi pada tiap artikel
+    Pada bagian ini user dapat melakukan Melihat Konversi Artikel, Melihat Versi pada Artikel, dan manajemen konversi data artikel
+    Algoritma
+    1. User mengisi form input kode artikel yang akan dilihat
+    2. Secara default, program akan menampilkan data konversi untuk versi default dari kode artikel tersebut
+    3. User dapat melakukan manajemen data konversi pada halaman tersebut.
+    
+    Algoritma mendapatkan Harga Purchasing
+    1. Mengambil data penyusun artikel dengan kriteria (KoveVersi__Versi = versiterpilih)
+    2. Mengiterasi semua data penyusun pada hasil filter poin 1
+    3. memfilter Cache Value dengan kode produk sesuai iterasi dan bulan saat ini
+    4. Apabila ada data cachevalue maka akan mengambil data pertama pada queryset tersebut untuk dijadikan data harga bahan baku
+    5. Apabila tidak ada maka akan dilakukan proses iterasi menggunakan KSBB.
+
+    Algoritma KSBB
+
+    '''
     print(request.GET)
     dataartikel = models.Artikel.objects.all()
     if len(request.GET) == 0:
@@ -1177,6 +1210,7 @@ def views_penyusun(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def tambahversi(request, id):
+    
     data = models.Artikel.objects.get(id=id)
     bahanbaku = models.Produk.objects.all()
     tanggal = date.today().strftime("%Y-%m-%d")
@@ -1234,6 +1268,9 @@ def tambahversi(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def tambahversibaru(request, id):
+    '''
+    Fitur ini digunakan untuk menambahkan data versi pada artikel
+    '''
     print(id)
     data = models.Artikel.objects.get(pk=id)
     bahanbaku = models.Produk.objects.all()
@@ -1313,6 +1350,15 @@ def tambahversibaru(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def tambahdatapenyusun(request, id, versi):
+    '''
+    Fitur ini digunakan untuk menambahkan penyusun baru dalam versi artikel terkait
+    Algoritma 
+    1. Mengambil data ID Versi melalui passing value HTML pada menu penyusun 
+    2. Mengambil data ID Artikel melalui passing value HTML pada menu penyusun
+    3. Mengambil list data kode produk, status, lokasi, kuantitas, dan allowance
+    4. Memasangkan kode produk, status, lokasi, kuantitas dan allowance kemudian mengiterasi data tersebut
+    5. Menyimpan data dalam tabel Penyusun.
+    '''
     dataartikelobj = models.Artikel.objects.get(id=id)
     versiobj = models.Versi.objects.get(pk = versi)
     print(versi, "asdas")
@@ -1483,6 +1529,9 @@ def tambahdatapenyusunversi(request, id, versi):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def updatepenyusun(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update data bahan penyusun sesuai dengan kode penyusunnya
+    '''
     data = models.Penyusun.objects.get(IDKodePenyusun=id)
     if request.method == "GET":
         if 'HTTP_REFERER' in request.META:
@@ -1510,6 +1559,7 @@ def updatepenyusun(request, id):
         status = request.POST["status"]
         kuantitas = request.POST["kuantitas"]
         allowance = request.POST["allowance"]
+        kodeversi = request.POST['kodeversi']
 
         datapenyusun = (
             models.Penyusun.objects.filter(KodeArtikel= data.KodeArtikel,KodeVersi=data.KodeVersi, Status=True)
@@ -1537,6 +1587,11 @@ def updatepenyusun(request, id):
         data.Status = status
         data.Kuantitas = kuantitas
         data.Allowance = allowance
+        
+        if data.KodeVersi.Versi != kodeversi:
+            data.KodeVersi.Versi = kodeversi
+            print(data.KodeVersi.Versi,kodeversi)
+            data.KodeVersi.save()
 
         data.save()
         transaksilog = models.transactionlog(
@@ -1727,6 +1782,9 @@ def bulk_createpenyusun(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def views_display(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data Display pada sistem
+    '''
     data = models.Display.objects.all()
     return render(request, "rnd/views_display.html", {"data": data})
 
@@ -1734,6 +1792,14 @@ def views_display(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def tambahdatadisplay(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data display pada sistem
+    Algoritma
+    1. Menampilkan form input display berisi Kode Display dan Keterangan
+    2. User menginput form
+    3. Apabila kode display telah ada pada sistem maka akan menampilkan pesan error
+    4. Apabila tidak ada maka data display akan disimpan kedalam sistem beserta keterangannya
+    '''
     if request.method == "GET":
         return render(request, "rnd/tambah_display.html")
     if request.method == "POST":
@@ -1762,6 +1828,17 @@ def tambahdatadisplay(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def updatedatadisplay(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update data display yang sudah ada pada sistem
+    *Terminologi : Kode display merupakan kode barang display yang digunakan untuk barang habis pakai.
+    *Terminologi : Barang display tidak memiliki konversi pada RND. jadi untuk besar konversi tergantung dari request gudang
+
+    Alogirtma
+    1. Menampilkan form update display berisi Kode Display dan Keterangan
+    2. User menginput form
+    3. Apabila kode display telah ada pada sistem kecuali kodeproduk yang diedit maka akan menampilkan pesan error
+    4. Apabila tidak ada maka data display akan disimpan kedalam sistem beserta keterangannya
+    '''
     data = models.Display.objects.get(id=id)
     if request.method == "GET":
         return render(request, "rnd/update_display.html", {"artikel": data})
@@ -1796,6 +1873,12 @@ def updatedatadisplay(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def deletedisplay(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data Display.
+    Algoritma
+    1. Mendapatkan data ID dari passing values melalui halaman awal menu Display
+    2. Menghapus data objek display
+    '''
     dataobj = models.Display.objects.get(id=id)
     models.transactionlog(
         user="RND",

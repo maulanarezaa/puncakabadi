@@ -28,6 +28,7 @@
                     <table class="table table-bordered" id="artikel">
                         <thead>
                             <tr>
+                                <th>No</th>
                                 <th>Kode Artikel</th>
                                 <th>Bahan Baku Utama</th>
                                 <th>Keterangan</th>
@@ -37,6 +38,7 @@
                         <tbody>
                             {% for i in data %}
                             <tr>
+                                <td>{{forloop.counter}}</td>
                                 <td>{{i.0.KodeArtikel}}</td>
                                 {% if i.1 == 'Belum diset' %}
                                 <td>{{i.1}}</td>
