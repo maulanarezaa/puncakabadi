@@ -38,6 +38,9 @@ urlpatterns = [
     ),
     # CRUD PRODUK
     path("read_produk", viewspurchasing.read_produk, name="read_produk"),
+    path("read_deletedproduk", viewspurchasing.read_deletedproduk, name="read_deletedproduk"),
+    path('read_deletedproduk/restore/<str:id>',viewspurchasing.restore_deletedproduk,name='restore_deletedproduk'),
+
     path("create_produk", viewspurchasing.create_produk, name="create_produk"),
     path("update_produk/<str:id>", viewspurchasing.update_produk, name="update_produk"),
     path("delete_produk/<str:id>", viewspurchasing.delete_produk, name="delete_produk"),

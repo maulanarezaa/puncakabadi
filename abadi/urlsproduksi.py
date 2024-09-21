@@ -347,6 +347,8 @@ urlpatterns = [
         name="update_produk_produksi",
     ),
     path("load_display", viewsproduksi.load_display, name="load_display"),
+    path("load_spkmutasi", viewsproduksi.load_spkmutasi, name="load_spkmutasi"),
+    path("load_spkmutasidisplay", viewsproduksi.load_spkmutasidisplay, name="load_spkmutasidisplay"),
     path("bahanbakusubkon", viewsproduksi.read_bahansubkon, name="read_bahansubkon"),
     path("addbahansubkon", viewsproduksi.create_bahansubkon, name="create_bahansubkon"),
     path(

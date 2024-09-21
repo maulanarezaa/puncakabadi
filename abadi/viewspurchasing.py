@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
 from django.db.models import F,FloatField
 from django.db.models import Sum,Value
@@ -977,6 +977,7 @@ def update_barangsubkon_masuk(request, id):
         noinvoice = request.POST['noinvoice']
         tanggalinvoice = request.POST['tanggalinvoice']
         hargapotongan = request.POST['harga_setelah_potongan']
+        supplier = request.POST['supplier']
         if noinvoice != "":
             updateobj.NoSuratJalan.NoInvoice = noinvoice
         else :
@@ -986,6 +987,10 @@ def update_barangsubkon_masuk(request, id):
             updateobj.NoSuratJalan.TanggalInvoice = tanggalinvoice
         else:
             updateobj.NoSuratJalan.TanggalInvoice = None
+        if supplier != '':
+            updateobj.NoSuratJalan.Supplier = supplier
+        else: 
+            updateobj.NoSuratJalan.Supplier = None
 
         if matauang == "dollar" :
             updateobj.HargaDollar = request.POST['harga_dollar'] 
@@ -1074,6 +1079,29 @@ def view_rekapbarang(request):
 def read_produk(request):
     produkobj = models.Produk.objects.all().order_by('KodeProduk')
     return render(request, "Purchasing/read_produk.html", {"produkobj": produkobj})
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+def read_deletedproduk(request):
+    '''
+    Fitur ini digunakan untuk menampilkan produk yang telah terhapus
+    '''
+    produkobj = models.Produk.objects.isdeleted()
+    print(produkobj)
+    return render(request, "Purchasing/read_deletedproduk.html", {"produkobj": produkobj})
+
+def restore_deletedproduk(request,id):
+    '''
+    Digunakan untuk merestore deleted Produk
+    Algoritma
+    1. Ambil data Objek produk yang akan direstore
+    2. setting Value menjadi False pada atribut isdeleted
+    '''
+    dataobj = get_object_or_404(models.Produk.objects.isdeleted(), pk=id)  
+    dataobj.is_deleted = False
+    dataobj.save()
+    return redirect('read_deletedproduk')
+
+
 
 
 @login_required

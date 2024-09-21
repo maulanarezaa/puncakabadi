@@ -484,6 +484,13 @@ def detailksbb(request, id, tanggal,lokasi):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def views_ksbj(request):
+    '''
+    Fitur ini digunakan untuk melihat KSBJ dari Artikel yang ada pada perusahaan
+    Algoritma
+    1. Menginputkan Tahun 
+    2. Mendapatkan data tanggal awal dan tanggal akhir dari tahun tersebut
+    3. Menghitung menggunakan fungsi Calculate KSBJ
+    '''
     dataartikel = models.Artikel.objects.all()
     if len(request.GET) == 0:
         return render(request, "rnd/view_ksbj.html", {"dataartikel": dataartikel})
@@ -1894,6 +1901,13 @@ def deletedisplay(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def views_harga(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data HargaFG
+    *HargaFG = Harga akhir dari artikel yang diinputkan secara manual
+    Algoritma 
+    1. Mengambil data Harga FG dari tabel HargaArtikel
+    2. Menyesuaikan format tanggal (YY-MM)
+    '''
     datakirim = []
     data = models.HargaArtikel.objects.all()
     for i in data:
@@ -1905,6 +1919,13 @@ def views_harga(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def tambahdataharga(request):
+    '''
+    Fitur ini digunakan untuk menambahkan harga FG  tiap bulan dan tahun
+    Algoritma 
+    1. Menampilkan input form tambah harga FG
+    2. User menginputkan Taanggal, Kode Artikel dan HargaFG
+    3. Menyimpan data HargaArtikel sesuai input
+    '''
     allartikel = models.Artikel.objects.all()
     if request.method == "GET":
         return render(request, "rnd/tambah_harga.html",{'allartikel':allartikel})
@@ -1946,6 +1967,13 @@ def tambahdataharga(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def updatedataharga(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update hargaFG yang sudah ada pada sistem
+    Algoritma
+    1. Mendapatkan data HargaArtikel berdasarkan ID yang dikirimkan melalui passing values url pada halaman awal fitur HargaFG
+    2. Menampilkan form update Harga, Tanggal, dan Kode Artikel
+    3. Menyimpan data update hargaFG
+    '''
     data = models.HargaArtikel.objects.get(pk=id)
     data.Tanggal = data.Tanggal.strftime("%Y-%m")
     allartikel = models.Artikel.objects.all()
@@ -1982,6 +2010,12 @@ def updatedataharga(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def deleteharga(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus hargaFG pada sistem
+    Algoritma 
+    1. Mendapatkan data ID HargaArtikel melalui Passing Values url
+    2. Menghapus data hargafg
+    '''
     dataobj = models.HargaArtikel.objects.get(id=id)
     models.transactionlog(
         user="RND",

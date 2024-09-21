@@ -3,6 +3,20 @@ import datetime
 
 
 # Create your models here.
+class ProdukQuerySet(models.QuerySet):
+    def active(self):
+        return self.filter(is_deleted=False)
+    def deleted(self):
+        return self.filter(is_deleted=True)
+
+class ProdukManager(models.Manager):
+    def get_queryset(self):
+        return ProdukQuerySet(self.model, using=self._db).active()
+    def with_deleted(self):
+        return ProdukQuerySet(self.model, using=self._db)  # Mengembalikan semua (termasuk yang dihapus)
+    def isdeleted(self):
+        return ProdukQuerySet(self.model, using=self._db).deleted()  # Khusus untuk produk yang di-soft delete
+    
 class Produk(models.Model):
     id = models.AutoField(primary_key=True)
     KodeProduk = models.CharField(max_length=20,unique=True)
@@ -20,9 +34,15 @@ class Produk(models.Model):
         max_length=255, null=True, blank=True, default=""
     )
     keteranganRND = models.CharField(max_length=255, null=True, blank=True, default="")
+    is_deleted = models.BooleanField(default=False)
+    objects = ProdukManager()
 
     def __str__(self):
         return str(self.KodeProduk)
+
+    def delete(self, *args, **kwargs):
+        self.is_deleted = True
+        self.save()
 
 
 class Artikel(models.Model):

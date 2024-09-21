@@ -91,7 +91,7 @@
                                   <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Artikel ${productCounter}</label>
                                     <div class="col-sm-9">
-                                      <input required type="text" class="form-control artikel" name="kode_artikel[]" id="Artikel-${productCounter}" list="listartikel" onchange="loadversioption(this)">
+                                      <input required type="text" class="form-control artikel" name="kode_artikel[]" id="Artikel-${productCounter}" list="listartikel" onchange="loadversioption(this);loadspkoption(this)">
                                         <datalist  id="listartikel">
                                           {% for i in kode_artikel %}
                                           <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
@@ -119,30 +119,15 @@
                                 </div>
                               </div>
                               <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-5">
                                   <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Nomor SPK</label>
-                                    <div class="col-sm-9">
-                                      <select class="form-control" name="nomor_spk-${productCounter}" id="nomor_spk-${productCounter}" class="form-control" onchange="loadArtikelOptions(this)">
-                                        <option value="">Masukkan Nomor SPK</option>
-                                          {% for i in data_spk %}
-                                            <option value="{{i.NoSPK}}">{{i.NoSPK}}</option>
-                                          {% endfor %}
-                                      </select>
+                                    <div class="col-sm-9" id='nomor_spk-${productCounter}'>
+                                      {% include 'produksi/opsi_spkmutasi.html' %}
                                     </div>              
                                   </div>
                                 </div>
-                                <div class="col-md-6">
-                                  <div class="form-group row">
-                                    <label class="col-sm-3 col-form-label">Kode Artikel</label>
-                                    <div class="col-sm-9" id="detail_spk_${productCounter}">
-                                      {% include 'produksi/opsi_spk.html' %} 
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-5">
                                   <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Keterangan</label>
                                     <div class="col-sm-9">
@@ -150,6 +135,10 @@
                                     </div>
                                   </div>
                                 </div>
+
+                              </div>
+                              <div class="row">
+                                
                               </div>
                               <div>
                                 <label for="hapus1"></label>
@@ -170,7 +159,7 @@
                                   <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Display ${productCounter}</label>
                                     <div class="col-sm-9">
-                                      <input required type="text" class="form-control display" name="kode_display[]" list="listartikel" >
+                                      <input required type="text" class="form-control display" name="kode_display[]" list="listartikel" id="Display-${productCounter}" onchange='loadspkoptiondisplay(this)' >
                                         <datalist  id="listartikel">
                                           {% for i in kode_display %}
                                           <option value="{{i.KodeDisplay}}">{{i.KodeDisplay}}</option>
@@ -192,26 +181,11 @@
                                 <div class="col-md-6">
                                   <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Nomor SPK</label>
-                                    <div class="col-sm-9">
-                                      <select class="form-control" name="nomor_spk-${productCounter}" id="nomor_spk-${productCounter}" class="form-control" onchange="loadArtikelOptions(this)">
-                                        <option value="">Masukkan Nomor SPK</option>
-                                          {% for i in data_spk %}
-                                            <option value="{{i.NoSPK}}">{{i.NoSPK}}</option>
-                                          {% endfor %}
-                                      </select>
+                                    <div class="col-sm-9" id='nomor_spk-${productCounter}'>
+                                      {% include 'produksi/opsi_spkmutasidisplay.html' %}
                                     </div>              
                                   </div>
                                 </div>
-                                <div class="col-md-6">
-                                  <div class="form-group row">
-                                    <label class="col-sm-3 col-form-label">Kode Display</label>
-                                    <div class="col-sm-9" id="detail_spk_${productCounter}">
-                                      {% include 'produksi/opsi_spk.html' %} 
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              <div class="row">
                                 <div class="col-md-6">
                                   <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Keterangan</label>
@@ -220,6 +194,7 @@
                                     </div>
                                   </div>
                                 </div>
+                                
                               </div>
                               <div>
                                 <label for="hapus1"></label>
@@ -233,7 +208,49 @@
   function deleteRow(button) {
     button.closest('.row').remove(); // Changed .col to .Display
   }
+  function loadspkoption(selectElement){
+    var kodeartikel = selectElement.value;
+    var productCounter = selectElement.id.split('-')[1];
+    var detailspkartikel = document.getElementById('nomor_spk-'+productCounter)
+    console.log(kodeartikel,productCounter)
+    console.log(detailspkartikel)
+    var url = "{% url 'load_spkmutasi' %}"
+    detailspkartikel.innerHTML = ''
 
+    $.ajax({
+      url: url,
+      data: {
+        'kode_artikel': kodeartikel
+      },
+      dataType: 'html',
+      success: function (data) {
+        detailspkartikel.innerHTML = data
+      }
+    });
+    
+  }
+  function loadspkoptiondisplay(selectElement){
+    var kodeartikel = selectElement.value;
+    var productCounter = selectElement.id.split('-')[1];
+    var detailspkartikel = document.getElementById('nomor_spk-'+productCounter)
+    console.log(selectElement.id)
+    console.log(kodeartikel,productCounter)
+    console.log(detailspkartikel)
+    var url = "{% url 'load_spkmutasidisplay' %}"
+    detailspkartikel.innerHTML = ''
+
+    $.ajax({
+      url: url,
+      data: {
+        'kode_artikel': kodeartikel
+      },
+      dataType: 'html',
+      success: function (data) {
+        detailspkartikel.innerHTML = data
+      }
+    });
+    
+  }
   function loadArtikelOptions(selectElement) {
     var spkNumber = selectElement.value;
     var productCounter = selectElement.id.split('-')[1];

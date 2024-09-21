@@ -189,6 +189,28 @@ def load_display(request):
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def load_spkmutasi(request):
+    print(request.GET)
+    kodeartikel = request.GET.get("kode_artikel")
+    displayobj = models.Artikel.objects.get(KodeArtikel=kodeartikel)
+    detailspk = models.DetailSPK.objects.filter(KodeArtikel=displayobj.id,NoSPK__StatusDisplay = 0, NoSPK__StatusAktif=1)
+    print(detailspk)
+
+    return render(request, "produksi/opsi_spkmutasi.html", {"detailspk": detailspk})
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def load_spkmutasidisplay(request):
+    print(request.GET)
+    kodeartikel = request.GET.get("kode_artikel")
+    displayobj = models.Display.objects.get(KodeDisplay=kodeartikel)
+    detailspk = models.DetailSPKDisplay.objects.filter(KodeDisplay=displayobj.id,NoSPK__StatusDisplay = 1, NoSPK__StatusAktif=1)
+    print(detailspk)
+
+    return render(request, "produksi/opsi_spkmutasi.html", {"detailspk": detailspk})
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def load_versi(request):
     kodeartikel = request.GET.get("artikel")
     print(request.GET)
@@ -1309,6 +1331,10 @@ def update_mutasi(request, id):
     produksiobj = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
     data_artikel = models.Artikel.objects.all()
     data_display = models.Display.objects.all()
+    selectedspkartikel = models.DetailSPK.objects.filter(KodeArtikel = produksiobj.KodeArtikel).distinct()
+    produksiobj.spkartikel = selectedspkartikel
+    selectedspkdisplay = models.DetailSPKDisplay.objects.filter(KodeDisplay = produksiobj.KodeDisplay).distinct()
+    produksiobj.spkdisplay = selectedspkdisplay
     data_spk = models.SPK.objects.all()
     datadetail_spk = models.DetailSPK.objects.all()
     datadetail_spkdisplay = models.DetailSPKDisplay.objects.all()
@@ -1343,8 +1369,8 @@ def update_mutasi(request, id):
             kode_artikel = request.POST["kode_artikel"]
             getartikel = models.Artikel.objects.get(KodeArtikel=kode_artikel)
             try:
-                detail_spk = request.POST["detail_spk"]
-                detspkobj = models.DetailSPK.objects.get(IDDetailSPK=detail_spk)
+                nomorspk = request.POST['nomor_spk']
+                detspkobj = models.DetailSPK.objects.filter(KodeArtikel = getartikel,NoSPK__NoSPK = nomorspk ).first()
             except:
                 detspkobj = None
             try:
@@ -1374,11 +1400,10 @@ def update_mutasi(request, id):
         else:
             kode_display = request.POST["kode_display"]
             getdisplay = models.Display.objects.get(KodeDisplay=kode_display)
-            try:
-                detail_spk = request.POST["detail_spk"]
-                detspkobj = models.DetailSPKDisplay.objects.get(IDDetailSPK=detail_spk)
-            except:
-                detspkobj = None
+            
+            nomorspk = request.POST["nomor_spk"]
+            detspkobj = models.DetailSPKDisplay.objects.filter(NoSPK__NoSPK=nomorspk,KodeDisplay = getdisplay).first()
+
             produksiobj.KodeDisplay = getdisplay
             produksiobj.DetailSPKDisplay = detspkobj
 
@@ -2503,8 +2528,12 @@ def view_ksbj2(request):
 
         lokasi = request.GET['lokasi']
         lokasiobj = models.Lokasi.objects.get(NamaLokasi = lokasi)
+        try:
+            listdata,saldoawal = calculate_ksbj(Artikelobj,lokasi,tanggal_mulai.year)
+        except ValueError:
+            messages.error(request,'Bahan Baku Utama belum diset')
+            return redirect('view_ksbj')
 
-        listdata,saldoawal = calculate_ksbj(Artikelobj,lokasi,tanggal_mulai.year)
 
 
         print(listdata)
@@ -2523,12 +2552,22 @@ def view_ksbj2(request):
         )
         
 def calculate_ksbj(artikel,lokasi,tahun):
+    '''
+    Fitur ini digunakan untuk menghitung besar KSBJ tiap artikel,tahun dan lokasi
+    Parameter fungsi ini ada 3 yaitu Artikel (Artikejkobj, Lokasi dalam string, dan tahun
+    Algortima
+    1. Mencari bahan baku penyusun utama .
+        A. Apabila data data bahan baku penyusun utama maka akan muncul tulisan error
+        B. Apabila ada maka lanjut
+    2. 
+    
+    '''
     tanggal_mulai = datetime(year=tahun, month=1, day=1)
     tanggal_akhir = datetime(year=tahun, month=12, day=31)
     getbahanbakuutama = models.Penyusun.objects.filter(KodeArtikel=artikel.id, Status=1, KodeVersi__isdefault = True).order_by('-KodeVersi__Tanggal').first()
     # print(getbahanbakuutama)
     if not getbahanbakuutama :
-        raise ValueError ('Bahan Baku tidak ditemukan')
+        raise ValueError('Belum di set')
     
     data = models.TransaksiProduksi.objects.filter(KodeArtikel=artikel.id,Jenis = "Mutasi")
     datamasuk = models.TransaksiGudang.objects.filter(DetailSPK__KodeArtikel = artikel.id,KodeProduk = getbahanbakuutama.KodeProduk,tanggal__range=(tanggal_mulai, tanggal_akhir))
@@ -2953,6 +2992,9 @@ def view_rekapproduksi(request):
                     listtanggalpemusnahan = datapemusnahan.values_list('Tanggal',flat=True).distinct()
                     data = data.filter(Lokasi=lokasi.IDLokasi)
                     try:
+                        # tessaldo = models.SaldoAwalArtikel.objects.filter(IDArtikel__KodeArtikel=artikel.KodeArtikel, IDLokasi=lokasi.IDLokasi,Tanggal__range =(tanggal_mulai,tanggal_akhir))
+                        # print(artikel)
+                        # print(tessaldo)
                         saldoawalobj = models.SaldoAwalArtikel.objects.get(IDArtikel__KodeArtikel=artikel.KodeArtikel, IDLokasi=lokasi.IDLokasi,Tanggal__range =(tanggal_mulai,tanggal_akhir))
                         saldo = saldoawalobj.Jumlah
                         listtanggalsaldo = models.SaldoAwalArtikel.objects.filter(IDArtikel__KodeArtikel=artikel.KodeArtikel, IDLokasi=lokasi.IDLokasi,Tanggal__range =(tanggal_mulai,tanggal_akhir)).values_list("Tanggal", flat=True).distinct()

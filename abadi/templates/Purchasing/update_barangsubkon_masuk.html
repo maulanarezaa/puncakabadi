@@ -56,7 +56,7 @@
             <div class="form-group row">
               <label class="col-sm-3 col-form-label">Supplier</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" name="supplier" value="{{updateobj.NoSuratJalan.Supplier}}" required />
+                <input type="text" class="form-control" name="supplier" value=" {% if updateobj.NoSuratJalan.Supplier == None %}{% else %}{{updateobj.NoSuratJalan.Supplier}} {% endif %}"  />
               </div>
             </div>
           </div>

@@ -1,0 +1,6 @@
+<select class="form-control" name="detail_spk[]">
+    <option value="">Masukkan Kode</option>
+    {% for i in detailspk %}
+    <option value="{{i.IDDetailSPK}}">{{i.NoSPK.NoSPK}}</option>
+    {% endfor %}
+</select>

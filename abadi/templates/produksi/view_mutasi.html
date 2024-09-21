@@ -71,16 +71,32 @@
                 <td>{{i.Tanggal}}</td>
                 <td>{{i.Jenis}}</td>
                 <td>{{i.Lokasi.NamaLokasi}}</td>
-                {% if i.KodeDisplay == None %}
-                <td>{{i.DetailSPK.NoSPK}} - {{i.DetailSPK.KodeArtikel}}</td>
-                <td>{{i.KodeArtikel}}</td>
-                <td>{{i.VersiArtikel}}</td>
-                {% else %}
-                <td>{{i.DetailSPPBDisplay.DetailSPKDisplay.NoSPK}}</td>
-                <td>{{i.KodeDisplay}}</td>
-                <td>-</td>
+                <td>
+                  {% if i.DetailSPK != None %}
+                  {{i.DetailSPK.NoSPK}}
+                  {% elif i.DetailSPKDisplay != None %}
+                  {{i.DetailSPKDisplay.NoSPK}}
+                  {% else %}
+                  Belum di set
+                  {% endif %}
+                </td>
+                <td>
+                  {% if i.KodeArtikel != None %}
+                  {{i.KodeArtikel}}
+                  {% else %}
+                  {{i.KodeDisplay}}
+                  {% endif %}
+                  
+                </td>
+                <td>
+                  {% if i.KodeArtikel != None %}
+                  {{i.VersiArtikel.Versi}}
 
-                {% endif %}
+                  {% else %}
+                  -
+                 {% endif %}
+                  </td>
+
                 <td>{{i.Jumlah|separator_ribuan}}</td>
                 <td>{{i.Keterangan}}</td>
                 <td>
