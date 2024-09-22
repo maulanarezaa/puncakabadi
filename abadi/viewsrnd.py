@@ -344,6 +344,9 @@ def konversimaster_delete(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def views_sppb(request):
+    '''
+    FItur ini digunakan untuk menampilkan SPPB yang ada pada sistem
+    '''
     data = models.SPPB.objects.all()
     for sppb in data:
         detailsppb = models.DetailSPPB.objects.filter(NoSPPB=sppb.id)
@@ -355,6 +358,9 @@ def views_sppb(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def view_spk(request):
+    '''
+    FItur ini digunakan untuk menampilkan data SPK pada sistem
+    '''
     dataspk = models.SPK.objects.all().order_by("-Tanggal")
 
     for j in dataspk:
@@ -379,6 +385,13 @@ def hariterakhirdatetime(tahun):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def views_ksbb(request):
+    '''
+    Fitur ini digunakan unutk mendapatkan data KSBB purchasing
+    Algoritma :
+    1. Input data Kode Bahan Baku dan Periode Tahun
+    2. Memasukkan dalam fungsi Calculate KSBB
+    3. Menampilkan KSBB
+    '''
     kodeproduk = models.Produk.objects.all()
     sekarang = datetime.now().year
     
@@ -428,6 +441,26 @@ def views_ksbb(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['rnd','ppic'])
 def detailksbb(request, id, tanggal,lokasi):
+    '''
+    Fitur ini digunakan untuk melihat data Detail KSBB perproduk per periode per tanggal
+    Algoritma
+    1. User menginputkan Kode Stok Bahan Baku dan periode pada fitur KSBB 
+    2. User menekan Tanggal untuk melihat detail KSBB 
+    3. Menampilkan Barang Masuk dari Gudang
+        A. Mengambil data TransaksiGudang dengan kriteria tanggal = Tanggal input (dipilih user dan dikirim melalui passing values html), KodeProduk = kodeproduk input user (melalui html), dan Jumlah > 0 untuk mengindikasikan bahan baku masuk ke area produksi
+    4. Menampilkan Barang Retur dari GUdang
+        A. Mengambil data TransaksiGudang dengan kriteria tanggal = Tanggal input (dipilih user dan dikirim melalui passing values html), KodeProduk = kodeproduk input user (melalui html), dan Jumlah < 0 untuk mengindikasikan bahan retur dari area produksi
+    5. Mutasi Barang Ke FG
+        A. Mengambil semua list versi yang berisi data Penyusun dengan kriteria pada versi tersebut terdapat Penyusun dengan Kode Stok yyang diinputkan oleh user
+        B. Mengambil data transaksi dengan versi yang terkandung dalam data listversi, dengan kriteria Tanggal = input tanggal user
+        C. Mengambil data pemusnahan artikel dengan versi yang terkandung daam data listversi, dengan kriteria Tanggal = input tanggal user
+        D. Mengambil data pemusnahan bahan baku dengan kodeproduk = id produk yang diinput user
+        E. Mengambil data transaksi mutasi kode stok keluar (untuk mendapatkan mutasi kode stok yang akan dikeluarkan untuk kodestok lain)
+        F. Mengambil data transaksi mutasi kode stok masuk ( untuk mendapatkan mutasi kode stok yang dimasukkan unutk kode stok terkait)
+
+        
+
+    '''
     tanggal = datetime.strptime(tanggal, "%Y-%m-%d")
     tanggal = tanggal.strftime("%Y-%m-%d")
 
@@ -452,8 +485,11 @@ def detailksbb(request, id, tanggal,lokasi):
     # print(asd)
 
     # Transaksi Pemusnahan
+    # datapemusnahan = models.PemusnahanArtikel.objects.filter(
+    #     KodeArtikel__KodeArtikel__in=listartikel, Tanggal=tanggal,
+    # )
     datapemusnahan = models.PemusnahanArtikel.objects.filter(
-        KodeArtikel__KodeArtikel__in=listartikel, Tanggal=tanggal,
+        VersiArtikel__in=listversi, Tanggal=tanggal,
     )
     # Transaksi Pemusnahan Bahan Baku
     datapemusnahanbahanbaku  =models.PemusnahanBahanBaku.objects.filter(Tanggal = tanggal,KodeBahanBaku__KodeProduk = id,lokasi__NamaLokasi=lokasi)
@@ -803,6 +839,9 @@ REVISI
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def read_produk(request):
+    '''
+    Fitur ini digunakan untuk menampilkan semua data bahan baku yang ada pada sistem
+    '''
     produkobj = models.Produk.objects.all()
     print(produkobj[1].keteranganRND)
     return render(request, "rnd/read_produk.html", {"produkobj": produkobj})
@@ -1617,6 +1656,30 @@ def updatepenyusun(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def track_spk(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan tracking pada SPK
+    pada bagian ini ada beberapa section antara lain
+    1. Informasi SPK
+    2. Rekap Kumulasi permintaan barang
+    3. Rekap kumulasi pengiriman produk
+    3. Tracking detail permitnaan barang ke SPK
+    4. Tracking detail pengiriman produk
+    5. Tracking detail mutasi WIP-FG 
+
+    Algoritma
+    1. Informasi SPK
+        A. Mengambil data detail SPK dan SPK terkait dengan kode SPK id = id, dimana id didapatkan dari passing values pada halaman awal SPK
+    2. Rekap Kumulasi permintaan barang
+        A. Menghitung agregasi jumlah permintaan barang tiap bahan baku melalui tabel Transaksi Gudang dengan kriteria NoSPK = id dan jumlah > 0
+    3. Rekap Kumulasi pengiriman produk
+        A. Menghitung agregasi jumlah pengiriman produk melalui tabel DetailSPPB dengan kriteria NoSPK = id 
+    3. Tracking detail permitnaan barang ke SPK
+        A. Mengambil data transaksi permintaan barang tiap bahan baku melalui tabel Transaksi Gudang dengan kriteria NoSPK = id dan jumlah > 0
+    4. Trancking detail pengiriman produk 
+        A. Mengambuil data transaksi pengiriman produk melalui tabel detailSPPB dengan kriteraa NoSPK = id
+    5. Tracking Mutasi WIP-FG
+        A. Mengambil data transaksi mutasi produk melalui tabel Transaksi Produksi dengan kriteria NoSPK = id  dan jenis = Mutasi
+    '''
     dataartikel = models.Artikel.objects.all()
     datadisplay =models.Display.objects.all()
     dataspk = models.SPK.objects.get(id=id)
@@ -1683,6 +1746,13 @@ def track_spk(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def update_produk_rnd(request, id):
+    '''
+    Fitur ini digunakan unutk mengupdate bahan baku pada RND
+    ALgoritma 
+    1. Mendapatkan data bahan baku menggunakan parameter KodeProduk = id (id didapatkan dari passing urls html)
+    2. Mengiirmkan form input keterangan RND
+    3. Menyimpan perubahan
+    '''
     produkobj = models.Produk.objects.get(KodeProduk=id)
     if request.method == "GET":
         return render(request, "rnd/update_produk.html", {"produkobj": produkobj})

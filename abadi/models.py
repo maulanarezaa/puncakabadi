@@ -17,6 +17,62 @@ class ProdukManager(models.Manager):
     def isdeleted(self):
         return ProdukQuerySet(self.model, using=self._db).deleted()  # Khusus untuk produk yang di-soft delete
     
+class ArtikelQuerySet(models.QuerySet):
+    def active(self):
+        return self.filter(is_deleted=False)
+    def deleted(self):
+        return self.filter(is_deleted=True)
+
+class ArtikelManager(models.Manager):
+    def get_queryset(self):
+        return ArtikelQuerySet(self.model, using=self._db).active()
+    def with_deleted(self):
+        return ArtikelQuerySet(self.model, using=self._db)  # Mengembalikan semua (termasuk yang dihapus)
+    def isdeleted(self):
+        return ArtikelQuerySet(self.model, using=self._db).deleted()  # Khusus untuk produk yang di-soft delete
+    
+class DisplayQuerySet(models.QuerySet):
+    def active(self):
+        return self.filter(is_deleted=False)
+    def deleted(self):
+        return self.filter(is_deleted=True)
+
+class DisplayManager(models.Manager):
+    def get_queryset(self):
+        return DisplayQuerySet(self.model, using=self._db).active()
+    def with_deleted(self):
+        return DisplayQuerySet(self.model, using=self._db)  # Mengembalikan semua (termasuk yang dihapus)
+    def isdeleted(self):
+        return DisplayQuerySet(self.model, using=self._db).deleted()  # Khusus untuk produk yang di-soft delete
+    
+class BahanBakuSubkonQuerySet(models.QuerySet):
+    def active(self):
+        return self.filter(is_deleted=False)
+    def deleted(self):
+        return self.filter(is_deleted=True)
+
+class BahanBakuSubkonManager(models.Manager):
+    def get_queryset(self):
+        return BahanBakuSubkonQuerySet(self.model, using=self._db).active()
+    def with_deleted(self):
+        return BahanBakuSubkonQuerySet(self.model, using=self._db)  # Mengembalikan semua (termasuk yang dihapus)
+    def isdeleted(self):
+        return BahanBakuSubkonQuerySet(self.model, using=self._db).deleted()  # Khusus untuk produk yang di-soft delete
+    
+class ProdukSubkonQuerySet(models.QuerySet):
+    def active(self):
+        return self.filter(is_deleted=False)
+    def deleted(self):
+        return self.filter(is_deleted=True)
+
+class ProdukSubkonManager(models.Manager):
+    def get_queryset(self):
+        return ProdukSubkonQuerySet(self.model, using=self._db).active()
+    def with_deleted(self):
+        return ProdukSubkonQuerySet(self.model, using=self._db)  # Mengembalikan semua (termasuk yang dihapus)
+    def isdeleted(self):
+        return ProdukSubkonQuerySet(self.model, using=self._db).deleted()  # Khusus untuk produk yang di-soft delete
+    
 class Produk(models.Model):
     id = models.AutoField(primary_key=True)
     KodeProduk = models.CharField(max_length=20,unique=True)
@@ -48,25 +104,43 @@ class Produk(models.Model):
 class Artikel(models.Model):
     KodeArtikel = models.CharField(max_length=20)
     keterangan = models.CharField(max_length=255)
+    is_deleted = models.BooleanField(default=False)
+    objects = ArtikelManager()
 
     def __str__(self):
         return str(self.KodeArtikel)
+    
+    def delete(self, *args, **kwargs):
+        self.is_deleted = True
+        self.save()
 
 
 class Display(models.Model):
     KodeDisplay = models.CharField(max_length=20)
     keterangan = models.CharField(max_length=255)
+    is_deleted = models.BooleanField(default=False)
+    objects = DisplayManager()
 
     def __str__(self):
         return str(self.KodeDisplay)
+    
+    def delete(self, *args, **kwargs):
+        self.is_deleted = True
+        self.save()
 
 class BahanBakuSubkon(models.Model):
     KodeProduk = models.CharField(max_length=20)
     NamaProduk = models.CharField(max_length=20)
     unit = models.CharField(max_length=20)
+    is_deleted = models.BooleanField(default=False)
+    objects = BahanBakuSubkonManager()
 
     def __str__(self):
         return f"{self.KodeProduk} - {self.NamaProduk}"
+    
+    def delete(self, *args, **kwargs):
+        self.is_deleted = True
+        self.save()
 
 
 class ProdukSubkon(models.Model):
@@ -75,9 +149,16 @@ class ProdukSubkon(models.Model):
     Unit = models.CharField(max_length=20)
     KodeArtikel = models.ForeignKey(Artikel, on_delete=models.CASCADE)
     keterangan = models.TextField(blank=True, null=True)
+    is_deleted = models.BooleanField(default=False)
+    objects = ProdukSubkonManager()
+
 
     def __str__(self):
         return str(self.NamaProduk)
+    
+    def delete(self, *args, **kwargs):
+        self.is_deleted = True
+        self.save()
 
 
 class Lokasi(models.Model):
@@ -86,6 +167,10 @@ class Lokasi(models.Model):
 
     def __str__(self):
         return str(self.NamaLokasi)
+    
+    def delete(self, *args, **kwargs):
+        self.is_deleted = True
+        self.save()
 
 class PurchaseOrder(models.Model):
     KodePO = models.CharField(max_length=100, unique=True)
