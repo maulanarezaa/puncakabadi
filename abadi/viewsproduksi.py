@@ -6611,8 +6611,10 @@ def update_transaksicat(request, id):
 
 def trackingartikelspksppb(request):
     dataartikel = models.Artikel.objects.all()
+    datadisplay = models.Display.objects.all()
+
     if len(request.GET) == 0:
-        return render(request,'produksi/trackingspksppb.html',{'dataartikel':dataartikel})
+        return render(request,'produksi/trackingspksppb.html',{'dataartikel':dataartikel,'datadisplay':datadisplay})
         '''
         ALGORITMA
         1. Ambil data artikel
@@ -6625,25 +6627,66 @@ def trackingartikelspksppb(request):
         '''
     else:
         kodeartikel = request.GET['kodeartikel']
-        artikelobj = models.Artikel.objects.get(KodeArtikel = kodeartikel)
-        filteredspk = models.DetailSPK.objects.filter(KodeArtikel = artikelobj).order_by("NoSPK__Tanggal")
-        datamodels = {}
-        for item in filteredspk:
-            detailsppbobj = models.DetailSPPB.objects.filter(DetailSPK = item).order_by("NoSPPB__Tanggal")
-            item.detailsppb = detailsppbobj
-            sisaspk = item.Jumlah
-            jumlahkirim = 0
-            recordsisa = []
-            item.NoSPK.Tanggal = item.NoSPK.Tanggal.strftime('%Y-%m-%d')
-            for detailsppb in detailsppbobj:
-                jumlahkirim +=detailsppb.Jumlah
-                sisaspk -= detailsppb.Jumlah
-                dummy = {"detailsppb":detailsppb,"sisa":sisaspk}
-                recordsisa.append(dummy)
-                detailsppb.NoSPPB.Tanggal = detailsppb.NoSPPB.Tanggal.strftime('%Y-%m-%d')
-            # datamodels.append({'SPK':item,"data":recordsisa})
+        kodedisplay = request.GET['kodedisplay']
+        
+        cekartikel = models.Artikel.objects.filter(KodeArtikel = kodeartikel)
+        cekdisplay = models.Display.objects.filter(KodeDisplay = kodedisplay)
+        print(request.GET)
+        print(cekdisplay)
+        
+        if cekartikel.exists():
+            try:
+                artikelobj = models.Artikel.objects.get(KodeArtikel = kodeartikel)
+            except models.Artikel.DoesNotExist:
+                messages.error(request,f'Artikel {kodeartikel} tidak ditemukan dalam sistem')
+                return redirect('trackingartikelspksppb')
+            filteredspk = models.DetailSPK.objects.filter(KodeArtikel = artikelobj).order_by("NoSPK__Tanggal")
+            datamodels = {}
+            for item in filteredspk:
+                detailsppbobj = models.DetailSPPB.objects.filter(DetailSPK = item).order_by("NoSPPB__Tanggal")
+                item.detailsppb = detailsppbobj
+                sisaspk = item.Jumlah
+                jumlahkirim = 0
+                recordsisa = []
+                item.NoSPK.Tanggal = item.NoSPK.Tanggal.strftime('%Y-%m-%d')
+                for detailsppb in detailsppbobj:
+                    jumlahkirim +=detailsppb.Jumlah
+                    sisaspk -= detailsppb.Jumlah
+                    dummy = {"detailsppb":detailsppb,"sisa":sisaspk}
+                    recordsisa.append(dummy)
+                    detailsppb.NoSPPB.Tanggal = detailsppb.NoSPPB.Tanggal.strftime('%Y-%m-%d')
+                # datamodels.append({'SPK':item,"data":recordsisa})
 
-            datamodels[item.NoSPK.NoSPK] = {'spk':item,"data":recordsisa,'total':{'jumlahkirim':jumlahkirim,'sisa':sisaspk}}
+                datamodels[item.NoSPK.NoSPK] = {'spk':item,"data":recordsisa,'total':{'jumlahkirim':jumlahkirim,'sisa':sisaspk}}
+            return render(request,'produksi/trackingspksppb.html',{'dataartikel':dataartikel,'listdata':datamodels,'kodeartikel':kodeartikel,'kodedisplay':''})
+        elif cekdisplay.exists():
+            try:
+                displayobj = models.Display.objects.get(KodeDisplay = kodedisplay)
+            except models.Artikel.DoesNotExist:
+                messages.error(request,f'Display {kodedisplay} tidak ditemukan dalam sistem')
+                return redirect('trackingartikelspksppb')
+            filteredspk = models.DetailSPKDisplay.objects.filter(KodeDisplay = displayobj).order_by("NoSPK__Tanggal")
+            datamodels = {}
+            for item in filteredspk:
+                detailsppbobj = models.DetailSPPB.objects.filter(DetailSPKDisplay = item).order_by("NoSPPB__Tanggal")
+                item.detailsppb = detailsppbobj
+                sisaspk = item.Jumlah
+                jumlahkirim = 0
+                recordsisa = []
+                item.NoSPK.Tanggal = item.NoSPK.Tanggal.strftime('%Y-%m-%d')
+                for detailsppb in detailsppbobj:
+                    jumlahkirim +=detailsppb.Jumlah
+                    sisaspk -= detailsppb.Jumlah
+                    dummy = {"detailsppb":detailsppb,"sisa":sisaspk}
+                    recordsisa.append(dummy)
+                    detailsppb.NoSPPB.Tanggal = detailsppb.NoSPPB.Tanggal.strftime('%Y-%m-%d')
+                # datamodels.append({'SPK':item,"data":recordsisa})
+
+                datamodels[item.NoSPK.NoSPK] = {'spk':item,"data":recordsisa,'total':{'jumlahkirim':jumlahkirim,'sisa':sisaspk}}
+            return render(request,'produksi/trackingspksppb.html',{'dataartikel':dataartikel,'listdata':datamodels,'kodedisplay':kodedisplay,'kodeartikel':''})
+        else:
+            messages.error(request,f'Kode {kodeartikel} tidak ditemukan pada database Artikel dan Display')
+            return redirect('trackingartikelspksppb')
         # print(datamodels)
         # print(datamodels[2])
         # for item in datamodels['01/SPK/I-2024']:
@@ -6652,7 +6695,6 @@ def trackingartikelspksppb(request):
         # print(datamodels["01/SPK/I-2024"]['spk'].Jumlah)
         # for data in datamodels["01/SPK/I-2024"]['data']:
         #     print(data)
-        return render(request,'produksi/trackingspksppb.html',{'dataartikel':dataartikel,'listdata':datamodels,'kodeartikel':kodeartikel})
                 
 
 

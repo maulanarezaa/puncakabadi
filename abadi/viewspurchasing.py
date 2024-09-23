@@ -86,6 +86,38 @@ def acc_subkon(request,id) :
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 
 def notif_barang_purchasing(request):
+    '''
+    Fitur ini digunakan untuk menampilkan dashboard dari Purchasing
+    Isi dashboard Purchasing mencakup
+    1. Rekap Pengadaan Bahan Baku
+    2. Notifikasi Bahan Baku Masuk 
+    3. Notifkasi Produk Subkon Masuk 
+    4. Notifikasi SPK Belum ACC
+    5. Notifikasi Bahan Baku keluar Belum ACC
+
+    Algoritma
+    1. Rekap Pengadaan Bahan Baku
+        A. Mendapatkan data SPKArtikel aktif saat ini
+        B. Agregasi jumlah artikel pada SPK Tersebut
+        C. Mencari data Penyusun tiap artikel menggunakan versi Default
+        D. Menghitung total kebutuhan Bahan Baku tiap Artikel
+        E. TOtal kebutuhan = TOtal Stok Sekarang - Total kebutuhan + Delay PO
+        F. Delay PO = Total Bahan Baku PO - TOtal bahan baku yang telah masuk ke perusahaan menggunakan PO Tersebut
+    2. Notifikasi Bahan Baku Masuk
+        A. Mendapatkan data DetailSuratJalanPembelian dengan KeteranganACC = False (menandakan barang belum di ACC Purchasing)
+        B. Mengubah format tanggal menjadi YYYY-MM-DD
+    3. Notifkasi Produk Subkon Masuk
+        A. Mendapatkan data produk subkon masuk dengan keteranganACC = False (Menandakan barang belum di ACC Purchasing)
+        B. Mengubah format tanggal menjadi YYYY-MM-DD
+    4. Notifikasi SPK Belum ACC
+        A. Mengambil data SPK Belum ACC dengan kriteria KeteranganACC = False (Menandakan belum ACC Purchasing)
+        B. Mengubah format tanggal menjadi YYYY-MM-DD
+    5. Notifikasi Bahan Baku Keluar Belum ACC
+        A. Mengambil data TransaksiGudang dengan kriteria KeteranganACC = True (Sudah di acc Gudang), KeteranganACCPurchasing = False (Belum di ACC Purchasing), dan Jumlah > 0 (menandakan barang keluar)
+        B. Mengubah format tanggal menjadi YYYY-MM-DD
+
+    
+    '''
     waktusekarang = datetime.now()
     filtersubkonobj = models.DetailSuratJalanPenerimaanProdukSubkon.objects.filter(KeteranganACC = False).order_by("NoSuratJalan__Tanggal")
     for x in filtersubkonobj :
@@ -2961,7 +2993,10 @@ def getksbbproduk(kodeproduk,periode):
             }
             saldoawal += jumlahmasukperhari - jumlahkeluarperhari
             hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
-            hargasatuanawal = hargatotalawal / saldoawal
+            try:
+                hargasatuanawal = hargatotalawal / saldoawal
+            except ZeroDivisionError:
+                hargasatuanawal = 0
 
             print("Sisa Stok Hari Ini : ", saldoawal)
             print("harga awal Hari Ini :", hargasatuanawal)
@@ -3091,7 +3126,7 @@ def getksbbproduk(kodeproduk,periode):
         print(hargatotalawal, saldoawal)
         try:
             hargasatuanawal = hargatotalawal / saldoawal
-        except:
+        except ZeroDivisionError:
             hargasatuanawal = 0
 
         print("Sisa Stok Hari Ini : ", saldoawal)
@@ -3195,7 +3230,9 @@ def exportkeseluruhanksbb (request,periode):
     listdataframe = []
     listkodestok = []
     for produk in allproduk:
+        print('Produk', produk)
         listdata = getksbbproduk(produk.KodeProduk,periode)
+        print('Done iterate')
         datamodelsksbb ={
  
         "Tanggal":[],
@@ -3223,6 +3260,7 @@ def exportkeseluruhanksbb (request,periode):
         dfksbb = pd.DataFrame(datamodelsksbb)
         listdataframe.append(dfksbb)
         listkodestok.append(produk)
+        print(dfksbb)
     buffer = BytesIO()
     waktupersediaan = time.time()
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:

@@ -13,15 +13,17 @@
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Kode Artikel : <span style="font-weight: lighter;">
-                        {{kodeartikel}}</span></h4>
+                <h4 class="card-title">Kode Produk : <span style="font-weight: lighter;">
+                    {% if kodeartikel != "" %}
+                        {{kodeartikel}}
+                    {% else %} {{kodedisplay}} {% endif  %}</span></h4>
                
                 <form action="" method="get">
                     {% if kodebarang %}
                     <div class="row">
-                        <div class="col-lg-4">
+                        <div class="col-lg-8">
                             <div class="form-group">
-                                <input type="text" class="form-control" placeholder="Masukkan Kode Barangg"
+                                <input type="text" class="form-control" placeholder="Masukkan Kode Baranggg"
                                     name="kodeartikel" list="kodebarang" value="{{kodeartikel}}" required>
                                 <datalist id="kodebarang">
                                     {% for i in dataartikel %}
@@ -57,14 +59,21 @@
                     </div>
                     {% else %}
                     <div class="row">
-                        <div class="col-lg-4">
+                        <div class="col-lg-8">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input required type="text" class="form-control" placeholder="Masukkan Kode Barang"
+                                    <input  type="text" class="form-control" placeholder="Masukkan Kode Artikel"
                                         aria-label="Masukkan Kode Barang" name="kodeartikel" list="kodebarang" value="{{kodeartikel}}">
                                     <datalist id="kodebarang">
                                         {% for i in dataartikel %}
                                         <option value="{{i.KodeArtikel}}"></option>
+                                        {% endfor %}
+                                    </datalist>
+                                    <input  type="text" class="form-control" placeholder="Masukkan Kode Display"
+                                        aria-label="Masukkan Kode Barang" name="kodedisplay" list="kodedisplay" value="{{kodedisplay}}">
+                                    <datalist id="kodedisplay">
+                                        {% for i in datadisplay %}
+                                        <option value="{{i.KodeDisplay}}"></option>
                                         {% endfor %}
                                     </datalist>
                                     <div class="input-group-append">
