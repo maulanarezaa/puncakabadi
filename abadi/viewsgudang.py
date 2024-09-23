@@ -15,6 +15,9 @@ from django.db.models import FloatField
 import time
 import re
 from django.db.models import Q
+from openpyxl import Workbook, load_workbook
+from io import BytesIO
+
 
 
 @login_required
@@ -1211,9 +1214,7 @@ def update_gudang(request, id):
     datasjp_getobj = models.SuratJalanPembelian.objects.get(
         NoSuratJalan=datasjp.NoSuratJalan.NoSuratJalan
     )
-    detailsjp_filtered = models.DetailSuratJalanPembelian.objects.filter(
-        NoSuratJalan=datasjp_getobj.NoSuratJalan
-    )
+   
     if request.method == "GET":
 
         return render(
@@ -1235,6 +1236,8 @@ def update_gudang(request, id):
 
     else:
         tanggal = request.POST["tanggal"]
+        supplier = request.POST['supplier']
+        nosuratjalan = request.POST['nosuratjalan']
         print(request.POST)
         # print(asd)
         kode_produk = request.POST.get("kodeproduk")
@@ -1258,12 +1261,13 @@ def update_gudang(request, id):
         datasjp.Jumlah = jumlah
         datasjp.KeteranganACC = datasjp.KeteranganACC
         datasjp.Harga = datasjp.Harga
-        datasjp.NoSuratJalan = datasjp.NoSuratJalan
+        datasjp.NoSuratJalan.NoSuratJalan = nosuratjalan
         datasjp.NoSuratJalan.Tanggal = tanggal
+        datasjp.NoSuratJalan.supplier = supplier
         datasjp.KeteranganACC = False
         datasjp.PO = detailpoobj
-        datasjp.save()
         datasjp.NoSuratJalan.save()
+        datasjp.save()
         messages.success(request, "Data berhasil disimpan")
         return redirect("baranggudang")
 
@@ -1674,3 +1678,151 @@ def updatecache(request):
         ).save()
     waktuakhir = time.time()
     return HttpResponse(f'Waktu proses :{waktuakhir-waktustart} ')
+
+def exportbackup(request):
+    datasjp = models.SuratJalanPembelian.objects.all()
+    datadsjp = models.DetailSuratJalanPembelian.objects.all()
+    datamodelssjp = {
+        'NoSuratJalan' : [],
+        'Tanggal' : [],
+        'Supplier' : [],
+        'NoInvoice' : [],
+        'TanggalInvoice':[],
+    }
+    datamodelsdsjp ={
+        'IDDetailSJPembelian' : [], 
+    'NoSuratJalan' :[],
+    'KodeProduk' :[],
+    'Jumlah' :[],
+    'KeteranganACC' :[],
+    'Harga' :[],
+    'HargaDollar' :[],
+    'PPN' :[],
+    'PO' :[],
+    'hargappn' :[],
+    }
+    for sjp in datasjp:
+        datamodelssjp['NoSuratJalan'].append(sjp.NoSuratJalan)
+        datamodelssjp['Tanggal'].append(sjp.Tanggal)
+        datamodelssjp['Supplier'].append(sjp.supplier)
+        datamodelssjp['NoInvoice'].append(sjp.NoInvoice)
+        datamodelssjp['TanggalInvoice'].append(sjp.TanggalInvoice)
+
+    # Iterasi untuk DetailSuratJalanPembelian
+    for dsjp in datadsjp:
+        datamodelsdsjp['IDDetailSJPembelian'].append(dsjp.IDDetailSJPembelian)
+        datamodelsdsjp['NoSuratJalan'].append(dsjp.NoSuratJalan.NoSuratJalan)  # Relasi FK ke NoSuratJalan
+        datamodelsdsjp['KodeProduk'].append(dsjp.KodeProduk.KodeProduk)  # Relasi FK ke Produk
+        datamodelsdsjp['Jumlah'].append(dsjp.Jumlah)
+        datamodelsdsjp['KeteranganACC'].append(dsjp.KeteranganACC)
+        datamodelsdsjp['Harga'].append(dsjp.Harga)
+        datamodelsdsjp['HargaDollar'].append(dsjp.HargaDollar)
+        datamodelsdsjp['PPN'].append(dsjp.PPN)
+        datamodelsdsjp['PO'].append(dsjp.PO.KodePO if dsjp.PO else None)  # Jika ada PO, ambil KodePO
+        datamodelsdsjp['hargappn'].append(dsjp.hargappn)
+
+
+    dfsjp = pd.DataFrame(datamodelssjp)
+    dfdsjp = pd.DataFrame(datamodelsdsjp)
+    buffer = BytesIO()
+
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        dfsjp.to_excel(
+                                    writer, index=False, sheet_name="SJP"
+                    )
+        dfdsjp.to_excel(
+                                    writer, index=False, sheet_name="DSJP"
+                    )
+        
+
+    buffer.seek(0)
+    wb = load_workbook(buffer)
+    # ws = wb["Laporan Persediaan"]
+    # ws2 = wb["Barang Masuk"]
+    # ws3 = wb["Barang Keluar"]
+
+    # # Insert header "Januari" above the table
+    # ws["A1"] = listbulan[waktuobj.month - 1]
+    # ws2["A1"] = listbulan[waktuobj.month - 1]
+    # ws3["A1"] = listbulan[waktuobj.month - 1]
+
+    # Custom WS Barang Keluar
+    # baristerakhirws3 = ws3.max_row
+    # kolomterakhirws3 = ws3.max_column
+    # hurufkolomws3 = get_column_letter(kolomterakhirws3)
+    # print("Baris Terakhir : ", baristerakhirws3)
+    # print("Kolom Terakhir : ", kolomterakhirws3)
+    # print("Huruf Terakhir : ", hurufkolomws3)
+    # ws3.cell(row=baristerakhirws3 + 1, column=kolomterakhirws3 - 1, value="Total Biaya")
+    # ws3.cell(row=baristerakhirws3 + 1, column=kolomterakhirws3, value=totalbiayakeluar)
+    # # print(asdas)
+    # Save the workbook back to the buffer
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    # Create the HTTP response
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = (
+        f"attachment; filename=laporanpersediaan.xlsx"
+    )
+    return response
+
+def bulkaddsjpdsjp (request):
+    if request.method == "POST" and request.FILES["file"]:
+        kodebahanerror = []
+        file = request.FILES["file"]
+        excel_file = pd.ExcelFile(file)
+
+        # Mendapatkan daftar nama sheet
+        sheet_names = excel_file.sheet_names
+        # sheet_names = ['A-004-154','A-004-155','A-005-158','B-012-10']
+        sheet_names = ['DSJP']
+
+        for item in sheet_names:
+            df = pd.read_excel(file, engine="openpyxl", sheet_name=item)
+            print(item)
+            print(df)
+            # print(asd)
+
+            # i = 0
+            for index, row in df.iterrows():
+                print(row)
+                # print(asd)
+
+                po = None
+                
+
+                dataobj= models.DetailSuratJalanPembelian(
+                     NoSuratJalan = models.SuratJalanPembelian.objects.get(NoSuratJalan = row['NoSuratJalan']),
+    KodeProduk = models.Produk.objects.get(KodeProduk = row['KodeProduk']),
+    Jumlah = row['Jumlah'],
+    KeteranganACC = row['KeteranganACC'],
+    Harga = row['Harga'],
+    HargaDollar =row['HargaDollar'],
+    PPN = row['PPN'],
+    PO = po,
+    hargappn = row['hargappn'],
+                )
+                dataobj.save()
+                # datadelete = models.DetailSuratJalanPembelian.objects.filter(
+                #             KodeProduk=models.Produk.objects.get(KodeProduk=item),
+                #             )
+                # print(datadelete)
+                # for data in datadelete:
+                #     print(data.Jumlah, data.NoSuratJalan.Tanggal)
+                #     data.delete()
+                # print(asd)
+                # if i < 2:
+                #     i += 1
+                #     continue
+                # print(row["Tanggal"])
+                # print(row)
+                
+
+        return render(request,'error/errorsjp.html',{'data':kodebahanerror})
+
+    return render(request, "Purchasing/bulk_createproduk.html")

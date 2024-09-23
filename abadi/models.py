@@ -189,9 +189,8 @@ class DetailPO(models.Model):
         return f"{self.KodePO} - {self.KodeProduk} - {self.Jumlah}"
 
 
-
 class SuratJalanPembelian(models.Model):
-    NoSuratJalan = models.CharField(max_length=255, primary_key=True)
+    NoSuratJalan = models.CharField(max_length=255,unique=True)
     Tanggal = models.DateField()
     supplier = models.CharField(max_length=255)
     NoInvoice = models.CharField(max_length=255,null=True,blank=True)
@@ -217,7 +216,6 @@ class DetailSuratJalanPembelian(models.Model):
 
     def __str__(self):
         return str(self.NoSuratJalan) + " " + str(self.KodeProduk)
-
 
 class SPK(models.Model):
     NoSPK = models.CharField(max_length=255)
