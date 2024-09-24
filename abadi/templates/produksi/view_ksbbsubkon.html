@@ -18,6 +18,9 @@
                         {{nama}}</span></h4>
                 <h4 class="card-title">Satuan : <span style="font-weight: lighter;">
                         {{satuan}}</span></h4>
+                {% if produk %}
+                <a href="{% url 'rekapakumulasiksbbsubkon' produk.pk %}" class="btn btn-success">Rekapitulasi KSBB</a>
+                {% endif %}
                 <form action="" method="get">
                     {% if kodebarang %}
                     <div class="row">

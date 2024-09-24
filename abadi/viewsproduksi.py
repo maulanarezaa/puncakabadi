@@ -2548,6 +2548,7 @@ def view_ksbj2(request):
                 "listdata": listdata,
                 "saldoawal": saldoawal,
                 "tahun": tahun,
+                'artikelobj':Artikelobj
             },
         )
         
@@ -5959,7 +5960,76 @@ def delete_transaksi_subkon_terima(request, id):
     messages.success(request,'Data berhasil dihapus')
     return redirect("transaksi_subkon_terima")
 
+def calculateksbjsubkon(produk,tanggal_mulai,tanggal_akhir):
+    # Menceri data transaksi gudang dengan kode 
+    dataterima = models.TransaksiSubkon.objects.filter(
+        KodeProduk=produk.IDProdukSubkon, Tanggal__range=(tanggal_mulai, tanggal_akhir)
+    )
 
+    dataproduksi = models.DetailSuratJalanPenerimaanProdukSubkon.objects.filter(
+        KodeProduk = produk.IDProdukSubkon,
+        NoSuratJalan__Tanggal__range=(tanggal_mulai, tanggal_akhir),
+    )
+    datapemusnahan = models.PemusnahanProdukSubkon.objects.filter(KodeProdukSubkon = produk,Tanggal__range=(tanggal_mulai,tanggal_akhir))
+
+    # ''' TANGGAL SECTION '''
+    tanggalmasuk = dataterima.values_list("Tanggal", flat=True)
+    tanggalkeluar = dataproduksi.values_list("NoSuratJalan__Tanggal", flat=True)
+    tanggalpemusnahan = datapemusnahan.values_list('Tanggal',flat=True)
+    # tanggalpemusnahan = pemusnahanobj.values_list("Tanggal", flat=True)
+
+    listtanggal = sorted(list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalpemusnahan))))
+
+    ''' SALDO AWAL SECTION '''
+    try:
+        saldoawal = models.SaldoAwalSubkon.objects.get(
+            IDProdukSubkon=produk.IDProdukSubkon,
+            Tanggal__range=(tanggal_mulai, tanggal_akhir),
+        )
+        saldo = saldoawal.Jumlah
+        saldoawal.Tanggal = saldoawal.Tanggal.year
+
+    except models.SaldoAwalSubkon.DoesNotExist:
+        saldo = 0
+        saldoawal = None
+
+    sisa = saldo
+
+    # ''' PENGOLAHAN DATA '''
+    listdata = [ ]
+    for i in listtanggal:
+        # Data Models
+        data = {
+            'Tanggal': None,
+            'Masuk' : None,
+            'Keluar' : None,
+            'Sisa' : None
+            
+        }
+        data['Tanggal'] = i.strftime("%Y-%m-%d")
+        # Data Masuk
+        masuk = 0
+        datamasuk = dataproduksi.filter(NoSuratJalan__Tanggal = i)
+        for m in datamasuk:
+            masuk += m.Jumlah
+        sisa  += masuk
+        data['Masuk'] = masuk
+        
+        # Data Keluar
+        datakeluar = dataterima.filter(Tanggal=i)
+        keluar = 0
+        for k in datakeluar:
+            keluar += k.Jumlah
+        datapemusnahanproduk = datapemusnahan.filter(Tanggal = i)
+        for k in datapemusnahanproduk:
+            keluar +=k.Jumlah
+        sisa -= keluar
+        data['Keluar'] = keluar
+
+        data['Sisa'] = sisa
+
+        listdata.append(data)
+    return listdata,saldoawal
 # KSBB KSBJ Subkon
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
@@ -5995,77 +6065,85 @@ def view_ksbjsubkon(request):
 
         tanggal_mulai = datetime(year=tahun, month=1, day=1)
         tanggal_akhir = datetime(year=tahun, month=12, day=31)
+        listdata,saldoawal = calculateksbjsubkon(produk,tanggal_mulai,tanggal_akhir)
         
-        # Menceri data transaksi gudang dengan kode 
-        dataterima = models.TransaksiSubkon.objects.filter(
-            KodeProduk=produk.IDProdukSubkon, Tanggal__range=(tanggal_mulai, tanggal_akhir)
-        )
-
-        dataproduksi = models.DetailSuratJalanPenerimaanProdukSubkon.objects.filter(
-            KodeProduk = produk.IDProdukSubkon,
-            NoSuratJalan__Tanggal__range=(tanggal_mulai, tanggal_akhir),
-        )
-        datapemusnahan = models.PemusnahanProdukSubkon.objects.filter(KodeProdukSubkon = produk,Tanggal__range=(tanggal_mulai,tanggal_akhir))
-
-        # ''' TANGGAL SECTION '''
-        tanggalmasuk = dataterima.values_list("Tanggal", flat=True)
-        tanggalkeluar = dataproduksi.values_list("NoSuratJalan__Tanggal", flat=True)
-        tanggalpemusnahan = datapemusnahan.values_list('Tanggal',flat=True)
-        # tanggalpemusnahan = pemusnahanobj.values_list("Tanggal", flat=True)
-
-        listtanggal = sorted(list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalpemusnahan))))
-
-        ''' SALDO AWAL SECTION '''
-        try:
-            saldoawal = models.SaldoAwalSubkon.objects.get(
-                IDProdukSubkon=produk.IDProdukSubkon,
-                Tanggal__range=(tanggal_mulai, tanggal_akhir),
-            )
-            saldo = saldoawal.Jumlah
-            saldoawal.Tanggal = saldoawal.Tanggal.year
-
-        except models.SaldoAwalSubkon.DoesNotExist:
-            saldo = 0
-            saldoawal = None
-
-        sisa = saldo
-
-        # ''' PENGOLAHAN DATA '''
-        listdata = [ ]
-        for i in listtanggal:
-            # Data Models
-            data = {
-                'Tanggal': None,
-                'Masuk' : None,
-                'Keluar' : None,
-                'Sisa' : None
-                
-            }
-            data['Tanggal'] = i.strftime("%Y-%m-%d")
-            # Data Masuk
-            masuk = 0
-            datamasuk = dataproduksi.filter(NoSuratJalan__Tanggal = i)
-            for m in datamasuk:
-                masuk += m.Jumlah
-            sisa  += masuk
-            data['Masuk'] = masuk
-            
-            # Data Keluar
-            datakeluar = dataterima.filter(Tanggal=i)
-            keluar = 0
-            for k in datakeluar:
-                keluar += k.Jumlah
-            datapemusnahanproduk = datapemusnahan.filter(Tanggal = i)
-            for k in datapemusnahanproduk:
-                keluar +=k.Jumlah
-            sisa -= keluar
-            data['Keluar'] = keluar
-
-            data['Sisa'] = sisa
-
-            listdata.append(data)
+        
 
         return render(request, "produksi/view_ksbjsubkon.html",{"data":listdata,'saldo':saldoawal,"nama": nama,"satuan": satuan,"artikel":artikel,"kodeprodukobj": kodeproduk, 'produk':produk,'tahun':tahun})
+
+def calculateksbbsubkon(produk,tanggal_mulai,tanggal_akhir):
+    # Menceri data transaksi gudang dengan kode 
+    databahan = models.TransaksiBahanBakuSubkon.objects.filter(
+        KodeBahanBaku__KodeProduk=produk.KodeProduk, Tanggal__range=(tanggal_mulai, tanggal_akhir)
+    )
+
+    datakirim = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.filter(
+        KodeBahanBaku__KodeProduk=produk.KodeProduk, NoSuratJalan__Tanggal__range=(tanggal_mulai, tanggal_akhir),
+    )
+    datapemusnahan = models.PemusnahanBahanBakuSubkon.objects.filter(Tanggal__range=(tanggal_mulai,tanggal_akhir),KodeBahanBaku = produk)
+    
+    ''' TANGGAL SECTION '''
+    tanggalmasuk = databahan.values_list("Tanggal", flat=True)
+    tanggalkeluar = datakirim.values_list("NoSuratJalan__Tanggal", flat=True)
+    tanggalpemusnahan = datapemusnahan.values_list('Tanggal',flat=True)
+
+    listtanggal = sorted(
+        list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalpemusnahan)))
+    )
+    print(datapemusnahan)
+    # print(asd)
+
+    ''' SALDO AWAL SECTION '''
+    try:
+        saldoawal = models.SaldoAwalBahanBakuSubkon.objects.get(
+            IDBahanBakuSubkon__KodeProduk=produk.KodeProduk,
+            Tanggal__range=(tanggal_mulai, tanggal_akhir),
+        )
+        saldo = saldoawal.Jumlah
+        saldoawal.Tanggal = saldoawal.Tanggal.year
+
+    except models.SaldoAwalBahanBakuSubkon.DoesNotExist:
+        saldo = 0
+        saldoawal = None
+
+    sisa = saldo
+
+    ''' PENGOLAHAN DATA '''
+    listdata =[]
+    for i in listtanggal:
+        data = {
+            'Tanggal': None,
+            'Masuk' : None,
+            'Keluar' : None,
+            'Sisa' : None
+        }
+
+        data['Tanggal'] = i.strftime("%Y-%m-%d")
+        # Data Masuk
+        masuk = 0
+        datamasuk = databahan.filter(Tanggal=i)
+        for m in datamasuk:
+            masuk += m.Jumlah
+        sisa  += masuk
+        data['Masuk'] = masuk
+        
+        # Data Keluar
+        keluar = 0
+        datakeluar = datakirim.filter(NoSuratJalan__Tanggal = i)
+        for k in datakeluar:
+            keluar += k.Jumlah
+        datapemusnahanbahanbaku = datapemusnahan.filter(Tanggal = i)
+        print(datapemusnahanbahanbaku)
+        for k in datapemusnahanbahanbaku:
+            keluar += k.Jumlah
+        sisa -= keluar
+        data['Keluar'] = keluar
+
+
+
+        data['Sisa'] = sisa
+        listdata.append(data)
+    return listdata,saldoawal
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
@@ -6094,80 +6172,11 @@ def view_ksbbsubkon(request):
 
         tanggal_mulai = datetime(year=tahun, month=1, day=1)
         tanggal_akhir = datetime(year=tahun, month=12, day=31)
+        listdata,saldoawal = calculateksbbsubkon(produk,tanggal_mulai,tanggal_akhir)
 
-        # Menceri data transaksi gudang dengan kode 
-        databahan = models.TransaksiBahanBakuSubkon.objects.filter(
-            KodeBahanBaku__KodeProduk=request.GET["kodebarang"], Tanggal__range=(tanggal_mulai, tanggal_akhir)
-        )
-
-        datakirim = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.filter(
-            KodeBahanBaku__KodeProduk=request.GET["kodebarang"], NoSuratJalan__Tanggal__range=(tanggal_mulai, tanggal_akhir),
-        )
-        datapemusnahan = models.PemusnahanBahanBakuSubkon.objects.filter(Tanggal__range=(tanggal_mulai,tanggal_akhir),KodeBahanBaku = produk)
         
-        ''' TANGGAL SECTION '''
-        tanggalmasuk = databahan.values_list("Tanggal", flat=True)
-        tanggalkeluar = datakirim.values_list("NoSuratJalan__Tanggal", flat=True)
-        tanggalpemusnahan = datapemusnahan.values_list('Tanggal',flat=True)
 
-        listtanggal = sorted(
-            list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalpemusnahan)))
-        )
-        print(datapemusnahan)
-        # print(asd)
-
-        ''' SALDO AWAL SECTION '''
-        try:
-            saldoawal = models.SaldoAwalBahanBakuSubkon.objects.get(
-                IDBahanBakuSubkon__KodeProduk=request.GET["kodebarang"],
-                Tanggal__range=(tanggal_mulai, tanggal_akhir),
-            )
-            saldo = saldoawal.Jumlah
-            saldoawal.Tanggal = saldoawal.Tanggal.year
-
-        except models.SaldoAwalBahanBakuSubkon.DoesNotExist:
-            saldo = 0
-            saldoawal = None
-
-        sisa = saldo
-
-        ''' PENGOLAHAN DATA '''
-        listdata =[]
-        for i in listtanggal:
-            data = {
-                'Tanggal': None,
-                'Masuk' : None,
-                'Keluar' : None,
-                'Sisa' : None
-            }
-
-            data['Tanggal'] = i.strftime("%Y-%m-%d")
-            # Data Masuk
-            masuk = 0
-            datamasuk = databahan.filter(Tanggal=i)
-            for m in datamasuk:
-                masuk += m.Jumlah
-            sisa  += masuk
-            data['Masuk'] = masuk
-            
-            # Data Keluar
-            keluar = 0
-            datakeluar = datakirim.filter(NoSuratJalan__Tanggal = i)
-            for k in datakeluar:
-                keluar += k.Jumlah
-            datapemusnahanbahanbaku = datapemusnahan.filter(Tanggal = i)
-            print(datapemusnahanbahanbaku)
-            for k in datapemusnahanbahanbaku:
-                keluar += k.Jumlah
-            sisa -= keluar
-            data['Keluar'] = keluar
-
-
-
-            data['Sisa'] = sisa
-            listdata.append(data)
-
-        return render(request, "produksi/view_ksbbsubkon.html",{'data':listdata,'saldo':saldoawal,'kodebarang':request.GET["kodebarang"],"nama": nama,"satuan": satuan,"kodeprodukobj": kodeproduk,'tahun':tahun})
+        return render(request, "produksi/view_ksbbsubkon.html",{'produk':produk,'data':listdata,'saldo':saldoawal,'kodebarang':request.GET["kodebarang"],"nama": nama,"satuan": satuan,"kodeprodukobj": kodeproduk,'tahun':tahun})
 
 def ksbbcat (request):
     kodecat = 'A-004'
@@ -7216,6 +7225,94 @@ def update_mutasikodestok(request, id):
         messages.success(request,f'Data berhasil disimpan ')
 
         return redirect("mutasikodestok")
+
+def rekapakumulasiksbb(request,id):
+    if len(request.GET) == 0:
+        return render(request,'produksi/view_rekapksbb.html')
+    else:
+        '''
+        Logika rekapitulasi 
+        '''
+        tanggalmulai = request.GET['tanggalawal']
+        tanggalakhir = request.GET['tanggalakhir']
+        produkobj = models.BahanBakuSubkon.objects.get(pk = id)
+
+        listdata,saldoawal = calculateksbbsubkon(produkobj,tanggalmulai,tanggalakhir)
+        masuk = 0
+        keluar = 0
+        print(listdata)
+        for item in listdata:
+            masuk += item['Masuk']
+            keluar += (item['Keluar'])
+        
+        return render(request,'produksi/view_rekapksbbsubkon.html',{'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
+
+def rekapakumulasiksbbsubkon(request,id,lokasi):
+    if len(request.GET) == 0:
+        return render(request,'produksi/view_rekapksbb.html')
+    else:
+        '''
+        Logika rekapitulasi 
+        '''
+        tanggalmulai = request.GET['tanggalawal']
+        tanggalakhir = request.GET['tanggalakhir']
+        produkobj = models.Produk.objects.get(KodeProduk = id)
+
+        listdata,saldoawal = calculate_KSBB(produkobj,tanggalmulai,tanggalakhir,lokasi)
+        masuk = 0
+        keluar = 0
+        for item in listdata:
+            masuk += item['Masuk']
+            keluar += sum(item['Keluar'])
+        
+        return render(request,'produksi/view_rekapksbb.html',{'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
+
+def rekapitulasiksbj (request,id,lokasi):
+    if len(request.GET)==0:
+        return render(request,'produksi/view_rekapksbj.html')
+    else:
+        tanggalmulai = request.GET['tanggalawal']
+        tanggalakhir = request.GET['tanggalakhir']
+        Artikelobj = models.Artikel.objects.get(pk = id)
+        tanggalmulaidatetime = datetime.strptime(tanggalmulai,'%Y-%m-%d')
+        tanggalakhirdatetime = datetime.strptime(tanggalakhir,'%Y-%m-%d')
+        listdata,saldoawal = calculate_ksbj(Artikelobj,lokasi,tanggalmulaidatetime.year)
+        print(listdata)
+        masuk = 0
+        keluar = 0
+        for item in listdata:
+            masuk += item['Masukkonversi']
+            keluar += item['Keluar'] + item['Hasil']
+            
+        
+        print(masuk)
+        print(keluar)
+        return render(request,'produksi/view_rekapksbj.html',{'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
+
+def rekapitulasiksbjsubkon (request,id):
+    if len(request.GET)==0:
+        return render(request,'produksi/view_rekapksbjsubkon.html')
+    else:
+        tanggalmulai = request.GET['tanggalawal']
+        tanggalakhir = request.GET['tanggalakhir']
+        Artikelobj = models.ProdukSubkon.objects.get(pk = id)
+        tanggalmulaidatetime = datetime.strptime(tanggalmulai,'%Y-%m-%d')
+        tanggalakhirdatetime = datetime.strptime(tanggalakhir,'%Y-%m-%d')
+        listdata,saldoawal = calculateksbjsubkon(Artikelobj,tanggalmulai,tanggalakhir)
+        print(listdata)
+        masuk = 0
+        keluar = 0
+        for item in listdata:
+            masuk += item['Masuk']
+            keluar += item['Keluar']
+            
+        
+        print(masuk)
+        print(keluar)
+        return render(request,'produksi/view_rekapksbj.html',{'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
+
+
+
 
 
 

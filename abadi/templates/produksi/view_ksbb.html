@@ -22,6 +22,12 @@
                         {{satuan}}</span></h4>
                 <h4 class="card-title">Lokasi : <span style="font-weight: lighter;">
                         {{lokasi}}</span></h4>
+                {% if kodebarang %}
+                <a href="{% url 'rekapakumulasiksbb' kodebarang lokasi %}" class="btn btn-success">
+                    Rekapitulasi KSBB
+                </a>
+
+                {% endif %}
                 <form action="" method="get">
                     {% if kodebarang %}
                     <div class="row">
