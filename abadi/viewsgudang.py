@@ -1787,6 +1787,23 @@ def bulkaddsjpdsjp (request):
             print(item)
             print(df)
             # print(asd)
+            # for index,row in df.iterrows():
+            #     if pd.isna(row['NoInvoice']):
+            #         invoice = None
+            #     else:
+            #         invoice = row['NoInvoice']
+            #     if pd.isna(row['TanggalInvoice']):
+            #         tanggalinvoice = None
+            #     else:
+            #         tanggalinvoice = row['TanggalInvoice']
+            #     dataobj = models.SuratJalanPembelian(
+            #         NoSuratJalan = row['NoSuratJalan'],
+            #         Tanggal = row['Tanggal'],
+            #         supplier = row['Supplier'],
+            #         NoInvoice = invoice,
+            #         TanggalInvoice = tanggalinvoice
+            #     )
+            #     dataobj.save()
 
             # i = 0
             for index, row in df.iterrows():
