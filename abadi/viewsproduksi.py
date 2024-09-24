@@ -7226,7 +7226,7 @@ def update_mutasikodestok(request, id):
 
         return redirect("mutasikodestok")
 
-def rekapakumulasiksbb(request,id):
+def rekapakumulasiksbbsubkon(request,id):
     if len(request.GET) == 0:
         return render(request,'produksi/view_rekapksbb.html')
     else:
@@ -7236,6 +7236,9 @@ def rekapakumulasiksbb(request,id):
         tanggalmulai = request.GET['tanggalawal']
         tanggalakhir = request.GET['tanggalakhir']
         produkobj = models.BahanBakuSubkon.objects.get(pk = id)
+        pemusnahanobj = models.PemusnahanBahanBakuSubkon.objects.filter(KodeBahanBaku = produkobj,Tanggal__range = (tanggalmulai,tanggalakhir))
+        jumlahpemusnahan = pemusnahanobj.aggregate(total = Sum('Jumlah'))['total']
+        
 
         listdata,saldoawal = calculateksbbsubkon(produkobj,tanggalmulai,tanggalakhir)
         masuk = 0
@@ -7245,9 +7248,9 @@ def rekapakumulasiksbb(request,id):
             masuk += item['Masuk']
             keluar += (item['Keluar'])
         
-        return render(request,'produksi/view_rekapksbbsubkon.html',{'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
+        return render(request,'produksi/view_rekapksbbsubkon.html',{'jumlahpemusnahan':jumlahpemusnahan,'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
 
-def rekapakumulasiksbbsubkon(request,id,lokasi):
+def rekapakumulasiksbb(request,id,lokasi):
     if len(request.GET) == 0:
         return render(request,'produksi/view_rekapksbb.html')
     else:
@@ -7257,7 +7260,15 @@ def rekapakumulasiksbbsubkon(request,id,lokasi):
         tanggalmulai = request.GET['tanggalawal']
         tanggalakhir = request.GET['tanggalakhir']
         produkobj = models.Produk.objects.get(KodeProduk = id)
+        pemusnahanbahanbakuobj = models.PemusnahanBahanBaku.objects.filter(KodeBahanBaku = produkobj,lokasi__NamaLokasi="WIP",Tanggal__range=(tanggalmulai,tanggalakhir))
+        pemusnahanbahanbakuobjfg = models.PemusnahanBahanBaku.objects.filter(KodeBahanBaku = produkobj,lokasi__NamaLokasi="FG",Tanggal__range=(tanggalmulai,tanggalakhir))
+        jumlahpemusnahwip = pemusnahanbahanbakuobj.aggregate(total = Sum('Jumlah'))['total']
+        jumlahpemusnahanfg = pemusnahanbahanbakuobjfg.aggregate(total=Sum('Jumlah'))['total']
 
+        if jumlahpemusnahanfg == None:
+            jumlahpemusnahanfg = 0
+        if jumlahpemusnahwip == None:
+            jumlahpemusnahwip = 0
         listdata,saldoawal = calculate_KSBB(produkobj,tanggalmulai,tanggalakhir,lokasi)
         masuk = 0
         keluar = 0
@@ -7265,7 +7276,7 @@ def rekapakumulasiksbbsubkon(request,id,lokasi):
             masuk += item['Masuk']
             keluar += sum(item['Keluar'])
         
-        return render(request,'produksi/view_rekapksbb.html',{'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
+        return render(request,'produksi/view_rekapksbb.html',{'jumlahpemusnahanwip':jumlahpemusnahwip,'jumlahpemusnahanfg':jumlahpemusnahanfg,'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
 
 def rekapitulasiksbj (request,id,lokasi):
     if len(request.GET)==0:
@@ -7274,6 +7285,14 @@ def rekapitulasiksbj (request,id,lokasi):
         tanggalmulai = request.GET['tanggalawal']
         tanggalakhir = request.GET['tanggalakhir']
         Artikelobj = models.Artikel.objects.get(pk = id)
+        pemusnahanobjwip = models.PemusnahanArtikel.objects.filter(KodeArtikel = Artikelobj,Tanggal__range=(tanggalmulai,tanggalakhir),lokasi__NamaLokasi = 'WIP')
+        pemusnahanobjfg = models.PemusnahanArtikel.objects.filter(KodeArtikel = Artikelobj,Tanggal__range=(tanggalmulai,tanggalakhir),lokasi__NamaLokasi = 'FG')
+        totalpemusnahanwip = pemusnahanobjwip.aggregate(total = Sum('Jumlah'))['total']
+        totalpemusnahanfg = pemusnahanobjfg.aggregate(total = Sum('Jumlah'))['total']
+        if totalpemusnahanwip == None:
+            totalpemusnahanwip = 0
+        if totalpemusnahanfg == None:
+            totalpemusnahanfg = 0
         tanggalmulaidatetime = datetime.strptime(tanggalmulai,'%Y-%m-%d')
         tanggalakhirdatetime = datetime.strptime(tanggalakhir,'%Y-%m-%d')
         listdata,saldoawal = calculate_ksbj(Artikelobj,lokasi,tanggalmulaidatetime.year)
@@ -7287,7 +7306,7 @@ def rekapitulasiksbj (request,id,lokasi):
         
         print(masuk)
         print(keluar)
-        return render(request,'produksi/view_rekapksbj.html',{'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
+        return render(request,'produksi/view_rekapksbj.html',{'totalpemusnahanfg':totalpemusnahanfg,'totalpemusnahanwip':totalpemusnahanwip,'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
 
 def rekapitulasiksbjsubkon (request,id):
     if len(request.GET)==0:
@@ -7298,6 +7317,10 @@ def rekapitulasiksbjsubkon (request,id):
         Artikelobj = models.ProdukSubkon.objects.get(pk = id)
         tanggalmulaidatetime = datetime.strptime(tanggalmulai,'%Y-%m-%d')
         tanggalakhirdatetime = datetime.strptime(tanggalakhir,'%Y-%m-%d')
+        pemusnahanobj = models.PemusnahanProdukSubkon.objects.filter(KodeProdukSubkon = Artikelobj,Tanggal__range = (tanggalmulai,tanggalakhir))
+        jumlahpemusnahan = pemusnahanobj.aggregate(total = Sum('Jumlah'))['total']
+        if jumlahpemusnahan == None:
+            jumlahpemusnahan = 0
         listdata,saldoawal = calculateksbjsubkon(Artikelobj,tanggalmulai,tanggalakhir)
         print(listdata)
         masuk = 0
@@ -7309,12 +7332,7 @@ def rekapitulasiksbjsubkon (request,id):
         
         print(masuk)
         print(keluar)
-        return render(request,'produksi/view_rekapksbj.html',{'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
-
-
-
-
-
+        return render(request,'produksi/view_rekapksbjsubkon.html',{'jumlahpemusnahan':jumlahpemusnahan,'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
 
 
 def bulkcreate_transaksiproduksi(request):

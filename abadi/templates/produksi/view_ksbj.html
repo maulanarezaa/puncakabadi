@@ -18,7 +18,9 @@
                         {{kodeartikel}}</span></h4>
                 <h4 class="card-title">Lokasi : <span style="font-weight: lighter;">
                         {{lokasi}}</span></h4>
+                {% if kodeartikel %}
                 <a href="{% url 'rekapakumulasiksbj' artikelobj.pk lokasi %}" class="btn btn-success">Rekapitulasi KSBJ</a>
+                {% endif %}
                 <form action="" method="get">
                     {% if kodeartikel %}
                     <div class="row">

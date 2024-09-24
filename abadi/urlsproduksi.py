@@ -382,7 +382,7 @@ urlpatterns = [
         name="delete_transaksicat",
     ),
     path('rekapakumulasiksbb/<str:id>/<str:lokasi>',viewsproduksi.rekapakumulasiksbb,name='rekapakumulasiksbb'),
-    path('rekapakumulasiksbbsubkon/<str:id>',viewsproduksi.rekapakumulasiksbb,name='rekapakumulasiksbbsubkon'),
+    path('rekapakumulasiksbbsubkon/<str:id>',viewsproduksi.rekapakumulasiksbbsubkon,name='rekapakumulasiksbbsubkon'),
     path('rekapakumulasiksbj/<str:id>/<str:lokasi>',viewsproduksi.rekapitulasiksbj,name='rekapakumulasiksbj'),
     path('rekapakumulasiksbjsubkon/<str:id>',viewsproduksi.rekapitulasiksbjsubkon,name='rekapakumulasiksbjsubkon'),
     path("trackingartikelspksppb", viewsproduksi.trackingartikelspksppb, name="trackingartikelspksppb"),
