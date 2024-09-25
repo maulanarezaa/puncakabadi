@@ -20,6 +20,7 @@
                         {{lokasi}}</span></h4>
                 {% if kodeartikel %}
                 <a href="{% url 'rekapakumulasiksbj' artikelobj.pk lokasi %}" class="btn btn-success">Rekapitulasi KSBJ</a>
+                <a href="{% url 'eksportksbjproduksi' artikelobj.pk lokasi tahun %}" class="btn btn-success">Export KSBJ</a>
                 {% endif %}
                 <form action="" method="get">
                     {% if kodeartikel %}

@@ -10,6 +10,12 @@ from django.contrib.auth.decorators import login_required
 import math
 from urllib.parse import quote
 import openpyxl
+from openpyxl.utils import get_column_letter
+from io import BytesIO
+from openpyxl import Workbook, load_workbook
+import time
+from openpyxl.styles import PatternFill, Border, Side
+from itertools import zip_longest
 
 
 # Dashboard Produksi
@@ -7225,6 +7231,470 @@ def update_mutasikodestok(request, id):
         messages.success(request,f'Data berhasil disimpan ')
 
         return redirect("mutasikodestok")
+
+def eksportksbbproduksi(request,id,lokasi,tahun):
+    # waktuawalproses = time.time()
+    print(str)
+    kodeprodukobj =models.Produk.objects.get(KodeProduk = id)
+    tanggalmulai = date(int(tahun),1,1)
+    tanggalakhir = date(int(tahun),12,31)
+
+    listdata,saldoawal = calculate_KSBB(kodeprodukobj,tanggalmulai,tanggalakhir,lokasi)
+    print(listdata[0].keys())
+    sisa_terakhir = 0
+
+
+    # # print(asd)
+    # # waktupersediaan = time.time()
+    # datamodelsksbb ={
+ 
+    #     "Tanggal":[],
+    #     "Artikel Peruntukan":[],
+    #     "Masuk":[],
+    #     "Artikel":[],
+    #     "Perkotak":[],
+    #     "Konversi":[],
+    #     "Keluar":[],
+    #     "Saldo":[],
+        
+    # }
+    # sisasaldo = 0
+    # for item in listdata:
+    #     if len(item['detailmasuk']) > 1:
+    #         for data in item['detailmasuk']:
+    #             datamodelsksbb["Tanggal"].append(item['Tanggal'])
+    #             jumlahmasuk = data.jumlah
+    #             datamodelsksbb['Masuk'].append(jumlahmasuk)
+    #             if data.DetailSPK != None:
+    #                 artikelperuntukan = data.DetailSPK.KodeArtikel
+    #             else:
+    #                 artikelperuntukan = None
+    #             datamodelsksbb['Artikel Peruntukan'].append(artikelperuntukan)
+    #             datamodelsksbb['Artikel'].append('')
+    #             datamodelsksbb['Perkotak'].append('')
+    #             datamodelsksbb['Konversi'].append('')
+    #             datamodelsksbb['Keluar'].append('')
+    #             print(sisasaldo,jumlahmasuk)
+    #             sisasaldo += jumlahmasuk
+    #             datamodelsksbb['Saldo'].append(sisasaldo)
+
+    #         print(item)
+    #         print(datamodelsksbb)
+    #         # print(asd)
+            
+    #     else:
+    #         datamodelsksbb["Tanggal"].append(item['Tanggal'])
+    #         if item['detailmasuk']:
+    #             datamodelsksbb["Masuk"].append(item['detailmasuk'][0].jumlah)
+    #             if item['detailmasuk'][0].DetailSPK !=None:
+    #                 artikelperuntukan = item['detailmasuk'][0].DetailSPK.KodeArtikel
+    #             else:
+    #                 artikelperuntukan = ''
+
+    #             datamodelsksbb["Artikel Peruntukan"].append(artikelperuntukan)
+
+    #         else:
+    #             # datamodelsksbb["Artikel Peruntukan"].append('')
+    #             datamodelsksbb["Artikel Peruntukan"].append('')
+    #             datamodelsksbb["Masuk"].append('')
+        
+    #     if len(item['Perkotak'])>1:
+    #         for artikel,perkotak,konversi,keluar in zip(item['Artikel'],item['Perkotak'],item['Konversi'],item['Keluar']):
+    #             print(artikel,perkotak,item)
+    #             # if artikel == None:
+    #             #     print(item)
+    #             #     print(ads)
+    #             datamodelsksbb['Masuk'].append('')
+    #             datamodelsksbb["Tanggal"].append(item['Tanggal'])
+    #             datamodelsksbb['Artikel Peruntukan'].append('')
+    #             datamodelsksbb['Konversi'].append(konversi)
+    #             datamodelsksbb['Keluar'].append(keluar)
+
+    #             datamodelsksbb['Artikel'].append(artikel)
+    #             datamodelsksbb['Perkotak'].append(perkotak)
+    #     else:
+    #         datamodelsksbb['Masuk'].append('')
+    #         datamodelsksbb["Tanggal"].append(item['Tanggal'])
+    #         datamodelsksbb['Artikel Peruntukan'].append('')
+    #         datamodelsksbb['Konversi'].append('')
+    #         datamodelsksbb['Keluar'].append('')
+
+    #         datamodelsksbb['Artikel'].append(item['Artikel'])
+    #         datamodelsksbb['Perkotak'].append(item['Perkotak'])
+
+    #         # print(asd)
+                
+            
+    #         # datamodelsksbb['Harga Satuan Masuk'].append(item['Hargamasuksatuan'])
+    #         # datamodelsksbb['Harga Total Masuk'].append(item['Hargamasuktotal'])
+    #         # datamodelsksbb["Kuantitas Keluar"].append(item['Jumlahkeluar'])
+    #         # datamodelsksbb['Harga Satuan keluar'].append(item['Hargakeluarsatuan'])
+    #         # datamodelsksbb['Harga Total keluar'].append(item['Hargakeluartotal'])
+    #         # datamodelsksbb["Kuantitas Sisa"].append(item['Sisahariini'])
+    #         # datamodelsksbb['Harga Satuan Sisa'].append(item['Hargasatuansisa'])
+    #         # datamodelsksbb['Harga Total Sisa'].append(item['Hargatotalsisa'])
+    #         # datamodelsksbb['Artikel Peruntukan'].append('')
+    #     # datamodelsksbb['Artikel'].append('-')
+    #     # datamodelsksbb['Perkotak'].append('-')
+    #     datamodelsksbb['Konversi'].append('-')
+    #     datamodelsksbb['Keluar'].append('-')
+    #     datamodelsksbb['Saldo'].append(item['Sisa'])
+    #     sisasaldo = item['Sisa'][-1]
+    # for item in datamodelsksbb.keys():
+    #     print(len(datamodelsksbb[item]))
+
+    output_data = []
+    if saldoawal.Jumlah != None:
+        jumlahsaldoawal = saldoawal.Jumlah
+    else:
+        jumlahsaldoawal = 0
+    output_data.append({
+                'Tanggal': '2024',
+                'Artikel': None,
+                'Perkotak': None,
+                'Masuk': None,
+                'Keluar': None,
+                'Sisa': jumlahsaldoawal,
+            })
+    
+    sisa_terakhir = jumlahsaldoawal
+
+# Memetakan setiap artikel dan perkotak per tanggal, dan menghitung Sisa
+    for record in listdata:
+        tanggal = record['Tanggal']
+        artikel_list = record.get('Artikel', [])
+        perkotak_list = record.get('Perkotak', [])
+        keluar_list = record.get('Keluar', [])
+        masuk = record['Masuk']
+        sisa_list = record.get('Sisa', [])
+
+        # Jika ini adalah hari pertama, ambil Sisa awal dari data
+        if sisa_terakhir is None:
+            sisa_terakhir = sisa_list[0] if sisa_list else 0
+
+        # Jika artikel dan perkotak kosong, tetap memasukkan minimal satu entri
+        if not artikel_list and not perkotak_list:
+            sisa_awal = sisa_terakhir
+            sisa_akhir = sisa_awal + masuk - sum(keluar_list)  # Hitung sisa total
+            sisa_terakhir = sisa_akhir
+
+            output_data.append({
+                'Tanggal': tanggal,
+                'Artikel': None,
+                'Perkotak': None,
+                'Masuk': masuk,
+                'Keluar': None,
+                'Sisa': sisa_akhir,
+            })
+        else:
+            # Menggunakan zip_longest untuk memasukkan setiap artikel dan perkotak
+            for artikel, perkotak, keluar, sisa in zip_longest(artikel_list, perkotak_list, keluar_list, sisa_list, fillvalue=None):
+                # Hitung Sisa: menggunakan sisa sebelumnya jika ada
+                sisa_awal = sisa_terakhir
+                sisa_akhir = sisa_awal + masuk - (keluar if keluar is not None else 0)  # Hitung sisa berdasarkan baris
+                sisa_terakhir = sisa_akhir
+
+                output_data.append({
+                    'Tanggal': tanggal,
+                    'Artikel': artikel,
+                    'Perkotak': perkotak,
+                    'Masuk': masuk,
+                    'Keluar': keluar,
+                    'Sisa': sisa_akhir,
+                })
+    dfksbb = pd.DataFrame(output_data)
+    print(dfksbb)
+    # print(asd)
+
+    buffer = BytesIO()
+
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        # Laporan Persediaan Section
+        # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+        dfksbb.to_excel(writer, index=False, startrow=5, sheet_name=f"{kodeprodukobj.KodeProduk}")
+        writer.sheets[f"{kodeprodukobj.KodeProduk}"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {kodeprodukobj.KodeProduk}")
+        writer.sheets[f"{kodeprodukobj.KodeProduk}"].cell(row=2, column = 1,value =f"NAMA BAHAN BAKU : {kodeprodukobj.NamaProduk}")
+        writer.sheets[f"{kodeprodukobj.KodeProduk}"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {kodeprodukobj.unit}")
+        maxrow = len(dfksbb)+1
+        maxcol = len(dfksbb.columns)
+        apply_number_format(writer.sheets[f"{kodeprodukobj.KodeProduk}"],6,maxrow+5,1,maxcol)
+        apply_borders_thin(writer.sheets[f"{kodeprodukobj.KodeProduk}"],6,maxrow+5,maxcol)
+        adjust_column_width(writer.sheets[f"{kodeprodukobj.KodeProduk}"],dfksbb,1,1)
+
+    buffer.seek(0)
+    # print('tes')
+    wb = load_workbook(buffer)
+   
+    # Save the workbook back to the buffer
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    # Create the HTTP response
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = (
+        f"attachment; filename=KSBB {kodeprodukobj.KodeProduk}.xlsx"
+    )
+    
+    # print('Waktu generate laporan : ',time.time()-waktupersediaan)
+    # print('Waktu Proses : ', time.time()-waktuawalproses)
+    return response
+
+def apply_number_format(worksheet, start_row, end_row, start_col, end_col, number_format='#,##0.00'):
+    for row in worksheet.iter_rows(min_row=start_row, max_row=end_row, min_col=start_col, max_col=end_col):
+        for cell in row:
+            if isinstance(cell.value, (int, float)):  # Apply format only to numeric cells
+                cell.number_format = number_format
+
+def adjust_column_width(worksheet, df, start_row, start_col):
+    for i, col in enumerate(df.columns):
+        max_length = max(df[col].astype(str).map(len).max(), len(col))
+        col_letter = get_column_letter(start_col + i)
+        worksheet.column_dimensions[col_letter].width = max_length + 4
+
+def apply_borders_thin(worksheet, start_row, end_row, max_col,min_col=1):
+    thin_border = Border(left=Side(style='thin'),
+                         right=Side(style='thin'),
+                         top=Side(style='thin'),
+                         bottom=Side(style='thin'))
+    for row in worksheet.iter_rows(min_row=start_row, max_row=end_row, min_col=min_col, max_col=max_col):
+        for cell in row:
+            cell.border = thin_border
+
+
+def eksportksbjproduksi(request,id,lokasi,tahun):
+    # waktuawalproses = time.time()
+    tahun = int(tahun)
+    kodeartikelobj =models.Artikel.objects.get(pk = id)
+    # tanggalmulai = date(int(tahun),1,1)
+    # tanggalakhir = date(int(tahun),12,31)
+    lokasi = "WIP"
+    listdata,saldoawal = calculate_ksbj(kodeartikelobj,lokasi,tahun)
+    print(listdata)
+    print(kodeartikelobj.KodeArtikel)
+    # print(asd)
+    # waktupersediaan = time.time()
+    kodeartikel = clean_string(kodeartikelobj.KodeArtikel)
+    datamodelsksbj ={
+ 
+        "Tanggal":[],
+        "SPK":[],
+        "Kode Produk":[],
+        "Masuk Lembar":[],
+        "Masuk Konversi":[],
+        "Hasil":[],
+        "Keluar":[],
+        "Sisa":[],
+    }
+    for item in listdata:
+        datamodelsksbj["Tanggal"].append(item['Tanggal'])
+        dummy = []
+        for data in item['SPK']:
+            if data.DetailSPK == None:
+                dummy.append('-')
+            else:
+                dummy.append(data.DetailSPK.NoSPK.NoSPK)
+        datamodelsksbj['SPK'].append(dummy)
+        datamodelsksbj['Kode Produk'].append(item['Kodeproduk'])
+        datamodelsksbj['Masuk Lembar'].append(item['Masuklembar'])
+        datamodelsksbj["Masuk Konversi"].append(item['Masukkonversi'])
+        datamodelsksbj['Hasil'].append(item['Hasil'])
+        datamodelsksbj['Keluar'].append(item['Keluar'])
+        datamodelsksbj["Sisa"].append(item['Sisa'])
+    dfksbj = pd.DataFrame(datamodelsksbj)
+    print(dfksbj)
+
+    lokasi = "FG"
+    listdata,saldoawal = calculate_ksbj(kodeartikelobj,lokasi,tahun)
+    print(listdata)
+    print(listdata[0].keys())
+    # print(asd)
+    datamodelsksbjfg = {
+        'Tanggal': [],
+        'Penyerahan WIP': [],
+        'Nomor SPPB' : [],
+        'Jumlah Kirim' : [],
+        'Keluar' : [],
+        'Sisa': [],
+    }
+    sisaakhir = 0
+    for item in listdata:
+        index = 0
+        if len(item['DetailSPPB']) > 1:
+            for data in item['DetailSPPB']:
+                print(item)
+                print(sisaakhir)
+                print(data.Jumlah)
+                # print(asd)
+                datamodelsksbjfg["Tanggal"].append(item['Tanggal'])
+                if index == 0:
+                    jumlahkirim = data.Jumlah
+                    jumlahkeluar = item['Keluar']
+                    jumlahpenyerahan = item['Penyerahanwip']
+                    datamodelsksbjfg["Penyerahan WIP"].append(jumlahpenyerahan)
+                    datamodelsksbjfg["Keluar"].append(jumlahkeluar)
+                    datamodelsksbjfg["Jumlah Kirim"].append(jumlahkirim)
+                    sisaakhir += jumlahpenyerahan - jumlahkeluar - jumlahkirim
+                else:
+                    jumlahkirim = data.Jumlah
+                    jumlahkeluar = 0
+                    jumlahpenyerahan = 0
+                    datamodelsksbjfg["Penyerahan WIP"].append(0)
+                    datamodelsksbjfg["Keluar"].append(0)
+                    datamodelsksbjfg["Jumlah Kirim"].append(data.Jumlah)
+                    sisaakhir -= jumlahkirim
+                # sisaakhir += jumlahpenyerahan - jumlahkeluar - jumlahkeluar
+                datamodelsksbjfg["Sisa"].append(sisaakhir)
+                datamodelsksbjfg["Nomor SPPB"].append(data.NoSPPB.NoSPPB)
+                # datamodelsksbjfg["Jumlah Kirim"].append(data['Tanggal'])
+                index+=1
+        else:
+            datamodelsksbjfg["Tanggal"].append(item['Tanggal'])
+            datamodelsksbjfg["Penyerahan WIP"].append(item['Penyerahanwip'])
+            datamodelsksbjfg["Keluar"].append(item['Keluar'])
+            datamodelsksbjfg["Jumlah Kirim"].append(item['Jumlahkirim'])
+            datamodelsksbjfg["Sisa"].append(item['Sisa'])
+            if len(item['DetailSPPB']) == 0:
+
+                datamodelsksbjfg["Nomor SPPB"].append('-')
+            else:
+                datamodelsksbjfg["Nomor SPPB"].append(item['DetailSPPB'][0].NoSPPB.NoSPPB)
+        sisaakhir = item['Sisa']
+    print(datamodelsksbjfg)
+    dfksbjfg = pd.DataFrame(datamodelsksbjfg)
+    print(dfksbjfg)
+
+    buffer = BytesIO()
+
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        # Laporan Persediaan Section
+        # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+        dfksbj.to_excel(writer, index=False, startrow=5, sheet_name=f"WIP")
+        writer.sheets[f"WIP"].cell(row=1, column = 1,value =f"KARTU STOK Artikel : {kodeartikel}")
+        maxrow = len(dfksbj)+1
+        maxcol = len(dfksbj.columns)
+        apply_number_format(writer.sheets[f"WIP"],6,maxrow+5,1,maxcol)
+        apply_borders_thin(writer.sheets[f"WIP"],6,maxrow+5,maxcol)
+        adjust_column_width(writer.sheets[f"WIP"],dfksbj,1,1)
+
+        dfksbjfg.to_excel(writer, index=False, startrow=5, sheet_name=f"FG")
+        writer.sheets[f"FG"].cell(row=1, column = 1,value =f"KARTU STOK Artikel : {kodeartikel}")
+        maxrow = len(dfksbjfg)+1
+        maxcol = len(dfksbjfg.columns)
+        apply_number_format(writer.sheets[f"FG"],6,maxrow+5,1,maxcol)
+        apply_borders_thin(writer.sheets[f"FG"],6,maxrow+5,maxcol)
+        adjust_column_width(writer.sheets[f"FG"],dfksbjfg,1,1)
+
+    buffer.seek(0)
+    # print('tes')
+    wb = load_workbook(buffer)
+   
+    # Save the workbook back to the buffer
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    # Create the HTTP response
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = (
+        f"attachment; filename=KSBJ {kodeartikel}.xlsx"
+    )
+    
+    # print('Waktu generate laporan : ',time.time()-waktupersediaan)
+    # print('Waktu Proses : ', time.time()-waktuawalproses)
+    return response
+    # waktuawalproses = time.time()
+    print(str)
+    kodeprodukobj =models.Produk.objects.get(KodeProduk = id)
+    tanggalmulai = date(int(tahun),1,1)
+    tanggalakhir = date(int(tahun),12,31)
+
+    listdata,saldoawal = calculate_KSBB(kodeprodukobj,tanggalmulai,tanggalakhir,lokasi)
+    print(listdata)
+    print(asd)
+    # waktupersediaan = time.time()
+    datamodelsksbb ={
+ 
+        "Tanggal":[],
+        "Kuantitas Masuk":[],
+        "Harga Satuan Masuk":[],
+        "Harga Total Masuk":[],
+        "Kuantitas Keluar":[],
+        "Harga Satuan keluar":[],
+        "Harga Total keluar":[],
+        "Kuantitas Sisa":[],
+        "Harga Satuan Sisa":[],
+        "Harga Total Sisa":[],
+    }
+    for item in listdata:
+        # <tr>
+        #                         <td>{{i.Tanggal}}</td>
+        #                         <td>{{i.Jumlahmasuk|separator_ribuan}}</td>
+        #                         <td>{{i.Hargamasuksatuan|custom_thousands_separator}}</td>
+        #                         <td>{{i.Hargamasuktotal|custom_thousands_separator}}</td>
+        #                         <td>{{i.Jumlahkeluar|separator_ribuan}}</td>
+        #                         <td>{{i.Hargakeluarsatuan|custom_thousands_separator}}</td>
+                                # <td>{{i.Hargakeluartotal|custom_thousands_separator}}</td>
+        #                         <td>{{i.Sisahariini|separator_ribuan}}</td>
+        #                         <td>{{i.Hargasatuansisa|custom_thousands_separator}}</td>
+        #                         <td>{{i.Hargatotalsisa|custom_thousands_separator}}</td>
+
+        #                     </tr>
+        datamodelsksbb["Tanggal"].append(item['Tanggal'])
+        datamodelsksbb["Kuantitas Masuk"].append(item['Jumlahmasuk'])
+        datamodelsksbb['Harga Satuan Masuk'].append(item['Hargamasuksatuan'])
+        datamodelsksbb['Harga Total Masuk'].append(item['Hargamasuktotal'])
+        datamodelsksbb["Kuantitas Keluar"].append(item['Jumlahkeluar'])
+        datamodelsksbb['Harga Satuan keluar'].append(item['Hargakeluarsatuan'])
+        datamodelsksbb['Harga Total keluar'].append(item['Hargakeluartotal'])
+        datamodelsksbb["Kuantitas Sisa"].append(item['Sisahariini'])
+        datamodelsksbb['Harga Satuan Sisa'].append(item['Hargasatuansisa'])
+        datamodelsksbb['Harga Total Sisa'].append(item['Hargatotalsisa'])
+    dfksbb = pd.DataFrame(datamodelsksbb)
+    print(dfksbb)
+
+    buffer = BytesIO()
+
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        # Laporan Persediaan Section
+        # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+        dfksbb.to_excel(writer, index=False, startrow=5, sheet_name=f"{kodeprodukobj.KodeProduk}")
+        writer.sheets[f"{kodeprodukobj.KodeProduk}"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {kodeprodukobj.KodeProduk}")
+        writer.sheets[f"{kodeprodukobj.KodeProduk}"].cell(row=2, column = 1,value =f"NAMA BAHAN BAKU : {kodeprodukobj.NamaProduk}")
+        writer.sheets[f"{kodeprodukobj.KodeProduk}"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {kodeprodukobj.unit}")
+        maxrow = len(dfksbb)+1
+        maxcol = len(dfksbb.columns)
+        apply_number_format(writer.sheets[f"{kodeprodukobj.KodeProduk}"],6,maxrow+5,1,maxcol)
+        apply_borders_thin(writer.sheets[f"{kodeprodukobj.KodeProduk}"],6,maxrow+5,maxcol)
+        adjust_column_width(writer.sheets[f"{kodeprodukobj.KodeProduk}"],dfksbb,1,1)
+
+    buffer.seek(0)
+    # print('tes')
+    wb = load_workbook(buffer)
+   
+    # Save the workbook back to the buffer
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    # Create the HTTP response
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = (
+        f"attachment; filename=KSBB {kodeprodukobj.KodeProduk}.xlsx"
+    )
+    
+    print('Waktu generate laporan : ',time.time()-waktupersediaan)
+    print('Waktu Proses : ', time.time()-waktuawalproses)
+    return response
 
 def rekapakumulasiksbbsubkon(request,id):
     if len(request.GET) == 0:
