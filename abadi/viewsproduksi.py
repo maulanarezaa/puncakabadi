@@ -7239,112 +7239,11 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
     tanggalmulai = date(int(tahun),1,1)
     tanggalakhir = date(int(tahun),12,31)
 
-    listdata,saldoawal = calculate_KSBB(kodeprodukobj,tanggalmulai,tanggalakhir,lokasi)
-    print(listdata[0].keys())
+    listdata,saldoawal = calculate_KSBB(kodeprodukobj,tanggalmulai,tanggalakhir,'WIP')
+    # print(listdata[0].keys())
     sisa_terakhir = 0
-
-
-    # # print(asd)
-    # # waktupersediaan = time.time()
-    # datamodelsksbb ={
- 
-    #     "Tanggal":[],
-    #     "Artikel Peruntukan":[],
-    #     "Masuk":[],
-    #     "Artikel":[],
-    #     "Perkotak":[],
-    #     "Konversi":[],
-    #     "Keluar":[],
-    #     "Saldo":[],
-        
-    # }
-    # sisasaldo = 0
-    # for item in listdata:
-    #     if len(item['detailmasuk']) > 1:
-    #         for data in item['detailmasuk']:
-    #             datamodelsksbb["Tanggal"].append(item['Tanggal'])
-    #             jumlahmasuk = data.jumlah
-    #             datamodelsksbb['Masuk'].append(jumlahmasuk)
-    #             if data.DetailSPK != None:
-    #                 artikelperuntukan = data.DetailSPK.KodeArtikel
-    #             else:
-    #                 artikelperuntukan = None
-    #             datamodelsksbb['Artikel Peruntukan'].append(artikelperuntukan)
-    #             datamodelsksbb['Artikel'].append('')
-    #             datamodelsksbb['Perkotak'].append('')
-    #             datamodelsksbb['Konversi'].append('')
-    #             datamodelsksbb['Keluar'].append('')
-    #             print(sisasaldo,jumlahmasuk)
-    #             sisasaldo += jumlahmasuk
-    #             datamodelsksbb['Saldo'].append(sisasaldo)
-
-    #         print(item)
-    #         print(datamodelsksbb)
-    #         # print(asd)
-            
-    #     else:
-    #         datamodelsksbb["Tanggal"].append(item['Tanggal'])
-    #         if item['detailmasuk']:
-    #             datamodelsksbb["Masuk"].append(item['detailmasuk'][0].jumlah)
-    #             if item['detailmasuk'][0].DetailSPK !=None:
-    #                 artikelperuntukan = item['detailmasuk'][0].DetailSPK.KodeArtikel
-    #             else:
-    #                 artikelperuntukan = ''
-
-    #             datamodelsksbb["Artikel Peruntukan"].append(artikelperuntukan)
-
-    #         else:
-    #             # datamodelsksbb["Artikel Peruntukan"].append('')
-    #             datamodelsksbb["Artikel Peruntukan"].append('')
-    #             datamodelsksbb["Masuk"].append('')
-        
-    #     if len(item['Perkotak'])>1:
-    #         for artikel,perkotak,konversi,keluar in zip(item['Artikel'],item['Perkotak'],item['Konversi'],item['Keluar']):
-    #             print(artikel,perkotak,item)
-    #             # if artikel == None:
-    #             #     print(item)
-    #             #     print(ads)
-    #             datamodelsksbb['Masuk'].append('')
-    #             datamodelsksbb["Tanggal"].append(item['Tanggal'])
-    #             datamodelsksbb['Artikel Peruntukan'].append('')
-    #             datamodelsksbb['Konversi'].append(konversi)
-    #             datamodelsksbb['Keluar'].append(keluar)
-
-    #             datamodelsksbb['Artikel'].append(artikel)
-    #             datamodelsksbb['Perkotak'].append(perkotak)
-    #     else:
-    #         datamodelsksbb['Masuk'].append('')
-    #         datamodelsksbb["Tanggal"].append(item['Tanggal'])
-    #         datamodelsksbb['Artikel Peruntukan'].append('')
-    #         datamodelsksbb['Konversi'].append('')
-    #         datamodelsksbb['Keluar'].append('')
-
-    #         datamodelsksbb['Artikel'].append(item['Artikel'])
-    #         datamodelsksbb['Perkotak'].append(item['Perkotak'])
-
-    #         # print(asd)
-                
-            
-    #         # datamodelsksbb['Harga Satuan Masuk'].append(item['Hargamasuksatuan'])
-    #         # datamodelsksbb['Harga Total Masuk'].append(item['Hargamasuktotal'])
-    #         # datamodelsksbb["Kuantitas Keluar"].append(item['Jumlahkeluar'])
-    #         # datamodelsksbb['Harga Satuan keluar'].append(item['Hargakeluarsatuan'])
-    #         # datamodelsksbb['Harga Total keluar'].append(item['Hargakeluartotal'])
-    #         # datamodelsksbb["Kuantitas Sisa"].append(item['Sisahariini'])
-    #         # datamodelsksbb['Harga Satuan Sisa'].append(item['Hargasatuansisa'])
-    #         # datamodelsksbb['Harga Total Sisa'].append(item['Hargatotalsisa'])
-    #         # datamodelsksbb['Artikel Peruntukan'].append('')
-    #     # datamodelsksbb['Artikel'].append('-')
-    #     # datamodelsksbb['Perkotak'].append('-')
-    #     datamodelsksbb['Konversi'].append('-')
-    #     datamodelsksbb['Keluar'].append('-')
-    #     datamodelsksbb['Saldo'].append(item['Sisa'])
-    #     sisasaldo = item['Sisa'][-1]
-    # for item in datamodelsksbb.keys():
-    #     print(len(datamodelsksbb[item]))
-
     output_data = []
-    if saldoawal.Jumlah != None:
+    if saldoawal and  saldoawal.Jumlah != None:
         jumlahsaldoawal = saldoawal.Jumlah
     else:
         jumlahsaldoawal = 0
@@ -7352,6 +7251,7 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
                 'Tanggal': '2024',
                 'Artikel': None,
                 'Perkotak': None,
+                'Konversi':None,
                 'Masuk': None,
                 'Keluar': None,
                 'Sisa': jumlahsaldoawal,
@@ -7364,16 +7264,19 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
         tanggal = record['Tanggal']
         artikel_list = record.get('Artikel', [])
         perkotak_list = record.get('Perkotak', [])
+        konversi_list = record.get('Konversi', [])
         keluar_list = record.get('Keluar', [])
         masuk = record['Masuk']
         sisa_list = record.get('Sisa', [])
 
         # Jika ini adalah hari pertama, ambil Sisa awal dari data
+        print(konversi_list)
+        # print(asd)
         if sisa_terakhir is None:
             sisa_terakhir = sisa_list[0] if sisa_list else 0
 
-        # Jika artikel dan perkotak kosong, tetap memasukkan minimal satu entri
-        if not artikel_list and not perkotak_list:
+        # Jika artikel, perkotak, dan konversi kosong, tetap memasukkan minimal satu entri
+        if not artikel_list and not perkotak_list and not konversi_list:
             sisa_awal = sisa_terakhir
             sisa_akhir = sisa_awal + masuk - sum(keluar_list)  # Hitung sisa total
             sisa_terakhir = sisa_akhir
@@ -7382,13 +7285,17 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
                 'Tanggal': tanggal,
                 'Artikel': None,
                 'Perkotak': None,
+                'Konversi': None,
                 'Masuk': masuk,
                 'Keluar': None,
                 'Sisa': sisa_akhir,
             })
         else:
-            # Menggunakan zip_longest untuk memasukkan setiap artikel dan perkotak
-            for artikel, perkotak, keluar, sisa in zip_longest(artikel_list, perkotak_list, keluar_list, sisa_list, fillvalue=None):
+            # Menggunakan zip_longest untuk memasukkan setiap artikel, perkotak, konversi, dan keluar
+            for artikel, perkotak, konversi, keluar, sisa in zip_longest(artikel_list, perkotak_list, konversi_list, keluar_list, sisa_list, fillvalue=None):
+                # Round konversi to 5 decimal places if it exists
+                konversi = round(konversi, 5) if konversi is not None else None
+                print(konversi)
                 # Hitung Sisa: menggunakan sisa sebelumnya jika ada
                 sisa_awal = sisa_terakhir
                 sisa_akhir = sisa_awal + masuk - (keluar if keluar is not None else 0)  # Hitung sisa berdasarkan baris
@@ -7398,6 +7305,7 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
                     'Tanggal': tanggal,
                     'Artikel': artikel,
                     'Perkotak': perkotak,
+                    'Konversi': konversi,
                     'Masuk': masuk,
                     'Keluar': keluar,
                     'Sisa': sisa_akhir,
@@ -7405,6 +7313,78 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
     dfksbb = pd.DataFrame(output_data)
     print(dfksbb)
     # print(asd)
+    listdata,saldoawal = calculate_KSBB(kodeprodukobj,tanggalmulai,tanggalakhir,'FG')
+    print(listdata)
+    sisa_terakhir = 0
+    output_data = []
+    if saldoawal and  saldoawal.Jumlah != None:
+        jumlahsaldoawal = saldoawal.Jumlah
+    else:
+        jumlahsaldoawal = 0
+    output_data.append({
+                'Tanggal': '2024',
+                'Artikel': None,
+                'Perkotak': None,
+                'Konversi':None,
+                'Masuk': None,
+                'Keluar': None,
+                'Sisa': jumlahsaldoawal,
+            })
+    
+    sisa_terakhir = jumlahsaldoawal
+
+# Memetakan setiap artikel dan perkotak per tanggal, dan menghitung Sisa
+    for record in listdata:
+        tanggal = record['Tanggal']
+        artikel_list = record.get('Artikel', [])
+        perkotak_list = record.get('Perkotak', [])
+        konversi_list = record.get('Konversi', [])
+        keluar_list = record.get('Keluar', [])
+        masuk = record['Masuk']
+        sisa_list = record.get('Sisa', [])
+
+        # Jika ini adalah hari pertama, ambil Sisa awal dari data
+        print(konversi_list)
+        # print(asd)
+        if sisa_terakhir is None:
+            sisa_terakhir = sisa_list[0] if sisa_list else 0
+
+        # Jika artikel, perkotak, dan konversi kosong, tetap memasukkan minimal satu entri
+        if not artikel_list and not perkotak_list and not konversi_list:
+            sisa_awal = sisa_terakhir
+            sisa_akhir = sisa_awal + masuk - sum(keluar_list)  # Hitung sisa total
+            sisa_terakhir = sisa_akhir
+
+            output_data.append({
+                'Tanggal': tanggal,
+                'Artikel': None,
+                'Masuk': masuk,
+                'Perkotak': None,
+                'Konversi': None,
+                'Keluar': None,
+                'Sisa': sisa_akhir,
+            })
+        else:
+            # Menggunakan zip_longest untuk memasukkan setiap artikel, perkotak, konversi, dan keluar
+            for artikel, perkotak, konversi, keluar, sisa in zip_longest(artikel_list, perkotak_list, konversi_list, keluar_list, sisa_list, fillvalue=None):
+                # Round konversi to 5 decimal places if it exists
+                konversi = round(konversi, 5) if konversi is not None else None
+                print(konversi)
+                # Hitung Sisa: menggunakan sisa sebelumnya jika ada
+                sisa_awal = sisa_terakhir
+                sisa_akhir = sisa_awal + masuk - (keluar if keluar is not None else 0)  # Hitung sisa berdasarkan baris
+                sisa_terakhir = sisa_akhir
+
+                output_data.append({
+                    'Tanggal': tanggal,
+                    'Artikel': artikel,
+                    'Masuk': masuk,
+                    'Perkotak': perkotak,
+                    'Konversi': konversi,
+                    'Keluar': keluar,
+                    'Sisa': sisa_akhir,
+                })
+    dfksbbfg = pd.DataFrame(output_data)
 
     buffer = BytesIO()
 
@@ -7420,6 +7400,15 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
         apply_number_format(writer.sheets[f"{kodeprodukobj.KodeProduk}"],6,maxrow+5,1,maxcol)
         apply_borders_thin(writer.sheets[f"{kodeprodukobj.KodeProduk}"],6,maxrow+5,maxcol)
         adjust_column_width(writer.sheets[f"{kodeprodukobj.KodeProduk}"],dfksbb,1,1)
+        dfksbbfg.to_excel(writer, index=False, startrow=5, sheet_name=f"{kodeprodukobj.KodeProduk} FG")
+        writer.sheets[f"{kodeprodukobj.KodeProduk} FG"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {kodeprodukobj.KodeProduk} FG")
+        writer.sheets[f"{kodeprodukobj.KodeProduk} FG"].cell(row=2, column = 1,value =f"NAMA BAHAN BAKU : {kodeprodukobj.NamaProduk}")
+        writer.sheets[f"{kodeprodukobj.KodeProduk} FG"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {kodeprodukobj.unit}")
+        maxrow = len(dfksbbfg)+1
+        maxcol = len(dfksbbfg.columns)
+        apply_number_format(writer.sheets[f"{kodeprodukobj.KodeProduk} FG"],6,maxrow+5,1,maxcol)
+        apply_borders_thin(writer.sheets[f"{kodeprodukobj.KodeProduk} FG"],6,maxrow+5,maxcol)
+        adjust_column_width(writer.sheets[f"{kodeprodukobj.KodeProduk} FG"],dfksbbfg,1,1)
 
     buffer.seek(0)
     # print('tes')
