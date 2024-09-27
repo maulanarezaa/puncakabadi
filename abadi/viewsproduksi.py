@@ -7187,6 +7187,7 @@ def update_mutasikodestok(request, id):
     dataproduk = models.Produk.objects.all()
     lokasi = models.Lokasi.objects.filter(NamaLokasi__in=('WIP','FG'))
 
+
     if request.method == "GET":
         tanggal = datetime.strftime(produksiobj.Tanggal, "%Y-%m-%d")
         return render(
@@ -7238,177 +7239,407 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
     kodeprodukobj =models.Produk.objects.get(KodeProduk = id)
     tanggalmulai = date(int(tahun),1,1)
     tanggalakhir = date(int(tahun),12,31)
+    dfksbb = pd.DataFrame()
+    dfksbbfg = pd.DataFrame()
 
     listdata,saldoawal = calculate_KSBB(kodeprodukobj,tanggalmulai,tanggalakhir,'WIP')
     # print(listdata[0].keys())
-    sisa_terakhir = 0
-    output_data = []
-    if saldoawal and  saldoawal.Jumlah != None:
-        jumlahsaldoawal = saldoawal.Jumlah
-    else:
-        jumlahsaldoawal = 0
-    output_data.append({
-                'Tanggal': '2024',
-                'Artikel': None,
-                'Perkotak': None,
-                'Konversi':None,
-                'Masuk': None,
-                'Keluar': None,
-                'Sisa': jumlahsaldoawal,
-            })
-    
-    sisa_terakhir = jumlahsaldoawal
-
-# Memetakan setiap artikel dan perkotak per tanggal, dan menghitung Sisa
-    for record in listdata:
-        tanggal = record['Tanggal']
-        artikel_list = record.get('Artikel', [])
-        perkotak_list = record.get('Perkotak', [])
-        konversi_list = record.get('Konversi', [])
-        keluar_list = record.get('Keluar', [])
-        masuk = record['Masuk']
-        sisa_list = record.get('Sisa', [])
-
-        # Jika ini adalah hari pertama, ambil Sisa awal dari data
-        print(konversi_list)
+    print(listdata)
+    # print(asd)
+    if len(listdata) != 0:
+        sisa_terakhir = 0
         # print(asd)
-        if sisa_terakhir is None:
-            sisa_terakhir = sisa_list[0] if sisa_list else 0
-
-        # Jika artikel, perkotak, dan konversi kosong, tetap memasukkan minimal satu entri
-        if not artikel_list and not perkotak_list and not konversi_list:
-            sisa_awal = sisa_terakhir
-            sisa_akhir = sisa_awal + masuk - sum(keluar_list)  # Hitung sisa total
-            sisa_terakhir = sisa_akhir
-
-            output_data.append({
-                'Tanggal': tanggal,
-                'Artikel': None,
-                'Perkotak': None,
-                'Konversi': None,
-                'Masuk': masuk,
-                'Keluar': None,
-                'Sisa': sisa_akhir,
-            })
+        output_data = []
+        if saldoawal and  saldoawal.Jumlah != None:
+            jumlahsaldoawal = saldoawal.Jumlah
         else:
-            # Menggunakan zip_longest untuk memasukkan setiap artikel, perkotak, konversi, dan keluar
-            for artikel, perkotak, konversi, keluar, sisa in zip_longest(artikel_list, perkotak_list, konversi_list, keluar_list, sisa_list, fillvalue=None):
-                # Round konversi to 5 decimal places if it exists
-                konversi = round(konversi, 5) if konversi is not None else None
-                print(konversi)
-                # Hitung Sisa: menggunakan sisa sebelumnya jika ada
+            jumlahsaldoawal = 0
+        output_data.append({
+                    'Tanggal': '2024',
+                    'Artikel': None,
+                    'Perkotak': None,
+                    'Konversi':None,
+                    'Masuk': None,
+                    'Keluar': None,
+                    'Sisa': jumlahsaldoawal,
+                })
+        
+        sisa_terakhir = jumlahsaldoawal
+
+    # Memetakan setiap artikel dan perkotak per tanggal, dan menghitung Sisa
+        for record in listdata:
+            tanggal = record['Tanggal']
+            artikel_list = record.get('Artikel', [])
+            perkotak_list = record.get('Perkotak', [])
+            konversi_list = record.get('Konversi', [])
+            keluar_list = record.get('Keluar', [])
+            masuk = record['Masuk']
+            sisa_list = record.get('Sisa', [])
+
+            # Jika ini adalah hari pertama, ambil Sisa awal dari data
+            print(konversi_list)
+            # print(asd)
+            if sisa_terakhir is None:
+                sisa_terakhir = sisa_list[0] if sisa_list else 0
+
+            # Jika artikel, perkotak, dan konversi kosong, tetap memasukkan minimal satu entri
+            if not artikel_list and not perkotak_list and not konversi_list:
                 sisa_awal = sisa_terakhir
-                sisa_akhir = sisa_awal + masuk - (keluar if keluar is not None else 0)  # Hitung sisa berdasarkan baris
+                sisa_akhir = sisa_awal + masuk - sum(keluar_list)  # Hitung sisa total
                 sisa_terakhir = sisa_akhir
 
                 output_data.append({
                     'Tanggal': tanggal,
-                    'Artikel': artikel,
-                    'Perkotak': perkotak,
-                    'Konversi': konversi,
+                    'Artikel': None,
+                    'Perkotak': None,
+                    'Konversi': None,
                     'Masuk': masuk,
-                    'Keluar': keluar,
+                    'Keluar': None,
                     'Sisa': sisa_akhir,
                 })
-    dfksbb = pd.DataFrame(output_data)
+            else:
+                # Menggunakan zip_longest untuk memasukkan setiap artikel, perkotak, konversi, dan keluar
+                for artikel, perkotak, konversi, keluar, sisa in zip_longest(artikel_list, perkotak_list, konversi_list, keluar_list, sisa_list, fillvalue=None):
+                    # Round konversi to 5 decimal places if it exists
+                    konversi = round(konversi, 5) if konversi is not None else None
+                    print(konversi)
+                    # Hitung Sisa: menggunakan sisa sebelumnya jika ada
+                    sisa_awal = sisa_terakhir
+                    sisa_akhir = sisa_awal + masuk - (keluar if keluar is not None else 0)  # Hitung sisa berdasarkan baris
+                    sisa_terakhir = sisa_akhir
+
+                    output_data.append({
+                        'Tanggal': tanggal,
+                        'Artikel': artikel,
+                        'Perkotak': perkotak,
+                        'Konversi': konversi,
+                        'Masuk': masuk,
+                        'Keluar': keluar,
+                        'Sisa': sisa_akhir,
+                    })
+        dfksbb = pd.DataFrame(output_data)
     print(dfksbb)
     # print(asd)
     listdata,saldoawal = calculate_KSBB(kodeprodukobj,tanggalmulai,tanggalakhir,'FG')
-    print(listdata)
-    sisa_terakhir = 0
-    output_data = []
-    if saldoawal and  saldoawal.Jumlah != None:
-        jumlahsaldoawal = saldoawal.Jumlah
-    else:
-        jumlahsaldoawal = 0
-    output_data.append({
-                'Tanggal': '2024',
-                'Artikel': None,
-                'Perkotak': None,
-                'Konversi':None,
-                'Masuk': None,
-                'Keluar': None,
-                'Sisa': jumlahsaldoawal,
-            })
-    
-    sisa_terakhir = jumlahsaldoawal
-
-# Memetakan setiap artikel dan perkotak per tanggal, dan menghitung Sisa
-    for record in listdata:
-        tanggal = record['Tanggal']
-        artikel_list = record.get('Artikel', [])
-        perkotak_list = record.get('Perkotak', [])
-        konversi_list = record.get('Konversi', [])
-        keluar_list = record.get('Keluar', [])
-        masuk = record['Masuk']
-        sisa_list = record.get('Sisa', [])
-
-        # Jika ini adalah hari pertama, ambil Sisa awal dari data
-        print(konversi_list)
+    print(listdata == True)
+    # print(asd)
+    if len(listdata) != 0:
+        print(listdata)
         # print(asd)
-        if sisa_terakhir is None:
-            sisa_terakhir = sisa_list[0] if sisa_list else 0
-
-        # Jika artikel, perkotak, dan konversi kosong, tetap memasukkan minimal satu entri
-        if not artikel_list and not perkotak_list and not konversi_list:
-            sisa_awal = sisa_terakhir
-            sisa_akhir = sisa_awal + masuk - sum(keluar_list)  # Hitung sisa total
-            sisa_terakhir = sisa_akhir
-
-            output_data.append({
-                'Tanggal': tanggal,
-                'Artikel': None,
-                'Masuk': masuk,
-                'Perkotak': None,
-                'Konversi': None,
-                'Keluar': None,
-                'Sisa': sisa_akhir,
-            })
+        sisa_terakhir = 0
+        output_data = []
+        if saldoawal and  saldoawal.Jumlah != None:
+            jumlahsaldoawal = saldoawal.Jumlah
         else:
-            # Menggunakan zip_longest untuk memasukkan setiap artikel, perkotak, konversi, dan keluar
-            for artikel, perkotak, konversi, keluar, sisa in zip_longest(artikel_list, perkotak_list, konversi_list, keluar_list, sisa_list, fillvalue=None):
-                # Round konversi to 5 decimal places if it exists
-                konversi = round(konversi, 5) if konversi is not None else None
-                print(konversi)
-                # Hitung Sisa: menggunakan sisa sebelumnya jika ada
+            jumlahsaldoawal = 0
+        output_data.append({
+                    'Tanggal': '2024',
+                    'Artikel': None,
+                    'Perkotak': None,
+                    'Konversi':None,
+                    'Masuk': None,
+                    'Keluar': None,
+                    'Sisa': jumlahsaldoawal,
+                })
+        
+        sisa_terakhir = jumlahsaldoawal
+
+    # Memetakan setiap artikel dan perkotak per tanggal, dan menghitung Sisa
+        for record in listdata:
+            tanggal = record['Tanggal']
+            artikel_list = record.get('Artikel', [])
+            perkotak_list = record.get('Perkotak', [])
+            konversi_list = record.get('Konversi', [])
+            keluar_list = record.get('Keluar', [])
+            masuk = record['Masuk']
+            sisa_list = record.get('Sisa', [])
+
+            # Jika ini adalah hari pertama, ambil Sisa awal dari data
+            print(konversi_list)
+            # print(asd)
+            if sisa_terakhir is None:
+                sisa_terakhir = sisa_list[0] if sisa_list else 0
+
+            # Jika artikel, perkotak, dan konversi kosong, tetap memasukkan minimal satu entri
+            if not artikel_list and not perkotak_list and not konversi_list:
                 sisa_awal = sisa_terakhir
-                sisa_akhir = sisa_awal + masuk - (keluar if keluar is not None else 0)  # Hitung sisa berdasarkan baris
+                sisa_akhir = sisa_awal + masuk - sum(keluar_list)  # Hitung sisa total
                 sisa_terakhir = sisa_akhir
 
                 output_data.append({
                     'Tanggal': tanggal,
-                    'Artikel': artikel,
+                    'Artikel': None,
                     'Masuk': masuk,
-                    'Perkotak': perkotak,
-                    'Konversi': konversi,
-                    'Keluar': keluar,
+                    'Perkotak': None,
+                    'Konversi': None,
+                    'Keluar': None,
                     'Sisa': sisa_akhir,
                 })
-    dfksbbfg = pd.DataFrame(output_data)
+            else:
+                # Menggunakan zip_longest untuk memasukkan setiap artikel, perkotak, konversi, dan keluar
+                for artikel, perkotak, konversi, keluar, sisa in zip_longest(artikel_list, perkotak_list, konversi_list, keluar_list, sisa_list, fillvalue=None):
+                    # Round konversi to 5 decimal places if it exists
+                    konversi = round(konversi, 5) if konversi is not None else None
+                    print(konversi)
+                    # Hitung Sisa: menggunakan sisa sebelumnya jika ada
+                    sisa_awal = sisa_terakhir
+                    sisa_akhir = sisa_awal + masuk - (keluar if keluar is not None else 0)  # Hitung sisa berdasarkan baris
+                    sisa_terakhir = sisa_akhir
 
+                    output_data.append({
+                        'Tanggal': tanggal,
+                        'Artikel': artikel,
+                        'Masuk': masuk,
+                        'Perkotak': perkotak,
+                        'Konversi': konversi,
+                        'Keluar': keluar,
+                        'Sisa': sisa_akhir,
+                    })
+        dfksbbfg = pd.DataFrame(output_data)
+
+    print(dfksbb)
+    print(dfksbbfg)
     buffer = BytesIO()
 
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         # Laporan Persediaan Section
         # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
-        dfksbb.to_excel(writer, index=False, startrow=5, sheet_name=f"{kodeprodukobj.KodeProduk}")
-        writer.sheets[f"{kodeprodukobj.KodeProduk}"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {kodeprodukobj.KodeProduk}")
-        writer.sheets[f"{kodeprodukobj.KodeProduk}"].cell(row=2, column = 1,value =f"NAMA BAHAN BAKU : {kodeprodukobj.NamaProduk}")
-        writer.sheets[f"{kodeprodukobj.KodeProduk}"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {kodeprodukobj.unit}")
-        maxrow = len(dfksbb)+1
-        maxcol = len(dfksbb.columns)
-        apply_number_format(writer.sheets[f"{kodeprodukobj.KodeProduk}"],6,maxrow+5,1,maxcol)
-        apply_borders_thin(writer.sheets[f"{kodeprodukobj.KodeProduk}"],6,maxrow+5,maxcol)
-        adjust_column_width(writer.sheets[f"{kodeprodukobj.KodeProduk}"],dfksbb,1,1)
-        dfksbbfg.to_excel(writer, index=False, startrow=5, sheet_name=f"{kodeprodukobj.KodeProduk} FG")
-        writer.sheets[f"{kodeprodukobj.KodeProduk} FG"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {kodeprodukobj.KodeProduk} FG")
-        writer.sheets[f"{kodeprodukobj.KodeProduk} FG"].cell(row=2, column = 1,value =f"NAMA BAHAN BAKU : {kodeprodukobj.NamaProduk}")
-        writer.sheets[f"{kodeprodukobj.KodeProduk} FG"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {kodeprodukobj.unit}")
-        maxrow = len(dfksbbfg)+1
-        maxcol = len(dfksbbfg.columns)
-        apply_number_format(writer.sheets[f"{kodeprodukobj.KodeProduk} FG"],6,maxrow+5,1,maxcol)
-        apply_borders_thin(writer.sheets[f"{kodeprodukobj.KodeProduk} FG"],6,maxrow+5,maxcol)
-        adjust_column_width(writer.sheets[f"{kodeprodukobj.KodeProduk} FG"],dfksbbfg,1,1)
+        if not dfksbb.empty:
+            dfksbb.to_excel(writer, index=False, startrow=5, sheet_name=f"{kodeprodukobj.KodeProduk}")
+            writer.sheets[f"{kodeprodukobj.KodeProduk}"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {kodeprodukobj.KodeProduk}")
+            writer.sheets[f"{kodeprodukobj.KodeProduk}"].cell(row=2, column = 1,value =f"NAMA BAHAN BAKU : {kodeprodukobj.NamaProduk}")
+            writer.sheets[f"{kodeprodukobj.KodeProduk}"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {kodeprodukobj.unit}")
+            maxrow = len(dfksbb)+1
+            maxcol = len(dfksbb.columns)
+            apply_number_format(writer.sheets[f"{kodeprodukobj.KodeProduk}"],6,maxrow+5,1,maxcol)
+            apply_borders_thin(writer.sheets[f"{kodeprodukobj.KodeProduk}"],6,maxrow+5,maxcol)
+            adjust_column_width(writer.sheets[f"{kodeprodukobj.KodeProduk}"],dfksbb,1,1)
+        if not dfksbbfg.empty:
+            dfksbbfg.to_excel(writer, index=False, startrow=5, sheet_name=f"{kodeprodukobj.KodeProduk} FG")
+            writer.sheets[f"{kodeprodukobj.KodeProduk} FG"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {kodeprodukobj.KodeProduk} FG")
+            writer.sheets[f"{kodeprodukobj.KodeProduk} FG"].cell(row=2, column = 1,value =f"NAMA BAHAN BAKU : {kodeprodukobj.NamaProduk}")
+            writer.sheets[f"{kodeprodukobj.KodeProduk} FG"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {kodeprodukobj.unit}")
+            maxrow = len(dfksbbfg)+1
+            maxcol = len(dfksbbfg.columns)
+            apply_number_format(writer.sheets[f"{kodeprodukobj.KodeProduk} FG"],6,maxrow+5,1,maxcol)
+            apply_borders_thin(writer.sheets[f"{kodeprodukobj.KodeProduk} FG"],6,maxrow+5,maxcol)
+            adjust_column_width(writer.sheets[f"{kodeprodukobj.KodeProduk} FG"],dfksbbfg,1,1)
+
+    buffer.seek(0)
+    # print('tes')
+    wb = load_workbook(buffer)
+   
+    # Save the workbook back to the buffer
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    # Create the HTTP response
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = (
+        f"attachment; filename=KSBB {kodeprodukobj.KodeProduk}.xlsx"
+    )
+    
+    # print('Waktu generate laporan : ',time.time()-waktupersediaan)
+    # print('Waktu Proses : ', time.time()-waktuawalproses)
+    return response
+def eksportksbbproduksikeseluruhan(request,id,lokasi,tahun):
+    # waktuawalproses = time.time()
+    print(str)
+    kodeprodukobj =models.Produk.objects.get(KodeProduk = id)
+    tanggalmulai = date(int(tahun),1,1)
+    tanggalakhir = date(int(tahun),12,31)
+    dfksbb = pd.DataFrame()
+    dfksbbfg = pd.DataFrame()
+    produkall = models.Produk.objects.all()
+    # produkall = models.Produk.objects.filter(KodeProduk__in = ['A-001-01','A-001-02','A-001-03','A-001-04','C-005-06'])
+    listdf = []
+    listproduk = []
+    for produk in produkall:
+
+
+        listdata,saldoawal = calculate_KSBB(produk,tanggalmulai,tanggalakhir,'WIP')
+        # print(listdata[0].keys())
+        print(listdata)
+        # print(asd)
+        if len(listdata) != 0:
+            sisa_terakhir = 0
+            # print(asd)
+            output_data = []
+            if saldoawal and  saldoawal.Jumlah != None:
+                jumlahsaldoawal = saldoawal.Jumlah
+            else:
+                jumlahsaldoawal = 0
+            output_data.append({
+                        'Tanggal': '2024',
+                        'Artikel': None,
+                        'Perkotak': None,
+                        'Konversi':None,
+                        'Masuk': None,
+                        'Keluar': None,
+                        'Sisa': jumlahsaldoawal,
+                    })
+            
+            sisa_terakhir = jumlahsaldoawal
+
+        # Memetakan setiap artikel dan perkotak per tanggal, dan menghitung Sisa
+            for record in listdata:
+                tanggal = record['Tanggal']
+                artikel_list = record.get('Artikel', [])
+                perkotak_list = record.get('Perkotak', [])
+                konversi_list = record.get('Konversi', [])
+                keluar_list = record.get('Keluar', [])
+                masuk = record['Masuk']
+                sisa_list = record.get('Sisa', [])
+
+                # Jika ini adalah hari pertama, ambil Sisa awal dari data
+                print(konversi_list)
+                # print(asd)
+                if sisa_terakhir is None:
+                    sisa_terakhir = sisa_list[0] if sisa_list else 0
+
+                # Jika artikel, perkotak, dan konversi kosong, tetap memasukkan minimal satu entri
+                if not artikel_list and not perkotak_list and not konversi_list:
+                    sisa_awal = sisa_terakhir
+                    sisa_akhir = sisa_awal + masuk - sum(keluar_list)  # Hitung sisa total
+                    sisa_terakhir = sisa_akhir
+
+                    output_data.append({
+                        'Tanggal': tanggal,
+                        'Artikel': None,
+                        'Perkotak': None,
+                        'Konversi': None,
+                        'Masuk': masuk,
+                        'Keluar': None,
+                        'Sisa': sisa_akhir,
+                    })
+                else:
+                    # Menggunakan zip_longest untuk memasukkan setiap artikel, perkotak, konversi, dan keluar
+                    for artikel, perkotak, konversi, keluar, sisa in zip_longest(artikel_list, perkotak_list, konversi_list, keluar_list, sisa_list, fillvalue=None):
+                        # Round konversi to 5 decimal places if it exists
+                        konversi = round(konversi, 5) if konversi is not None else None
+                        print(konversi)
+                        # Hitung Sisa: menggunakan sisa sebelumnya jika ada
+                        sisa_awal = sisa_terakhir
+                        sisa_akhir = sisa_awal + masuk - (keluar if keluar is not None else 0)  # Hitung sisa berdasarkan baris
+                        sisa_terakhir = sisa_akhir
+
+                        output_data.append({
+                            'Tanggal': tanggal,
+                            'Artikel': artikel,
+                            'Perkotak': perkotak,
+                            'Konversi': konversi,
+                            'Masuk': masuk,
+                            'Keluar': keluar,
+                            'Sisa': sisa_akhir,
+                        })
+            dfksbb = pd.DataFrame(output_data)
+            listdf.append(dfksbb)
+            listproduk.append([produk,'WIP'])
+        print(dfksbb)
+        # print(asd)
+        listdata,saldoawal = calculate_KSBB(produk,tanggalmulai,tanggalakhir,'FG')
+        print(listdata == True)
+        # print(asd)
+        if len(listdata) != 0:
+            print(listdata)
+            # print(asd)
+            sisa_terakhir = 0
+            output_data = []
+            if saldoawal and  saldoawal.Jumlah != None:
+                jumlahsaldoawal = saldoawal.Jumlah
+            else:
+                jumlahsaldoawal = 0
+            output_data.append({
+                        'Tanggal': '2024',
+                        'Artikel': None,
+                        'Perkotak': None,
+                        'Konversi':None,
+                        'Masuk': None,
+                        'Keluar': None,
+                        'Sisa': jumlahsaldoawal,
+                    })
+            
+            sisa_terakhir = jumlahsaldoawal
+
+        # Memetakan setiap artikel dan perkotak per tanggal, dan menghitung Sisa
+            for record in listdata:
+                tanggal = record['Tanggal']
+                artikel_list = record.get('Artikel', [])
+                perkotak_list = record.get('Perkotak', [])
+                konversi_list = record.get('Konversi', [])
+                keluar_list = record.get('Keluar', [])
+                masuk = record['Masuk']
+                sisa_list = record.get('Sisa', [])
+
+                # Jika ini adalah hari pertama, ambil Sisa awal dari data
+                print(konversi_list)
+                # print(asd)
+                if sisa_terakhir is None:
+                    sisa_terakhir = sisa_list[0] if sisa_list else 0
+
+                # Jika artikel, perkotak, dan konversi kosong, tetap memasukkan minimal satu entri
+                if not artikel_list and not perkotak_list and not konversi_list:
+                    sisa_awal = sisa_terakhir
+                    sisa_akhir = sisa_awal + masuk - sum(keluar_list)  # Hitung sisa total
+                    sisa_terakhir = sisa_akhir
+
+                    output_data.append({
+                        'Tanggal': tanggal,
+                        'Artikel': None,
+                        'Masuk': masuk,
+                        'Perkotak': None,
+                        'Konversi': None,
+                        'Keluar': None,
+                        'Sisa': sisa_akhir,
+                    })
+                else:
+                    # Menggunakan zip_longest untuk memasukkan setiap artikel, perkotak, konversi, dan keluar
+                    for artikel, perkotak, konversi, keluar, sisa in zip_longest(artikel_list, perkotak_list, konversi_list, keluar_list, sisa_list, fillvalue=None):
+                        # Round konversi to 5 decimal places if it exists
+                        konversi = round(konversi, 5) if konversi is not None else None
+                        print(konversi)
+                        # Hitung Sisa: menggunakan sisa sebelumnya jika ada
+                        sisa_awal = sisa_terakhir
+                        sisa_akhir = sisa_awal + masuk - (keluar if keluar is not None else 0)  # Hitung sisa berdasarkan baris
+                        sisa_terakhir = sisa_akhir
+
+                        output_data.append({
+                            'Tanggal': tanggal,
+                            'Artikel': artikel,
+                            'Masuk': masuk,
+                            'Perkotak': perkotak,
+                            'Konversi': konversi,
+                            'Keluar': keluar,
+                            'Sisa': sisa_akhir,
+                        })
+            dfksbbfg = pd.DataFrame(output_data)
+            listdf.append(dfksbbfg)
+            listproduk.append([produk,'FG'])
+
+        # print(dfksbb)
+        # print(dfksbbfg)
+    print(listdf)
+    print(listproduk)
+    buffer = BytesIO()
+
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        # Laporan Persediaan Section
+        # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+        for item,data in zip(listdf,listproduk):
+            item.to_excel(writer, index=False, startrow=5, sheet_name=f"{data[0].KodeProduk}-{data[1]}")
+            writer.sheets[f"{data[0].KodeProduk}-{data[1]}"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {data[0].KodeProduk}")
+            writer.sheets[f"{data[0].KodeProduk}-{data[1]}"].cell(row=2, column = 1,value =f"NAMA BAHAN BAKU : {data[0].NamaProduk}")
+            writer.sheets[f"{data[0].KodeProduk}-{data[1]}"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {data[0].unit}")
+            writer.sheets[f"{data[0].KodeProduk}-{data[1]}"].cell(row=4, column = 1,value =f"LOKASI : {data[1]}")
+            maxrow = len(item)+1
+            maxcol = len(item.columns)
+            apply_number_format(writer.sheets[f"{data[0].KodeProduk}-{data[1]}"],6,maxrow+5,1,maxcol)
+            apply_borders_thin(writer.sheets[f"{data[0].KodeProduk}-{data[1]}"],6,maxrow+5,maxcol)
+            adjust_column_width(writer.sheets[f"{data[0].KodeProduk}-{data[1]}"],item,1,1)
 
     buffer.seek(0)
     # print('tes')

@@ -389,6 +389,7 @@ urlpatterns = [
     path('konversi',viewsproduksi.views_penyusun,name='konversiproduksi'),
     path('load_versiartikel',viewsproduksi.loadversiartikel,name='loadversiartikel'),
     path('exportksbb/<str:id>/<str:lokasi>/<str:tahun>',viewsproduksi.eksportksbbproduksi,name='eksportksbbproduksi'),
+    path('exportksbbkeseluruhan/<str:id>/<str:lokasi>/<str:tahun>',viewsproduksi.eksportksbbproduksikeseluruhan,name='eksportksbbproduksikeseluruhan'),
     path('exportksbj/<str:id>/<str:lokasi>/<str:tahun>',viewsproduksi.eksportksbjproduksi,name='eksportksbjproduksi'),
     # '''BULK CREATE'''d
     path('bulk_createtransaksiproduksi',viewsproduksi.bulkcreate_transaksiproduksi),

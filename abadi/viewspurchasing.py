@@ -22,6 +22,7 @@ import math
 from io import BytesIO
 import time
 from openpyxl import Workbook, load_workbook
+from .viewssignal import gethargapurchasingperbulanperproduk
 """PURCHASING"""
 
 
@@ -243,11 +244,23 @@ def notif_barang_purchasing(request):
     allproduk = models.Produk.objects.all()
     for produk in allproduk:
         cachevalue = models.CacheValue.objects.filter(KodeProduk = produk,Tanggal__month = waktusekarang.month).first()
-        if cachevalue.Jumlah < produk.Jumlahminimal:
-            rekapbahandibawahstok[produk] = cachevalue.Jumlah
+        print(cachevalue)
+        if cachevalue:
+            if cachevalue.Jumlah < produk.Jumlahminimal:
+                rekapbahandibawahstok[produk] = cachevalue.Jumlah
+            else:
+                continue
         else:
-            continue
-
+            print(produk.KodeProduk)
+            # print(asd)
+            data = gethargapurchasingperbulanperproduk(waktusekarang,produk)
+            print(data)
+            print(data[-1])
+            print(data[-1]['Sisahariini'])
+            jumlahstokterakhir= data[-1]['Sisahariini']
+            if jumlahstokterakhir < produk.Jumlahminimal:
+                rekapbahandibawahstok[produk]= jumlahstokterakhir
+            # print(ads)
     print(rekapbahandibawahstok)
     rekapbahandibawahstok = dict(sorted(rekapbahandibawahstok.items(), key=lambda item: item[0].KodeProduk))
 

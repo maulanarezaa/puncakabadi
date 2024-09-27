@@ -27,6 +27,7 @@
                     Rekapitulasi KSBB
                 </a>
                 <a href="{% url 'eksportksbbproduksi' kodebarang lokasi tahun %}" class="btn btn-success" >Eksport KSBB Produksi</a>
+                <a href="{% url 'eksportksbbproduksikeseluruhan' kodebarang lokasi tahun %}" class="btn btn-success" >Eksport KSBB Produksi Keseluruhan</a>
                 {% endif %}
                 <form action="" method="get">
                     {% if kodebarang %}
