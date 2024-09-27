@@ -7474,7 +7474,7 @@ def eksportksbbproduksikeseluruhan(request,id,lokasi,tahun):
             else:
                 jumlahsaldoawal = 0
             output_data.append({
-                        'Tanggal': '2024',
+                        'Tanggal': tanggalmulai.year,
                         'Artikel': None,
                         'Perkotak': None,
                         'Konversi':None,
@@ -7554,7 +7554,7 @@ def eksportksbbproduksikeseluruhan(request,id,lokasi,tahun):
             else:
                 jumlahsaldoawal = 0
             output_data.append({
-                        'Tanggal': '2024',
+                        'Tanggal': tanggalmulai.year,
                         'Artikel': None,
                         'Perkotak': None,
                         'Konversi':None,
@@ -7656,12 +7656,157 @@ def eksportksbbproduksikeseluruhan(request,id,lokasi,tahun):
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
     response["Content-Disposition"] = (
-        f"attachment; filename=KSBB {kodeprodukobj.KodeProduk}.xlsx"
+        f"attachment; filename=KSBB Produksi {tahun}.xlsx"
     )
     
     # print('Waktu generate laporan : ',time.time()-waktupersediaan)
     # print('Waktu Proses : ', time.time()-waktuawalproses)
     return response
+
+def eksportksbjsubkonperartikel(request,id,tahun):
+    print(str)
+    kodeprodukobj =models.ProdukSubkon.objects.get(pk = id)
+    kodeproduksubkonperartikel = models.ProdukSubkon.objects.filter(KodeArtikel = kodeprodukobj.KodeArtikel)
+    tanggalmulai = date(int(tahun),1,1)
+    tanggalakhir = date(int(tahun),12,31)
+    dfksbb = pd.DataFrame()
+    dfksbbfg = pd.DataFrame()
+    listdf = []
+    listproduksubkon =[]
+    print(kodeproduksubkonperartikel)
+    # print(asd)
+    for data in kodeproduksubkonperartikel:
+        
+        listdata,saldoawal = calculateksbjsubkon(data,tanggalmulai,tanggalakhir)
+        print(listdata)
+        datamodels = {
+            'Tanggal':[],
+            'Masuk' : [],
+            'Keluar' : [],
+            'Sisa' : []
+        }
+        if saldoawal:
+            datamodels["Tanggal"].append(tanggalmulai)
+            datamodels['Masuk'].append('')
+            datamodels['Keluar'].append('')
+            datamodels['Sisa'].append(saldoawal.Jumlah)
+
+        for item in listdata:
+            datamodels["Tanggal"].append(item['Tanggal'])
+            datamodels['Masuk'].append(item['Masuk'])
+            datamodels['Keluar'].append(item['Keluar'])
+            datamodels['Sisa'].append(item['Sisa'])
+        dfksbjsubkon = pd.DataFrame(datamodels)
+        if not dfksbjsubkon.empty:
+            listdf.append(dfksbjsubkon)
+            listproduksubkon.append(data)
+        print(data)
+        print(dfksbjsubkon)
+    buffer = BytesIO()
+
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        # Laporan Persediaan Section
+        # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+        for data,produk in zip(listdf,listproduksubkon):
+
+            data.to_excel(writer, index=False, startrow=5, sheet_name=f"{produk.NamaProduk}")
+            writer.sheets[f"{produk.NamaProduk}"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {produk.NamaProduk}")
+            writer.sheets[f"{produk.NamaProduk}"].cell(row=2, column = 1,value =f"ARTIKEL PERUNTUKAN: {produk.KodeArtikel}")
+            writer.sheets[f"{produk.NamaProduk}"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {produk.Unit}")
+            maxrow = len(data)+1
+            maxcol = len(data.columns)
+            apply_number_format(writer.sheets[f"{produk.NamaProduk}"],6,maxrow+5,1,maxcol)
+            apply_borders_thin(writer.sheets[f"{produk.NamaProduk}"],6,maxrow+5,maxcol)
+            adjust_column_width(writer.sheets[f"{produk.NamaProduk}"],data,1,1)
+
+    buffer.seek(0)
+    # print('tes')
+    wb = load_workbook(buffer)
+   
+    # Save the workbook back to the buffer
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    # Create the HTTP response
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = (
+        f"attachment; filename=KSBJ Subkon {kodeprodukobj.NamaProduk} - {kodeprodukobj.KodeArtikel}.xlsx"
+    )
+    
+    # print('Waktu generate laporan : ',time.time()-waktupersediaan)
+    # print('Waktu Proses : ', time.time()-waktuawalproses)
+    return response
+    
+def eksportksbjsubkon(request,id,tahun):
+    print(str)
+    kodeprodukobj =models.ProdukSubkon.objects.get(pk = id)
+    tanggalmulai = date(int(tahun),1,1)
+    tanggalakhir = date(int(tahun),12,31)
+    dfksbb = pd.DataFrame()
+    dfksbbfg = pd.DataFrame()
+    print
+    listdata,saldoawal = calculateksbjsubkon(kodeprodukobj,tanggalmulai,tanggalakhir)
+    print(listdata)
+    datamodels = {
+        'Tanggal':[],
+        'Masuk' : [],
+        'Keluar' : [],
+        'Sisa' : []
+    }
+    if saldoawal:
+        datamodels["Tanggal"].append(tanggalmulai)
+        datamodels['Masuk'].append('')
+        datamodels['Keluar'].append('')
+        datamodels['Sisa'].append(saldoawal.Jumlah)
+
+    for item in listdata:
+        datamodels["Tanggal"].append(item['Tanggal'])
+        datamodels['Masuk'].append(item['Masuk'])
+        datamodels['Keluar'].append(item['Keluar'])
+        datamodels['Sisa'].append(item['Sisa'])
+    dfksbjsubkon = pd.DataFrame(datamodels)
+    buffer = BytesIO()
+
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        # Laporan Persediaan Section
+        # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+        dfksbjsubkon.to_excel(writer, index=False, startrow=5, sheet_name=f"{kodeprodukobj.NamaProduk}")
+        writer.sheets[f"{kodeprodukobj.NamaProduk}"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {kodeprodukobj.NamaProduk}")
+        writer.sheets[f"{kodeprodukobj.NamaProduk}"].cell(row=2, column = 1,value =f"ARTIKEL PERUNTUKAN: {kodeprodukobj.KodeArtikel}")
+        writer.sheets[f"{kodeprodukobj.NamaProduk}"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {kodeprodukobj.Unit}")
+        maxrow = len(dfksbjsubkon)+1
+        maxcol = len(dfksbjsubkon.columns)
+        apply_number_format(writer.sheets[f"{kodeprodukobj.NamaProduk}"],6,maxrow+5,1,maxcol)
+        apply_borders_thin(writer.sheets[f"{kodeprodukobj.NamaProduk}"],6,maxrow+5,maxcol)
+        adjust_column_width(writer.sheets[f"{kodeprodukobj.NamaProduk}"],dfksbjsubkon,1,1)
+
+    buffer.seek(0)
+    # print('tes')
+    wb = load_workbook(buffer)
+   
+    # Save the workbook back to the buffer
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    # Create the HTTP response
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = (
+        f"attachment; filename=KSBJ Subkon {kodeprodukobj.NamaProduk} - {kodeprodukobj.KodeArtikel}.xlsx"
+    )
+    
+    # print('Waktu generate laporan : ',time.time()-waktupersediaan)
+    # print('Waktu Proses : ', time.time()-waktuawalproses)
+    return response
+    
+
 
 def apply_number_format(worksheet, start_row, end_row, start_col, end_col, number_format='#,##0.00'):
     for row in worksheet.iter_rows(min_row=start_row, max_row=end_row, min_col=start_col, max_col=end_col):
@@ -7917,8 +8062,9 @@ def eksportksbjproduksi(request,id,lokasi,tahun):
     return response
 
 def rekapakumulasiksbbsubkon(request,id):
+    produk = models.BahanBakuSubkon.objects.get(pk = id)
     if len(request.GET) == 0:
-        return render(request,'produksi/view_rekapksbb.html')
+        return render(request,'produksi/view_rekapksbbsubkon.html',{'produk':produk})
     else:
         '''
         Logika rekapitulasi 
@@ -7938,7 +8084,7 @@ def rekapakumulasiksbbsubkon(request,id):
             masuk += item['Masuk']
             keluar += (item['Keluar'])
         
-        return render(request,'produksi/view_rekapksbbsubkon.html',{'jumlahpemusnahan':jumlahpemusnahan,'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
+        return render(request,'produksi/view_rekapksbbsubkon.html',{'produk':produk,'jumlahpemusnahan':jumlahpemusnahan,'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
 
 def rekapakumulasiksbb(request,id,lokasi):
     if len(request.GET) == 0:
@@ -7966,7 +8112,7 @@ def rekapakumulasiksbb(request,id,lokasi):
             masuk += item['Masuk']
             keluar += sum(item['Keluar'])
         
-        return render(request,'produksi/view_rekapksbb.html',{'jumlahpemusnahanwip':jumlahpemusnahwip,'jumlahpemusnahanfg':jumlahpemusnahanfg,'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
+        return render(request,'produksi/view_rekapksbb.html',{'jumlahpemusnahanwip':jumlahpemusnahwip,'jumlahpemusnahanfg':jumlahpemusnahanfg,'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir,'produk':produkobj})
 
 def rekapitulasiksbj (request,id,lokasi):
     if len(request.GET)==0:
@@ -7999,8 +8145,9 @@ def rekapitulasiksbj (request,id,lokasi):
         return render(request,'produksi/view_rekapksbj.html',{'totalpemusnahanfg':totalpemusnahanfg,'totalpemusnahanwip':totalpemusnahanwip,'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
 
 def rekapitulasiksbjsubkon (request,id):
+    produk = models.ProdukSubkon.objects.get(pk = id)
     if len(request.GET)==0:
-        return render(request,'produksi/view_rekapksbjsubkon.html')
+        return render(request,'produksi/view_rekapksbjsubkon.html',{'produk':produk})
     else:
         tanggalmulai = request.GET['tanggalawal']
         tanggalakhir = request.GET['tanggalakhir']
@@ -8022,9 +8169,146 @@ def rekapitulasiksbjsubkon (request,id):
         
         print(masuk)
         print(keluar)
-        return render(request,'produksi/view_rekapksbjsubkon.html',{'jumlahpemusnahan':jumlahpemusnahan,'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
+        return render(request,'produksi/view_rekapksbjsubkon.html',{'produk':produk,'jumlahpemusnahan':jumlahpemusnahan,'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
+def eksportksbbsubkonkeseluruhan(request,id,tahun):
+    '''
+    Logika rekapitulasi 
+    '''
+    tahun= int(tahun)
+    tanggalmulai = date(tahun,1,1)
+    tanggalakhir = date(tahun,12,31)
+    dfksbbsubkon = pd.DataFrame()
 
+    produkobj = models.BahanBakuSubkon.objects.all()
+    listdf = []
+    listproduk = []
+    for item in produkobj:
+        saldoawalsubkon = models.SaldoAwalBahanBakuSubkon.objects.filter(IDBahanBakuSubkon= item, )
+        listdata,saldoawal = calculateksbbsubkon(item,tanggalmulai,tanggalakhir)
+        print(listdata)
+        datamodels = {
+            'Tanggal': [],
+            'Masuk' : [],
+            'Keluar' : [],
+            'Sisa' : [],
+        }
+        print(saldoawal)
+        if saldoawal:
+            print(saldoawal.Tanggal)
+            datamodels['Tanggal'].append(tanggalmulai)
+            datamodels['Masuk'].append('')
+            datamodels['Keluar'].append('')
+            datamodels['Sisa'].append(saldoawal.Jumlah)
+            # print(asd)
+        for data in listdata:
+            datamodels['Tanggal'].append(data['Tanggal'])
+            datamodels['Masuk'].append(data['Masuk'])
+            datamodels['Keluar'].append(data['Keluar'])
+            datamodels['Sisa'].append(data['Sisa'])
+        
+        dfksbbsubkon = pd.DataFrame(datamodels)
+        listdf.append(dfksbbsubkon)
+        item.KodeProduk = clean_string(item.KodeProduk)
+        listproduk.append(item)
+    buffer = BytesIO()
 
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        # Laporan Persediaan Section
+        # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+        for item,produk in zip(listdf,listproduk):
+            item.to_excel(writer, index=False, startrow=5, sheet_name=f"{produk.KodeProduk}")
+            writer.sheets[f"{produk.KodeProduk}"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {produk.KodeProduk}")
+            writer.sheets[f"{produk.KodeProduk}"].cell(row=2, column = 1,value =f"NAMA BAHAN BAKU : {produk.NamaProduk}")
+            writer.sheets[f"{produk.KodeProduk}"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {produk.unit}")
+            maxrow = len(item)+1
+            maxcol = len(item.columns)
+            apply_number_format(writer.sheets[f"{produk.KodeProduk}"],6,maxrow+5,1,maxcol)
+            apply_borders_thin(writer.sheets[f"{produk.KodeProduk}"],6,maxrow+5,maxcol)
+            adjust_column_width(writer.sheets[f"{produk.KodeProduk}"],item,1,1)
+    buffer.seek(0)
+    # print('tes')
+    wb = load_workbook(buffer)
+   
+    # Save the workbook back to the buffer
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    # Create the HTTP response
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = (
+        f"attachment; filename=KSBB Subkon {tahun}.xlsx"
+    )
+    
+    # print('Waktu generate laporan : ',time.time()-waktupersediaan)
+    # print('Waktu Proses : ', time.time()-waktuawalproses)
+    return response
+
+def eksportksbbsubkon(request,id,tahun):
+    '''
+    Logika rekapitulasi 
+    '''
+    tahun= int(tahun)
+    tanggalmulai = date(tahun,1,1)
+    tanggalakhir = date(tahun,12,31)
+    dfksbbsubkon = pd.DataFrame()
+
+    produkobj = models.BahanBakuSubkon.objects.get(pk = id)
+    pemusnahanobj = models.PemusnahanBahanBakuSubkon.objects.filter(KodeBahanBaku = produkobj,Tanggal__range = (tanggalmulai,tanggalakhir))
+    listdata,saldoawal = calculateksbbsubkon(produkobj,tanggalmulai,tanggalakhir)
+    print(listdata)
+    datamodels = {
+        'Tanggal': [],
+        'Masuk' : [],
+        'Keluar' : [],
+        'Sisa' : [],
+    }
+    for item in listdata:
+        datamodels['Tanggal'].append(item['Tanggal'])
+        datamodels['Masuk'].append(item['Masuk'])
+        datamodels['Keluar'].append(item['Keluar'])
+        datamodels['Sisa'].append(item['Sisa'])
+    
+    dfksbbsubkon = pd.DataFrame(datamodels)
+    buffer = BytesIO()
+    produkobj.KodeProduk = clean_string(produkobj.KodeProduk)
+
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        # Laporan Persediaan Section
+        # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+        dfksbbsubkon.to_excel(writer, index=False, startrow=5, sheet_name=f"{produkobj.KodeProduk}")
+        writer.sheets[f"{produkobj.KodeProduk}"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {produkobj.KodeProduk}")
+        writer.sheets[f"{produkobj.KodeProduk}"].cell(row=2, column = 1,value =f"NAMA BAHAN BAKU : {produkobj.NamaProduk}")
+        writer.sheets[f"{produkobj.KodeProduk}"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {produkobj.unit}")
+        maxrow = len(dfksbbsubkon)+1
+        maxcol = len(dfksbbsubkon.columns)
+        apply_number_format(writer.sheets[f"{produkobj.KodeProduk}"],6,maxrow+5,1,maxcol)
+        apply_borders_thin(writer.sheets[f"{produkobj.KodeProduk}"],6,maxrow+5,maxcol)
+        adjust_column_width(writer.sheets[f"{produkobj.KodeProduk}"],dfksbbsubkon,1,1)
+    buffer.seek(0)
+    # print('tes')
+    wb = load_workbook(buffer)
+   
+    # Save the workbook back to the buffer
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    # Create the HTTP response
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = (
+        f"attachment; filename=KSBB Subkon {produkobj.KodeProduk}.xlsx"
+    )
+    
+    # print('Waktu generate laporan : ',time.time()-waktupersediaan)
+    # print('Waktu Proses : ', time.time()-waktuawalproses)
+    return response
 def bulkcreate_transaksiproduksi(request):
     '''
     Input dari KSBB Produksi GOLONGAN A

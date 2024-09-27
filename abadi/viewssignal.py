@@ -7,14 +7,15 @@ from collections import defaultdict
 import pandas as pd
 
 
-# @receiver(post_save, sender=models.TransaksiGudang)
-# @receiver(post_save, sender=models.SaldoAwalBahanBaku)
-# @receiver(post_save, sender=models.DetailSuratJalanPembelian)
-# @receiver(post_save, sender=models.PemusnahanBahanBaku)
-# @receiver(post_delete, sender=models.TransaksiGudang)
-# @receiver(post_delete, sender=models.SaldoAwalBahanBaku)
-# @receiver(post_delete, sender=models.DetailSuratJalanPembelian)
-# @receiver(post_delete, sender=models.PemusnahanBahanBaku)
+@receiver(post_save, sender=models.Produk)
+@receiver(post_save, sender=models.TransaksiGudang)
+@receiver(post_save, sender=models.SaldoAwalBahanBaku)
+@receiver(post_save, sender=models.DetailSuratJalanPembelian)
+@receiver(post_save, sender=models.PemusnahanBahanBaku)
+@receiver(post_delete, sender=models.TransaksiGudang)
+@receiver(post_delete, sender=models.SaldoAwalBahanBaku)
+@receiver(post_delete, sender=models.DetailSuratJalanPembelian)
+@receiver(post_delete, sender=models.PemusnahanBahanBaku)
 def updatehargapurchasing(sender, instance, **kwargs):
     print(f'Updating for {sender.__name__}')
     if isinstance(instance,models.TransaksiGudang):
@@ -29,113 +30,120 @@ def updatehargapurchasing(sender, instance, **kwargs):
     elif isinstance(instance,models.PemusnahanBahanBaku):
         tanggal = datetime.strptime(str(instance.Tanggal), '%Y-%m-%d').date()
         kodeproduk = instance.KodeBahanBaku
+    elif isinstance(instance,models.Produk):
+        tanggal = datetime.now().date()
+        kodeproduk = instance
     
     data = gethargapurchasingperbulanperproduk(tanggal, kodeproduk)
-    df = pd.DataFrame(data)
-    print(df)
-    # Konversi kolom 'Tanggal' ke tipe datetime
-    df['Tanggal'] = pd.to_datetime(df['Tanggal'])
+    if data != None:
+        df = pd.DataFrame(data)
+        print(df)
+        # Konversi kolom 'Tanggal' ke tipe datetime
+        df['Tanggal'] = pd.to_datetime(df['Tanggal'])
+
+        # Menetapkan 'Tanggal' sebagai index
+        df['Tanggal'] = pd.to_datetime(df['Tanggal'])
 
     # Menetapkan 'Tanggal' sebagai index
-    df['Tanggal'] = pd.to_datetime(df['Tanggal'])
+        df.set_index('Tanggal', inplace=True)
 
-# Menetapkan 'Tanggal' sebagai index
-    df.set_index('Tanggal', inplace=True)
+        # Menambahkan kolom 'EndOfMonth'
+        df['EndOfMonth'] = df.index + pd.offsets.MonthEnd(0)
 
-    # Menambahkan kolom 'EndOfMonth'
-    df['EndOfMonth'] = df.index + pd.offsets.MonthEnd(0)
+        # Mengelompokkan data berdasarkan 'EndOfMonth' dan mengambil baris terakhir
+        end_of_month_data = df.groupby('EndOfMonth').last().reset_index()
+        print(end_of_month_data)
+        # print(asd)
+        # Mengubah nama kolom sesuai kebutuhan
+        end_of_month_data = end_of_month_data.rename(columns={
+            'EndOfMonth': 'Tanggal', 
+            'Sisahariini': 'Balance', 
+            'Hargasatuansisa': 'EndOfMonthPrice'
+        })
 
-    # Mengelompokkan data berdasarkan 'EndOfMonth' dan mengambil baris terakhir
-    end_of_month_data = df.groupby('EndOfMonth').last().reset_index()
-    print(end_of_month_data)
-    # print(asd)
-    # Mengubah nama kolom sesuai kebutuhan
-    end_of_month_data = end_of_month_data.rename(columns={
-        'EndOfMonth': 'Tanggal', 
-        'Sisahariini': 'Balance', 
-        'Hargasatuansisa': 'EndOfMonthPrice'
-    })
+            # Mengatur rentang waktu dari awal tahun hingga akhir tahun
+        start_date = pd.to_datetime(f'{tanggal.year}-01-01')
+        end_date = pd.to_datetime(f'{tanggal.year}-12-31')
 
-        # Mengatur rentang waktu dari awal tahun hingga akhir tahun
-    start_date = pd.to_datetime(f'{tanggal.year}-01-01')
-    end_date = pd.to_datetime(f'{tanggal.year}-12-31')
+        # Membuat DataFrame dengan seluruh bulan
+        all_months = pd.date_range(start=start_date, end=end_date, freq='M')
+        full_year_df = pd.DataFrame({'Tanggal': all_months})
 
-    # Membuat DataFrame dengan seluruh bulan
-    all_months = pd.date_range(start=start_date, end=end_date, freq='M')
-    full_year_df = pd.DataFrame({'Tanggal': all_months})
+        # Menetapkan 'Tanggal' sebagai index
+        full_year_df.set_index('Tanggal', inplace=True)
 
-    # Menetapkan 'Tanggal' sebagai index
-    full_year_df.set_index('Tanggal', inplace=True)
+        # Menggabungkan dengan data yang ada
+        full_year_df = full_year_df.join(end_of_month_data.set_index('Tanggal'))
 
-    # Menggabungkan dengan data yang ada
-    full_year_df = full_year_df.join(end_of_month_data.set_index('Tanggal'))
+        # Mengisi NaN dengan 0 untuk bulan-bulan yang tidak memiliki data
+        # print(non_zero_months)
+        print(full_year_df)
+        full_year_df['EndOfMonthPrice'] = full_year_df['EndOfMonthPrice'].ffill()
+        # Cek bulan dengan data yang tidak kosong
+        non_zero_months = full_year_df[full_year_df['Balance'] > 0].index
+        print(full_year_df)
+        # full_year_df.fillna({'Balance': 0, 'EndOfMonthPrice': 0}, inplace=True)
+        full_year_df = full_year_df.ffill()
+        print(full_year_df)
+        # print(full_year_df.ffill())
+        # print(asd)
 
-    # Mengisi NaN dengan 0 untuk bulan-bulan yang tidak memiliki data
-    # print(non_zero_months)
-    print(full_year_df)
-    full_year_df['EndOfMonthPrice'] = full_year_df['EndOfMonthPrice'].ffill()
-    # Cek bulan dengan data yang tidak kosong
-    non_zero_months = full_year_df[full_year_df['Balance'] > 0].index
-    print(full_year_df)
-    # full_year_df.fillna({'Balance': 0, 'EndOfMonthPrice': 0}, inplace=True)
-    full_year_df = full_year_df.ffill()
-    print(full_year_df)
-    # print(full_year_df.ffill())
-    # print(asd)
+        # if not non_zero_months.empty:
+        #     first_non_zero_month = non_zero_months[0]
+            
+        #     # Inisialisasi variabel untuk menyimpan nilai bulan sebelumnya
+        #     previous_balance = None
+        #     previous_price = None
 
-    # if not non_zero_months.empty:
-    #     first_non_zero_month = non_zero_months[0]
+        #     for month in full_year_df.index:
+        #         if month < first_non_zero_month:
+        #             # Set bulan sebelum bulan dengan data menjadi 0
+        #             full_year_df.loc[month, 'Balance'] = 0
+        #             full_year_df.loc[month, 'EndOfMonthPrice'] = 0
+        #         else:
+        #             # Jika bulan saat ini adalah bulan pertama yang memiliki data
+        #             if previous_balance is None and full_year_df.loc[month, 'Balance'] != 0:
+        #                 previous_balance = full_year_df.loc[month, 'Balance']
+        #                 previous_price = full_year_df.loc[month, 'EndOfMonthPrice']
+                    
+        #             # Jika bulan saat ini kosong, gunakan nilai bulan sebelumnya
+        #             if full_year_df.loc[month, 'Balance'] == 0:
+        #                 if previous_balance is not None:
+        #                     full_year_df.loc[month, 'Balance'] = previous_balance
+        #                     full_year_df.loc[month, 'EndOfMonthPrice'] = previous_price
+
+        #             # Update nilai bulan sebelumnya
+        #             if full_year_df.loc[month, 'Balance'] != 0:
+        #                 previous_balance = full_year_df.loc[month, 'Balance']
+        #                 previous_price = full_year_df.loc[month, 'EndOfMonthPrice']
+        # else:
+        #     # Jika tidak ada data sama sekali, set seluruh bulan menjadi 0
+        #     full_year_df['Balance'] = 0
+        #     full_year_df['EndOfMonthPrice'] = 0
+
+        # Reset index untuk output
+        full_year_df.reset_index(inplace=True)
+
+        # Menampilkan DataFrame yang telah diolah
+        print(full_year_df)
+        # print(ads)
+        for item in full_year_df.itertuples(index=False):
+            models.CacheValue.objects.update_or_create(
+                KodeProduk=kodeproduk,
+                Tanggal=item.Tanggal,
+                defaults={
+                    'Jumlah': item.Balance,
+                    'Harga': item.EndOfMonthPrice
+                }
+            )
+
         
-    #     # Inisialisasi variabel untuk menyimpan nilai bulan sebelumnya
-    #     previous_balance = None
-    #     previous_price = None
-
-    #     for month in full_year_df.index:
-    #         if month < first_non_zero_month:
-    #             # Set bulan sebelum bulan dengan data menjadi 0
-    #             full_year_df.loc[month, 'Balance'] = 0
-    #             full_year_df.loc[month, 'EndOfMonthPrice'] = 0
-    #         else:
-    #             # Jika bulan saat ini adalah bulan pertama yang memiliki data
-    #             if previous_balance is None and full_year_df.loc[month, 'Balance'] != 0:
-    #                 previous_balance = full_year_df.loc[month, 'Balance']
-    #                 previous_price = full_year_df.loc[month, 'EndOfMonthPrice']
-                
-    #             # Jika bulan saat ini kosong, gunakan nilai bulan sebelumnya
-    #             if full_year_df.loc[month, 'Balance'] == 0:
-    #                 if previous_balance is not None:
-    #                     full_year_df.loc[month, 'Balance'] = previous_balance
-    #                     full_year_df.loc[month, 'EndOfMonthPrice'] = previous_price
-
-    #             # Update nilai bulan sebelumnya
-    #             if full_year_df.loc[month, 'Balance'] != 0:
-    #                 previous_balance = full_year_df.loc[month, 'Balance']
-    #                 previous_price = full_year_df.loc[month, 'EndOfMonthPrice']
-    # else:
-    #     # Jika tidak ada data sama sekali, set seluruh bulan menjadi 0
-    #     full_year_df['Balance'] = 0
-    #     full_year_df['EndOfMonthPrice'] = 0
-
-    # Reset index untuk output
-    full_year_df.reset_index(inplace=True)
-
-    # Menampilkan DataFrame yang telah diolah
-    print(full_year_df)
-    # print(ads)
-    for item in full_year_df.itertuples(index=False):
-        models.CacheValue.objects.update_or_create(
-            KodeProduk=kodeproduk,
-            Tanggal=item.Tanggal,
-            defaults={
-                'Jumlah': item.Balance,
-                'Harga': item.EndOfMonthPrice
-            }
-        )
-
-    
     
 def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
-    bahanbaku = models.Produk.objects.get(KodeProduk=kodeproduk)
+    try:
+        bahanbaku = models.Produk.objects.get(KodeProduk=kodeproduk)
+    except :
+        return None
     awaltahun = date(tanggal.year, 1, 1)
     akhirtahun = date(tanggal.year, 12, 31)
     last_days = [date(tanggal.year, month, calendar.monthrange(tanggal.year, month)[1]) for month in range(1, 13)]

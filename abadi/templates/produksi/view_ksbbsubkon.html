@@ -20,6 +20,8 @@
                         {{satuan}}</span></h4>
                 {% if produk %}
                 <a href="{% url 'rekapakumulasiksbbsubkon' produk.pk %}" class="btn btn-success">Rekapitulasi KSBB</a>
+                <a href="{% url 'eksportksbbsubkon' produk.pk tahun%}" class="btn btn-success">Eksport KSBB</a>
+                <a href="{% url 'eksportksbbsubkonkeseluruhan' produk.pk tahun%}" class="btn btn-success">Eksport KSBB Keseluruhan</a>
                 {% endif %}
                 <form action="" method="get">
                     {% if kodebarang %}

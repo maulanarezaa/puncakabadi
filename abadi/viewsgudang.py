@@ -1665,19 +1665,23 @@ def readcachevalue(request):
     for item in cachevalue:
         item.Tanggal = item.Tanggal.strftime("%Y-%m-%d")
     return render(request, 'gudang/cachevalue.html',{'data' : cachevalue})
+
 def updatecache(request):
     waktustart = time.time()
     allprodukobj = models.Produk.objects.all()
     # allprodukobj = models.Produk.objects.filter(KodeProduk = 'A-004-01')
+    user_groups = request.user.groups.values_list('name', flat=True)
+    print(user_groups)
+    # print(asd)
     for produk in allprodukobj:
-        newpemusnahan = models.PemusnahanBahanBaku(
-            Tanggal = datetime.now().date(),
-            KodeBahanBaku = produk,
-            lokasi = models.Lokasi.objects.get(NamaLokasi = 'Gudang'),
-            Jumlah = 0
-        ).save()
+        produk.save()
     waktuakhir = time.time()
-    return HttpResponse(f'Waktu proses :{waktuakhir-waktustart} ')
+    if 'rnd' in user_groups:
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+            return redirect(back_url)
+        return redirect('dashboardrnd')
+    return HttpResponse(f'Waktu proses :{waktuakhir-waktustart}')
 
 def exportbackup(request):
     datasjp = models.SuratJalanPembelian.objects.all()

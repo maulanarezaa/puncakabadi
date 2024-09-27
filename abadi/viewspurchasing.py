@@ -1231,7 +1231,7 @@ def update_produk(request, id):
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def delete_produk(request, id):
     print(id)
-    produkobj = models.Produk.objects.get(KodeProduk=id)
+    produkobj = models.Produk.objects.get(pk=id)
     # print("delete:",produkobj.KodeProduk)
     models.transactionlog(
         user="Purchasing",
@@ -1240,6 +1240,7 @@ def delete_produk(request, id):
         pesan=f"Kode Produk {produkobj.KodeProduk} sudah di Delete",
     ).save()
     produkobj.delete()
+    # print(asd)
     messages.success(request, "Data Berhasil dihapus")
     return redirect("read_produk")
 
