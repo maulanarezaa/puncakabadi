@@ -5849,6 +5849,138 @@ def delete_transaksi_subkonbahan_masuk(request, id):
     
     return redirect("transaksi_subkonbahan_masuk")
 
+# Tramsalsi Produksi Produk Subkon
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def views_produksiproduksubkon(request):
+    datasubkon = models.TransaksiProduksiProdukSubkon.objects.all().order_by("-Tanggal")
+    for i in datasubkon:
+        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
+
+    return render(request, "produksi/view_produksiproduksubkon.html", {"datasubkon": datasubkon})
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def add_produksiproduksubkon(request):
+    if request.method == "GET":
+        subkonkirim = models.DetailSuratJalanPenerimaanProdukSubkon.objects.all()
+        detailsk = models.SuratJalanPenerimaanProdukSubkon.objects.all()
+        getproduk = models.ProdukSubkon.objects.all()
+
+        return render(
+            request,
+            "produksi/add_produksiproduksubkon.html",
+            {"subkonkirim": subkonkirim, "detailsk": detailsk, "getproduk": getproduk},
+        )
+    
+    if request.method == "POST":
+        print(request.POST)
+        # print(asd)
+        tanggal = request.POST['tanggal']
+        listkode = request.POST.getlist("kodebarangHidden")
+        listjumlah = request.POST.getlist("jumlah")
+        listket = request.POST.getlist("keterangan")
+        error = 0
+        for item in listkode:
+            try:
+                produksubkonobj = models.ProdukSubkon.objects.get(
+                    IDProdukSubkon=item
+                )
+            except :
+                error +=1
+        if error == len(listkode):
+            messages.error(request,"Kode Produk Subkon tidak terdapat dalam sistem")
+            return redirect('add_produksiproduksubkon')
+
+        for kode,jumlah,keterangan in zip(listkode,listjumlah,listket):
+            try:
+                produkobj = models.ProdukSubkon.objects.get(pk = kode)
+            except:
+                messages.error(request,f'Produk')
+                continue
+
+            dataobj = models.TransaksiProduksiProdukSubkon(
+                Tanggal = tanggal,
+                KodeProduk = produkobj,
+                Jumlah = jumlah,
+                Keterangan = keterangan
+            )
+            dataobj.save()
+            models.transactionlog(
+                user="Produksi",
+                waktu=datetime.now(),
+                jenis="Create",
+                pesan=f"Produksi Produk Subkon. Kode Produk : {produkobj}, Jumlah : {jumlah}, Keterangan : {keterangan}" ,
+            ).save()
+
+        messages.success(request,'Data Berhasil Disimpan')
+        return redirect("view_produksiproduksubkon")
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def update_produksiproduksubkon(request, id):
+    produkobj = models.TransaksiProduksiProdukSubkon.objects.get(pk = id)
+    produkobj.Tanggal = produkobj.Tanggal.strftime('%Y-%m-%d')
+    getproduk = models.ProdukSubkon.objects.all()
+
+
+    if request.method == "GET":
+        return render(
+            request,
+            "produksi/update_produksiproduksubkon.html",
+            {
+                "getproduk": getproduk,
+                'produk' : produkobj
+            },
+        )
+    else:
+        print(request.POST)
+        tanggal = request.POST["tanggal"]
+        kode_produk = request.POST["kodebarangHiddens"]
+        jumlah = request.POST['jumlah']
+        keterangan = request.POST['keterangan']
+        try:
+            produksubkonobj = models.ProdukSubkon.objects.get(IDProdukSubkon=kode_produk)
+
+        except models.ProdukSubkon.DoesNotExist:
+            messages.error(request, "Kode Produk Subkon tidak ditemukan")
+            return redirect("update_produksiproduksubkon", id = id)
+
+
+        
+
+        produkobj.KodeProduk = produksubkonobj
+        produkobj.Jumlah = jumlah
+        produkobj.Keterangan = keterangan
+        
+        produkobj.save()
+
+        models.transactionlog(
+            user="Produksi",
+            waktu=datetime.now(),
+            jenis="Update",
+            pesan=f"Detail SJ Terima Produk Subkon. Nama Produk : {produksubkonobj.NamaProduk} Artikel Untuk : {produksubkonobj.KodeArtikel}  Jumlah : {jumlah} Keterangan : {keterangan}",
+        ).save()
+        messages.success(request,'Data berhasil disimpan')
+
+        return redirect("view_produksiproduksubkon")
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def delete_produksiproduksubkon(request, id):
+    dataskk = models.TransaksiProduksiProdukSubkon.objects.get(pk=id)
+    dataskk.delete()
+
+    models.transactionlog(
+        user="Produksi",
+        waktu=datetime.now(),
+        jenis="Delete",
+        pesan=f"Transaksi Produksi Produk Subkon. Nama Produk : {dataskk.KodeProduk.NamaProduk} Artikel Untuk : {dataskk.KodeProduk.KodeArtikel}  Jumlah : {dataskk.Jumlah} Keterangan : {dataskk.Keterangan}",
+    ).save()
+    messages.success(request,'Data berhasil dihapus')
+    return redirect("view_produksiproduksubkon")
+
 
 # Transaksi subkon produk keluar
 @login_required
@@ -7255,7 +7387,7 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
         else:
             jumlahsaldoawal = 0
         output_data.append({
-                    'Tanggal': '2024',
+                    'Tanggal': tanggalmulai.strftime('%Y-%m-%d'),
                     'Artikel': None,
                     'Perkotak': None,
                     'Konversi':None,
@@ -7447,7 +7579,7 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
     # print('Waktu Proses : ', time.time()-waktuawalproses)
     return response
 def eksportksbbproduksikeseluruhan(request,id,lokasi,tahun):
-    # waktuawalproses = time.time()
+    waktuawalproses = time.time()
     print(str)
     kodeprodukobj =models.Produk.objects.get(KodeProduk = id)
     tanggalmulai = date(int(tahun),1,1)
@@ -7463,7 +7595,7 @@ def eksportksbbproduksikeseluruhan(request,id,lokasi,tahun):
 
         listdata,saldoawal = calculate_KSBB(produk,tanggalmulai,tanggalakhir,'WIP')
         # print(listdata[0].keys())
-        print(listdata)
+        # print(listdata)
         # print(asd)
         if len(listdata) != 0:
             sisa_terakhir = 0
@@ -7474,7 +7606,7 @@ def eksportksbbproduksikeseluruhan(request,id,lokasi,tahun):
             else:
                 jumlahsaldoawal = 0
             output_data.append({
-                        'Tanggal': tanggalmulai.year,
+                        'Tanggal': tanggalmulai.strftime('%Y-%m-%d'),
                         'Artikel': None,
                         'Perkotak': None,
                         'Konversi':None,
@@ -7496,7 +7628,7 @@ def eksportksbbproduksikeseluruhan(request,id,lokasi,tahun):
                 sisa_list = record.get('Sisa', [])
 
                 # Jika ini adalah hari pertama, ambil Sisa awal dari data
-                print(konversi_list)
+                # print(konversi_list)
                 # print(asd)
                 if sisa_terakhir is None:
                     sisa_terakhir = sisa_list[0] if sisa_list else 0
@@ -7539,13 +7671,13 @@ def eksportksbbproduksikeseluruhan(request,id,lokasi,tahun):
             dfksbb = pd.DataFrame(output_data)
             listdf.append(dfksbb)
             listproduk.append([produk,'WIP'])
-        print(dfksbb)
+        # print(dfksbb)
         # print(asd)
         listdata,saldoawal = calculate_KSBB(produk,tanggalmulai,tanggalakhir,'FG')
-        print(listdata == True)
+        # print(listdata == True)
         # print(asd)
         if len(listdata) != 0:
-            print(listdata)
+            # print(listdata)
             # print(asd)
             sisa_terakhir = 0
             output_data = []
@@ -7554,7 +7686,7 @@ def eksportksbbproduksikeseluruhan(request,id,lokasi,tahun):
             else:
                 jumlahsaldoawal = 0
             output_data.append({
-                        'Tanggal': tanggalmulai.year,
+                        'Tanggal': tanggalmulai.strftime('%Y-%m-%d'),
                         'Artikel': None,
                         'Perkotak': None,
                         'Konversi':None,
@@ -7576,7 +7708,7 @@ def eksportksbbproduksikeseluruhan(request,id,lokasi,tahun):
                 sisa_list = record.get('Sisa', [])
 
                 # Jika ini adalah hari pertama, ambil Sisa awal dari data
-                print(konversi_list)
+                # print(konversi_list)
                 # print(asd)
                 if sisa_terakhir is None:
                     sisa_terakhir = sisa_list[0] if sisa_list else 0
@@ -7601,7 +7733,7 @@ def eksportksbbproduksikeseluruhan(request,id,lokasi,tahun):
                     for artikel, perkotak, konversi, keluar, sisa in zip_longest(artikel_list, perkotak_list, konversi_list, keluar_list, sisa_list, fillvalue=None):
                         # Round konversi to 5 decimal places if it exists
                         konversi = round(konversi, 5) if konversi is not None else None
-                        print(konversi)
+                        # print(konversi)
                         # Hitung Sisa: menggunakan sisa sebelumnya jika ada
                         sisa_awal = sisa_terakhir
                         sisa_akhir = sisa_awal + masuk - (keluar if keluar is not None else 0)  # Hitung sisa berdasarkan baris
@@ -7622,8 +7754,9 @@ def eksportksbbproduksikeseluruhan(request,id,lokasi,tahun):
 
         # print(dfksbb)
         # print(dfksbbfg)
-    print(listdf)
-    print(listproduk)
+    # print(listdf)
+    # print(listproduk)
+    waktupersediaan = time.time()
     buffer = BytesIO()
 
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
@@ -7659,8 +7792,8 @@ def eksportksbbproduksikeseluruhan(request,id,lokasi,tahun):
         f"attachment; filename=KSBB Produksi {tahun}.xlsx"
     )
     
-    # print('Waktu generate laporan : ',time.time()-waktupersediaan)
-    # print('Waktu Proses : ', time.time()-waktuawalproses)
+    print('Waktu generate laporan : ',time.time()-waktupersediaan)
+    print('Waktu Proses : ', time.time()-waktuawalproses)
     return response
 
 def eksportksbjsubkonperartikel(request,id,tahun):
@@ -7834,8 +7967,8 @@ def eksportksbjproduksi(request,id,lokasi,tahun):
     # waktuawalproses = time.time()
     tahun = int(tahun)
     kodeartikelobj =models.Artikel.objects.get(pk = id)
-    # tanggalmulai = date(int(tahun),1,1)
-    # tanggalakhir = date(int(tahun),12,31)
+    tanggalmulai = date(int(tahun),1,1)
+    tanggalakhir = date(int(tahun),12,31)
     lokasi = "WIP"
     listdata,saldoawal = calculate_ksbj(kodeartikelobj,lokasi,tahun)
     print(listdata)
@@ -7854,15 +7987,25 @@ def eksportksbjproduksi(request,id,lokasi,tahun):
         "Keluar":[],
         "Sisa":[],
     }
+    if saldoawal:
+        datamodelsksbj["Tanggal"].append(tanggalmulai.strftime('%Y-%m-%d'))
+        datamodelsksbj['SPK'].append('')
+        datamodelsksbj['Kode Produk'].append('')
+        datamodelsksbj['Masuk Lembar'].append('')
+        datamodelsksbj["Masuk Konversi"].append('')
+        datamodelsksbj['Hasil'].append('')
+        datamodelsksbj['Keluar'].append('')
+        datamodelsksbj["Sisa"].append(saldoawal.Jumlah)
     for item in listdata:
         datamodelsksbj["Tanggal"].append(item['Tanggal'])
         dummy = []
         for data in item['SPK']:
             if data.DetailSPK == None:
-                dummy.append('-')
+                dummy.append('')
             else:
                 dummy.append(data.DetailSPK.NoSPK.NoSPK)
-        datamodelsksbj['SPK'].append(dummy)
+        spk_string = ', '.join(dummy)  # Gabung elemen-elemen list menjadi string
+        datamodelsksbj['SPK'].append(spk_string)
         datamodelsksbj['Kode Produk'].append(item['Kodeproduk'])
         datamodelsksbj['Masuk Lembar'].append(item['Masuklembar'])
         datamodelsksbj["Masuk Konversi"].append(item['Masukkonversi'])
@@ -7874,8 +8017,8 @@ def eksportksbjproduksi(request,id,lokasi,tahun):
 
     lokasi = "FG"
     listdata,saldoawal = calculate_ksbj(kodeartikelobj,lokasi,tahun)
-    print(listdata)
-    print(listdata[0].keys())
+    # print(listdata)
+    # print(listdata[0].keys())
     # print(asd)
     datamodelsksbjfg = {
         'Tanggal': [],
@@ -7886,13 +8029,20 @@ def eksportksbjproduksi(request,id,lokasi,tahun):
         'Sisa': [],
     }
     sisaakhir = 0
+    if saldoawal:
+        datamodelsksbjfg["Tanggal"].append(tanggalmulai.strftime('%Y-%m-%d'))
+        datamodelsksbjfg["Penyerahan WIP"].append('')
+        datamodelsksbjfg["Keluar"].append('')
+        datamodelsksbjfg["Nomor SPPB"].append('')
+        datamodelsksbjfg["Jumlah Kirim"].append('')
+        datamodelsksbjfg["Sisa"].append(saldoawal.Jumlah)
     for item in listdata:
         index = 0
         if len(item['DetailSPPB']) > 1:
             for data in item['DetailSPPB']:
-                print(item)
-                print(sisaakhir)
-                print(data.Jumlah)
+                # print(item)
+                # print(sisaakhir)
+                # print(data.Jumlah)
                 # print(asd)
                 datamodelsksbjfg["Tanggal"].append(item['Tanggal'])
                 if index == 0:
@@ -7928,9 +8078,9 @@ def eksportksbjproduksi(request,id,lokasi,tahun):
             else:
                 datamodelsksbjfg["Nomor SPPB"].append(item['DetailSPPB'][0].NoSPPB.NoSPPB)
         sisaakhir = item['Sisa']
-    print(datamodelsksbjfg)
+    # print(datamodelsksbjfg)
     dfksbjfg = pd.DataFrame(datamodelsksbjfg)
-    print(dfksbjfg)
+    # print(dfksbjfg)
 
     buffer = BytesIO()
 

@@ -248,6 +248,26 @@ urlpatterns = [
         viewsproduksi.delete_transaksi_subkon_terima,
         name="delete_transaksi_subkon_terima",
     ),
+    path(
+        "viewproduksiproduksubkon",
+        viewsproduksi.views_produksiproduksubkon,
+        name="view_produksiproduksubkon",
+    ),
+    path(
+        "addsproduksiproduksubkon",
+        viewsproduksi.add_produksiproduksubkon,
+        name="add_produksiproduksubkon",
+    ),
+    path(
+        "updateproduksiproduksubkon/<str:id>",
+        viewsproduksi.update_produksiproduksubkon,
+        name="update_produksiproduksubkon",
+    ),
+    path(
+        "deletesproduksiproduksubkon/<str:id>",
+        viewsproduksi.delete_produksiproduksubkon,
+        name="delete_subkonprodukmasuk",
+    ),
     path("ksbbsubkon", viewsproduksi.view_ksbbsubkon, name="ksbbsubkon"),
     path("ksbjsubkon", viewsproduksi.view_ksbjsubkon, name="ksbjsubkon"),
     path("penyesuaianartikel", viewsproduksi.penyesuaianartikel, name="view_penyesuaianartikel"),

@@ -650,8 +650,6 @@ class Stokadjustmenproduksi (models.Model):
     def __str__(self):
         return f'{self.KodeProduk} - {self.Tanggal} - {self.Jumlah}'
 
-
-
 class transaksimutasikodestok(models.Model):
     KodeProdukAsal = models.ForeignKey(Produk,on_delete=models.CASCADE,related_name='mutasi_produk_asal')
     KodeProdukTujuan = models.ForeignKey(Produk,on_delete=models.CASCADE,related_name='mutasi_produk_tujuan')
@@ -662,3 +660,12 @@ class transaksimutasikodestok(models.Model):
     
     def __str__(self):
         return f'{self.KodeProdukAsal} - {self.KodeProdukTujuan} - {self.Tanggal} - {self.Jumlah}'
+
+class TransaksiProduksiProdukSubkon(models.Model):
+    Tanggal = models.DateField()
+    KodeProduk = models.ForeignKey(ProdukSubkon,on_delete=models.CASCADE)
+    Jumlah = models.FloatField()
+    Keterangan = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f'{self.Tanggal} {self.KodeProduk}'
