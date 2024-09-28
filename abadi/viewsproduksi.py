@@ -5432,7 +5432,7 @@ def add_subkonbahankeluar(request):
         nosuratjalan = request.POST["nosuratjalan"]
         tanggal = request.POST["tanggal"]
 
-        datasj = models.SuratJalanPengirimanBahanBakuSubkon.objects.filter(NoSuratJalan=nosuratjalan).exists()
+        datasj = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.filter(NoSuratJalan__NoSuratJalan=nosuratjalan).exists()
         if datasj:
             messages.error(request, "No Surat Jalan sudah ada")
             return redirect("add_subkonbahankeluar")
@@ -5569,7 +5569,14 @@ def update_subkonbahankeluar(request, id):
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_subkonbahankeluar(request, id):
     dataskk = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.get(IDDetailSJPengirimanSubkon=id)
+    kodesuratjalan = dataskk.NoSuratJalan
     dataskk.delete()
+    ceksuratjalan = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.filter(NoSuratJalan = kodesuratjalan)
+    if ceksuratjalan.count() == 0:
+        suratjalanobj = models.SuratJalanPengirimanBahanBakuSubkon.objects.get(NoSuratJalan = kodesuratjalan)
+        suratjalanobj.save()
+        
+
 
     models.transactionlog(
         user="Produksi",
@@ -5697,6 +5704,7 @@ def update_subkonprodukmasuk(request, id):
         nosuratjalan = request.POST["nosuratjalan"]
         tanggal = request.POST["tanggal"]
         kode_produk = request.POST["kodebarangHiddens"]
+        supplier = request.POST['supplier']
         try:
             produksubkonobj = models.ProdukSubkon.objects.get(IDProdukSubkon=kode_produk)
 
@@ -5714,7 +5722,7 @@ def update_subkonprodukmasuk(request, id):
         else:
             datasjp.NoSuratJalan.NoSuratJalan = nosuratjalan
             datasjp.NoSuratJalan.Tanggal = tanggal
-
+            datasjp.NoSuratJalan.Supplier = supplier
             datasjp.NoSuratJalan.save()
 
             models.transactionlog(
@@ -5767,7 +5775,7 @@ def update_subkonprodukmasuk(request, id):
                     pesan=f"Detail SJ Terima Produk Subkon. Nama Produk : {produksubkon.NamaProduk} Artikel Untuk : {produksubkon.KodeArtikel}  Jumlah : {jumlah} Keterangan : {keterangan}",
                 ).save()
 
-
+            messages.success(request,'Data berhasil diupdate')
             return redirect("view_subkonprodukmasuk")
 
 @login_required
@@ -7919,7 +7927,7 @@ def eksportksbjsubkonperartikel(request,id,tahun):
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
     response["Content-Disposition"] = (
-        f"attachment; filename=KSBJ Subkon {kodeprodukobj.NamaProduk} - {kodeprodukobj.KodeArtikel}.xlsx"
+        f"attachment; filename=KSBJ Subkon {kodeprodukobj.KodeArtikel}.xlsx"
     )
     
     # print('Waktu generate laporan : ',time.time()-waktupersediaan)
