@@ -15,19 +15,52 @@
     <div class="card">
       <div class="card-body">
         <h4 class="card-title">Pemusnahan Bahan Baku</h4>
-        {% if user.groups.first.name != 'ppic' %}
-        <div class="template-demo">
-          <a href="{% url 'add_pemusnahanbarang' %}">
-            <button type="button" class="btn btn-success btn-icon-text">
-              <i class="typcn typcn-plus btn-icon-prepend"></i>
-              Tambah Data
-            </button>
-          </a>
-        </div>
-        {% endif %}
-        <div class="table-responsive pt-3">
-          <table class="table table-bordered" id="myTable">
-            <thead>
+        
+
+
+          {% if user.groups.first.name != 'ppic' %}
+          <div class="template-demo">
+            <a href="{% url 'add_pemusnahanbarang' %}">
+              <button type="button" class="btn btn-success btn-icon-text">
+                <i class="typcn typcn-plus btn-icon-prepend"></i>
+                Tambah Data
+              </button>
+            </a>
+            <a href="{% url 'eksportpemusnahanbahanbaku' tanggalawal tanggalakhir %}">
+              <button type="button" class="btn btn-success btn-icon-text">
+                Eksport Pemusnahan
+              </button>
+            </a>
+          </div>
+          <form action="">
+            <div class="row">
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="tanggal">Pilih Tanggal mulai :</label>
+                <input value="{{tanggalawal}}" type="date" name="mulai" class="form-control mb-2 mr-sm-2 ml-2">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="tanggal">Pilih Tanggal akhir :</label>
+                <input value="{{tanggalakhir}}" type="date" name="akhir" class="form-control mb-2 mr-sm-2 ml-2">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                
+                <button class="btn btn-sm btn-primary mt-4" type="submit">Filter</button>
+              </div>
+              
+            </div>
+          </div>
+        </form>
+          
+          
+          {% endif %}
+          <div class="table-responsive pt-3">
+            <table class="table table-bordered" id="myTable">
+              <thead>
               <tr>
                 <th>Tanggal</th>
                 <th>Kode Bahan Baku</th>

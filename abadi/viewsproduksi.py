@@ -3164,12 +3164,23 @@ def view_rekapproduksi(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_pemusnahan(request):
-    dataproduksi = models.PemusnahanArtikel.objects.all().order_by("-Tanggal")
+    if len(request.GET) == 0:
+        tanggalakhir = datetime.now().date()
+        tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
+        tanggalakhir = tanggalakhir.strftime('%Y-%m-%d')
+    else :
+        tanggalawal = request.GET['mulai']
+        tanggalakhir = request.GET['akhir']
+        if tanggalawal == '':
+            tanggalawal = datetime.min
+        if tanggalakhir == '':
+            tanggalakhir = datetime.max
+    dataproduksi = models.PemusnahanArtikel.objects.filter(Tanggal__range=(tanggalawal,tanggalakhir)).order_by("-Tanggal")
     for i in dataproduksi:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
 
     return render(
-        request, "produksi/view_pemusnahan.html", {"dataproduksi": dataproduksi}
+        request, "produksi/view_pemusnahan.html", {"dataproduksi": dataproduksi,'tanggalawal':tanggalawal,'tanggalakhir':tanggalakhir}
     )
 
 @login_required
@@ -3291,12 +3302,23 @@ def delete_pemusnahan(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_pemusnahanbarang(request):
-    dataproduksi = models.PemusnahanBahanBaku.objects.filter(lokasi__NamaLokasi__in=("WIP","FG")).order_by("-Tanggal")
+    if len(request.GET) == 0:
+        tanggalakhir = datetime.now().date()
+        tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
+        tanggalakhir = tanggalakhir.strftime('%Y-%m-%d')
+    else :
+        tanggalawal = request.GET['mulai']
+        tanggalakhir = request.GET['akhir']
+        if tanggalawal == '':
+            tanggalawal = datetime.min
+        if tanggalakhir == '':
+            tanggalakhir = datetime.max
+    dataproduksi = models.PemusnahanBahanBaku.objects.filter(lokasi__NamaLokasi__in=("WIP","FG"),Tanggal__range=(tanggalawal,tanggalakhir)).order_by("-Tanggal")
     for i in dataproduksi:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
 
     return render(
-        request, "produksi/view_pemusnahanbarang.html", {"dataproduksi": dataproduksi}
+        request, "produksi/view_pemusnahanbarang.html", {"dataproduksi": dataproduksi,'tanggalawal':tanggalawal,'tanggalakhir':tanggalakhir}
     )
 
 @login_required
@@ -3406,12 +3428,23 @@ def delete_pemusnahanbarang(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_pemusnahanproduksubkon(request):
-    dataproduksi = models.PemusnahanProdukSubkon.objects.all().order_by("-Tanggal")
+    if len(request.GET) == 0:
+        tanggalakhir = datetime.now().date()
+        tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
+        tanggalakhir = tanggalakhir.strftime('%Y-%m-%d')
+    else :
+        tanggalawal = request.GET['mulai']
+        tanggalakhir = request.GET['akhir']
+        if tanggalawal == '':
+            tanggalawal = datetime.min
+        if tanggalakhir == '':
+            tanggalakhir = datetime.max
+    dataproduksi = models.PemusnahanProdukSubkon.objects.filter(Tanggal__range = (tanggalawal,tanggalakhir)).order_by("-Tanggal")
     for i in dataproduksi:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
 
     return render(
-        request, "produksi/view_pemusnahanproduksubkon.html", {"dataproduksi": dataproduksi}
+        request, "produksi/view_pemusnahanproduksubkon.html", {"dataproduksi": dataproduksi,'tanggalawal':tanggalawal,'tanggalakhir':tanggalakhir}
     )
 
 @login_required
@@ -3522,12 +3555,23 @@ def delete_pemusnahanproduksubkon(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_pemusnahanbarangsubkon(request):
-    dataproduksi = models.PemusnahanBahanBakuSubkon.objects.filter(lokasi__NamaLokasi__in=("WIP","FG")).order_by("-Tanggal")
+    if len(request.GET) == 0:
+        tanggalakhir = datetime.now().date()
+        tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
+        tanggalakhir = tanggalakhir.strftime('%Y-%m-%d')
+    else :
+        tanggalawal = request.GET['mulai']
+        tanggalakhir = request.GET['akhir']
+        if tanggalawal == '':
+            tanggalawal = datetime.min
+        if tanggalakhir == '':
+            tanggalakhir = datetime.max
+    dataproduksi = models.PemusnahanBahanBakuSubkon.objects.filter(lokasi__NamaLokasi__in=("WIP","FG"), Tanggal__range = (tanggalawal,tanggalakhir)).order_by("-Tanggal")
     for i in dataproduksi:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
 
     return render(
-        request, "produksi/view_pemusnahanbarangsubkon.html", {"dataproduksi": dataproduksi}
+        request, "produksi/view_pemusnahanbarangsubkon.html", {"dataproduksi": dataproduksi,'tanggalawal':tanggalawal,'tanggalakhir':tanggalakhir}
     )
 
 @login_required
@@ -6103,6 +6147,7 @@ def calculateksbjsubkon(produk,tanggal_mulai,tanggal_akhir):
     dataterima = models.TransaksiSubkon.objects.filter(
         KodeProduk=produk.IDProdukSubkon, Tanggal__range=(tanggal_mulai, tanggal_akhir)
     )
+    dataproduksisubkon = models.TransaksiProduksiProdukSubkon.objects.filter(KodeProduk = produk,Tanggal__range = (tanggal_mulai,tanggal_akhir))
 
     dataproduksi = models.DetailSuratJalanPenerimaanProdukSubkon.objects.filter(
         KodeProduk = produk.IDProdukSubkon,
@@ -6114,9 +6159,10 @@ def calculateksbjsubkon(produk,tanggal_mulai,tanggal_akhir):
     tanggalmasuk = dataterima.values_list("Tanggal", flat=True)
     tanggalkeluar = dataproduksi.values_list("NoSuratJalan__Tanggal", flat=True)
     tanggalpemusnahan = datapemusnahan.values_list('Tanggal',flat=True)
+    tanggalprodukksi = dataproduksisubkon.values_list("Tanggal",flat=True)
     # tanggalpemusnahan = pemusnahanobj.values_list("Tanggal", flat=True)
 
-    listtanggal = sorted(list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalpemusnahan))))
+    listtanggal = sorted(list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalpemusnahan).union(tanggalprodukksi))))
 
     ''' SALDO AWAL SECTION '''
     try:
@@ -6151,6 +6197,12 @@ def calculateksbjsubkon(produk,tanggal_mulai,tanggal_akhir):
         for m in datamasuk:
             masuk += m.Jumlah
         sisa  += masuk
+        data['Masuk'] = masuk
+        
+        dataproduksimasuk = dataproduksisubkon.filter(Tanggal = i)
+        for m in dataproduksimasuk:
+            masuk += m.Jumlah
+        sisa += masuk
         data['Masuk'] = masuk
         
         # Data Keluar
@@ -7904,6 +7956,13 @@ def eksportksbjsubkon(request,id,tahun):
     dfksbjsubkon = pd.DataFrame(datamodels)
     buffer = BytesIO()
 
+    if dfksbjsubkon.empty:
+        messages.error(request,f'Tidak dapat mengeksport, tidak ada data transaksi')
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+            return redirect(back_url)
+        else:
+            return('ksbjsubkon')
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         # Laporan Persediaan Section
         # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
@@ -7939,7 +7998,262 @@ def eksportksbjsubkon(request,id,tahun):
     # print('Waktu Proses : ', time.time()-waktuawalproses)
     return response
     
+def eksportpemusnahanbahanbaku (request,tanggalawal,tanggalakhir):
+    print(tanggalawal)
+    print(tanggalakhir)
+    pemusnahanobj = models.PemusnahanBahanBaku.objects.filter(Tanggal__range = (tanggalawal,tanggalakhir),lokasi__NamaLokasi__in=('WIP','FG')).order_by('Tanggal')
+    datamodels ={
+        'Tanggal' : [],
+        'Kode Bahan Baku' : [],
+        'Nama Bahan Baku' : [],
+        'Satuan': [],
+        'Lokasi' : [],
+        'Jumlah' : [],
+        'Keterangan' : [],
+    }
+    for data in pemusnahanobj:
+        datamodels['Tanggal'].append(data.Tanggal.strftime('%Y-%m-%d'))
+        datamodels['Kode Bahan Baku'].append(data.KodeBahanBaku.KodeProduk)
+        datamodels['Nama Bahan Baku'].append(data.KodeBahanBaku.NamaProduk)
+        datamodels['Satuan'].append(data.KodeBahanBaku.unit)
+        datamodels['Lokasi'].append(data.lokasi)
+        datamodels['Jumlah'].append(data.Jumlah)
+        datamodels['Keterangan'].append(data.Keterangan)
+    dfpemsunahan = pd.DataFrame(datamodels)
+    buffer = BytesIO()
 
+    if dfpemsunahan.empty:
+        messages.error(request,f'Tidak dapat mengeksport, tidak ada data transaksi')
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+            return redirect(back_url)
+        else:
+            return('ksbjsubkon')
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        # Laporan Persediaan Section
+        # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+        dfpemsunahan.to_excel(writer, index=False, startrow=2, sheet_name=f"Pemusnahan Bahan Baku Produksi")
+        writer.sheets[f"Pemusnahan Bahan Baku Produksi"].cell(row=1, column = 1,value =f"PEMUSNAHAN BAHAN BAKU PRODUKSI")
+        writer.sheets[f"Pemusnahan Bahan Baku Produksi"].cell(row=2, column = 1,value =f"PERIODE : {tanggalawal} - {tanggalakhir}")
+
+
+        maxrow = len(dfpemsunahan)+1
+        maxcol = len(dfpemsunahan.columns)
+        apply_number_format(writer.sheets[f"Pemusnahan Bahan Baku Produksi"],3,maxrow+2,1,maxcol)
+        apply_borders_thin(writer.sheets[f"Pemusnahan Bahan Baku Produksi"],3,maxrow+2,maxcol)
+        adjust_column_width(writer.sheets[f"Pemusnahan Bahan Baku Produksi"],dfpemsunahan,1,1)
+
+    buffer.seek(0)
+    # print('tes')
+    wb = load_workbook(buffer)
+   
+    # Save the workbook back to the buffer
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    # Create the HTTP response
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = (
+        f"attachment; filename=Pemusnahan Bahan Baku Produksi.xlsx"
+    )
+    
+    # print('Waktu generate laporan : ',time.time()-waktupersediaan)
+    # print('Waktu Proses : ', time.time()-waktuawalproses)
+    return response
+def eksportpemusnahanbahanbakusubkon (request,tanggalawal,tanggalakhir):
+    pemusnahanobj = models.PemusnahanBahanBakuSubkon.objects.filter(Tanggal__range = (tanggalawal,tanggalakhir),lokasi__NamaLokasi__in=('WIP','FG')).order_by('Tanggal')
+    datamodels ={
+        'Tanggal' : [],
+        'Kode Bahan Baku' : [],
+        'Nama Bahan Baku' : [],
+        'Satuan': [],
+        'Lokasi' : [],
+        'Jumlah' : [],
+        'Keterangan' : [],
+    }
+    for data in pemusnahanobj:
+        datamodels['Tanggal'].append(data.Tanggal.strftime('%Y-%m-%d'))
+        datamodels['Kode Bahan Baku'].append(data.KodeBahanBaku.KodeProduk)
+        datamodels['Nama Bahan Baku'].append(data.KodeBahanBaku.NamaProduk)
+        datamodels['Satuan'].append(data.KodeBahanBaku.unit)
+        datamodels['Lokasi'].append(data.lokasi)
+        datamodels['Jumlah'].append(data.Jumlah)
+        datamodels['Keterangan'].append(data.Keterangan)
+    dfpemsunahan = pd.DataFrame(datamodels)
+    buffer = BytesIO()
+
+    if dfpemsunahan.empty:
+        messages.error(request,f'Tidak dapat mengeksport, tidak ada data transaksi')
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+            return redirect(back_url)
+        else:
+            return('ksbjsubkon')
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        # Laporan Persediaan Section
+        # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+        dfpemsunahan.to_excel(writer, index=False, startrow=2, sheet_name=f"Pemusnahan Bahan Baku Subkon")
+        writer.sheets[f"Pemusnahan Bahan Baku Subkon"].cell(row=1, column = 1,value =f"PEMUSNAHAN BAHAN BAKU SUBKON")
+        writer.sheets[f"Pemusnahan Bahan Baku Subkon"].cell(row=2, column = 1,value =f"PERIODE : {tanggalawal} - {tanggalakhir}")
+
+
+        maxrow = len(dfpemsunahan)+1
+        maxcol = len(dfpemsunahan.columns)
+        apply_number_format(writer.sheets[f"Pemusnahan Bahan Baku Subkon"],3,maxrow+2,1,maxcol)
+        apply_borders_thin(writer.sheets[f"Pemusnahan Bahan Baku Subkon"],3,maxrow+2,maxcol)
+        adjust_column_width(writer.sheets[f"Pemusnahan Bahan Baku Subkon"],dfpemsunahan,1,1)
+
+    buffer.seek(0)
+    # print('tes')
+    wb = load_workbook(buffer)
+   
+    # Save the workbook back to the buffer
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    # Create the HTTP response
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = (
+        f"attachment; filename=Pemusnahan Bahan Baku Subkon.xlsx"
+    )
+    
+    # print('Waktu generate laporan : ',time.time()-waktupersediaan)
+    # print('Waktu Proses : ', time.time()-waktuawalproses)
+    return response
+
+def eksportpemusnahanproduksubkon (request,tanggalawal,tanggalakhir):
+    pemusnahanobj = models.PemusnahanProdukSubkon.objects.filter(Tanggal__range = (tanggalawal,tanggalakhir)).order_by('Tanggal')
+    datamodels ={
+        'Tanggal' : [],
+        'Artikel Peruntukan' : [],
+        'Nama Bahan Baku' : [],
+        'Satuan': [],
+        'Jumlah' : [],
+        'Keterangan' : [],
+    }
+    for data in pemusnahanobj:
+        datamodels['Tanggal'].append(data.Tanggal.strftime('%Y-%m-%d'))
+        datamodels['Artikel Peruntukan'].append(data.KodeProdukSubkon.KodeArtikel.KodeArtikel)
+        datamodels['Nama Bahan Baku'].append(data.KodeProdukSubkon.NamaProduk)
+        datamodels['Satuan'].append(data.KodeProdukSubkon.Unit)
+        datamodels['Jumlah'].append(data.Jumlah)
+        datamodels['Keterangan'].append(data.Keterangan)
+    dfpemsunahan = pd.DataFrame(datamodels)
+    buffer = BytesIO()
+
+    if dfpemsunahan.empty:
+        messages.error(request,f'Tidak dapat mengeksport, tidak ada data transaksi')
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+            return redirect(back_url)
+        else:
+            return('ksbjsubkon')
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        # Laporan Persediaan Section
+        # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+        dfpemsunahan.to_excel(writer, index=False, startrow=2, sheet_name=f"Pemusnahan Produk Subkon")
+        writer.sheets[f"Pemusnahan Produk Subkon"].cell(row=1, column = 1,value =f"PEMUSNAHAN PRODUK SUBKON")
+        writer.sheets[f"Pemusnahan Produk Subkon"].cell(row=2, column = 1,value =f"PERIODE : {tanggalawal} - {tanggalakhir}")
+
+
+        maxrow = len(dfpemsunahan)+1
+        maxcol = len(dfpemsunahan.columns)
+        apply_number_format(writer.sheets[f"Pemusnahan Produk Subkon"],3,maxrow+2,1,maxcol)
+        apply_borders_thin(writer.sheets[f"Pemusnahan Produk Subkon"],3,maxrow+2,maxcol)
+        adjust_column_width(writer.sheets[f"Pemusnahan Produk Subkon"],dfpemsunahan,1,1)
+
+    buffer.seek(0)
+    # print('tes')
+    wb = load_workbook(buffer)
+   
+    # Save the workbook back to the buffer
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    # Create the HTTP response
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = (
+        f"attachment; filename=Pemusnahan Produk Subkon.xlsx"
+    )
+    
+    # print('Waktu generate laporan : ',time.time()-waktupersediaan)
+    # print('Waktu Proses : ', time.time()-waktuawalproses)
+    return response
+
+def eksportpemusnahanartikel (request,tanggalawal,tanggalakhir):
+    pemusnahanobj = models.PemusnahanArtikel.objects.filter(Tanggal__range = (tanggalawal,tanggalakhir),lokasi__NamaLokasi__in=('WIP','FG')).order_by('Tanggal')
+    datamodels ={
+        'Tanggal' : [],
+        'Kode Artikel' : [],
+        'Versi' : [],
+        'Lokasi' : [],
+        'Jumlah' : [],
+        'Keterangan' : [],
+    }
+    for data in pemusnahanobj:
+        datamodels['Tanggal'].append(data.Tanggal.strftime('%Y-%m-%d'))
+        datamodels['Kode Artikel'].append(data.KodeArtikel.KodeArtikel)
+        datamodels['Versi'].append(data.VersiArtikel.Versi)
+        datamodels['Lokasi'].append(data.lokasi)
+        datamodels['Jumlah'].append(data.Jumlah)
+        datamodels['Keterangan'].append(data.Keterangan)
+    dfpemsunahan = pd.DataFrame(datamodels)
+    buffer = BytesIO()
+
+    if dfpemsunahan.empty:
+        messages.error(request,f'Tidak dapat mengeksport, tidak ada data transaksi')
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+            return redirect(back_url)
+        else:
+            return('ksbjsubkon')
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        # Laporan Persediaan Section
+        # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
+        dfpemsunahan.to_excel(writer, index=False, startrow=2, sheet_name=f"Pemusnahan Artikel Produksi")
+        writer.sheets[f"Pemusnahan Artikel Produksi"].cell(row=1, column = 1,value =f"PEMUSNAHAN ARTIKEL PRODUKSI")
+        writer.sheets[f"Pemusnahan Artikel Produksi"].cell(row=2, column = 1,value =f"PERIODE : {tanggalawal} - {tanggalakhir}")
+
+
+        maxrow = len(dfpemsunahan)+1
+        maxcol = len(dfpemsunahan.columns)
+        apply_number_format(writer.sheets[f"Pemusnahan Artikel Produksi"],3,maxrow+2,1,maxcol)
+        apply_borders_thin(writer.sheets[f"Pemusnahan Artikel Produksi"],3,maxrow+2,maxcol)
+        adjust_column_width(writer.sheets[f"Pemusnahan Artikel Produksi"],dfpemsunahan,1,1)
+
+    buffer.seek(0)
+    # print('tes')
+    wb = load_workbook(buffer)
+   
+    # Save the workbook back to the buffer
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    # Create the HTTP response
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = (
+        f"attachment; filename=Pemusnahan Artikel Produksi.xlsx"
+    )
+    
+    # print('Waktu generate laporan : ',time.time()-waktupersediaan)
+    # print('Waktu Proses : ', time.time()-waktuawalproses)
+    return response
 
 def apply_number_format(worksheet, start_row, end_row, start_col, end_col, number_format='#,##0.00'):
     for row in worksheet.iter_rows(min_row=start_row, max_row=end_row, min_col=start_col, max_col=end_col):
@@ -8357,6 +8671,8 @@ def eksportksbbsubkonkeseluruhan(request,id,tahun):
             datamodels['Sisa'].append(data['Sisa'])
         
         dfksbbsubkon = pd.DataFrame(datamodels)
+        if dfksbbsubkon.empty:
+            continue
         listdf.append(dfksbbsubkon)
         item.KodeProduk = clean_string(item.KodeProduk)
         listproduk.append(item)
