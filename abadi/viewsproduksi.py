@@ -5570,11 +5570,16 @@ def update_subkonbahankeluar(request, id):
 def delete_subkonbahankeluar(request, id):
     dataskk = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.get(IDDetailSJPengirimanSubkon=id)
     kodesuratjalan = dataskk.NoSuratJalan
-    dataskk.delete()
+    # dataskk.delete()
     ceksuratjalan = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.filter(NoSuratJalan = kodesuratjalan)
-    if ceksuratjalan.count() == 0:
-        suratjalanobj = models.SuratJalanPengirimanBahanBakuSubkon.objects.get(NoSuratJalan = kodesuratjalan)
-        suratjalanobj.save()
+    ceksuratjalan = ceksuratjalan.exclude(pk = dataskk.pk)
+    print(ceksuratjalan)
+    # print(asd)
+    if not ceksuratjalan.exists() :
+        suratjalanobj = models.SuratJalanPengirimanBahanBakuSubkon.objects.get(NoSuratJalan = kodesuratjalan.NoSuratJalan)
+        suratjalanobj.delete()
+    else:
+        dataskk.delete()
         
 
 
@@ -5782,7 +5787,16 @@ def update_subkonprodukmasuk(request, id):
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_subkonprodukmasuk(request, id):
     dataskk = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPenerimaanSubkon=id)
-    dataskk.delete()
+    kodesuratjalan = dataskk.NoSuratJalan
+
+    ceksuratjalan = models.DetailSuratJalanPenerimaanProdukSubkon.objects.filter(NoSuratJalan = kodesuratjalan)
+    ceksuratjalan = ceksuratjalan.exclude(pk = dataskk.pk)
+
+    if not ceksuratjalan.exists() :
+        suratjalanobj = models.SuratJalanPenerimaanProdukSubkon.objects.get(NoSuratJalan = kodesuratjalan.NoSuratJalan)
+        suratjalanobj.delete()
+    else:
+        dataskk.delete()
 
     models.transactionlog(
         user="Produksi",

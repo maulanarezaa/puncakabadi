@@ -553,7 +553,7 @@ class DetailSuratJalanPengirimanBahanBakuSubkon(models.Model):
     Keterangan = models.CharField(max_length=255, null=True, blank=True, default="")
 
     def __str__(self):
-        return f"{self.NoSuratJalan} - {self.KodeDisplay} - {self.Jumlah}"
+        return f"{self.NoSuratJalan} - {self.KodeBahanBaku} - {self.Jumlah}"
 
 
 # Untuk Surat Jalan Penerimaan Produk Subkon
