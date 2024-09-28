@@ -64,17 +64,17 @@
                                 <td colspan="3">Saldo Awal</td>
                                 <td>{{datasaldoawal}}</td>
                             </tr>
-                            {% for tanggal,value in dictdata.items %}
+                            {% for data in dictdata %}
                             <tr>
                                 <td>
-                                    <a style="color: black;" href="{% url 'detailksbbgudang' datasjp.0.KodeProduk tanggal lokasi %}">
+                                    <a style="color: black;" href="{% url 'detailksbbgudang' produkobj.KodeProduk data.Tanggal lokasi %}">
 
-                                        {{tanggal}}
+                                        {{data.Tanggal}}
                                     </a>
                                 </td>
-                                <td>{{value.masuk|separator_ribuan}}</td>
-                                <td>{{value.keluar|separator_ribuan}}</td>
-                                <td>{{value.saldo|separator_ribuan}}</td>
+                                <td>{{data.masuk|separator_ribuan}}</td>
+                                <td>{{data.keluar|separator_ribuan}}</td>
+                                <td>{{data.saldo|separator_ribuan}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

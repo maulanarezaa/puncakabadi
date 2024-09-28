@@ -450,7 +450,7 @@ def detail_barang(request):
         list_masuk = []
         list_keluar = []
         list_sisa = []
-        dictdata = {}
+        dictdata = []
         input_kode = request.GET.get("input_kode")
         input_tahun = request.GET.get("input_tahun")
         pemusnahan = models.PemusnahanBahanBaku.objects.filter(
@@ -530,9 +530,11 @@ def detail_barang(request):
                 messages.warning(request, f"Sisa stok menjadi negatif pada tanggal {i}")
             print(totalkeluar, totalmasuk)
 
-            dummy = {"masuk": totalmasuk, "keluar": totalkeluar, "saldo": sisa}
             i = i.strftime("%Y-%m-%d")
-            dictdata[i] = dummy
+            dummy = {"masuk": totalmasuk, "keluar": totalkeluar, "saldo": sisa,'Tanggal':i}
+            dictdata.append(dummy)
+        print(dictdata)
+        produkobj = models.Produk.objects.get(KodeProduk = input_kode)
         return render(
             request,
             "gudang/detailbarang.html",
@@ -547,7 +549,8 @@ def detail_barang(request):
                 "datasjp": datasjp,
                 "dictdata": dictdata,
                 "datasaldoawal": datasaldoawal,
-                'lokasi' : 'Gudang'
+                'lokasi' : 'Gudang',
+                'produkobj' : produkobj
             },
         )
 
