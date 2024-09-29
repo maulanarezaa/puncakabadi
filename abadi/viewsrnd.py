@@ -890,6 +890,18 @@ def views_penyusun(request):
     5. Apabila tidak ada maka akan dilakukan proses iterasi menggunakan KSBB.
 
     Algoritma KSBB
+    3. Program mendapatkan input berupa kode produk 
+    4. Data tanggal mulai = Awal tahun, Data tanggal akhir = Akhir tahun 
+    5. Mengambil data DetailSuratJalanPembelian dengan kriteria KodeProduk = kode produk input user, NoSuratJalan__Tanggal__range = awal tahun, akhir tahun. 
+    6. mengambil data Transaksi Gudang keluar dengan kriteria Jumlah >= 0 (mengindikasikan barang keluar), KodeProduk = kode produk input user, Tanggal dalam rentang awal tahun hingga akhir tahun
+    7. mengambil data Transaksi Gudang retur dengan kriteria Jumlah < 0 (mengindikasikan barang keluar), KodeProduk = kode produk input user, Tanggal dalam rentang awal tahun hingga akhir tahun
+    8. mengambil data pemusnahan bahan baku  dengan lokasi Gudang, kodeproduk = kode produk input user, Tanggal berada dalam rentanga awal tahun, akhirtahun
+    9. Mengambil data saldo awal bahan baku dengan kriteria kode produk = kode produk input user, Lokasi = Gudang, Tanggal berada dalam rentang awal tahun dan akhir tahun
+    10. Mengiterasi setiap tanggal dari detailsuratjalanpembelian, transaksigudang keluar, transaksigudang retur, dan pemusnahan bahan baku 
+    11. Total Stok = Saldoawal bahan baku + Detail surat jalan pembelian + Transaksi Gudang Retur - pemusnahan bahan baku - transaksi gudang keluar
+    12. Menghitung harga satuan = harga total / total stok (perhitungan menggunakan weighted average)
+    13. Apabila ada pembagian dengan hasil Null / pembagi 0 maka akan diset menjadi 0
+    
 
     '''
     print(request.GET)
@@ -1253,69 +1265,85 @@ def views_penyusun(request):
             )
 
 
-@login_required
-@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
-def tambahversi(request, id):
+# @login_required
+# @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
+# def tambahversi(request, id):
+   
     
-    data = models.Artikel.objects.get(id=id)
-    bahanbaku = models.Produk.objects.all()
-    tanggal = date.today().strftime("%Y-%m-%d")
-    # print(request.META)
-    # print(request.META['HTTP_REFERER'])
-    print(tanggal)
-    if request.method == "GET":
-        if 'HTTP_REFERER' in request.META:
-            back_url = request.META['HTTP_REFERER']
-        else:
-            back_url = '/rnd/penyusun'  # URL default jika tidak ada referer
-        return render(
-            request,
-            "rnd/tambah_versi.html",
-            {"data": data, "versi": tanggal, "dataproduk": bahanbaku,'backurl':back_url},
-        )
-    else:
-        print(request.POST)
-        kodeproduk = request.POST.getlist("kodeproduk")
-        status = request.POST.getlist("Status")
-        lokasi = request.POST.getlist("lokasi")
-        kuantitas = request.POST.getlist("kuantitas")
-        tanggal = request.POST["versi"]
-        allowance = request.POST.getlist("allowance")
-        # print(asdas)
-        if status.count("True") > 1:
-            messages.error(request, "Terdapat Artikel utama lebih dari 1")
-            return redirect("add_versi", id=id)
-        dataproduk = list(zip(kodeproduk, status, lokasi, kuantitas, allowance))
-        print(dataproduk)
-        for i in dataproduk:
-            try:
-                produkobj = models.Produk.objects.get(KodeProduk=i[0])
-            except:
-                messages.error(request, f"Data artikel {i[0]} tidak ditemukan")
-                continue
-            newpenyusun = models.Penyusun(
-                KodeProduk=produkobj,
-                KodeArtikel=data,
-                Status=i[1],
-                Lokasi=models.Lokasi.objects.get(NamaLokasi=i[2]),
-                versi=tanggal,
-            )
-            newpenyusun.save()
-            datanewpenyusun = models.Penyusun.objects.all().last()
-            konversimasterobj = models.KonversiMaster(
-                KodePenyusun=datanewpenyusun, Kuantitas=i[3], Allowance=i[4]
-            )
-            konversimasterobj.save()
+#     data = models.Artikel.objects.get(id=id)
+#     bahanbaku = models.Produk.objects.all()
+#     tanggal = date.today().strftime("%Y-%m-%d")
+#     # print(request.META)
+#     # print(request.META['HTTP_REFERER'])
+#     print(tanggal)
+#     if request.method == "GET":
+#         if 'HTTP_REFERER' in request.META:
+#             back_url = request.META['HTTP_REFERER']
+#         else:
+#             back_url = '/rnd/penyusun'  # URL default jika tidak ada referer
+#         return render(
+#             request,
+#             "rnd/tambah_versi.html",
+#             {"data": data, "versi": tanggal, "dataproduk": bahanbaku,'backurl':back_url},
+#         )
+#     else:
+#         print(request.POST)
+#         kodeproduk = request.POST.getlist("kodeproduk")
+#         status = request.POST.getlist("Status")
+#         lokasi = request.POST.getlist("lokasi")
+#         kuantitas = request.POST.getlist("kuantitas")
+#         tanggal = request.POST["versi"]
+#         allowance = request.POST.getlist("allowance")
+#         # print(asdas)
+#         if status.count("True") > 1:
+#             messages.error(request, "Terdapat Artikel utama lebih dari 1")
+#             return redirect("add_versi", id=id)
+#         dataproduk = list(zip(kodeproduk, status, lokasi, kuantitas, allowance))
+#         print(dataproduk)
+#         for i in dataproduk:
+#             try:
+#                 produkobj = models.Produk.objects.get(KodeProduk=i[0])
+#             except:
+#                 messages.error(request, f"Data artikel {i[0]} tidak ditemukan")
+#                 continue
+#             newpenyusun = models.Penyusun(
+#                 KodeProduk=produkobj,
+#                 KodeArtikel=data,
+#                 Status=i[1],
+#                 Lokasi=models.Lokasi.objects.get(NamaLokasi=i[2]),
+#                 versi=tanggal,
+#             )
+#             newpenyusun.save()
+#             datanewpenyusun = models.Penyusun.objects.all().last()
+#             konversimasterobj = models.KonversiMaster(
+#                 KodePenyusun=datanewpenyusun, Kuantitas=i[3], Allowance=i[4]
+#             )
+#             konversimasterobj.save()
 
-        return redirect(
-            f"/rnd/penyusun?kodeartikel={quote(data.KodeArtikel)}&versi={tanggal}"
-        )
+#         return redirect(
+#             f"/rnd/penyusun?kodeartikel={quote(data.KodeArtikel)}&versi={tanggal}"
+#         )
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def tambahversibaru(request, id):
     '''
     Fitur ini digunakan untuk menambahkan data versi pada artikel
+    
+    Algoritma :
+    1. mendapatkan data Artikel dengan parameter id(primarykey) = id (didapatkan dari passing values HTML)
+    2. menampilkan form input versi
+    3. Program mendapatkan input berupa list kode produk, list status, list lokasi, list kuantitas, list allowance, Tanggal versi, keteranganversi
+    4. Program akan cek apakah ada bahan baku penyusun utama lebih dari 1 pada list status
+    5. Kalau ada maka akan menampilkan pesan error.
+    6. program akan cek kode versi apakah sudah ada untuk artikel tersebut 
+    7. Apabila ada maka akan menampilkan pesan eror
+    8. Membuat Versi Object dengan KodeArtikel = artikel, Versi = input kode versi, Keterangan = input keterangan versi 
+    9. menyimpan data versi
+    10. Mengiterasi data list produk
+    11. membuat object penyusun dengan kriteria Kode Produk = produk iterasi, Kode artikel = artikel, Status = status iterasi, lokasi = lokasi iterasi, kodeversi = objects terakhir pada tabel versi, kuantitas = kuantitas iterasi, allowance = allowance iterasi
+    12. Menyimpan data penyusun
+
     '''
     print(id)
     data = models.Artikel.objects.get(pk=id)
@@ -1577,6 +1605,14 @@ def tambahdatapenyusunversi(request, id, versi):
 def updatepenyusun(request, id):
     '''
     Fitur ini digunakan untuk melakukan update data bahan penyusun sesuai dengan kode penyusunnya
+    Algoritma : 
+    1. mendapatkan data penysuun dengan kriteria IDKodePenyusun = id (id didapatkan dari passing values HTML)
+    2. menampilkan form update penyusun 
+    3. program menerima input kodeproduk, lokasi, status, kuantitas, allowance, dan kodeversi
+    4. Mengupdate data penyusun dengan kode produk input, lokasi input, status input, kuantitas input, dan allowance input
+    5. menyimpan data penyusun
+    6. Apabila kodeversi berubah, mengupdate data versi
+
     '''
     data = models.Penyusun.objects.get(IDKodePenyusun=id)
     if request.method == "GET":

@@ -31,14 +31,12 @@ urlpatterns = [
         viewsproduksi.delete_detailsppb,
         name="delete_detailsppb",
     ),
-    path("viewproduksi", viewsproduksi.view_produksi, name="view_produksi"),
-    path("addproduksi", viewsproduksi.add_produksi, name="add_produksi"),
-    path(
-        "updateproduksi/<str:id>", viewsproduksi.update_produksi, name="update_produksi"
-    ),
-    path(
-        "deleteproduksi/<str:id>", viewsproduksi.delete_produksi, name="delete_produksi"
-    ),
+    # path(
+    #     "updateproduksi/<str:id>", viewsproduksi.update_produksi, name="update_produksi"
+    # ),
+    # path(
+    #     "deleteproduksi/<str:id>", viewsproduksi.delete_produksi, name="delete_produksi"
+    # ),
     path("mutasikodestok",viewsproduksi.view_transaksimutasistok,name='mutasikodestok'),
     path("addmutasikodestok",viewsproduksi.add_mutasikodestok,name='addmutasikodestok'),
     path("updatemutasikodestok/<str:id>",viewsproduksi.update_mutasikodestok,name='updatemutasikodestok'),

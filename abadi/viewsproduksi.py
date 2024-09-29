@@ -22,6 +22,12 @@ from itertools import zip_longest
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def dashboard(request):
+    '''
+    Fitur ini digunakan untuk menampilkan halaman dashboard dari produksi
+    Algoritma:
+    1. Mengambil semua data Artikel 
+    2. Mencari data penyusun dengan last edit kurang dari 7 hari dari sekarang.
+    '''
     data = models.Artikel.objects.all()
     alldata = []
     for artikel in data:
@@ -147,6 +153,9 @@ def dashboard(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])    
 def load_detailspk(request):
+    '''
+    Fitur ini digunakan untuk supporting Ajax dalam memuat detail SPK berdasarkan Nomor SPK
+    '''
     no_spk = request.GET.get("nomor_spk")
     id_spk = models.SPK.objects.get(NoSPK=no_spk)
     if id_spk.StatusDisplay == False :
@@ -244,6 +253,13 @@ def load_penyusun2(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_spk(request):
+    '''
+    Fitur ini digunakan untuk manajamen data SPK 
+    Algoritma
+    1. mengambil data SPK
+    2. Mengiterasi data SPK
+    3. Mengambik data detailSPK berdasarkan iterasi data spk
+    '''
     dataspk = models.SPK.objects.all().order_by("-Tanggal")
 
     for j in dataspk:
@@ -265,6 +281,22 @@ def view_spk(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_spk(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data SPK
+    Algoritma
+    1. Mengambil data Artikel
+    2. Mengambil data Display
+    3. Menampilkan form input data SPK
+    4. Program mendapatkan input Nomor SPK, Tanggal (terbit), Keterangan, Jenisspk
+    5. Apabila Nomor SPK sudah ada pada sistem sebelumnya maka akan menampilkan pesan error
+    6. membuat object data SPK dengan kriteria NoSPK = nomor spk input, Tanggal = tanggal input, Keterangan = keterangan input, KeteranganACC = False (belum di acc purchasig), StatusAktif = 1 (Aktif), JenisSPK = jenis spk input
+    7. Apabila jenis spk adalah Artikel maka 
+    8. Mengambil list artikel[]
+    9. mengambil list quantity[]
+    10. Mengiterasi artikel dan jumlah 
+    11. membuat data detailSPk Artikel dengan kriteria NoSPK = nospk terakhir, KodeArtikel = kode artikel iterasi, Jumlah = jumlah iterasi
+    12. menyimpan data detailspk
+    '''
     dataartikel = models.Artikel.objects.all()
     datadisplay = models.Display.objects.all()
     if request.method == "GET":
@@ -363,6 +395,21 @@ def add_spk(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def detail_spk(request, id):
+    '''
+    fitur ini digunakan untuk mengupdate data detail SPK
+    Algoritma
+    1. Mengambil data artikel 
+    2. Mengambil data Display
+    3. Mengambil data SPK dengan kriteria id (primarykey) = id (id didapatkan dari passing values HTML)
+    4. memfilter data detailSPK dengan kode SPK = dataspk
+    5. Menampilkan form update data SPK dan detail SPK
+    6. Program menerima input Nomor SPK, Tnaggal, Keterangan, list Artikel, List Jumlah, Status Aktif
+    7. Mengupdate data nomorspk dengan No SPK input
+    8. Cek apabila sudah ada data dengan nomor SPK tersebut maka akan menampilkan pesan error
+    9. mengupdate data Tnaggal, Nomor SPk, keterangan, Status Aktif
+    10. Mengiterasi List Artikel/display, List Jumlah
+    11. Mengupdate data detailSPK
+    '''
     dataartikel = models.Artikel.objects.all().order_by('KodeArtikel')
     datadisplay =models.Display.objects.all().order_by('KodeDisplay')
     dataspk = models.SPK.objects.get(id=id)
@@ -487,6 +534,12 @@ def detail_spk(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_spk(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data SPK
+    Algoritma
+    1. Mendapatkan data SPK dengan id (primarykey) = id ( id berasal dari passing values HTML)
+    2. Menghapus data SPK
+    '''
     dataspk = models.SPK.objects.get(id=id)
     dataspk.delete()
 
@@ -502,6 +555,11 @@ def delete_spk(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_detailspk(request, id):
+    '''
+    Fitur ini digunaakn untuk menhhapus detail SPK Artikel
+    1. mengambil data detailSPK dengan kriteria IDDetailSPK = id (id didapatkan dari passing values HTML)
+    2. Menghapus data detailSPK
+    '''
     datadetailspk = models.DetailSPK.objects.get(IDDetailSPK=id)
     dataspk = models.SPK.objects.get(NoSPK=datadetailspk.NoSPK)
     datadetailspk.delete()
@@ -518,6 +576,11 @@ def delete_detailspk(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_detailspkdisplay(request, id):
+    '''
+    Fitur ini digunaakn untuk menhhapus detail SPK Display
+    1. mengambil data detailSPKDisplay dengan kriteria IDDetailSPK = id (id didapatkan dari passing values HTML)
+    2. Menghapus data detailSPKDisplay
+    '''
     datadetailspk = models.DetailSPKDisplay.objects.get(IDDetailSPK=id)
     dataspk = models.SPK.objects.get(NoSPK=datadetailspk.NoSPK)
     datadetailspk.delete()
@@ -534,6 +597,26 @@ def delete_detailspkdisplay(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def track_spk(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan tracking pada SPK
+    Algoritma
+    1. Mengambil data Artikel
+    2. Mengambil data Display
+    3. Mengambil data SPK dengan kriteria id (primarykey) = id (id didapatkan dari passing values HTML)
+    4. Mengambil data DetailSPK dengan kriteria NoSPK poin 3
+    5. Apabila SPK adalah Display 
+        A. Mengambil data transaksi Gudang  dengan NO SPK Display sana dengan NoSPK poin 3
+        B. Mengambil data transaksi Produksi dengan NO SPK Display sama dengan NoSPK poin 3
+        C. Mengambil data SPPB degan no SPK Display sama dengan NoSPK poin 3
+        D. Menghitung agregasi total permintaan bahan baku
+        E. Menghitung agregasi total pengiriman display
+    6. Apabila SPK adalah Artikel
+        A. Mengambil data transaksi Gudang  dengan NO SPK Artikel sama dengan NoSPK poin 3
+        B. Mengambil data transaksi Produksi dengan NO SPK Artikel sama dengan NoSPK poin 3
+        C. Mengambil data SPPB degan no SPK Artikel sama dengan NoSPK poin 3
+        D. Menghitung agregasi total permintaan bahan baku
+        E. Menghitung agregasi total pengiriman display
+    '''
     dataartikel = models.Artikel.objects.all()
     datadisplay =models.Display.objects.all()
     dataspk = models.SPK.objects.get(id=id)
@@ -601,6 +684,12 @@ def track_spk(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_sppb(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data SPPB
+    Algoritma:
+    1. mengambil data SPPB 
+    2. mengubah format tanggal menjadi YYYY-MM-DD
+    '''
     datasppb = models.SPPB.objects.all().order_by("-Tanggal")
     for i in datasppb:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
@@ -610,6 +699,20 @@ def view_sppb(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_sppb(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data SPPB
+    1. Mengambil data bahan baku
+    2. Mengambil data Artikel
+    3. Mengambil data Display 
+    4. Mengambil data Confirmationorder dengan kriteria StatusAktif = True (mengindikasikan CO masih aktif)
+    5. Menampilkan form input SPPB
+    6. Program mendapatkan input Nomor SPBB, Tanggal, Keterangan, list detailspkdisplay, list quantyty display, list purchase order
+    7. Apabila no spbb sudah ada pada sistem maka akan menampilkan pesan error
+    8. mengambil data list detailspk, list quantity, list purchase order, list versiartikel, list kodebahan, list quantity bahan, list purchaseorder
+    9. mengiterasi list bahanlist, list jumlahbahan, list confirmation order
+    10. membuat objek detailSPPB dengan kriteria noSPPB = no SPPB, DetailBahan= kodebahan, Jumlah = jumlah bahan iterasi
+    11. Menyimpan data detailSPPB
+    '''
     databahan = models.Produk.objects.all()
     dataartikel = models.Artikel.objects.all()
     datadisplay = models.Display.objects.all()
@@ -759,6 +862,21 @@ def add_sppb(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def detail_sppb(request, id):
+    '''
+    Fitur ini digunakan untuk mengupdate data detailSPPB
+    Algoritma:
+    1. Mendapatkan data Produk 
+    2. mendapatkan data Artikel
+    3. Mendapatkdan data Display
+    4. Mendapatkan data detail SPK
+    5. Menampilkan data detailSPK
+    6. Menampilkan data detailSPKDisplay
+    7. Mendapatkan data DetailSPPB
+    8. Mendapatkan data detailSPPBDisplay
+    9. mendapatkan data Confirmationorder
+    10. Menanmpilkan form update data SPPB
+    11. Mendapatkan data
+    '''
     
     databahan = models.Produk.objects.all()
     dataartikel = models.Artikel.objects.all().order_by('KodeArtikel')
@@ -1001,6 +1119,12 @@ def detail_sppb(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_sppb(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data SPPB
+    Algoritma : 
+    1. Mendapatkan data SPPB dengan id (primarykey) =  id (id didapatkan dari passing values id)
+    2. menghapus data SPPB
+    '''
     datasppb = models.SPPB.objects.get(id=id)
     datasppb.delete()
 
@@ -1016,6 +1140,12 @@ def delete_sppb(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_detailsppb(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus detail SPPB
+    Algoritma:
+    1. mengambil data detailSPPB dengan kriteria IDDetailSPPB = id (id didapatkan dari passing values html)
+    2. menghapus data detailSPPB
+    '''
     datadetailsppb = models.DetailSPPB.objects.get(IDDetailSPPB=id)
     datasppb = models.SPPB.objects.get(NoSPPB=datadetailsppb.NoSPPB)
     datadetailsppb.delete()
@@ -1049,6 +1179,14 @@ def delete_detailsppb(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_mutasi(request):
+    '''
+    Fitur ini diguankan untuk melakukan manajemen data Transaksi Mutasi WIP-FG
+    Algoritma:
+    1. Menentukan data Tanggal awal default adalah awal bulan 
+    2. Menentukan data tanggal akhir,default adalah tanggal user mengakses
+    3. mengambil data transaksi produki dengan kriteria Tanggal berada pada rentang tanggal awal dan tanggal akhir
+    4. mengubah format tanggal menjadi yyyy-mm-dd
+    '''
     if len(request.GET) == 0:
         tanggalakhir = datetime.now().date()
         tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
@@ -1071,6 +1209,14 @@ def view_mutasi(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_mutasidetailsppb(request):
+    '''
+    Fitur ini digunakan untuk melihat data detail mutasi FG - Keluar
+    Algoritma :
+    1. Menentukan tanggal awal, default adalah awal bulan 
+    2. Menentukan tanggal akhir, default adalah tanggal user mengakses
+    3. mengambil data detailSPBB dengan kriteria Tanggal berada dalam rentang tanggal awal dan tanggalakhir
+    4. Mengubah format tanggal menjadi YYYY-MM-DD
+    '''
     if len(request.GET) == 0:
         tanggalakhir = datetime.now().date()
         tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
@@ -1092,19 +1238,6 @@ def view_mutasidetailsppb(request):
         request, "produksi/view_mutasisppb.html", {"dataproduksi": dataproduksi,'tanggalawal':tanggalawal,'tanggalakhir':tanggalakhir}
     )
 
-@login_required
-@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
-def view_produksi(request):
-    dataproduksi = models.TransaksiProduksi.objects.filter(Jenis="Produksi").order_by(
-        "-Tanggal", "KodeArtikel"
-    )
-    for i in dataproduksi:
-        i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
-
-    return render(
-        request, "produksi/view_produksi.html", {"dataproduksi": dataproduksi}
-    )
-
 def loadversiartikel(request):
     print(request.GET)
     kodeartikel = request.GET.get('kodeartikel')
@@ -1116,6 +1249,24 @@ def loadversiartikel(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_mutasi(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data mutasi WIP-FG pada produksi
+    Algoritma : 
+    1. Mengambil data ARtikel
+    2. Mengambil data DIsplay
+    3. Mengambil data SPK dengan kriteria StatusAKtif = True 
+    4. Menampilkan input form transaksi mutasi 
+    5. Program mendapatkan input List KodeArtikel, List Kode Display, tanggal, List Jumlah, list keterangan, list detailspk, list versiartikel
+    6. Apabila mutasi artikel
+        A. mengiterasi List kode artikel, list jumlah, ist keterangan, list detail spk, list versiartikel
+        B. membuat object Transaksi produksi dengan KodeArtikel = kode artikel iterasi, lokasi = WIP, Tanggal = tanggal input, Jumlah = jumlah iterasi, Keterangan = keterangan iterasi, Jenis = 'Mutasi', Detailspk = detailspk iterasi, versiartikel = detailversi iterasi
+        C. Menyimpan data mutasi artikel
+    7. Apabila mutasi DIsplay
+        A. Mengiterasi list kode display, list jumlah, list keterangan, list detailspk
+        B. membuat object transaksi produksi dengan kode display = kode display iterasi, lokasi = WIP, Tanggal = tanggal input, Jumlah = jumlah iterasi, Keterangan = keterangan iterasi, Jenis ' Mutasi', Detail SPK DIsplau = detail spk iterasi
+        C. menyimapn data mutasi display
+    '''
+
     if request.method == "GET":
         data_artikel = models.Artikel.objects.all()
         data_display = models.Display.objects.all()
@@ -1238,102 +1389,71 @@ def add_mutasi(request):
 
         return redirect("view_mutasi")
 
-@login_required
-@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
-def add_produksi(request):
-    if request.method == "GET":
-        data_artikel = models.Artikel.objects.all()
-        data_spk = models.SPK.objects.all()
 
-        return render(
-            request,
-            "produksi/add_produksi.html",
-            {"kode_artikel": data_artikel, "data_spk": data_spk},
-        )
+# @login_required
+# @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+# def update_produksi(request, id):
+    
+#     produksiobj = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
+#     data_artikel = models.Artikel.objects.all()
+#     data_spk = models.SPK.objects.all()
 
-    if request.method == "POST":
-        listkode_artikel = request.POST.getlist("kode_artikel[]")
-        tanggal = request.POST["tanggal"]
-        listjumlah = request.POST.getlist("jumlah[]")
-        listketerangan = request.POST.getlist("keterangan[]")
-        listdetail_spk = request.POST.getlist("detail_spk[]")
+#     try:
+#         data_detailspk = models.DetailSPK.objects.filter(
+#             NoSPK=produksiobj.DetailSPK.NoSPK.id
+#         )
+#     except:
+#         data_detailspk = None
 
-        for kode, jumlah, keterangan, detail_spk in zip(
-            listkode_artikel, listjumlah, listketerangan, listdetail_spk
-        ):
-            artikelref = models.Artikel.objects.get(KodeArtikel=kode)
-            lokasiref = models.Lokasi.objects.get(IDLokasi=1)
-            try:
-                detailspkref = models.DetailSPK.objects.get(IDDetailSPK=detail_spk)
-            except:
-                detailspkref = None
+#     if request.method == "GET":
+#         tanggal = datetime.strftime(produksiobj.Tanggal, "%Y-%m-%d")
+#         return render(
+#             request,
+#             "produksi/update_produksi.html",
+#             {
+#                 "produksi": produksiobj,
+#                 "tanggal": tanggal,
+#                 "kode_artikel": data_artikel,
+#                 "data_spk": data_spk,
+#                 "data_detailspk": data_detailspk,
+#             },
+#         )
 
-            data_produksi = models.TransaksiProduksi(
-                KodeArtikel=artikelref,
-                Lokasi=lokasiref,
-                Tanggal=tanggal,
-                Jumlah=jumlah,
-                Keterangan=keterangan,
-                Jenis="Produksi",
-                DetailSPK=detailspkref,
-            ).save()
-            messages.success(request, "Data berhasil disimpan")
+#     elif request.method == "POST":
+#         kode_artikel = request.POST["kode_artikel"]
+#         getartikel = models.Artikel.objects.get(KodeArtikel=kode_artikel)
+#         tanggal = request.POST["tanggal"]
+#         jumlah = request.POST["jumlah"]
+#         keterangan = request.POST["keterangan"]
+#         try:
+#             detail_spk = request.POST["detail_spk"]
+#             detspkobj = models.DetailSPK.objects.get(IDDetailSPK=detail_spk)
+#         except:
+#             detspkobj = None
 
-        return redirect("view_produksi")
+#         produksiobj.KodeArtikel = getartikel
+#         produksiobj.Tanggal = tanggal
+#         produksiobj.Jumlah = jumlah
+#         produksiobj.Keterangan = keterangan
+#         produksiobj.DetailSPK = detspkobj
+#         produksiobj.save()
+#         messages.success(request, "Data berhasil diupdate")
 
-@login_required
-@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
-def update_produksi(request, id):
-    produksiobj = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
-    data_artikel = models.Artikel.objects.all()
-    data_spk = models.SPK.objects.all()
-
-    try:
-        data_detailspk = models.DetailSPK.objects.filter(
-            NoSPK=produksiobj.DetailSPK.NoSPK.id
-        )
-    except:
-        data_detailspk = None
-
-    if request.method == "GET":
-        tanggal = datetime.strftime(produksiobj.Tanggal, "%Y-%m-%d")
-        return render(
-            request,
-            "produksi/update_produksi.html",
-            {
-                "produksi": produksiobj,
-                "tanggal": tanggal,
-                "kode_artikel": data_artikel,
-                "data_spk": data_spk,
-                "data_detailspk": data_detailspk,
-            },
-        )
-
-    elif request.method == "POST":
-        kode_artikel = request.POST["kode_artikel"]
-        getartikel = models.Artikel.objects.get(KodeArtikel=kode_artikel)
-        tanggal = request.POST["tanggal"]
-        jumlah = request.POST["jumlah"]
-        keterangan = request.POST["keterangan"]
-        try:
-            detail_spk = request.POST["detail_spk"]
-            detspkobj = models.DetailSPK.objects.get(IDDetailSPK=detail_spk)
-        except:
-            detspkobj = None
-
-        produksiobj.KodeArtikel = getartikel
-        produksiobj.Tanggal = tanggal
-        produksiobj.Jumlah = jumlah
-        produksiobj.Keterangan = keterangan
-        produksiobj.DetailSPK = detspkobj
-        produksiobj.save()
-        messages.success(request, "Data berhasil diupdate")
-
-        return redirect("view_produksi")
+#         return redirect("view_produksi")
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_mutasi(request, id):
+    '''
+    FItur ini digunakan untuk melakukan update data transaksi produksi
+    Algoritma : 
+    1. mendapatkan data transaksi produksi dengan kriteria idTransaksiProduksi = id (id didapatkan dari passing values HTML)
+    2. Mendapatkan data Artikel
+    3. Mendapatkan data SPK
+    4. Menampilkan form update transaksi produksi 
+    5. program mendapatkan inputan kode artikel, tanggal , jumlah, keterangan, Versi ARtikel
+    6. mengupdate data transaksi produski
+    '''
     produksiobj = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
     data_artikel = models.Artikel.objects.all()
     data_display = models.Display.objects.all()
@@ -1439,16 +1559,12 @@ def update_mutasi(request, id):
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
-def delete_produksi(request, id):
-    dataproduksi = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
-    dataproduksi.delete()
-    messages.success(request, "Data Berhasil dihapus")
-
-    return redirect("view_produksi")
-
-@login_required
-@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_mutasi(request, id):
+    '''
+    Fitur ini digunakan untuk mengahapus data mutasi WIP FG
+    Algoritma : 
+    1. Mengambil data transaksi produksi dengan kriteria IDTransaksiProduksi = id (id didapatkan dari passing values HTML)
+    '''
     dataproduksi = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
     dataproduksi.delete()
     messages.success(request, "Data Berhasil dihapus")

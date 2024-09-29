@@ -132,6 +132,14 @@ def gethargabahanbaku(
 @login_required
 @logindecorators.allowed_users(allowed_roles=["ppic"])
 def dashboard(request):
+    '''
+    Fitur ini digunakan untuk menampilkan dashboard dari PPIC berupa data Confirmation Order yang masih aktif
+    Algoritma :
+    1. Mendapatkan data confirmation order dengan StatusAktif = True 
+    2. Mendapatkan data detailconfirmationorder
+    3. Menampilkan data 
+    
+    '''
     data = models.confirmationorder.objects.filter(StatusAktif=True)
     print(data)
     for i in data:
