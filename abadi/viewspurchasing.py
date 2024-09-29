@@ -30,6 +30,15 @@ from .viewssignal import gethargapurchasingperbulanperproduk
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def acc_subkon(request,id) :
+    '''
+    Fitur ini digunakan untuk melakukan ACC pada produk subkon yang masuk pada perusahaan dari vendor subkon
+    Algoritma :
+    1. Mencari data Detail Surat Jalan penerimaan produk subkon dengan parameter IDDetailSJPenerimaanSubkon = id (id didapatkan dari pasing values html)
+    2. Menampilkan form update konfirmasi produk subkon masuk
+    3. User mengisi form 
+    4. Program mendapat input harga barang, supplier, keterangan, tanggal invoice, No invoice, hargapotongan dan status ppn (True = dipotong ppn, False = Tidak dipotong ppn)
+    5. Mengupdate data pada database
+    '''
     accobj = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPenerimaanSubkon=id)
     print('tes')
     if request.method == "GET" :
@@ -543,6 +552,13 @@ def notif_barang_purchasing(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def accbarangkeluar(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan ACC barang keluar dari Gudang ke produksi
+    Algoritma 
+    1. Mengambil data dari Transaksi Gudang dengan kriteria IDDetailTransaksiGudang = id (id didapatkan dari passing values html)
+    2. Mengubah atribut KeteranganACCPurchasing = True (di acc purchasing)
+    3. Menyimpan dalam database
+    '''
     datagudang = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     datagudang.KeteranganACCPurchasing = True
     datagudang.save()
@@ -554,6 +570,15 @@ def accbarangkeluar(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def verifikasi_data(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan konfirmasi terhadap barang masuk pada gudang pada tabel Surat Jalan pembelian. 
+    Algoritma
+    1. Mendapatkan data detailsuratjalanpembelian dengan kriteria IDDetailSJPembelian = id (id didapatkan dari passing values html)
+    2. mencari data DetailPO dengan kriteria KodeProduk sama seperti Kode produk bahan baku masuk yang akan di ACC dan Status PO = False (False = Belum lunas / Masih aktif, True = Lunas /non aktif)
+    3. menampilkan form update acc bahan baku masuk
+    4. Program mendapat inputan Mata uang, harga satuan, supplier, PO , No Invoice, tanggal invoice
+    5. mengupdate data 
+    '''
     verifobj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
     opsipo = models.DetailPO.objects.filter(KodeProduk = verifobj.KodeProduk,KodePO__Status = False)
     if request.method == "GET":
@@ -614,6 +639,13 @@ def verifikasi_data(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def acc_notif_spk(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan ACC terhadap SPK yang telah diterbitkan oleh produksi
+    Algoritma 
+    1. Mendapatkan data SPK dengan primarykey = id (id didapatkan dari passing html value)
+    2. Mengubah status keteranganACC menjadi True (sudah acc)
+    3. Menyimpan perubahan dalam database
+    '''
 
     accobj = models.SPK.objects.get(pk=id)
     accobj.KeteranganACC = True
@@ -631,6 +663,14 @@ def acc_notif_spk(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def exportbarang_excel(request):
+    '''
+    Fitur ini digunakan untuk melakukan Export data Detail Surat Jalan Pembelian lengkap dengan PPN 
+    Algoritma : 
+    1. Mendapatkan besar PPN
+    2. Mendapatkan rentang waktu filter data
+    3. Filter data Detail surat jalan pembelian dengan rentang waktu yang telah dipilih
+    4. Mengeksport kedalam excel
+    '''
     valueppn = request.GET.get("input_ppn", 11)
     try:
         valueppn = int(valueppn)
@@ -761,6 +801,15 @@ def exportbarang_excel(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def barang_masuk(request):
+    '''
+    Fitur ini digunakan untuk melihat register bahan baku masuk ke gudang
+    Algoritma :
+    1. Insiasi besar PPN. Secara default diatur menjadi 11 %
+    2. Inisiasi Tanggal mulai dan tanggal akhir. Secara default akan diatur menjadi Awal bulan hingga tanggal user mengakses
+    3. Filter data Detail Surat Jalan Pembelian 
+    4. Mengjitung besar PPN tiap detail bahan baku masuk
+    5. Apabila status PPN pada detail Bahan Baku False, maka tidak diikutkan perhitungan potongan PPN
+    '''
     # if request.method ==  'POST' :
     if len(request.POST) == 0 :
         valueppn = 11
@@ -778,11 +827,14 @@ def barang_masuk(request):
  
 
     if len(request.GET) == 0:
+        tanggalsaatini = datetime.now().date()
+        input_awal = date(tanggalsaatini.year,tanggalsaatini.month,1).strftime('%Y-%m-%d')
+        input_terakhir = tanggalsaatini.strftime('%Y-%m-%d')
         list_harga_total1 = []
         list_ppn = []
         list_total_ppn = []
-        sjball = models.DetailSuratJalanPembelian.objects.all().order_by(
-            "NoSuratJalan__Tanggal"
+        sjball = models.DetailSuratJalanPembelian.objects.filter(NoSuratJalan__Tanggal__range=(input_awal,input_terakhir)).order_by(
+            "-NoSuratJalan__Tanggal"
         )
         print(sjball)
         if len(sjball) > 0:
@@ -835,7 +887,9 @@ def barang_masuk(request):
                     "harga_total": harga_total,
                     "harga_ppn" : harga_ppn,
                     "harga_total_ppn" : harga_total_ppn,
-                    "valueppn" : valueppn
+                    "valueppn" : valueppn,
+                    'input_awal':input_awal,
+                    'input_terakhir':input_terakhir
                 },
             )
         else:
@@ -911,6 +965,14 @@ def barang_masuk(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_barang_masuk(request, id):
+    '''
+    Fitur ini digunakan untuk mengupdate detail surat jalan pembelian bahan baku 
+    Algoritma
+    1. Mendapatkan data Detail Surat Jalan Pembelian dengan kriteria IDDetailSJPembelian = id (dimana id didapatkan dari passing values HTML)
+    2. menampilkan form update detail surat jalan pembelian
+    3. Program mendapatkan input berupa Harga Satuan, Harga Dollar (opsional, apabila menginput menggunakan rupiah akan diset menjadi 0),Supplier, PO, Tanggal Invoice (Opsional), No Invoice (Opsional), PPN (Apabila True maka diikutkan perhitungan potongan PPN, Apabila False maka tidak diikutkan perhitungan)
+    4. mengupdate data 
+    '''
     updateobj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
     detailpotersedia = models.DetailPO.objects.filter(KodeProduk = updateobj.KodeProduk,KodePO__Status = False)
     print(detailpotersedia)
@@ -990,6 +1052,14 @@ def update_barang_masuk(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_barangsubkon_masuk(request, id):
+    '''
+    Fitur ini digunakan untuk mengupdate data produk subkon masuk ke perusahaan
+    Algoritma
+    1. Mendapatkan data detail surat jalan penerimaan produk subkon dengan kriteria IDDetailSJPenerimaanSubkon = id (Dimana id didapatkan dari passing values HTML)
+    2. Menampilkan form update Barang subkon masuk
+    3. mendapatkan input dari user terkait Status potongan (True = dipotong, False = Tidak dipotong),Harga satuan, No Invoice (opsional), Tanggal invocie, Harga potongan, supplier
+    4. Mengupdate data
+    '''
     updateobj = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPenerimaanSubkon=id)
     print(updateobj)
     if  updateobj.NoSuratJalan.TanggalInvoice:
@@ -1054,200 +1124,18 @@ def update_barangsubkon_masuk(request, id):
         return redirect("rekaphargasubkon")
         # return JsonResponse({'harga_total': harga_total})
 
-
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
-def rekap_purchasing(request):
-    return render(request, "Purchasing/rekap_purchasing.html")
-
-
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
-def view_rekapbarang(request):
-    tanggal_akhir = request.GET.get("periode")
-    if tanggal_akhir == '':
-        tanggal_akhir = datetime.now().date().strftime('%Y-%m-%d')
-
-    sekarang = datetime.now()
-    tahun = sekarang.year
-
-    tanggal_mulai = datetime(year=tahun, month=1, day=1)
-
-    dataproduk = models.Produk.objects.all()
-    # dataproduk = models.Produk.objects.filter(KodeProduk = 'A-001-07')
-    try:
-
-        lokasi = request.GET['lokasi']
-    except: 
-        lokasi = "WIP"
-
-    if tanggal_akhir:
-        waktustart = time.time()
-        for produk in dataproduk:
-            # cektransaksiproduksi = models.TransaksiGudang.objects.filter(KodeProduk = produk).exists()
-            # cekpemusnahanproduksi = models.PemusnahanBahanBaku.objects.filter(KodeBahanBaku = produk).exists()
-            # cekpenyusun = models.Penyusun.objects.filter(KodeProduk = produk).values_list('KodeVersi__Versi',flat=True)
-            # cekversitransaksiproduksi = models.TransaksiProduksi.objects.filter(VersiArtikel__Versi__in = cekpenyusun).exists()
-            # cekpemusnahanartikel  = models.PemusnahanArtikel.objects.filter(VersiArtikel__in = cekpenyusun).exists()
-            # cekmutasikodestok = models.transaksimutasikodestok.objects.filter(KodeProdukAsal=produk).exists()
-            # cekmutasikodestokkelua = models.transaksimutasikodestok.objects.filter(KodeProdukTujuan=produk).exists()
-            # if cektransaksiproduksi or cekpemusnahanartikel or cekpemusnahanproduksi or cekversitransaksiproduksi or cekmutasikodestok or cekmutasikodestokkelua:
-
-                listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, tanggal_akhir,lokasi)
-
-                if listdata:
-                    produk.kuantitas = listdata[-1]["Sisa"][0]
-                else:
-                    produk.kuantitas = 0
-        endtime = time.time()
-        print('waktu iterasi : ', endtime - waktustart)
-    else:
-        for produk in dataproduk:
-            listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, sekarang,lokasi)
-
-            if listdata:
-                produk.kuantitas = listdata[-1]["Sisa"][0]
-            else:
-                produk.kuantitas = 0
-    return render(
-        request,
-        "Purchasing/rekapproduksi2.html",
-        {"data": dataproduk, "tanggal_akhir": tanggal_akhir,'lokasi':lokasi},
-    )
-
-
-"""REVISI DELETE ADA YANG ERROR, TRS ERROR HANDLING GABOLE CREATE DENGAN KODE YG SAMA(done)"""
-
-
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
-def read_produk(request):
-    produkobj = models.Produk.objects.all().order_by('KodeProduk')
-    return render(request, "Purchasing/read_produk.html", {"produkobj": produkobj})
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
-def read_deletedproduk(request):
-    '''
-    Fitur ini digunakan untuk menampilkan produk yang telah terhapus
-    '''
-    produkobj = models.Produk.objects.isdeleted()
-    print(produkobj)
-    return render(request, "Purchasing/read_deletedproduk.html", {"produkobj": produkobj})
-
-def restore_deletedproduk(request,id):
-    '''
-    Digunakan untuk merestore deleted Produk
-    Algoritma
-    1. Ambil data Objek produk yang akan direstore
-    2. setting Value menjadi False pada atribut isdeleted
-    '''
-    dataobj = get_object_or_404(models.Produk.objects.isdeleted(), pk=id)  
-    dataobj.is_deleted = False
-    dataobj.save()
-    return redirect('read_deletedproduk')
-
-
-
-
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
-def create_produk(request):
-    if request.method == "GET":
-        return render(request, "Purchasing/create_produk.html")
-    else:
-        kode_produk = request.POST["kode_produk"]
-        nama_produk = request.POST["nama_produk"]
-        unit_produk = request.POST["unit_produk"]
-        keterangan_produk = request.POST["keterangan_produk"]
-        jumlah_minimal = 0
-        produkobj = models.Produk.objects.filter(KodeProduk=kode_produk)
-        print(produkobj)
-        if len(produkobj) > 0:
-            messages.error(request, "Kode Produk sudah ada")
-            return redirect("create_produk")
-        else:
-            new_produk = models.Produk(
-                KodeProduk=kode_produk,
-                NamaProduk=nama_produk,
-                unit=unit_produk,
-                keteranganPurchasing=keterangan_produk,
-                TanggalPembuatan=datetime.now(),
-                Jumlahminimal=jumlah_minimal,
-            )
-            new_produk.save()
-            models.transactionlog(
-                user="Purchasing",
-                waktu=datetime.now(),
-                jenis="Create",
-                pesan=f"Kode Produk {kode_produk} sudah di Create",
-            ).save()
-            messages.success(request, "Data berhasil disimpan")
-            return redirect("read_produk")
-
-
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
-def update_produk(request, id):
-    produkobj = models.Produk.objects.get(KodeProduk=id)
-    if request.method == "GET":
-        return render(
-            request, "Purchasing/update_produk.html", {"produkobj": produkobj}
-        )
-    else:
-
-        kode_produk = request.POST["kode_produk"]
-        nama_produk = request.POST["nama_produk"]
-        unit_produk = request.POST["unit_produk"]
-        keterangan_produk = request.POST["keterangan_produk"]
-        jumlah_minimal = request.POST["jumlah_minimal"]
-        namaproduk = models.Produk.objects.filter(KodeProduk=kode_produk).exists()
-        print(namaproduk)
-        print(request.POST)
-        print(id)
-        # print(asd)
-
-        if namaproduk and kode_produk != id:
-            messages.error(request,f'Kode Produk {kode_produk} sudah ada pada sistem')
-            return redirect('update_produk',id = id)
-        produkbaru = models.Produk.objects.get(KodeProduk=id)
-        produkbaru.KodeProduk = kode_produk
-        produkbaru.NamaProduk = nama_produk
-        produkbaru.unit = unit_produk
-        produkbaru.keteranganPurchasing = keterangan_produk
-        produkbaru.Jumlahminimal = jumlah_minimal
-        # print(asd)
-        produkbaru.save()
-        models.transactionlog(
-            user="Purchasing",
-            waktu=datetime.now(),
-            jenis="Update",
-            pesan=f"Kode Produk {kode_produk} sudah di Update",
-        ).save()
-        messages.success(request, "Data berhasil disimpan")
-        return redirect("read_produk")
-
-
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
-def delete_produk(request, id):
-    print(id)
-    produkobj = models.Produk.objects.get(pk=id)
-    # print("delete:",produkobj.KodeProduk)
-    models.transactionlog(
-        user="Purchasing",
-        waktu=datetime.now(),
-        jenis="Delete",
-        pesan=f"Kode Produk {produkobj.KodeProduk} sudah di Delete",
-    ).save()
-    produkobj.delete()
-    # print(asd)
-    messages.success(request, "Data Berhasil dihapus")
-    return redirect("read_produk")
-
-
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def rekap_gudang(request):
+    '''
+    Fitur ini digunakan untuk menghitung rekapitulasi bahan baku gudang saat ini
+    Algoritma 
+    1. Mendapatkan data waktu sekarang
+    2. Mendapatkan semua data produk
+    3. Mengiterasi semua data produk
+    4. Menghitung data stok gudang dengan mengambil data Detail Surat Jalan Pembelian, Saldo Awal Bahan Baku,Transaksi Gudang, dan Pemusnahan Bahan Baku
+    5. Rumus Stok = Saldo Awal Bahan Baku Gudang (lokasi = gudang) +total agregat detailsuratjalanpembelian (bahan baku masuk) + Transaksi Gudang retur (jumlah dibawah 0) - Transaksi Gudang Keluar (jumlah lebih dari sama dengan 0) - Transaksi Pemusnahan Bahan Baku,
+    '''
     sekarang = datetime.now().strftime('%Y-%m-%d')
     listproduk = []
     listnama = []
@@ -1411,111 +1299,237 @@ def rekap_gudang(request):
     # })
 
 
-# def read_po(request):
-#     print(request.GET)
-#     if len(request.GET) == 0:
-#         po_objall = models.SuratJalanPembelian.objects.all()
-#         return render(request, "Purchasing/read_po.html", {'po_objall': po_objall})
-#     else:
-#         input_po = request.GET["input_po"]
-#         if request.method == 'POST' :
-#             sort_by = request.POST["sort_by"]
-#             if sort_by == "tanggal_terbaru":
-#                 po_obj = models.DetailSuratJalanPembelian.objects.filter(
-#                     NoSuratJalan__PO=input_po
-#                 ).order_by("NoSuratJalan__Tanggal")
-#             elif sort_by == "tanggal_terlama":
-#                 po_obj = models.DetailSuratJalanPembelian.objects.filter(
-#                     NoSuratJalan__PO=input_po
-#                 ).order_by("-NoSuratJalan__Tanggal")
-#             else:
-#                 po_obj_lunas = models.DetailSuratJalanPembelian.objects.filter(
-#                     NoSuratJalan__PO=input_po, KeteranganACC=True
-#                 ).order_by("-NoSuratJalan__Tanggal")
-#                 po_obj_tidak_lunas = models.DetailSuratJalanPembelian.objects.filter(
-#                     NoSuratJalan__PO=input_po, KeteranganACC=False
-#                 ).order_by("-NoSuratJalan__Tanggal")
-#                 if sort_by == "lunas":
-#                     po_obj = list(po_obj_lunas) + list(po_obj_tidak_lunas)
-#                 elif sort_by == "tidak_lunas":
-#                     po_obj = list(po_obj_tidak_lunas) + list(po_obj_lunas)
-#         else :
-#             po_obj = models.DetailSuratJalanPembelian.objects.filter(
-#                 NoSuratJalan__PO=input_po
-#             )
-#         if len(po_obj) == 0 :
-#             messages.error(request, "Data tidak ditemukan")
-#             return redirect('read_po')
-#         else :
-#             return render(
-#                 request,
-#                 "Purchasing/read_po.html",
-#                 {"po_obj": po_obj,
-#                  "input_po" :input_po})
-# return render(
-# request,
-# "Purchasing/read_po.html",
-# {"po_obj": po_obj,
-#     "input_po": input_po}
-# )
-
-
-# Tinggal dibikin gimana biar kodenya yang terkirim pas di reload kode itu lagi yang muncul
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
-def read_po(request):
-    print(request.GET)
-    if len(request.GET) == 0:
-        po_objall = models.SuratJalanPembelian.objects.all()
-        return render(request, "Purchasing/read_po.html", {"po_objall": po_objall})
+def view_rekapbarang(request):
+    '''
+    Fitur ini digunakan untuk melihat rekapitulasi barang produksi yang ada pada WIP dan FG
+    Algoritma : 
+    1. Mendapatkan tanggal saat ini 
+    2. Mendapatkan data semua produk yang ada pada database
+    3. Menghitung dengan memanggil fungsi calculate_KSBB dengan mengirimkan parameter Produk Objects, Tanggal mulai (awal tahun), dan tanggal akhir (tanggal sekarang/yang diinput user)
+    4. Menampilkan rekapitulasi Bahan baku pada Produksi
+    '''
+    tanggal_akhir = request.GET.get("periode")
+    if tanggal_akhir == '':
+        tanggal_akhir = datetime.now().date().strftime('%Y-%m-%d')
+
+    sekarang = datetime.now()
+    tahun = sekarang.year
+
+    tanggal_mulai = datetime(year=tahun, month=1, day=1)
+
+    dataproduk = models.Produk.objects.all()
+    # dataproduk = models.Produk.objects.filter(KodeProduk = 'A-001-07')
+    try:
+
+        lokasi = request.GET['lokasi']
+    except: 
+        lokasi = "WIP"
+
+    if tanggal_akhir:
+        waktustart = time.time()
+        for produk in dataproduk:
+            # cektransaksiproduksi = models.TransaksiGudang.objects.filter(KodeProduk = produk).exists()
+            # cekpemusnahanproduksi = models.PemusnahanBahanBaku.objects.filter(KodeBahanBaku = produk).exists()
+            # cekpenyusun = models.Penyusun.objects.filter(KodeProduk = produk).values_list('KodeVersi__Versi',flat=True)
+            # cekversitransaksiproduksi = models.TransaksiProduksi.objects.filter(VersiArtikel__Versi__in = cekpenyusun).exists()
+            # cekpemusnahanartikel  = models.PemusnahanArtikel.objects.filter(VersiArtikel__in = cekpenyusun).exists()
+            # cekmutasikodestok = models.transaksimutasikodestok.objects.filter(KodeProdukAsal=produk).exists()
+            # cekmutasikodestokkelua = models.transaksimutasikodestok.objects.filter(KodeProdukTujuan=produk).exists()
+            # if cektransaksiproduksi or cekpemusnahanartikel or cekpemusnahanproduksi or cekversitransaksiproduksi or cekmutasikodestok or cekmutasikodestokkelua:
+
+                listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, tanggal_akhir,lokasi)
+
+                if listdata:
+                    produk.kuantitas = listdata[-1]["Sisa"][0]
+                else:
+                    produk.kuantitas = 0
+        endtime = time.time()
+        print('waktu iterasi : ', endtime - waktustart)
     else:
-        input_po = request.GET["input_po"]
-        po_obj = models.DetailSuratJalanPembelian.objects.filter(
-            NoSuratJalan__PO=input_po
-        )
-        for item in po_obj:
-            item.NoSuratJalan.Tanggal = item.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
-        if len(po_obj) == 0:
-            messages.error(request, "Data tidak ditemukan")
-            return redirect("read_po")
-        else:
-            return render(
-                request,
-                "Purchasing/read_po.html",
-                {"po_obj": po_obj, "input_po": input_po},
-            )
+        for produk in dataproduk:
+            listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, sekarang,lokasi)
+
+            if listdata:
+                produk.kuantitas = listdata[-1]["Sisa"][0]
+            else:
+                produk.kuantitas = 0
+    return render(
+        request,
+        "Purchasing/rekapproduksi2.html",
+        {"data": dataproduk, "tanggal_akhir": tanggal_akhir,'lokasi':lokasi},
+    )
+
+
+"""REVISI DELETE ADA YANG ERROR, TRS ERROR HANDLING GABOLE CREATE DENGAN KODE YG SAMA(done)"""
+
+
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
-def update_po(request,id) :
-    po_obj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
-    if request.method == "GET" :
+def read_produk(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data terkait Produk
+    Algoritma:
+    1. Mengambil semua data produk dari database
+    2. Menampilkan pada program
+    '''
+    produkobj = models.Produk.objects.all().order_by('KodeProduk')
+    return render(request, "Purchasing/read_produk.html", {"produkobj": produkobj})
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
+def read_deletedproduk(request):
+    '''
+    Fitur ini digunakan untuk menampilkan produk yang telah terhapus
+    '''
+    produkobj = models.Produk.objects.isdeleted()
+    print(produkobj)
+    return render(request, "Purchasing/read_deletedproduk.html", {"produkobj": produkobj})
+
+def restore_deletedproduk(request,id):
+    '''
+    Digunakan untuk merestore deleted Produk
+    Algoritma
+    1. Ambil data Objek produk yang akan direstore
+    2. setting Value menjadi False pada atribut isdeleted
+    '''
+    dataobj = get_object_or_404(models.Produk.objects.isdeleted(), pk=id)  
+    dataobj.is_deleted = False
+    dataobj.save()
+    return redirect('read_deletedproduk')
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
+def create_produk(request):
+    '''
+    Fitur ini digunakan untuk membuat data Produk Baru
+    Algoritma : 
+    1. Menampilkan form input produk 
+    2. Program menerima inputan berupa Kode Produk, Nama Produk, Satuan, dan Keterangan Produk
+    3. Apabila kode produk sudah ada pada sistem maka akan menampilkan pesan error. 
+    4. menyimpan dalam database
+    '''
+    if request.method == "GET":
+        return render(request, "Purchasing/create_produk.html")
+    else:
+        kode_produk = request.POST["kode_produk"]
+        nama_produk = request.POST["nama_produk"]
+        unit_produk = request.POST["unit_produk"]
+        keterangan_produk = request.POST["keterangan_produk"]
+        jumlah_minimal = 0
+        produkobj = models.Produk.objects.filter(KodeProduk=kode_produk)
+        print(produkobj)
+        if len(produkobj) > 0:
+            messages.error(request, "Kode Produk sudah ada")
+            return redirect("create_produk")
+        else:
+            new_produk = models.Produk(
+                KodeProduk=kode_produk,
+                NamaProduk=nama_produk,
+                unit=unit_produk,
+                keteranganPurchasing=keterangan_produk,
+                TanggalPembuatan=datetime.now(),
+                Jumlahminimal=jumlah_minimal,
+            )
+            new_produk.save()
+            models.transactionlog(
+                user="Purchasing",
+                waktu=datetime.now(),
+                jenis="Create",
+                pesan=f"Kode Produk {kode_produk} sudah di Create",
+            ).save()
+            messages.success(request, "Data berhasil disimpan")
+            return redirect("read_produk")
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
+def update_produk(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update Bahan Baku
+    Algoritma : 
+    1. Mendapatkan dara Bahan Baku dengan KodeProduk = id (id didapatkan dari passing values HTML)
+    2. menampilkan form input update bahan baku
+    3. Menerima input berupa Kode Produk, Nama Produk, Satuan, Keterangan
+    4. Apabila mengganti Kode Produk yang sudah ada pada sistem maka akan menampilkan pesan error
+    5. mengupdate data 
+
+    '''
+    produkobj = models.Produk.objects.get(KodeProduk=id)
+    if request.method == "GET":
         return render(
-            request,
-            "Purchasing/update_po.html",
-            {
-                "po_obj" : po_obj
-            }
+            request, "Purchasing/update_produk.html", {"produkobj": produkobj}
         )
-    else :
-        harga_barang = request.POST["harga_barang"]
-        supplier = request.POST["supplier"]
-        po_barang = request.POST["po_barang"]
-        po_obj.NoSuratJalan.PO =po_barang
-        po_obj.Harga = harga_barang
-        po_obj.NoSuratJalan.supplier = supplier
-        po_obj.save()
-        po_obj.NoSuratJalan.save()
+    else:
+
+        kode_produk = request.POST["kode_produk"]
+        nama_produk = request.POST["nama_produk"]
+        unit_produk = request.POST["unit_produk"]
+        keterangan_produk = request.POST["keterangan_produk"]
+        jumlah_minimal = request.POST["jumlah_minimal"]
+        namaproduk = models.Produk.objects.filter(KodeProduk=kode_produk).exists()
+        print(namaproduk)
+        print(request.POST)
+        print(id)
+        # print(asd)
+
+        if namaproduk and kode_produk != id:
+            messages.error(request,f'Kode Produk {kode_produk} sudah ada pada sistem')
+            return redirect('update_produk',id = id)
+        produkbaru = models.Produk.objects.get(KodeProduk=id)
+        produkbaru.KodeProduk = kode_produk
+        produkbaru.NamaProduk = nama_produk
+        produkbaru.unit = unit_produk
+        produkbaru.keteranganPurchasing = keterangan_produk
+        produkbaru.Jumlahminimal = jumlah_minimal
+        # print(asd)
+        produkbaru.save()
         models.transactionlog(
             user="Purchasing",
             waktu=datetime.now(),
             jenis="Update",
-            pesan=f"No Surat Jalan{po_obj.NoSuratJalan} sudah di Update",
+            pesan=f"Kode Produk {kode_produk} sudah di Update",
         ).save()
-        return redirect("read_po")
+        messages.success(request, "Data berhasil disimpan")
+        return redirect("read_produk")
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["purchasing"])
+def delete_produk(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data bahan baku
+    Algoritma
+    1. Mendapatkan data bahan baku dengan PrimaryKey = id (dimana id didapatkan dari passing values)
+    2. Menghapus data bahan baku
+    '''
+    print(id)
+    produkobj = models.Produk.objects.get(pk=id)
+    # print("delete:",produkobj.KodeProduk)
+    models.transactionlog(
+        user="Purchasing",
+        waktu=datetime.now(),
+        jenis="Delete",
+        pesan=f"Kode Produk {produkobj.KodeProduk} sudah di Delete",
+    ).save()
+    produkobj.delete()
+    # print(asd)
+    messages.success(request, "Data Berhasil dihapus")
+    return redirect("read_produk")
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def read_spk(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data SPK 
+    Algoritma:
+    1. mendapatkan semua data SPK pada sistem
+    2. Melakukan iterasi pada data SPK
+    3. Mencari Detail SPK tiap SPK 
+    4. Menyimpan detailspk pada atribut detailspk pada data SPK
+    5. Menampilkan pada program
+    '''
     dataspk = models.SPK.objects.all().order_by('-Tanggal')
     for spk in dataspk:
         if spk.StatusDisplay == False:
@@ -1530,6 +1544,20 @@ def read_spk(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def track_spk(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan tracking 
+    algoritma : 
+    1. Mengambil data SPK dengan kriteria id (primarykey) = id(id didapatkan dari passing values html)
+    2. Jika SPK Tersebut adalah spk display maka ambil data detail SPK Display dengan kriteria No SPK = data SPK
+    3. Jika SPK Tersebut adalah spk artikel maka ambil data detail spk dengan kriteria NoSPK = data spk
+    4. Mengambil data transaksi Gudang dengan SPK Tersebut
+    5. Mengambil data Transaksi Produksi dengan SPK Tersebut
+    6. Mengambil data Pengiriman dengan SPK Tersebut
+    7. Menghitung rekap permintaan bahan baku dengan SPK Tersebut
+    8. Menghitung rekap pengiriman produk dengan SPK Tersebut.
+    9. Menampilkan pada user 
+
+    '''
     dataartikel = models.Artikel.objects.all()
     datadisplay =models.Display.objects.all()
     dataspk = models.SPK.objects.get(id=id)
@@ -1598,6 +1626,12 @@ def track_spk(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def view_sppb(request):
+    '''
+    Digunakan untuk melakukan manajemen data SPPB
+    Algoritma : 
+    1. Mengambil semua data SPPB 
+    2. mengubah format tanggal menjadi yyyy-mm-dd
+    '''
     datasppb = models.SPPB.objects.all().order_by("-Tanggal")
     for i in datasppb:
         i.detailsppb = models.DetailSPPB.objects.filter(NoSPPB = i)
@@ -1605,259 +1639,18 @@ def view_sppb(request):
     return render(request, "Purchasing/view_sppb2.html", {"datasppb": datasppb})
 
 
-
-
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
-def detail_sppb(request, id):
-    datadetailspk = models.DetailSPK.objects.all()
-    datasppb = models.SPPB.objects.get(id=id)
-    datadetailsppb = models.DetailSPPB.objects.filter(NoSPPB=datasppb.id)
-
-    if request.method == "GET":
-        tanggal = datetime.strftime(datasppb.Tanggal, "%Y-%m-%d")
-
-        return render(
-            request,
-            "Purchasing/detail_sppb2.html",
-            {
-                "data": datadetailspk,
-                "datasppb": datasppb,
-                "datadetail": datadetailsppb,
-                "tanggal": tanggal,
-            },
-        )
-
-    elif request.method == "POST":
-        nomor_sppb = request.POST["nomor_sppb"]
-        tanggall = request.POST["tanggal"]
-        keterangan = request.POST["keterangan"]
-        artikel_list = request.POST.getlist("artikel[]")
-        jumlah_list = request.POST.getlist("quantity[]")
-
-        datasppb.NoSPPB = nomor_sppb
-        datasppb.Tanggal = tanggall
-        datasppb.Keterangan = keterangan
-        datasppb.save()
-
-        for detail, artikel_id, jumlah in zip(
-            datadetailsppb, artikel_list, jumlah_list
-        ):
-            kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel_id)
-            detail.DetailSPK = kode_artikel
-            detail.Jumlah = jumlah
-            detail.save()
-
-        no_sppb = models.SPPB.objects.get(NoSPPB=nomor_sppb)
-
-        for artikel_id, jumlah in zip(
-            artikel_list[len(datadetailsppb) :], jumlah_list[len(datadetailsppb) :]
-        ):
-            kode_artikel = models.DetailSPK.objects.get(IDDetailSPK=artikel_id)
-            new_detail = models.DetailSPPB.objects.create(
-                NoSPPB=no_sppb,  # Assuming NoSPK is the ForeignKey field to SPK in DetailSPK model
-                DetailSPK=kode_artikel,
-                Jumlah=jumlah,
-            )
-            try:
-                new_detail.save()
-            except IntegrityError:
-                # Handle if there's any IntegrityError, such as violating unique constraint
-                pass
-
-        return redirect("view_sppb2")
-
-# Tinggal dibikin gimana biar kodenya yang terkirim pas di reload kode itu lagi yang muncul
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
-def rekap_harga(request):
-    """KALAU UNTUK PERHITUNGAN HARGA AVERAGE JANGAN PAKE FILTER TANGGAL, KALAU BUAT DATA DI MASUK BARU PAKE TANGGAL"""
-    kodeprodukobj = models.Produk.objects.all()
-    if len(request.GET) == 0:
-        return render(
-            request, "Purchasing/rekap_harga.html", {"kodeprodukobj": kodeprodukobj}
-        )
-    else:
-        dict_harga_keluar = {}
-        dict_harga_total = {}
-        dict_harga_masuk = {}
-        dict_harga_average = {}
-        list_tanggal = []
-        list_supplier = []
-        list_kuantitas = []
-        list_harga = []
-        list_harga_total = []
-        kode_produk = request.GET["kode_produk"]
-        tanggal_awal = request.GET["awal"]
-        tanggal_akhir = request.GET["akhir"]
-        # tanggal
-        masuk_sjb = models.DetailSuratJalanPembelian.objects.filter(
-            KodeProduk=kode_produk
-        ).filter(NoSuratJalan__Tanggal__range=(tanggal_awal, tanggal_akhir))
-        masuk_sjb2 = models.DetailSuratJalanPembelian.objects.filter(
-            KodeProduk=kode_produk
-        )
-        saldoawalobj = models.SaldoAwalBahanBaku.objects.filter(KodeProduk=kode_produk)
-
-        if len(masuk_sjb2) <= 0:
-            messages.error(request, "Data tidak ditemukan")
-            return redirect("Purchasing/rekap_harga")
-        else:
-            for item in masuk_sjb2:
-                kodeproduk = item.KodeProduk
-                jumlah_masuk = item.Jumlah
-                harga_masuk = item.Harga
-                harga_total_masuk = jumlah_masuk * harga_masuk
-
-                if kodeproduk in dict_harga_total:
-                    dict_harga_total[kodeproduk][0] += harga_total_masuk
-                    dict_harga_total[kodeproduk][1] += jumlah_masuk
-                else:
-                    # dict_harga_total[kodeproduk] = [0]
-                    dict_harga_total[kodeproduk] = [harga_total_masuk, jumlah_masuk]
-
-            for key in dict_harga_total.keys():
-                average_harga = dict_harga_total[key][0] / dict_harga_total[key][1]
-                dict_harga_average[key] = [average_harga, dict_harga_total[key][1]]
-
-            for item in masuk_sjb:
-                if item.KodeProduk in dict_harga_masuk:
-                    if (
-                        dict_harga_masuk[item.KodeProduk]["Tanggal"]
-                        == item.NoSuratJalan.Tanggal
-                        and dict_harga_masuk[item.KodeProduk]["Supplier"]
-                        == item.NoSuratJalan.supplier
-                        and dict_harga_masuk[item.KodeProduk]["Harga"] == item.Harga
-                    ):
-                        dict_harga_masuk[item.KodeProduk]["Kuantitas"] += item.Jumlah
-                    else:
-                        harga_masuk = item.Harga
-                        jumlah_masuk = item.Jumlah
-                        harga_total = jumlah_masuk * harga_masuk
-                        dict_harga_masuk[item.KodeProduk]["Tanggal"].append(
-                            item.NoSuratJalan.Tanggal
-                        )
-                        dict_harga_masuk[item.KodeProduk]["Supplier"].append(
-                            item.NoSuratJalan.supplier
-                        )
-                        dict_harga_masuk[item.KodeProduk]["Kuantitas"].append(
-                            jumlah_masuk
-                        )
-                        dict_harga_masuk[item.KodeProduk]["Harga"].append(harga_masuk)
-                        dict_harga_masuk[item.KodeProduk]["Harga_Total"].append(
-                            harga_total
-                        )
-
-                else:
-                    harga_masuk = item.Harga
-                    jumlah_masuk = item.Jumlah
-                    harga_total = jumlah_masuk * harga_masuk
-                    dict_harga_masuk[item.KodeProduk] = {}
-                    dict_harga_masuk[item.KodeProduk]["Tanggal"] = [
-                        item.NoSuratJalan.Tanggal
-                    ]
-                    dict_harga_masuk[item.KodeProduk]["Supplier"] = [
-                        item.NoSuratJalan.supplier
-                    ]
-                    dict_harga_masuk[item.KodeProduk]["Kuantitas"] = [jumlah_masuk]
-                    dict_harga_masuk[item.KodeProduk]["Harga"] = [harga_masuk]
-                    dict_harga_masuk[item.KodeProduk]["Harga_Total"] = [harga_total]
-
-        if len(saldoawalobj) <= 0:
-            jumlah_saldo = 0
-            harga_awal_saldo = 0
-            for key in dict_harga_total.keys():
-                harga_total_awal = jumlah_saldo * harga_awal_saldo
-                jumlah_total = jumlah_saldo + dict_harga_total[key][1]
-
-                harga_total_all = round(harga_total_awal + dict_harga_total[key][0])
-
-                average_harga = round(harga_total_all / jumlah_total)
-                dict_harga_average[key][0] = average_harga
-                dict_harga_average[key][1] = jumlah_total
-        else:
-            for item2 in saldoawalobj:
-                kode_produk2 = item2.KodeProduk
-                jumlah_saldo = item2.Jumlah
-                harga_awal_saldo = item2.Harga
-                jumlah_total = jumlah_saldo + dict_harga_total[key][1]
-                harga_total_awal = jumlah_saldo * harga_awal_saldo
-                dict_harga_total[key][1]
-                harga_total_all = round(harga_total_awal + dict_harga_total[key][0])
-                average_harga = round(harga_total_all / jumlah_total)
-                dict_harga_average[kode_produk2][0] = average_harga
-                dict_harga_average[kode_produk2][1] = jumlah_total
-        keluar_sjb = (
-            models.TransaksiGudang.objects.filter(KodeProduk=kode_produk)
-            .filter(tanggal__range=(tanggal_awal, tanggal_akhir))
-            .filter(jumlah__gt=0)
-        )
-
-        list_jumlah = []
-        for item in keluar_sjb:
-            list_jumlah.append(item.jumlah)
-        sum_jumlah = sum(list_jumlah)
-
-        for item3 in keluar_sjb:
-            kode_produk3 = item3.KodeProduk
-            dict_harga_keluar[kode_produk3] = [0, 0, 0, 0]
-
-        for item4 in keluar_sjb:
-            kode_produk4 = item4.KodeProduk
-            if kode_produk4 in dict_harga_total:
-                harga_keluar = round(dict_harga_average[kode_produk4][0] * sum_jumlah)
-                dict_harga_keluar[kode_produk4][0] = item4.tanggal
-                dict_harga_keluar[kode_produk4][1] = sum_jumlah
-                dict_harga_keluar[kode_produk4][2] = dict_harga_average[kode_produk4][0]
-                dict_harga_keluar[kode_produk4][3] = harga_keluar
-            else:
-                continue
-
-        for key in dict_harga_masuk.keys():
-            list_tanggal = dict_harga_masuk[key]["Tanggal"]
-            list_supplier = dict_harga_masuk[key]["Supplier"]
-            list_kuantitas = dict_harga_masuk[key]["Kuantitas"]
-            list_harga = dict_harga_masuk[key]["Harga"]
-            list_harga_total = dict_harga_masuk[key]["Harga_Total"]
-
-        tanggal = 0
-        supplier = 0
-        kuantitas = 0
-        harga = 0
-        harga_total_1 = 0
-
-        i = 0
-        for item in masuk_sjb:
-            item.tanggal = list_tanggal[i]
-            item.supplier = list_supplier[i]
-            item.kuantitas = list_kuantitas[i]
-            item.harga = list_harga[i]
-            item.harga_total_1 = list_harga_total[i]
-            i += 1
-
-        return render(
-            request,
-            "Purchasing/rekap_harga.html",
-            {
-                "kodeprodukobj": kodeprodukobj,
-                "masuk_sjb": masuk_sjb,
-                "harga_masuk": dict_harga_masuk,
-                "harga_keluar": dict_harga_keluar,
-                "harga_total": dict_harga_total,
-                "tanggal": tanggal,
-                "supplier": supplier,
-                "kuantitas": kuantitas,
-                "harga": harga,
-                "harga_total_1": harga_total_1,
-                "awal": tanggal_awal,
-                "akhir": tanggal_akhir,
-            },
-        )
-
-
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def views_penyusun(request):
+    '''
+    Fitur ini digunakan untuk melihat penyusun/konversi dari artikel
+    Algoritma : 
+    1.Mengambil data semua artikel yang ada pada sistem
+    2. Menampilkan form input artikel pada sistem
+    3. Program menerima input berupa kode stok yang akan dimasukkan 
+    4. menampilkan penyusun artikel
+
+    '''
     print(request.GET)
     data = request.GET
     dataartikel  = models.Artikel.objects.all()
@@ -2337,6 +2130,23 @@ def views_penyusun(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def kebutuhan_barang(request):
+    '''
+    Fitur ini digunakan untuk menghitung besar kebutuhan barang yang dibutuhkan untuk memproduksi SPK
+    Algoritma : 
+    1. Mendapatkan SPK dengan kriteria (StatusAktif = True (spk aktif/belum lunas), StatusDisplay = False (bukan SPK Display))
+    2. Menampilkan form input pada user 
+    3. Program mendapatkan inputan berupa kode SPK yang dipilih
+    4. Menghitung Penggunaan Barang
+        A. Mendapatkan kumulasi produksi artikel sesuai SPK
+        B. Mengiterasi data artikel 
+        C. Mencari Versi default pada tiap Artikel 
+        D. Mengalikan konversi dengan jumlah pada SPK untuk setiap Artikel 
+        E. Mendapatkan jumlah Penggunaan Barang
+    5. Menghitung stok gudang saat ini 
+    6. Menghitung kebutuhan barang dengan rumus = stok gudang - penggunaan barang
+    7. Apabila ada data minus (Penggunaan barang lebih besar dari stok gudang maka akan masuk ke Rekap pengadaan)
+    8. Menghitung rekap pengadaan untuk semua bahan baku
+    '''
     list_q_gudang = []
     list_hasil_conv = []
     list_q_akhir = []
@@ -2617,6 +2427,24 @@ def kebutuhan_barang(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def views_rekapharga(request):
+    '''
+    Fitur ini digunakan untuk menghitung KSBB purchasing
+    Algoritma 
+    1. Mengambil data semua produk yang ada 
+    2. Menampilkan form input Kode Produk 
+    3. Program mendapatkan input berupa kode produk 
+    4. Data tanggal mulai = Awal tahun, Data tanggal akhir = Akhir tahun 
+    5. Mengambil data DetailSuratJalanPembelian dengan kriteria KodeProduk = kode produk input user, NoSuratJalan__Tanggal__range = awal tahun, akhir tahun. 
+    6. mengambil data Transaksi Gudang keluar dengan kriteria Jumlah >= 0 (mengindikasikan barang keluar), KodeProduk = kode produk input user, Tanggal dalam rentang awal tahun hingga akhir tahun
+    7. mengambil data Transaksi Gudang retur dengan kriteria Jumlah < 0 (mengindikasikan barang keluar), KodeProduk = kode produk input user, Tanggal dalam rentang awal tahun hingga akhir tahun
+    8. mengambil data pemusnahan bahan baku  dengan lokasi Gudang, kodeproduk = kode produk input user, Tanggal berada dalam rentanga awal tahun, akhirtahun
+    9. Mengambil data saldo awal bahan baku dengan kriteria kode produk = kode produk input user, Lokasi = Gudang, Tanggal berada dalam rentang awal tahun dan akhir tahun
+    10. Mengiterasi setiap tanggal dari detailsuratjalanpembelian, transaksigudang keluar, transaksigudang retur, dan pemusnahan bahan baku 
+    11. Total Stok = Saldoawal bahan baku + Detail surat jalan pembelian + Transaksi Gudang Retur - pemusnahan bahan baku - transaksi gudang keluar
+    12. Menghitung harga satuan = harga total / total stok (perhitungan menggunakan weighted average)
+    13. Apabila ada pembagian dengan hasil Null / pembagi 0 maka akan diset menjadi 0
+    '''
+
     kodeprodukobj = models.Produk.objects.all()
     tahun = datetime.now().year
     if len(request.GET) == 0:
@@ -2627,265 +2455,14 @@ def views_rekapharga(request):
         kode_produk = request.GET["kode_produk"]
         tahun = request.GET["tahun"]
         tahun_period = tahun
-
-        if tahun == "":
-            tahun = datetime.now().year
-
-        tahun = datetime.strptime(tahun, format("%Y"))
-        awaltahun = datetime(tahun.year, 1, 1)
-        akhirtahun = datetime(tahun.year, 12, 31)
-
         try:
-            produkobj = models.Produk.objects.get(KodeProduk=kode_produk)
-        except models.Produk.DoesNotExist:
-            messages.error(request, "Kode bahan baku tidak ditemukan")
-            return render(
-                request, "Purchasing/views_ksbb.html", {"kodeprodukobj": kodeprodukobj}
-            )
-        masukobj = models.DetailSuratJalanPembelian.objects.filter(
-            KodeProduk__KodeProduk=produkobj.KodeProduk, NoSuratJalan__Tanggal__range=(awaltahun,akhirtahun)
-        )
+            produkobj = models.Produk.objects.get(KodeProduk = kode_produk)
+        except:
+            messages.error(request,'Kode Stok tidak ditemukan')
+            return redirect('rekapharga')
 
-        tanggalmasuk = masukobj.values_list("NoSuratJalan__Tanggal", flat=True)
-
-        keluarobj = models.TransaksiGudang.objects.filter(
-            jumlah__gte=0, KodeProduk__KodeProduk=produkobj.KodeProduk, tanggal__range=(awaltahun,akhirtahun)
-        )
-        returobj = models.TransaksiGudang.objects.filter(
-            jumlah__lt=0, KodeProduk__KodeProduk=produkobj.KodeProduk, tanggal__range=(awaltahun,akhirtahun)
-        )
-        pemusnahanobj = models.PemusnahanBahanBaku.objects.filter(
-            lokasi__NamaLokasi = 'Gudang',KodeBahanBaku__KodeProduk = produkobj.KodeProduk, Tanggal__range = (awaltahun,akhirtahun)
-        )
-        # print(pemusnahanobj)
-        # print(asd)
-        tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
-        tanggalretur = returobj.values_list("tanggal", flat=True)
-        tanggalpemusnahan = pemusnahanobj.values_list("Tanggal",flat=True)
-        print("ini kode bahan baku", keluarobj)
-        saldoawalobj = (
-            models.SaldoAwalBahanBaku.objects.filter(
-                IDBahanBaku__KodeProduk=produkobj.KodeProduk,
-                IDLokasi__IDLokasi=3,
-                Tanggal__range=(awaltahun,akhirtahun)
-            )
-            .order_by("-Tanggal")
-            .first()
-        )
-        print(saldoawalobj)
-        if (
-            not keluarobj.exists()
-            and not returobj.exists()
-            and not masukobj.exists()
-            and saldoawalobj is None
-        ):
-            messages.error(request, "Tidak ditemukan data Transaksi Barang")
-            return redirect("rekapharga")
-        # print(asdas)
-        if saldoawalobj:
-            print("ada data")
-            saldoawal = saldoawalobj.Jumlah
-            hargasatuanawal = saldoawalobj.Harga
-            hargatotalawal = saldoawal * hargasatuanawal
-            tahun = saldoawalobj.Tanggal.year
-
-        else:
-            saldoawal = 0
-            hargasatuanawal = 0
-            hargatotalawal = saldoawal * hargasatuanawal
-            tahun = awaltahun.year
-
-        saldoawalobj = {
-            "saldoawal": saldoawal,
-            "hargasatuanawal": hargasatuanawal,
-            "hargatotalawal": hargatotalawal,
-            'tahun' : tahun
-        }
-        hargaterakhir = 0
-        listdata = []
-        print(tanggalmasuk)
-        print(tanggalkeluar)
-        listtanggal = sorted(
-            list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalretur).union(tanggalpemusnahan)))
-        )
-        print(listtanggal)
-        statusmasuk = False
-        for i in listtanggal:
-            jumlahmasukperhari = 0
-            hargamasuktotalperhari = 0
-            hargamasuksatuanperhari = 0
-            jumlahkeluarperhari = 0
-            hargakeluartotalperhari = 0
-            hargakeluarsatuanperhari = 0
-            sjpobj = masukobj.filter(NoSuratJalan__Tanggal=i)
-            if sjpobj.exists():
-                for j in sjpobj:
-                    hargamasuktotalperhari += j.Harga * j.Jumlah
-                    jumlahmasukperhari += j.Jumlah
-                hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
-                print("data SJP ada")
-                print(hargamasuksatuanperhari)
-                print(jumlahmasukperhari)
-                dumy = {
-                    "Tanggal": i.strftime("%Y-%m-%d"),
-                    "Jumlahstokawal": saldoawal,
-                    "Hargasatuanawal": hargasatuanawal, 
-                    "Hargatotalawal": hargatotalawal, 
-                    "Jumlahmasuk": jumlahmasukperhari,
-                    "Hargamasuksatuan": hargamasuksatuanperhari, 
-                    "Hargamasuktotal": hargamasuktotalperhari, 
-                    "Jumlahkeluar": jumlahkeluarperhari,
-                    "Hargakeluarsatuan": hargakeluarsatuanperhari, 
-                    "Hargakeluartotal": hargakeluartotalperhari, 
-                }
-                saldoawal += jumlahmasukperhari - jumlahkeluarperhari
-                hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
-                hargasatuanawal = hargatotalawal / saldoawal
-
-                print("Sisa Stok Hari Ini : ", saldoawal)
-                print("harga awal Hari Ini :", hargasatuanawal)
-                print("harga total Hari Ini :", hargatotalawal, "\n")
-                dumy["Sisahariini"] = saldoawal
-                dumy["Hargasatuansisa"] = hargasatuanawal
-                dumy["Hargatotalsisa"] = hargatotalawal
-                statusmasuk = True
-                listdata.append(dumy)
-                # print(asdasd)
-
-            hargamasuktotalperhari = 0
-            jumlahmasukperhari = 0
-            hargamasuksatuanperhari = 0
-            transaksigudangobj = keluarobj.filter(tanggal=i)
-            transaksipemusnahan = pemusnahanobj.filter(Tanggal=i)
-
-
-            if transaksigudangobj.exists():
-                for j in transaksigudangobj:
-                    jumlahkeluarperhari += j.jumlah
-                    hargakeluartotalperhari += j.jumlah * hargasatuanawal
-
-            if transaksipemusnahan.exists():
-                for j in transaksipemusnahan:
-                    jumlahkeluarperhari += j.Jumlah
-                    hargakeluartotalperhari += j.Jumlah * hargasatuanawal
-
-            if jumlahkeluarperhari > 0:
-                hargakeluarsatuanperhari = hargakeluartotalperhari / jumlahkeluarperhari
-            else:
-                if statusmasuk:
-                    statusmasuk = False
-                    continue
-                hargakeluartotalperhari = 0
-                hargakeluarsatuanperhari = 0
-                jumlahkeluarperhari = 0
-
-            # transaksigudangobj = keluarobj.filter(tanggal=i)
-            # print(transaksigudangobj)
-            # if transaksigudangobj.exists():
-            #     for j in transaksigudangobj:
-            #         jumlahkeluarperhari += j.jumlah
-            #         hargakeluartotalperhari += j.jumlah * hargasatuanawal
-            #     hargakeluarsatuanperhari += (
-            #         hargakeluartotalperhari / jumlahkeluarperhari
-            #     )
-            # else:
-            #     if statusmasuk:
-            #         statusmasuk = False
-            #         continue
-            #     hargakeluartotalperhari = 0
-            #     hargakeluarsatuanperhari = 0
-            #     jumlahkeluarperhari = 0
-
-            # transaksipemusnahan = pemusnahanobj.filter(Tanggal=i)
-            # print(transaksipemusnahan)
-            # if transaksipemusnahan.exists():
-            #     for j in transaksipemusnahan:
-            #         jumlahkeluarperhari += j.Jumlah
-            #         hargakeluartotalperhari += j.Jumlah * hargasatuanawal
-            #     hargakeluarsatuanperhari += (
-            #         hargakeluartotalperhari / jumlahkeluarperhari
-            #     )
-            # else:
-            #     if statusmasuk:
-            #         statusmasuk = False
-            #         continue
-            #     hargakeluartotalperhari = 0
-            #     hargakeluarsatuanperhari = 0
-            #     jumlahkeluarperhari = 0
-
-            transaksireturobj = returobj.filter(tanggal=i)
-            if transaksireturobj.exists():
-                for j in transaksireturobj:
-                    jumlahmasukperhari += j.jumlah * -1
-                    hargamasuktotalperhari += j.jumlah * hargasatuanawal * -1
-                hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
-            else:
-                hargamasuktotalperhari = 0
-                hargamasuksatuanperhari = 0
-                jumlahmasukperhari = 0
-
-
-            print("Tanggal : ", i)
-            print("Sisa Stok Hari Sebelumnya : ", saldoawal)
-            print("harga awal Hari Sebelumnya :", hargasatuanawal)
-            print("harga total Hari Sebelumnya :", hargatotalawal)
-            print("Jumlah Masuk : ", jumlahmasukperhari)
-            print("Harga Satuan Masuk : ", hargamasuksatuanperhari)
-            print("Harga Total Masuk : ", hargamasuktotalperhari)
-            print("Jumlah Keluar : ", jumlahkeluarperhari)
-            print("Harga Keluar : ", hargakeluarsatuanperhari)
-            print(
-                "Harga Total Keluar : ", hargakeluarsatuanperhari * jumlahkeluarperhari
-            )
-            if saldoawal + jumlahmasukperhari - jumlahkeluarperhari < 0:
-                messages.warning(
-                    request,
-                    "Sisa stok menjadi negatif pada tanggal {}.\nCek kembali mutasi barang".format(
-                        i
-                    ),
-                )
-
-            dumy = {
-                "Tanggal": i.strftime("%Y-%m-%d"),
-                "Jumlahstokawal": saldoawal,
-                "Hargasatuanawal": hargasatuanawal, 
-                "Hargatotalawal": hargatotalawal, 
-                "Jumlahmasuk": jumlahmasukperhari,
-                "Hargamasuksatuan": hargamasuksatuanperhari, 
-                "Hargamasuktotal": hargamasuktotalperhari, 
-                "Jumlahkeluar": jumlahkeluarperhari,
-                "Hargakeluarsatuan": hargakeluarsatuanperhari, 
-                "Hargakeluartotal": hargakeluartotalperhari, 
-            }
-            """
-            Rumus dari Excel KSBB Purchasing
-            Sisa = Sisa hari sebelumnya + Jumlah masuk hari ini - jumlah keluar hari ini 
-            harga sisa satuan = total sisa / harga total sisa
-            Harga keluar = harga satuan hari sebelumnya
-
-            """
-            dummysaldoawal = saldoawal
-            dummyhargatotalawal = hargatotalawal
-            dummyhargasatuanawal = hargasatuanawal
-
-            saldoawal += jumlahmasukperhari - jumlahkeluarperhari
-            hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
-            print(hargatotalawal, saldoawal)
-            try:
-                hargasatuanawal = hargatotalawal / saldoawal
-            except:
-                hargasatuanawal = 0
-
-            print("Sisa Stok Hari Ini : ", saldoawal)
-            print("harga awal Hari Ini :", hargasatuanawal)
-            print("harga total Hari Ini :", hargatotalawal, "\n")
-            dumy["Sisahariini"] = saldoawal
-            dumy["Hargasatuansisa"] = hargasatuanawal
-            dumy["Hargatotalsisa"] = hargatotalawal
-
-            listdata.append(dumy)
-
-        hargaterakhir += hargasatuanawal
+        listdata,saldoawalobj, hargaterakhir = getksbbproduk(kode_produk,tahun_period)
+        
 
         return render(
             request,
@@ -2902,6 +2479,23 @@ def views_rekapharga(request):
 
 def getksbbproduk(kodeproduk,periode):
     '''Input berupa String Kode Bahan Baku  dan Periode tahun '''
+    '''
+    Fitur ini digunakan untuk menghitung KSBB purchasing
+    Algoritma 
+    1. Mengambil data semua produk yang ada 
+    2. Menampilkan form input Kode Produk 
+    3. Program mendapatkan input berupa kode produk 
+    4. Data tanggal mulai = Awal tahun, Data tanggal akhir = Akhir tahun 
+    5. Mengambil data DetailSuratJalanPembelian dengan kriteria KodeProduk = kode produk input user, NoSuratJalan__Tanggal__range = awal tahun, akhir tahun. 
+    6. mengambil data Transaksi Gudang keluar dengan kriteria Jumlah >= 0 (mengindikasikan barang keluar), KodeProduk = kode produk input user, Tanggal dalam rentang awal tahun hingga akhir tahun
+    7. mengambil data Transaksi Gudang retur dengan kriteria Jumlah < 0 (mengindikasikan barang keluar), KodeProduk = kode produk input user, Tanggal dalam rentang awal tahun hingga akhir tahun
+    8. mengambil data pemusnahan bahan baku  dengan lokasi Gudang, kodeproduk = kode produk input user, Tanggal berada dalam rentanga awal tahun, akhirtahun
+    9. Mengambil data saldo awal bahan baku dengan kriteria kode produk = kode produk input user, Lokasi = Gudang, Tanggal berada dalam rentang awal tahun dan akhir tahun
+    10. Mengiterasi setiap tanggal dari detailsuratjalanpembelian, transaksigudang keluar, transaksigudang retur, dan pemusnahan bahan baku 
+    11. Total Stok = Saldoawal bahan baku + Detail surat jalan pembelian + Transaksi Gudang Retur - pemusnahan bahan baku - transaksi gudang keluar
+    12. Menghitung harga satuan = harga total / total stok (perhitungan menggunakan weighted average)
+    13. Apabila ada pembagian dengan hasil Null / pembagi 0 maka akan diset menjadi 0
+    '''
     kode_produk = kodeproduk
     kodeprodukobj = models.Produk.objects.get(KodeProduk = kode_produk)
     tahun = periode
@@ -3153,12 +2747,19 @@ def getksbbproduk(kodeproduk,periode):
         listdata.append(dumy)
 
     hargaterakhir += hargasatuanawal
-    return listdata
+    return listdata,saldoawalobj,hargaterakhir
 
 def exportexcelksbb(request,kodeproduk,periode):
+    '''
+    fitur ini digunakan untuk melakukan eksport data KSBB kedalam excel
+    Algoritma
+    1. Mengambil data Produk
+    2. Menghitung menggunakan fungsi getksbbproduk
+    3. Mengeksport kedalam excel
+    '''
     waktuawalproses = time.time()
     kodeprodukobj =models.Produk.objects.get(KodeProduk = kodeproduk)
-    listdata = getksbbproduk(kodeproduk,periode)
+    listdata,saldoawalobj,hargaterakhir = getksbbproduk(kodeproduk,periode)
     waktupersediaan = time.time()
     datamodelsksbb ={
  
@@ -3173,20 +2774,18 @@ def exportexcelksbb(request,kodeproduk,periode):
         "Harga Satuan Sisa":[],
         "Harga Total Sisa":[],
     }
+    if saldoawalobj:
+        datamodelsksbb["Tanggal"].append(date(saldoawalobj['tahun'],1,1).strftime('%Y-%m-%d'))
+        datamodelsksbb["Kuantitas Masuk"].append('')
+        datamodelsksbb['Harga Satuan Masuk'].append('')
+        datamodelsksbb['Harga Total Masuk'].append('')
+        datamodelsksbb["Kuantitas Keluar"].append('')
+        datamodelsksbb['Harga Satuan keluar'].append('')
+        datamodelsksbb['Harga Total keluar'].append('')
+        datamodelsksbb["Kuantitas Sisa"].append(saldoawalobj['saldoawal'])
+        datamodelsksbb['Harga Satuan Sisa'].append(saldoawalobj['hargasatuanawal'])
+        datamodelsksbb['Harga Total Sisa'].append(saldoawalobj['hargatotalawal'])
     for item in listdata:
-        # <tr>
-        #                         <td>{{i.Tanggal}}</td>
-        #                         <td>{{i.Jumlahmasuk|separator_ribuan}}</td>
-        #                         <td>{{i.Hargamasuksatuan|custom_thousands_separator}}</td>
-        #                         <td>{{i.Hargamasuktotal|custom_thousands_separator}}</td>
-        #                         <td>{{i.Jumlahkeluar|separator_ribuan}}</td>
-        #                         <td>{{i.Hargakeluarsatuan|custom_thousands_separator}}</td>
-                                # <td>{{i.Hargakeluartotal|custom_thousands_separator}}</td>
-        #                         <td>{{i.Sisahariini|separator_ribuan}}</td>
-        #                         <td>{{i.Hargasatuansisa|custom_thousands_separator}}</td>
-        #                         <td>{{i.Hargatotalsisa|custom_thousands_separator}}</td>
-
-        #                     </tr>
         datamodelsksbb["Tanggal"].append(item['Tanggal'])
         datamodelsksbb["Kuantitas Masuk"].append(item['Jumlahmasuk'])
         datamodelsksbb['Harga Satuan Masuk'].append(item['Hargamasuksatuan'])
@@ -3198,6 +2797,13 @@ def exportexcelksbb(request,kodeproduk,periode):
         datamodelsksbb['Harga Satuan Sisa'].append(item['Hargasatuansisa'])
         datamodelsksbb['Harga Total Sisa'].append(item['Hargatotalsisa'])
     dfksbb = pd.DataFrame(datamodelsksbb)
+    if dfksbb.empty:
+        messages.error(request,f'Tidak ditemukan data transaksi')
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+            return redirect(back_url)
+        else:
+            return redirect('rekapharga')
     print(dfksbb)
 
     buffer = BytesIO()
@@ -3238,6 +2844,17 @@ def exportexcelksbb(request,kodeproduk,periode):
     return response
 
 def exportkeseluruhanksbb (request,periode):
+    '''
+    Fitur ini digunakan untuk  mengeksport KSBB keseluruhan produk
+    Algoritma
+    1. Mengambil semua data produk
+    2. Mengiterasi semua data produk 
+    3. Menghitung KSBB dengan fungsi getksbbproduk
+    4. Membuat datamodels representasi file excel
+    5. Membuat dataframe dari datamodels
+    6. Menambahkan dataframe kedalam listdataframe
+    7. Mengiterasi semua data listdataframe untuk dieksport
+    '''
     waktuawalproses = time.time()
     allproduk = models.Produk.objects.all()
     # allproduk = models.Produk.objects.filter(KodeProduk__in=['A-001-01','A-001-02','A-001-04'])
@@ -3245,7 +2862,7 @@ def exportkeseluruhanksbb (request,periode):
     listkodestok = []
     for produk in allproduk:
         print('Produk', produk)
-        listdata = getksbbproduk(produk.KodeProduk,periode)
+        listdata,saldoawalobj,hargaterakhir = getksbbproduk(produk.KodeProduk,periode)
         print('Done iterate')
         datamodelsksbb ={
  
@@ -3260,6 +2877,17 @@ def exportkeseluruhanksbb (request,periode):
         "Harga Satuan Sisa":[],
         "Harga Total Sisa":[],
         }
+        if saldoawalobj:
+            datamodelsksbb["Tanggal"].append(date(saldoawalobj['tahun'],1,1).strftime('%Y-%m-%d'))
+            datamodelsksbb["Kuantitas Masuk"].append('')
+            datamodelsksbb['Harga Satuan Masuk'].append('')
+            datamodelsksbb['Harga Total Masuk'].append('')
+            datamodelsksbb["Kuantitas Keluar"].append('')
+            datamodelsksbb['Harga Satuan keluar'].append('')
+            datamodelsksbb['Harga Total keluar'].append('')
+            datamodelsksbb["Kuantitas Sisa"].append(saldoawalobj['saldoawal'])
+            datamodelsksbb['Harga Satuan Sisa'].append(saldoawalobj['hargasatuanawal'])
+            datamodelsksbb['Harga Total Sisa'].append(saldoawalobj['hargatotalawal'])
         for item in listdata:
             datamodelsksbb["Tanggal"].append(item['Tanggal'])
             datamodelsksbb["Kuantitas Masuk"].append(item['Jumlahmasuk'])
@@ -3272,8 +2900,9 @@ def exportkeseluruhanksbb (request,periode):
             datamodelsksbb['Harga Satuan Sisa'].append(item['Hargasatuansisa'])
             datamodelsksbb['Harga Total Sisa'].append(item['Hargatotalsisa'])
         dfksbb = pd.DataFrame(datamodelsksbb)
-        listdataframe.append(dfksbb)
-        listkodestok.append(produk)
+        if not dfksbb.empty:
+            listdataframe.append(dfksbb)
+            listkodestok.append(produk)
         print(dfksbb)
     buffer = BytesIO()
     waktupersediaan = time.time()
@@ -3340,6 +2969,14 @@ def apply_borders_thin(worksheet, start_row, end_row, max_col,min_col=1):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def exportbarangsubkon_excel(request):
+    '''
+    Fitur ini digunakan untuk eksport produk subkon (register subkon)
+    Algoritma
+    1. Mengambil data produk subkon
+    2. Mengiterasi produk subkon 
+    3. Apabila status potongan transaksi detail surat jalan penerimaan = True, maka harga akan dipotong, apabila False maka tidak dipotong
+    4. Eksport ke Excel
+    '''
     valueppn = request.GET.get("input_ppn", 2)
     try:
         valueppn = int(valueppn)
@@ -3474,12 +3111,16 @@ def exportbarangsubkon_excel(request):
     return response
 
 
-
-
-
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def views_rekaphargasubkon(request):
+    '''
+    Fitur ini digunakan untuk melihat register produk subkon
+    Algoritma 
+    1. Mengambil data Detail Surat Jalan Penerimaan Produk Subkon dengan kriteria Tanggal pada surat jalan berada dalam rentang tanggal mulai dan tanggal akhir
+    2. Mengiterasi Detail surat jalan penerimaan produk subkon
+    3. Mengubah format tanggal menjadi YYYY-MM-DD
+    '''
     # if request.method ==  'POST' :
     if len(request.POST) == 0 :
         valueppn = 2
@@ -3498,11 +3139,14 @@ def views_rekaphargasubkon(request):
  
 
     if len(request.GET) == 0:
+        sekarang = datetime.now().date()
+        input_awal = date(sekarang.year,sekarang.month,1).strftime('%Y-%m-%d')
+        input_terakhir = sekarang.strftime('%Y-%m-%d')
         list_harga_total1 = []
         list_ppn = []
         harga_setelah_ppn = []
         list_total_ppn = []
-        sjball = models.DetailSuratJalanPenerimaanProdukSubkon.objects.all().order_by(
+        sjball = models.DetailSuratJalanPenerimaanProdukSubkon.objects.filter(NoSuratJalan__Tanggal__range=(input_awal,input_terakhir)).order_by(
             "NoSuratJalan__Tanggal"
         )
         print(sjball)
@@ -3548,7 +3192,9 @@ def views_rekaphargasubkon(request):
                 {
                     "sjball": sjball,
                     # "harga_total": harga_total,
-                    "valueppn" : valueppn
+                    "valueppn" : valueppn,
+                                    "input_awal": input_awal,
+                    "input_terakhir": input_terakhir,
                 },
             )
         else:
@@ -3616,7 +3262,13 @@ def views_rekaphargasubkon(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def accspk2(request, id):
-
+    '''
+    Fitur ini digunakan untuk melakukan ACC SPK pada halaman menu awal fitur SPK
+    Algoritma
+    1. Mengambil data SPK dengan kriteria id (Primary Key) =  seama seperti id(id didapatkan dari passing values HTML)
+    2. Mengubah status keteranganACC menjadi True
+    3. Menyimpan perubahan
+    '''
     accobj = models.SPK.objects.get(pk=id)
     accobj.KeteranganACC = True
     accobj.save()
@@ -3637,6 +3289,12 @@ REVISI 6/12/2024
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def read_saldoawal(request):
+    '''
+    Fitur ini digunakan untuk manajemen saldo awal bahan baku pada purchasing
+    Algoritma
+    1. Mendapatkan data Saldo Awal Bahan Baku pada sistem 
+    2. Mengubah tanggal dengan format YYYY-MM-DD
+    '''
     dataproduk = models.SaldoAwalBahanBaku.objects.all().order_by("-Tanggal")
     print(dataproduk)
     for i in dataproduk:
@@ -3648,6 +3306,16 @@ def read_saldoawal(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_saldoawal(request,id):
+    '''
+    Fitur ini digunakan untuk mengupdate data saldoawal bahan baku
+    Algoritma
+    1. Mengambil data Saldoawal Bahan baku dalam sistem dengan kriteria IDSaldoAwalBahanBaku = id (id didapatkan dari passing values HTML)
+    2. Mengubah format tanggal menjadi YYYY-MM-DD
+    3. Menampilkan form update saldo awal
+    4. Program menerima input Harga satuan
+    5. Mengupdate harga 
+    6. Menyimpan update
+    '''
     databarang = models.Produk.objects.all()
     dataobj = models.SaldoAwalBahanBaku.objects.get(IDSaldoAwalBahanBaku=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -3682,190 +3350,7 @@ def update_saldoawal(request,id):
 # @login_required
 # @logindecorators.allowed_users(allowed_roles=['produksi'])
 
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
-def update_saldoartikel(request, id):
-    dataartikel = models.Artikel.objects.all()
-    dataobj = models.SaldoAwalArtikel.objects.get(IDSaldoAwalBahanBaku=id)
-    dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
-    lokasiobj = models.Lokasi.objects.all()
-    if request.method == "GET":
 
-        return render(
-            request,
-            "Purchasing/update_saldoartikel.html",
-            {"data": dataobj, "nama_lokasi": lokasiobj[:2], "dataartikel": dataartikel},
-        )
-
-    else:
-        artikel = request.POST["artikel"]
-        lokasi = request.POST["nama_lokasi"]
-        jumlah = request.POST["jumlah"]
-        tanggal = request.POST["tanggal"]
-
-        # Ubah format tanggal menjadi YYYY-MM-DD
-        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
-        # Periksa apakah entri sudah ada
-        existing_entry = models.SaldoAwalArtikel.objects.filter(
-            Tanggal__year=tanggal_formatted.year,
-            IDArtikel__KodeArtikel=artikel,
-            IDLokasi=lokasi
-        ).exclude(IDSaldoAwalBahanBaku=id).exists()
-
-        if existing_entry:
-            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
-            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("update_saldoartikel",id=id)
-        try:
-            artikelobj = models.Artikel.objects.get(KodeArtikel=artikel)
-            
-        except:
-            messages.error(request,f'Data artikel {artikel} tidak ditemukan dalam sistem')
-            return redirect("update_saldoartikel",id=id)
-        lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
-
-        dataobj.Tanggal = tanggal
-        dataobj.Jumlah = jumlah
-        dataobj.IDArtikel = artikelobj
-        dataobj.IDLokasi= lokasiobj
-
-        dataobj.save()
-
-        models.transactionlog(
-            user="Produksi",
-            waktu=datetime.now(),
-            jenis="Update",
-            pesan=f"Saldo Artikel. Kode Bahan Baku : {artikelobj.KodeArtikel} Jumlah : {jumlah} Lokasi : {lokasiobj.NamaLokasi}",
-        ).save()
-        messages.success(request,'Data berhasil disimpan')
-        return redirect("saldoartikelpurchasing")
-
-
-# @login_required
-# @logindecorators.allowed_users(allowed_roles=['produksi'])
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing"])
-def update_saldosubkon(request, id):
-    dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
-    dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
-    datasubkon = models.ProdukSubkon.objects.all()
-    if request.method == "GET":
-        return render(
-            request,
-            "purchasing/update_saldosubkon.html",
-            {"data": dataobj,"datasubkon": datasubkon },
-        )
-
-    else:
-        kodeproduk = request.POST["kodebarangHidden"]
-        jumlah = request.POST["jumlah"]
-        tanggal = request.POST["tanggal"]
-
-        # Ubah format tanggal menjadi YYYY-MM-DD
-        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
-        # Periksa apakah entri sudah ada
-        existing_entry = models.SaldoAwalSubkon.objects.filter(
-            Tanggal__year=tanggal_formatted.year,
-            IDProdukSubkon__NamaProduk=kodeproduk,
-        ).exclude(IDSaldoAwalProdukSubkon=id).exists()
-          
-        if existing_entry:
-            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
-            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("view_saldosubkon")
-        
-        produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=kodeproduk)
-
-        dataobj.Tanggal = tanggal
-        dataobj.Jumlah = jumlah
-        dataobj.IDProdukSubkon = produkobj
-        dataobj.save()
-
-        models.transactionlog(
-            user="Produksi",
-            waktu=datetime.now(),
-            jenis="Update",
-            pesan=f"Saldo Produk Subkon. Nama Produk : {produkobj.NamaProduk} Kode Artikel : {produkobj.KodeArtikel} Jumlah : {jumlah}",
-        ).save()
-
-        return redirect("view_saldosubkon")
-
-# @login_required
-# @logindecorators.allowed_users(allowed_roles=['produksi'])
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
-def delete_saldosubkon(request, id):
-    dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
-
-    dataobj.delete()
-
-    models.transactionlog(
-        user="Produksi",
-        waktu=datetime.now(),
-        jenis="Delete",
-        pesan=f"Saldo Produk Subkon. Nama Produk : {dataobj.IDProdukSubkon.NamaProduk}  Kode Artikel : {dataobj.IDProdukSubkon.KodeArtikel} Jumlah : {dataobj.Jumlah}",
-    ).save()
-    
-    return redirect("view_saldosubkon")
-
-# Saldo Bahan Subkon
-# @login_required
-# @logindecorators.allowed_users(allowed_roles=['produksi'])
-
-# @login_required
-# @logindecorators.allowed_users(allowed_roles=['produksi'])
-
-# @login_required
-# @logindecorators.allowed_users(allowed_roles=['produksi'])
-@login_required
-@logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
-def update_saldobahansubkon(request, id):
-    dataobj = models.SaldoAwalBahanBakuSubkon.objects.get(IDSaldoAwalBahanBakuSubkon=id)
-    dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
-    datasubkon = models.BahanBakuSubkon.objects.all()
-    if request.method == "GET":
-        return render(
-            request,
-            "purchasing/update_saldobahansubkon.html",
-            {"data": dataobj,"datasubkon": datasubkon },
-        )
-
-    else:
-        kodeproduk = request.POST["produk"]
-        jumlah = request.POST["jumlah"]
-        tanggal = request.POST["tanggal"]
-
-        # Ubah format tanggal menjadi YYYY-MM-DD
-        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
-        # Periksa apakah entri sudah ada
-        existing_entry = models.SaldoAwalBahanBakuSubkon.objects.filter(
-            Tanggal__year=tanggal_formatted.year,
-            IDBahanBakuSubkon__KodeProduk=kodeproduk,
-        ).exclude(IDSaldoAwalBahanBakuSubkon=id).exists()
-
-        if existing_entry:
-            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
-            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("update_saldobahansubkon", id=id)
-        try:
-            produkobj = models.BahanBakuSubkon.objects.get(KodeProduk=kodeproduk)
-        except:
-            messages.error(request,f"Kode Bahan Baku Subkon {kodeproduk} tidak ditemukan dalam sistem")
-            return redirect("update_saldobahansubkon", id = id)
-
-        dataobj.Tanggal = tanggal
-        dataobj.Jumlah = jumlah
-        dataobj.IDBahanBakuSubkon = produkobj
-        dataobj.save()
-
-        models.transactionlog(
-            user="Produksi",
-            waktu=datetime.now(),
-            jenis="Update",
-            pesan=f"Saldo Bahan Baku Subkon. Kode Bahan Baku: {produkobj.KodeProduk} Jumlah : {jumlah}",
-        ).save()
-        messages.success(request,'Data berhasil disimpan')
-        return redirect("view_saldobahansubkon")
 
 # @login_rexs.allowed_users(allowed_roles=['produksi'])
 
@@ -3911,6 +3396,12 @@ def bulk_createsjp(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['purchasing','ppic'])
 def view_saldoartikel(request):
+    '''
+    Fitur ini digunakan untuk melihat saldo awal artikel yang ada pada sistem
+    Algoritma
+    1. Mengambil data saldo awal artikel 
+    2. Mengubah Tanggal dengan format YYYY-MM-DD
+    '''
     dataartikel = models.SaldoAwalArtikel.objects.all().order_by("-Tanggal")
     for i in dataartikel:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
@@ -3923,6 +3414,12 @@ def view_saldoartikel(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['purchasing','ppic'])
 def view_saldobahansubkon(request):
+    '''
+    Fitur ini digunakan untuk melihat saldo awal bahan baku subkon yang ada pada sistem
+    Algoritma
+    1. Mengambil data saldo awal bahan baku subkon 
+    2. Mengubah Tanggal dengan format YYYY-MM-DD
+    '''
     datasubkon = models.SaldoAwalBahanBakuSubkon.objects.all().order_by("-Tanggal")
     for i in datasubkon:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
@@ -3935,6 +3432,12 @@ def view_saldobahansubkon(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['purchasing','ppic'])
 def view_saldosubkon(request):
+    '''
+    Fitur ini digunakan untuk melihat saldo awal produk subkon yang ada pada sistem
+    Algoritma
+    1. Mengambil data saldo awal produk subkon 
+    2. Mengubah Tanggal dengan format YYYY-MM-DD
+    '''
     datasubkon = models.SaldoAwalSubkon.objects.all().order_by("-Tanggal")
     for i in datasubkon:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
@@ -3944,57 +3447,17 @@ def view_saldosubkon(request):
     )
 
 
-@login_required
-@logindecorators.allowed_users(allowed_roles=['purchasing'])
-def update_saldosubkon(request, id):
-    dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
-    dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
-    datasubkon = models.ProdukSubkon.objects.all()
-    if request.method == "GET":
-        return render(
-            request,
-            "Purchasing/update_saldoproduksubkon.html",
-            {"data": dataobj,"datasubkon": datasubkon },
-        )
-
-    else:
-        kodeproduk = request.POST["kodebarangHidden"]
-        jumlah = request.POST["jumlah"]
-        tanggal = request.POST["tanggal"]
-
-        # Ubah format tanggal menjadi YYYY-MM-DD
-        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
-        # Periksa apakah entri sudah ada
-        existing_entry = models.SaldoAwalSubkon.objects.filter(
-            Tanggal__year=tanggal_formatted.year,
-            IDProdukSubkon__NamaProduk=kodeproduk,
-        ).exclude(IDSaldoAwalProdukSubkon=id).exists()
-          
-        if existing_entry:
-            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
-            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("view_produksubkon")
-        
-        produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=kodeproduk)
-
-        dataobj.Tanggal = tanggal
-        dataobj.Jumlah = jumlah
-        dataobj.IDProdukSubkon = produkobj
-        dataobj.save()
-
-        models.transactionlog(
-            user="Produksi",
-            waktu=datetime.now(),
-            jenis="Update",
-            pesan=f"Saldo Produk Subkon. Nama Produk : {produkobj.NamaProduk} Kode Artikel : {produkobj.KodeArtikel} Jumlah : {jumlah}",
-        ).save()
-
-        return redirect("view_produksubkon")
-
 # Purchase Order
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing","ppic"])
 def view_purchaseorder(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data Purchase Order pada sistem
+    Algoritma 
+    1. Mengambil data semua purchase order pada sistem
+    2. Mengiterasi semua data PO
+    3. mengambil data detail PO dengan kriteria KodePO = nomor PO
+    '''
     datapo = models.PurchaseOrder.objects.all().order_by("Tanggal")
     # datasjb = models.DetailSuratJalanPembelian.objects.all().order_by(
     #     "NoSuratJalan__Tanggal"
@@ -4030,6 +3493,16 @@ def view_purchaseorder(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def trackingpurchaseorder(request,id):
+    '''
+    Fitur ini digunakan untuk melakukan tracking pada Purchase Order yang ada pada sistem
+    1. Mengambil data purchase order dengan kriteria id (primary key) = id (id didapatkan dari passing values HTML)
+    2. Mengambil data detail PO dengan kriteria KodePO = data purchase order poin 1
+    3. Mengambil data transaksi detail surat jalan pembelian yang menginputkan dengan kode po yang dipilih. 
+    4. Mengiterasi data detail PO
+    5. mencari selisih dengan cara selisih = Total jumlah PO - TOtal transaksi gudang masuk. Selisih PO artininya selisih kurangnya PO yang belum datang ke perusahaan
+    
+
+    '''
     datapo = models.PurchaseOrder.objects.get(id=id)
     datadetailpo =models.DetailPO.objects.filter(KodePO = datapo)
     transaksigudang = models.DetailSuratJalanPembelian.objects.filter(PO__KodePO= datapo)
@@ -4052,6 +3525,18 @@ def trackingpurchaseorder(request,id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def add_purchaseorder(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data purchase order
+    Algoritma : 
+    1. mengambil semua data purchase order
+    2. Mengambil semua data produk
+    3. Menampilkan form input data purchase order
+    4. program mendapatkan input berupa Nomor PO, Tanggal, list kode produk, list jumlah
+    5. Membuat Purchase Order object dengan  kriteria Nomor Po = input nomor PO,Tanggal = input tanggal, dan Status = False (False = status aktif, True = status non aktif / lunas)
+    6. Mengiterasi list kode produk dan list jumlah
+    7. membuat object sejumlah kode produk dan jumlah dengan nomor po adalah Object Purchase Order
+    8. menyimpan data
+    '''
     if request.method == "GET":
         detailsj = models.PurchaseOrder.objects.all()
         getproduk = models.Produk.objects.all()
@@ -4127,6 +3612,22 @@ def add_purchaseorder(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def update_purchaseorder(request, id):
+    '''
+    Fitur ini digunakan untuk mengupdate data PO
+    Algoritma : 
+    1. Mengambil data PO dengan kriteria Primarykey = id (id didapatkan dari passing values HTML)
+    2. Mengambil data detail PO
+    3. mengubah format tanggal menjadi YYYY-MM-DD
+    4. Menampilkan form update PO
+    5. Program menerima input berupa Status, Tanggal, Kode PO 
+    6. Program mengupdate data Purchase Order
+    7. Program menerima input berupa list id existing detail po, list existing jumlah detail po, list existing kodeproduk existing
+    8. Mengiterasi list id detailpo, list Jumlah, dan list kode produk
+    9. Mengupdate data detail PO Existing
+    10. Program menerima input berupa list kode produk baru, list jumlah baru
+    11. Mengiterasi list produk baru dan list jumlah baru
+    13. menyimpan detail purchase order dengan produk baru dan jumlah baru denga Kode PO = data po poin 1
+    '''
     datapo = models.PurchaseOrder.objects.get(pk=id)
     datapo.detailpo = models.DetailPO.objects.filter(KodePO = datapo)
     getproduk = models.Produk.objects.all()
@@ -4213,6 +3714,12 @@ def update_purchaseorder(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def delete_purchaseorder(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data Purchase Order
+    Algoritma
+    1. Mengambil data Purchase Order dengan PrimaryKey = id (id didapatkan dari passing values HTML)
+    2. menghapus data Purchase ORder
+    '''
     datasbj = models.PurchaseOrder.objects.get(pk=id)
     models.transactionlog(
         user="Purchasing",
@@ -4226,6 +3733,12 @@ def delete_purchaseorder(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
 def delete_detailpurchaseorder(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data Detail Purchase Order
+    Algoritma 
+    1. Mengambil detail PO dengan Primary Key = id (id didapatkan dari passing values HTML)
+    2. menghapus data detail PO 
+    '''
     datapo = models.DetailPO.objects.get(pk=id)
     idpo = datapo.KodePO.pk
     models.transactionlog(

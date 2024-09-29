@@ -31,7 +31,6 @@ urlpatterns = [
     ),
     path('update_barangsubkon_masuk/<str:id>',viewspurchasing.update_barangsubkon_masuk,name='updatebarangsubkonmasuk'),
     # rekap purchasing(gudang+produksi)
-    path("rekap_purchasing", viewspurchasing.rekap_purchasing, name="rekap_purchasing"),
     path("rekapbaranggudang", viewspurchasing.rekap_gudang, name="rekapgudang2"),
     path(
         "viewrekapbarang2", viewspurchasing.view_rekapbarang, name="view_rekapbarang2"
@@ -46,10 +45,6 @@ urlpatterns = [
     path("delete_produk/<str:id>", viewspurchasing.delete_produk, name="delete_produk"),
     # CRUD SPPB
     path("viewsppb2", viewspurchasing.view_sppb, name="view_sppb2"),
-    path("detailsppb2/<str:id>", viewspurchasing.detail_sppb, name="detail_sppb2"),
-    # R PO
-    path("read_po", viewspurchasing.read_po, name="read_po"),
-    path("update_po/<str:id>",viewspurchasing.update_po,name="update_po"),
     # R SPK
     path("read_spk", viewspurchasing.read_spk, name="read_spk"),
     path("trackspk/<str:id>", viewspurchasing.track_spk, name="trackspk"),
@@ -71,28 +66,12 @@ urlpatterns = [
     
     # Saldo awal b.a
     path('saldoawalartikel',viewspurchasing.view_saldoartikel,name="saldoartikelpurchasing"),
-    path('updatesaldoawalartikel/<str:id>',viewspurchasing.update_saldoartikel,name='updatesaldoartikelpurchasing'),
    
     # Saldo awal b.sub
      
-    path(
-        "updatesaldobahansubkon/<str:id>",
-        viewspurchasing.update_saldobahansubkon,
-        name="update_saldobahansubkon",
-    ),
     
     # Saldo produk subkon
     path("viewsaldosubkon", viewspurchasing.view_saldosubkon, name="view_saldosubkon"),
-    path(
-        "updatesaldosubkon/<str:id>",
-        viewspurchasing.update_saldosubkon,
-        name="update_saldosubkon",
-    ),
-    path(
-        "deletesaldosubkon/<str:id>",
-        viewspurchasing.delete_saldosubkon,
-        name="delete_saldosubkon",
-    ),
     path("viewsaldoartikel", viewspurchasing.view_saldoartikel, name="view_saldoartikelpurchasing"),
     path(
         "viewsaldobahansubkon",
@@ -100,11 +79,7 @@ urlpatterns = [
         name="view_saldobahansubkon",
     ),
     path("viewproduksubkon", viewspurchasing.view_saldosubkon, name="view_produksubkon"),
-    path(
-        "update_saldosubkon/<str:id>",
-        viewspurchasing.update_saldosubkon,
-        name="update_saldosubkon",
-    ),
+
     # Purchase Order
     path('purchaseorder',viewspurchasing.view_purchaseorder,name='view_purchaseorder'),
     path('addpurchaseorder',viewspurchasing.add_purchaseorder,name='add_purchaseorder'),

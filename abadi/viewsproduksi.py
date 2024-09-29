@@ -1890,6 +1890,10 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,
     2. Jumlah Pemusnahan Bahan baku di produksi per bahan baku
     3. Jumlah konversi Bahan yang Bermutasi ke FG dalam bentuk kotak
     4. Jumlah Konversi Pemusnahan Kotak di area Produksi
+    5. Jumlah Saldo awal Bahan baku pada WIP/FG
+    6. Jumlah Transaksi mutasi kode stok masuk
+    7. Jumlah Transaksi Mutasi Kode Stok keluar
+    5. Total Stok = Saldo awal + Jumlah Transakasi Gudang (jumlah >= 0) +Jumlah transaksi mutasi kode stok masuk - konversi mutasi artikel WIP ke FG (berdasarkan versi) - Konversi pemusnahan artikel WIP -Pemusnahan bahan baku pada WIP atau FG
     '''
     # Menceri data transaksi gudang dengan kode 
     datagudang = models.TransaksiGudang.objects.filter(
