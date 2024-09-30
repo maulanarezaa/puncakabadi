@@ -238,7 +238,8 @@ def gethargafgterakhirberdasarkanmutasi(KodeArtikel, Tanggaltes, HargaPurchasing
         # komponen_fg_terakhir,
     )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def laporanbarangjadi(request):
     if len(request.GET) == 0:
         return render(request, "ppic/views_laporanstokfg.html")
@@ -304,7 +305,8 @@ def laporanbarangjadi(request):
             },
         )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def laporanbarangmasuk(request):
     if len(request.GET) == 0:
         return render(request, "ppic/views_laporanbarangmasuk.html")
@@ -372,7 +374,8 @@ def laporanbarangmasuk(request):
 #     # print("Harga Konversi : ", nilaifgperkodeproduk)
 #     return nilaifgperkodeproduk
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def laporanbarangkeluar(request):
     if len(request.GET) == 0:
         return render(request, "ppic/views_laporanbarangkeluar.html")
@@ -455,7 +458,8 @@ Revisi 4/21/2024
 3. Perhitungan Laporan
 """
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def viewconfirmationorder(request):
     data = models.confirmationorder.objects.all()
 
@@ -470,7 +474,8 @@ def viewconfirmationorder(request):
     if len(request.GET) == 0:
         return render(request, "ppic/views_confirmationorder.html", {"data": data})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def tambahconfirmationorder(request):
     dataartikel = models.Artikel.objects.all()
     datadisplay = models.Display.objects.all()
@@ -562,7 +567,8 @@ def tambahconfirmationorder(request):
             messages.error(request, "Masukkan Artikel atau Display")
             return redirect("addco")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def detailco(request, id):
     data = models.confirmationorder.objects.get(id=id)
     detailcopo = models.detailconfirmationorder.objects.filter(
@@ -601,7 +607,8 @@ def detailco(request, id):
 
     return render(request, "ppic/detailco.html", {"dataco": data, "jumlah": datajumlah,'jumlahdisplay':datajumlahdisplay,'jumlahbahan':datajumlahbahan})
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def updateco(request, id):
     data = models.confirmationorder.objects.get(id=id)
     detailcopo = models.detailconfirmationorder.objects.filter(
@@ -709,7 +716,8 @@ def updateco(request, id):
 
         return redirect("confirmationorder")
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def deletedetailco(request, id):
     data = models.detailconfirmationorder.objects.get(id=id)
     idco = data.confirmationorder.id
@@ -717,12 +725,15 @@ def deletedetailco(request, id):
     messages.success(request,'Data berhasil dihapus')
     return redirect("updateco", id=idco)
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def deleteco(request, id):
     data = models.confirmationorder.objects.get(id=id)
     data.delete()
     return redirect("confirmationorder")
 
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def detaillaporanbarangkeluar(request):
     if len(request.GET) > 0:
         bulan = request.GET["bulan"]
@@ -1626,7 +1637,8 @@ def getbarangmasuk(last_days, stopindex, awaltahun):
     # print(asdasd)
     return rekapbarangmasukperbulan
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def detaillaporanbarangmasuk(request):
     if len(request.GET) > 0:
         print(request.GET)
@@ -2132,7 +2144,9 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
     # print(asd)
         
     return data
-    
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def detaillaporanstokfg(request):
     if len(request.GET) > 0:
         startawal = time.time()
@@ -2514,7 +2528,8 @@ def getstokartikelfg(last_days, stopindex, awaltahun):
     # print(datastokfgperbulan)
     return datastokfgperbulan, datastokbahanbakufg
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def getsaldoawalgudang(request):
     if len(request.GET) > 0:
         bulan = request.GET["bulan"]
@@ -2715,7 +2730,8 @@ def getstokbahanproduksi(last_days, stopindex, awaltahun):
     return datasaldototalproduksi, stokawalbahanbaku, artikels
 
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def detaillaporanbaranstokwip(request):
     if len(request.GET) > 0:
         print(request.GET)
@@ -2863,7 +2879,8 @@ def perhitunganpersediaan(
     # print(datakirim)
     return datakirim
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def laporanpersediaan(request):
     if len(request.GET) == 0:
         return render(request, "ppic/views_laporanpersediaanperusahaan.html")
@@ -2949,7 +2966,8 @@ def laporanpersediaan(request):
         },
     )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def detaillaporanbaranstokawalproduksi(request):
     if len(request.GET) > 0:
         bulan = request.GET["bulan"]
@@ -2990,7 +3008,8 @@ def detaillaporanbaranstokawalproduksi(request):
                 'stokartikel': datastokfg           },
         )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def detaillaporanbaranstokawalgudang(request):
     if len(request.GET) > 0:
         bulan = request.GET["bulan"]
@@ -3030,7 +3049,8 @@ def detaillaporanbaranstokawalgudang(request):
             },
         )
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def read_transactionlog(request):
     waktuobj = datetime.now().date()
     
@@ -3043,7 +3063,8 @@ def read_transactionlog(request):
 
 
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def exportlaporanbulananexcel(request):
     bulan = request.GET["bulan"]
     waktuobj = datetime.strptime(bulan, "%Y-%m")
@@ -4048,7 +4069,8 @@ def create_dataframeproduksi(data):
 
 # Cek Perhitungan Laporan
 
-
+@login_required
+@logindecorators.allowed_users(allowed_roles=["ppic"])
 def exportlaporanbulananexcelkeseluruhan(request):
     bulan = request.GET["bulan"]
     waktuobj = datetime.strptime(bulan, "%Y-%m")

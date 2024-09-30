@@ -5,6 +5,8 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
+def redirectlogin(request):
+    return redirect('login')
 
 def login_view(request):
     if request.method == "POST":
