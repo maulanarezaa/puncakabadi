@@ -1688,6 +1688,98 @@ def updatepenyusun(request, id):
             f"/rnd/penyusun?kodeartikel={quote(data.KodeArtikel.KodeArtikel)}&versi={data.KodeVersi.Versi}"
         )
 
+@login_required
+@logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
+def updatekonversi(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update data bahan penyusun sesuai dengan kode penyusunnya
+    Algoritma : 
+    1. mendapatkan data penysuun dengan kriteria IDKodePenyusun = id (id didapatkan dari passing values HTML)
+    2. menampilkan form update penyusun 
+    3. program menerima input kodeproduk, lokasi, status, kuantitas, allowance, dan kodeversi
+    4. Mengupdate data penyusun dengan kode produk input, lokasi input, status input, kuantitas input, dan allowance input
+    5. menyimpan data penyusun
+    6. Apabila kodeversi berubah, mengupdate data versi
+
+    '''
+    data = models.Versi.objects.get(pk=id)
+    if request.method == "GET":
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+        else:
+            back_url = '/rnd/penyusun'
+        
+        filterdetailkonversi = models.Penyusun.objects.filter(KodeVersi = data)
+        data.konversi = filterdetailkonversi
+
+        kodebahanbaku = models.Produk.objects.all()
+        lokasiobj = models.Lokasi.objects.all()
+        return render(
+            request,
+            "rnd/update_konversi.html",
+            {
+                "kodestok": kodebahanbaku,
+                "data": data,
+                "lokasi": lokasiobj,
+                'backurl':back_url
+                
+            },
+        )
+    else:
+        print(request.POST)
+        # print(asd)
+        kodeproduk = request.POST["kodeproduk"]
+        lokasi = request.POST["lokasi"]
+        status = request.POST["status"]
+        kuantitas = request.POST["kuantitas"]
+        allowance = request.POST["allowance"]
+        kodeversi = request.POST['kodeversi']
+
+        datapenyusun = (
+            models.Penyusun.objects.filter(KodeArtikel= data.KodeArtikel,KodeVersi=data.KodeVersi, Status=True)
+            .exclude(IDKodePenyusun=id)
+            .exists()
+        )
+
+        if datapenyusun and status == "True":
+            messages.error(
+                request,
+                f"Artikel {data.KodeArtikel.KodeArtikel} pada Versi {data.versi} telah memiliki bahan penyusun utama",
+            )
+            return redirect("update_penyusun", id=id)
+
+        try:
+            produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
+        except:
+            messages.error(
+                request, f"Data bahan baku {kodeproduk} tidak ditemukan dalam sistem "
+            )
+            return redirect("update_penyusun", id=id)
+        lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
+        data.KodeProduk = produkobj
+        data.Lokasi = lokasiobj
+        data.Status = status
+        data.Kuantitas = kuantitas
+        data.Allowance = allowance
+        
+        if data.KodeVersi.Versi != kodeversi:
+            data.KodeVersi.Versi = kodeversi
+            print(data.KodeVersi.Versi,kodeversi)
+            data.KodeVersi.save()
+
+        data.save()
+        transaksilog = models.transactionlog(
+            user="RND",
+            waktu=datetime.now(),
+            jenis="Update",
+            pesan=f"Penyusun Baru. Kode Artikel : {data.KodeArtikel}, Kode produk : {data.KodeProduk}-{data.KodeProduk.NamaProduk}, Status Utama : {data} versi : {data.KodeVersi}, Kuantitas Konversi : {  data.Kuantitas}",
+        )
+        transaksilog.save()
+        messages.success(request, "Data berhasil disimpan")
+        return redirect(
+            f"/rnd/penyusun?kodeartikel={quote(data.KodeArtikel.KodeArtikel)}&versi={data.KodeVersi.Versi}"
+        )
+
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])

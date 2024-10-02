@@ -27,6 +27,7 @@ urlpatterns = [
     # path("penyusun/versi/tambah/<str:id>", viewsrnd.tambahversi, name="add_versi"),
     path("penyusun/tambahversi/<str:id>", viewsrnd.tambahversibaru, name="add_versibaru"),
     path("penyusun/update/<str:id>", viewsrnd.updatepenyusun, name="update_penyusun"),
+    path("penyusun/updatekonversi/<str:id>", viewsrnd.updatekonversi, name="update_konversi"),
     path("penyusun/delete/<str:id>", viewsrnd.delete_penyusun, name="delete_penyusun"),
     path('penyusun/deleteversi/<str:id>',viewsrnd.delete_versi,name='deleteversi'),
     path("hargafg", viewsrnd.views_harga, name="views_harga"),

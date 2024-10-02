@@ -87,7 +87,7 @@
                     {% endif %}
                     {% endif %}
                     
-                    <div class="col-lg-3">
+                    <div class="col-lg-2">
                         <form action="{% url 'updateversi' %}" method="post">
                             {% csrf_token %}
                             <input type="text" hidden value="{{versiterpilihobj.pk}}" name="versi">
@@ -95,7 +95,16 @@
                         </form>
                     </div>
 
-                    <div class="col-lg-3">
+                    <div class="col-lg-2">
+                        <a href="{% url 'update_konversi' versiterpilihobj.pk %}">
+
+                            <button type="button" class="btn btn-warning  btn-icon-text" >
+                                <i class="typcn typcn-edit btn-icon-prepend"></i>
+                                Edit Konversi
+                            </button>
+                        </a>
+                    </div>
+                    <div class="col-lg-2">
                         <button type="button" class="btn btn-danger btn-icon-text" onclick="confirmDelete('{{versiterpilihobj.pk}}')">
                             <i class="typcn typcn-plus btn-icon-prepend"></i>
                             Hapus Versi

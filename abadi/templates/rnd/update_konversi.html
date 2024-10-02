@@ -1,0 +1,164 @@
+{% extends "rnd/base.html" %}
+{% load static %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+<!-- Page content  -->
+{% block content %}
+<div class="col-12 grid-margin">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Edit Artikel : {{data.KodeArtikel}}</h4>
+            <div class="template-demo">
+                <a href="{{backurl}}">
+                    <button type="button" class="btn btn-light btn-icon-text">
+                        <i class="typcn typcn-chevron-left btn-icon-prepend"></i>
+                        Kembali
+                    </button>
+                </a>
+            </div>
+            <br>
+            <form class="form-sample" action="" method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Kode Artikel</label>
+                            <div class="col-sm-9">
+
+                                <input type="text" name="kodeversi" id="" class="form-control"
+                                    value="{{data.KodeArtikel}}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Versi</label>
+                            <div class="col-sm-9">
+
+                                <input type="text" name="kodeversi" id="" class="form-control" value="{{data.Versi}}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <h4 class="card-title">Data Penyusun</h4>
+                {% for item in data.konversi %}
+                <div class="row">
+                    <div class="col-md-2">
+                        <label class="col-form-label">Kode Stock</label>
+                        <div class="">
+                            <input type="text" class="form-control" required name="kodeproduk"
+                                value="{{item.KodeProduk.KodeProduk}}" id="" list="listkodeproduk">
+                            <datalist id="listkodeproduk">
+                                {% for i in kodestok %}
+                                <option value="{{i.KodeProduk}}" data-nama="{{i.NamaProduk}}" data-satuan="{{i.unit}}">
+                                </option>
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="col-form-label">Nama Bahan Baku</label>
+                        <div class="">
+                            <input type="text" name="namabahanbaku" value="{{item.KodeProduk.NamaProduk}}" disabled
+                                class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+
+                        <label class="col-form-label">Satuan</label>
+                        <div class="">
+                            <input type="text" name="satuan" value="{{item.KodeProduk.unit}}" disabled
+                                class="form-control">
+                        </div>
+
+                    </div>
+                    <div class="col-md-2">
+                        <label class="col-form-label">Status</label>
+                        <div class="">
+                            <select name="status" id="" class="form-control">
+                                {% if item.Status == 1 %}
+                                <option value="True" selected>Bahan Baku Utama</option>
+                                <option value="False">Bahan Baku nonutama</option>
+                                {% else %}
+                                <option value="True">Bahan Baku Utama</option>
+                                <option value="False" selected>Bahan Baku nonutama</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+
+                        <label class="col-form-label">Lokasi</label>
+                        <div class="">
+                            <select name="lokasi" id="" class="form-control">
+                                {% if item.Lokasi.NamaLokasi == "WIP" %}
+                                <option value="WIP" selected>WIP</option>
+                                <option value="FG">FG</option>
+                                {% else %}
+                                <option value="WIP">WIP</option>
+                                <option value="FG" selected>FG</option>
+                                {% endif %}
+
+                            </select>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="row">
+
+                    <div class="col-md-2">
+                        <label class=" col-form-label">Konversi</label>
+                        <div class="">
+                            <input type="number" value="{{item.Kuantitas}}" name="kuantitas" class="form-control"
+                                min="0" step="any">
+
+                            </select>
+
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="col-form-label">Allowance</label>
+                        <div class="">
+                            <input type="number" min="0" name="allowance" step="any" required value="{{item.Allowance}}"
+                                required class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <label class="col-form-label">Keterangan</label>
+                        <div class="">
+                            <input type="text" name="keterangan" required value="{{item.keterangan}}"
+                                required class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                {% endfor %}
+                <button type="submit" class="btn btn-primary mr-2">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const kodeProdukInput = document.querySelector('input[name="kodeproduk"]');
+        const namaBahanBakuInput = document.querySelector('input[name="namabahanbaku"]');
+        const satuanInput = document.querySelector('input[name="satuan"]');
+
+        kodeProdukInput.addEventListener('input', function () {
+            const selectedOption = document.querySelector(`#listkodeproduk option[value="${kodeProdukInput.value}"]`);
+            if (selectedOption) {
+                const namaBahanBaku = selectedOption.getAttribute('data-nama');
+                const satuan = selectedOption.getAttribute('data-satuan');
+                namaBahanBakuInput.value = namaBahanBaku;
+                satuanInput.value = satuan;
+            } else {
+                namaBahanBakuInput.value = '';
+                satuanInput.value = '';
+            }
+        });
+    });
+</script>
+{% endblock content %}
