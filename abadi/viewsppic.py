@@ -996,6 +996,7 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
         hargapurchasingperbulan = gethargapurchasingperbulan(
             last_days, stopindex, awaltahun
         )
+        
 
     datapenyusun = {}
     listdatadetailsppb = []
@@ -1166,7 +1167,9 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
         datamodeltransaksibahanbaku["totalbiaya"] = (nilaitransaksibahan)
 
         nilaipemusnahanbahanbaku = 0
+        print(datapemusnahanbahanbaku)
         for item in datapemusnahanbahanbaku:
+            print(item)
             
             harga = hargapurchasingperbulan[item.KodeBahanBaku]["data"][index][
                 "hargasatuan"
@@ -1264,7 +1267,7 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
 
 
 def gethargapurchasingperbulan(last_days, stopindex, awaltahun):
-    bahanbaku = models.Produk.objects.all()
+    bahanbaku = models.Produk.objects.with_deleted()
     akhirtahun = date(awaltahun.year,12,31)
     # bahanbaku = models.Produk.objects.filter(KodeProduk="A-101")
 

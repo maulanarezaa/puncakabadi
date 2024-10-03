@@ -139,10 +139,10 @@
                                 <td>Satuan</td>
                                 <td>Lokasi</td>
                                 <td>Utama</td>
-                                <td>Catatan</td>
                                 <td>Konversi </td>
                                 <td>Harga (Rp)</td>
                                 <td>Harga konversi (Rp)</td>
+                                <td>Keterangan</td>
                                 <td>Action</td>
                             </tr>
                         </thead>
@@ -155,10 +155,10 @@
                                 <td>{{i.Penyusunobj.KodeProduk.unit}}</td>
                                 <td>{{i.Penyusunobj.Lokasi.NamaLokasi}}</td>
                                 <td>{{i.Penyusunobj.Status}}</td>
-                                <td>{{i.Konversi|floatformat:5}}</td>
                                 <td>{{i.Allowance|floatformat:5}}</td>
                                 <td>{{i.HargaSatuan|custom_thousands_separator}}</td>
                                 <td>{{i.Hargakotak|custom_thousands_separator}}</td>
+                                <td>{{i.Keterangan}}</td>
                                 <td>
                                     {% if user.groups.first.name != 'ppic' %}
                                     <div class="template-demo">

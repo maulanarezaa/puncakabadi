@@ -28,7 +28,7 @@
                             <label class="col-sm-3 col-form-label">Kode Artikel</label>
                             <div class="col-sm-9">
 
-                                <input type="text" name="kodeversi" id="" class="form-control"
+                                <input type="text" name="kodeartikel" id="" class="form-control"
                                     value="{{data.KodeArtikel}}">
                             </div>
                         </div>
@@ -47,7 +47,7 @@
                 {% for item in data.konversi %}
                 <div class="row">
                     <div class="col-md-2">
-                        <label class="col-form-label">Kode Stock</label>
+                        <label class="col-form-label">{{forloop.counter}}. Kode Stock</label>
                         <div class="">
                             <input type="text" class="form-control" required name="kodeproduk"
                                 value="{{item.KodeProduk.KodeProduk}}" id="" list="listkodeproduk">
@@ -129,8 +129,8 @@
                     <div class="col-md-7">
                         <label class="col-form-label">Keterangan</label>
                         <div class="">
-                            <input type="text" name="keterangan" required value="{{item.keterangan}}"
-                                required class="form-control">
+                            <input type="text" name="keterangan"  value="{{item.keterangan}}"
+                                 class="form-control">
                         </div>
                     </div>
                 </div>

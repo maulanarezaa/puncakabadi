@@ -1208,6 +1208,7 @@ def views_penyusun(request):
                                 "Konversi": round(kuantitaskonversi, 5),
                                 "Allowance": round(kuantitasallowance, 5),
                                 "Hargakotak": round(hargaperkotak, 2),
+                                'Keterangan' : item.keterangan
                             }
                         )
                     HargaFGArtikel= None
@@ -1642,6 +1643,7 @@ def updatepenyusun(request, id):
         kuantitas = request.POST["kuantitas"]
         allowance = request.POST["allowance"]
         kodeversi = request.POST['kodeversi']
+        keterangan = request.POST['keterangan']
 
         datapenyusun = (
             models.Penyusun.objects.filter(KodeArtikel= data.KodeArtikel,KodeVersi=data.KodeVersi, Status=True)
@@ -1669,6 +1671,7 @@ def updatepenyusun(request, id):
         data.Status = status
         data.Kuantitas = kuantitas
         data.Allowance = allowance
+        data.keterangan = keterangan
         
         if data.KodeVersi.Versi != kodeversi:
             data.KodeVersi.Versi = kodeversi
@@ -1703,14 +1706,14 @@ def updatekonversi(request, id):
 
     '''
     data = models.Versi.objects.get(pk=id)
+    filterdetailkonversi = models.Penyusun.objects.filter(KodeVersi = data)
+    data.konversi = filterdetailkonversi
     if request.method == "GET":
         if 'HTTP_REFERER' in request.META:
             back_url = request.META['HTTP_REFERER']
         else:
             back_url = '/rnd/penyusun'
         
-        filterdetailkonversi = models.Penyusun.objects.filter(KodeVersi = data)
-        data.konversi = filterdetailkonversi
 
         kodebahanbaku = models.Produk.objects.all()
         lokasiobj = models.Lokasi.objects.all()
@@ -1727,57 +1730,71 @@ def updatekonversi(request, id):
         )
     else:
         print(request.POST)
+        listkodeproduk = request.POST.getlist("kodeproduk")
+        listlokasi = request.POST.getlist("lokasi")
+        liststatus = request.POST.getlist("status")
+        listkuantitas = request.POST.getlist("kuantitas")
+        listallowance = request.POST.getlist("allowance")
+        listketerangan = request.POST.getlist('keterangan')
+        print(listketerangan)
         # print(asd)
-        kodeproduk = request.POST["kodeproduk"]
-        lokasi = request.POST["lokasi"]
-        status = request.POST["status"]
-        kuantitas = request.POST["kuantitas"]
-        allowance = request.POST["allowance"]
+        kodeartikel = request.POST['kodeartikel']
         kodeversi = request.POST['kodeversi']
+        
+        # kodeversi = request.POST['kodeversi']
+        dataversi = models.Versi.objects.filter(KodeArtikel__KodeArtikel = kodeartikel,Versi = kodeversi).first()
 
-        datapenyusun = (
-            models.Penyusun.objects.filter(KodeArtikel= data.KodeArtikel,KodeVersi=data.KodeVersi, Status=True)
-            .exclude(IDKodePenyusun=id)
-            .exists()
-        )
-
-        if datapenyusun and status == "True":
+        # datapenyusun = (
+        #     models.Penyusun.objects.filter(KodeArtikel= data.KodeArtikel,KodeVersi=data.KodeVersi, Status=True)
+        #     .exclude(IDKodePenyusun=id)
+        #     .exists()
+        # )
+        jumlahstatus = liststatus.count('True')
+        print(jumlahstatus)
+        # print(asd)
+        if jumlahstatus >1:
             messages.error(
                 request,
-                f"Artikel {data.KodeArtikel.KodeArtikel} pada Versi {data.versi} telah memiliki bahan penyusun utama",
+                f"Artikel {dataversi.KodeArtikel.KodeArtikel} pada Versi {data.Versi} telah memiliki bahan penyusun utama",
             )
-            return redirect("update_penyusun", id=id)
+            return redirect("update_konversi", id=id)
+        # for kodeproduk,lokasi, status, kuantitas,allowance, keterangan in zip(listkodeproduk,listlokasi,liststatus,listkuantitas,listallowance,listketerangan):
+        for penyusun,update in zip(data.konversi,(zip(listkodeproduk,listlokasi,liststatus,listkuantitas,listallowance,listketerangan))):
+            print(penyusun,update)
+            # print(asd)
+            
+            try:
+                produkobj = models.Produk.objects.get(KodeProduk=update[0])
+            except:
+                messages.error(
+                    request, f"Data bahan baku {update[0]} tidak ditemukan dalam sistem "
+                )
+                continue
+            # print(asd)
+            lokasiobj = models.Lokasi.objects.get(NamaLokasi=update[1])
+            penyusun.KodeProduk = produkobj
+            penyusun.Lokasi = lokasiobj
+            penyusun.Status = update[2]
+            penyusun.Kuantitas = update[3]
+            penyusun.Allowance = update[4]
+            penyusun.keterangan = update[5]
+            
+            if penyusun.KodeVersi.Versi != kodeversi:
+                penyusun.KodeVersi.Versi = kodeversi
+                print(penyusun.KodeVersi.Versi,kodeversi)
+                # penyusun.KodeVersi.save()
 
-        try:
-            produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
-        except:
-            messages.error(
-                request, f"Data bahan baku {kodeproduk} tidak ditemukan dalam sistem "
-            )
-            return redirect("update_penyusun", id=id)
-        lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
-        data.KodeProduk = produkobj
-        data.Lokasi = lokasiobj
-        data.Status = status
-        data.Kuantitas = kuantitas
-        data.Allowance = allowance
-        
-        if data.KodeVersi.Versi != kodeversi:
-            data.KodeVersi.Versi = kodeversi
-            print(data.KodeVersi.Versi,kodeversi)
-            data.KodeVersi.save()
-
-        data.save()
+            penyusun.save()
         transaksilog = models.transactionlog(
             user="RND",
             waktu=datetime.now(),
             jenis="Update",
-            pesan=f"Penyusun Baru. Kode Artikel : {data.KodeArtikel}, Kode produk : {data.KodeProduk}-{data.KodeProduk.NamaProduk}, Status Utama : {data} versi : {data.KodeVersi}, Kuantitas Konversi : {  data.Kuantitas}",
+            pesan=f"Penyusun Baru. Kode Artikel : {penyusun.KodeArtikel}, Kode produk : {penyusun.KodeProduk}-{penyusun.KodeProduk.NamaProduk}, Status Utama : {penyusun} versi : {penyusun.KodeVersi}, Kuantitas Konversi : {  penyusun.Kuantitas}",
         )
-        transaksilog.save()
+        # transaksilog.save()
         messages.success(request, "Data berhasil disimpan")
         return redirect(
-            f"/rnd/penyusun?kodeartikel={quote(data.KodeArtikel.KodeArtikel)}&versi={data.KodeVersi.Versi}"
+            f"/rnd/penyusun?kodeartikel={quote(penyusun.KodeArtikel.KodeArtikel)}&versi={penyusun.KodeVersi.Versi}"
         )
 
 

@@ -57,9 +57,10 @@
                     <th>Artikel / Display</th>
                     <th>Lokasi</th>
                     <th>Kode Bahan Baku</th>
+                    <th>Nama Bahan Baku</th>
                     <th>Jumlah</th>
                     <th>Keterangan</th>
-                    <th>Status ACC</th>
+
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
@@ -81,6 +82,7 @@
                       <td>Gudang - FG</td>
                     {% endif %}
                     <td>{{i.KodeProduk}}</td>
+                    <td>{{i.KodeProduk.NamaProduk}}</td>
                     <td>{{i.jumlah|intcomma}}</td>
                     <td>{{i.keterangan}}</td>
                     <td>
@@ -92,17 +94,7 @@
                       Sudah ACC
                       {% endif %}
                     </td>
-                    <td>
-                      {% if i.KeteranganACC == True and i.KeteranganACCPurchasing == True %}
-                      <button class="btn btn-success">
-                          <i class="typcn typcn typcn-tick"></i>                                                    
-                      </button>
-                      {% else %}
-                      <button class="btn btn-danger">
-                        <i class="typcn typcn typcn-times"></i>                                                    
-                      </button>
-                      {% endif %}
-                    </td>
+
                     <td>
                       {% if user.groups.first.name != 'ppic' %}
                         <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->

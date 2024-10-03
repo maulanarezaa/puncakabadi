@@ -5,6 +5,7 @@ urlpatterns = [
     path("dashboard", viewsproduksi.dashboard, name="dashboardproduksi"),
     path("load_detailspk/", viewsproduksi.load_detailspk, name="load_detailspk"),
     path("load_artikel/", viewsproduksi.load_artikel, name="load_artikel"),
+    path("load_detailspkfromartikel", viewsproduksi.load_detailspkfromartikel, name="load_detailspkfromartikel"),
     path("load_htmx/", viewsproduksi.load_htmx, name="load_htmx"),
     path("load_penyusun", viewsproduksi.load_penyusun, name="load_penyusun"),
     path("viewspk", viewsproduksi.view_spk, name="view_spk"),

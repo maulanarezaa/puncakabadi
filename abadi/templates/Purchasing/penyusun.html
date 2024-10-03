@@ -88,16 +88,16 @@
                     <table class="table table-bordered" id="datapenyusun">
                         <thead>
                             <tr>
-                                <td>No</td>
-                                <td>Kode Stock</td>
-                                <td>Nama</td>
-                                <td>Satuan</td>
-                                <td>Lokasi</td>
-                                <td>Utama</td>
-                                <td>Keterangan</td>
-                                <td>Konversi </td>
-                                <td>Harga (Rp)</td>
-                                <td>Harga konversi (Rp)</td>
+                                <th>No</th>
+                                <th>Kode Stock</th>
+                                <th>Nama</th>
+                                <th>Satuan</th>
+                                <th>Lokasi</th>
+                                <th>Utama</th>
+                                <th>Konversi </th>
+                                <th>Catatan</th>
+                                <th>Harga (Rp)</th>
+                                <th>Harga konversi (Rp)</th>
 
 
                             </tr>
@@ -111,8 +111,8 @@
                                 <td>{{i.Penyusunobj.KodeProduk.unit}}</td>
                                 <td>{{i.Penyusunobj.Lokasi.NamaLokasi}}</td>
                                 <td>{{i.Penyusunobj.Status}}</td>
-                                <td>{{i.Konversi|separator_desimal5angka}}</td>
                                 <td>{{i.Allowance|separator_desimal5angka}}</td>
+                                <td>{{i.Penyusunobj.keterangan}}</td>
                                 <td>{{i.HargaSatuan|custom_thousands_separator}}</td>
                                 <td>{{i.Hargakotak|custom_thousands_separator}}</td>
 

@@ -19,7 +19,7 @@
                         <div class="input-group mb- mr-sm-2 ml-2">
                             <input required type="text" class="form-control" placeholder="Masukkan Kode Produk"
                                 aria-label="Masukkan Nama Produk" name="input_kode" list="listkode"
-                                value="{{datasjp.0.KodeProduk}}">
+                                value="{{produkobj.KodeProduk}}">
                             <datalist id="listkode">
                                 {% for i in dataproduk %}
                                 <option value="{{i.KodeProduk}}">{{i.KodeProduk}}- {{i.NamaProduk}}</option>

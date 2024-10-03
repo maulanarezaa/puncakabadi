@@ -58,15 +58,13 @@
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Produk</label>
                 <div class="col-sm-9">
-                  <input type="text" class="form-control kodebarang-inputs" placeholder="Masukkan Nama Produk Subkon"
-                    aria-label="Masukkan Nama Produk Subkon" list="kodebarang"
-                    id="kodebarangInputs_1"  value="{{detailsjp.KodeProduk.NamaProduk}} {{detailsjp.KodeProduk.KodeArtikel}}" >
-                  <input type="hidden" name="kodebarangHiddens" id="kodebarangHiddens_1" value="{{detailsjp.KodeProduk.IDProdukSubkon}}">
-                  <datalist id="kodebarang">
+                  
+                    <select name="produk" class="form-control" id="">
                       {% for i in getproduk %}
-                      <option data-id="{{i.IDProdukSubkon}}" value="{{i.NamaProduk}} {{i.KodeArtikel}}"></option>
+                      <option data-id="{{i.IDProdukSubkon}}" value="{{i.NamaProduk}} {{i.KodeArtikel}}">{{i.NamaProduk}} {{i.KodeArtikel}}</option>
                       {% endfor %}
-                  </datalist>
+                    </select>
+                  
                 </div>
               </div>
             </div>

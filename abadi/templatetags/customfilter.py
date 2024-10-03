@@ -21,7 +21,7 @@ def custom_thousands_separator(value):
 def separator_ribuan(value):
     try:
         # Format value with commas as thousand separators
-        formatted_value = f"{value:,}"
+        formatted_value = f"{float(value):,.2f}"
         # Replace commas with dots
         formatted_value = formatted_value.replace(',', '.')
         return formatted_value

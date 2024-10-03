@@ -180,8 +180,19 @@ def load_artikel(request):
     kode_artikel = request.GET.get("kode_artikel")
     artikelobj = models.Artikel.objects.get(KodeArtikel=kode_artikel)
     detailspk = models.DetailSPK.objects.filter(KodeArtikel=artikelobj, NoSPK__StatusAktif=1)
+    print(kode_artikel)
 
     return render(request, "produksi/opsi_artikel.html", {"detailspk": detailspk})
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def load_detailspkfromartikel(request):
+    kode_artikel = request.GET.get("kode_artikel")
+    artikelobj = models.Artikel.objects.get(KodeArtikel=kode_artikel)
+    detailspk = models.DetailSPK.objects.filter(KodeArtikel=artikelobj).distinct()
+    print(detailspk)
+
+    return render(request, "produksi/opsi_detailspkfromartikel.html", {"detailspk": detailspk})
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
@@ -197,7 +208,7 @@ def load_display(request):
     print(request.GET)
     kode_display = request.GET.get("kode_artikel")
     displayobj = models.Display.objects.get(KodeDisplay=kode_display)
-    detailspk = models.DetailSPKDisplay.objects.filter(KodeDisplay=displayobj.id,NoSPK__StatusDisplay = 1, NoSPK__StatusAktif=1)
+    detailspk = models.DetailSPKDisplay.objects.filter(KodeDisplay=displayobj.id,NoSPK__StatusDisplay = 1).distinct()
     print(detailspk)
 
     return render(request, "produksi/opsi_spkdisplay.html", {"detailspk": detailspk})
@@ -888,6 +899,11 @@ def detail_sppb(request, id):
     datadetailsppbArtikel = models.DetailSPPB.objects.filter(NoSPPB=datasppb.id,DetailSPKDisplay = None,DetailBahan = None)
     datadetailsppbdisplay = models.DetailSPPB.objects.filter(NoSPPB=datasppb.id,DetailSPK = None,DetailBahan = None)
     purchaseorderdata = models.confirmationorder.objects.filter(StatusAktif =True)
+    for item in datadetailsppbArtikel:
+        dataspk = models.DetailSPK.objects.filter(KodeArtikel = item.DetailSPK.KodeArtikel).distinct()
+        item.opsispk = dataspk
+        print(item)
+        print(dataspk)
     
 
     for item in datadetailsppbArtikel:
@@ -1671,7 +1687,11 @@ def add_gudang(request):
 
             if nomorspk != '':
                 spkobj = models.SPK.objects.get(NoSPK = nomorspk)
-            produkref = models.Produk.objects.get(KodeProduk=produk)
+            try:
+                produkref = models.Produk.objects.get(KodeProduk=produk)
+            except:
+                messages.error(request,f'Kode stok {produk} tidak ditemukan')
+                continue
             lokasiref = models.Lokasi.objects.get(IDLokasi=lokasi)
 
             data_gudang = models.TransaksiGudang(
@@ -1759,8 +1779,11 @@ def add_gudangretur(request):
         for produk, lokasi, jumlah, keterangan in zip(
             listproduk, listlokasi, listjumlah, listketerangan
         ):
-
-            produkref = models.Produk.objects.get(KodeProduk=produk)
+            try:
+                produkref = models.Produk.objects.get(KodeProduk=produk)
+            except:
+                messages.error(request,f'Produk {produk} tidak ditemukan dalam database')
+                continue
             lokasiref = models.Lokasi.objects.get(IDLokasi=lokasi)
 
             data_gudang = models.TransaksiGudang(
@@ -5812,7 +5835,7 @@ def update_subkonprodukmasuk(request, id):
     datasjp_getobj = models.SuratJalanPenerimaanProdukSubkon.objects.get(
         NoSuratJalan = datasjp.NoSuratJalan.NoSuratJalan
     )
-    getproduk = models.ProdukSubkon.objects.all()
+    getproduk = models.ProdukSubkon.objects.all().order_by('KodeArtikel__KodeArtikel','NamaProduk')
 
     if request.method == "GET":
         return render(
@@ -7727,6 +7750,14 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
     print(dfksbbfg)
     buffer = BytesIO()
 
+    if dfksbbfg.empty and dfksbb.empty:
+        messages.error(request,f'Tidak dapat mengeksport ke Excel karena tidak ada data Transaksi')
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+            return redirect(back_url)
+        else:
+            return redirect('view_ksbb')
+
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         # Laporan Persediaan Section
         # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
@@ -8170,7 +8201,7 @@ def eksportpemusnahanbahanbaku (request,tanggalawal,tanggalakhir):
             back_url = request.META['HTTP_REFERER']
             return redirect(back_url)
         else:
-            return('ksbjsubkon')
+            return('view_pemusnahanbarang')
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         # Laporan Persediaan Section
         # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
@@ -8234,7 +8265,7 @@ def eksportpemusnahanbahanbakusubkon (request,tanggalawal,tanggalakhir):
             back_url = request.META['HTTP_REFERER']
             return redirect(back_url)
         else:
-            return('ksbjsubkon')
+            return('view_pemusnahanbarangsubkon')
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         # Laporan Persediaan Section
         # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
@@ -8297,7 +8328,7 @@ def eksportpemusnahanproduksubkon (request,tanggalawal,tanggalakhir):
             back_url = request.META['HTTP_REFERER']
             return redirect(back_url)
         else:
-            return('ksbjsubkon')
+            return('view_pemusnahanproduksubkon')
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         # Laporan Persediaan Section
         # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
@@ -8443,15 +8474,18 @@ def eksportksbjproduksi(request,id,lokasi,tahun):
         "Keluar":[],
         "Sisa":[],
     }
+    print(saldoawal)
+    print(listdata)
     if saldoawal:
-        datamodelsksbj["Tanggal"].append(tanggalmulai.strftime('%Y-%m-%d'))
-        datamodelsksbj['SPK'].append('')
-        datamodelsksbj['Kode Produk'].append('')
-        datamodelsksbj['Masuk Lembar'].append('')
-        datamodelsksbj["Masuk Konversi"].append('')
-        datamodelsksbj['Hasil'].append('')
-        datamodelsksbj['Keluar'].append('')
-        datamodelsksbj["Sisa"].append(saldoawal.Jumlah)
+        if saldoawal['Tanggal'] is not 'Belum ada Data':
+            datamodelsksbj["Tanggal"].append(tanggalmulai.strftime('%Y-%m-%d'))
+            datamodelsksbj['SPK'].append('')
+            datamodelsksbj['Kode Produk'].append('')
+            datamodelsksbj['Masuk Lembar'].append('')
+            datamodelsksbj["Masuk Konversi"].append('')
+            datamodelsksbj['Hasil'].append('')
+            datamodelsksbj['Keluar'].append('')
+            datamodelsksbj["Sisa"].append(saldoawal.Jumlah)
     for item in listdata:
         datamodelsksbj["Tanggal"].append(item['Tanggal'])
         dummy = []
@@ -8486,12 +8520,13 @@ def eksportksbjproduksi(request,id,lokasi,tahun):
     }
     sisaakhir = 0
     if saldoawal:
-        datamodelsksbjfg["Tanggal"].append(tanggalmulai.strftime('%Y-%m-%d'))
-        datamodelsksbjfg["Penyerahan WIP"].append('')
-        datamodelsksbjfg["Keluar"].append('')
-        datamodelsksbjfg["Nomor SPPB"].append('')
-        datamodelsksbjfg["Jumlah Kirim"].append('')
-        datamodelsksbjfg["Sisa"].append(saldoawal.Jumlah)
+        if saldoawal['Tanggal'] is not 'Belum ada Data':
+            datamodelsksbjfg["Tanggal"].append(tanggalmulai.strftime('%Y-%m-%d'))
+            datamodelsksbjfg["Penyerahan WIP"].append('')
+            datamodelsksbjfg["Keluar"].append('')
+            datamodelsksbjfg["Nomor SPPB"].append('')
+            datamodelsksbjfg["Jumlah Kirim"].append('')
+            datamodelsksbjfg["Sisa"].append(saldoawal.Jumlah)
     for item in listdata:
         index = 0
         if len(item['DetailSPPB']) > 1:
@@ -8537,7 +8572,13 @@ def eksportksbjproduksi(request,id,lokasi,tahun):
     # print(datamodelsksbjfg)
     dfksbjfg = pd.DataFrame(datamodelsksbjfg)
     # print(dfksbjfg)
-
+    if dfksbj.empty and dfksbjfg.empty:
+        messages.error(request,'Tidak dapat menemukan data transaksi untuk di eksport')
+        if 'HTTP_REFERER' in request.META:
+            back_url = request.META['HTTP_REFERER']
+            return redirect(back_url)
+        else:
+            return redirect('view_ksbj')
     buffer = BytesIO()
 
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:

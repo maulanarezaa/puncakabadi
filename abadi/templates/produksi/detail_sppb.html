@@ -113,7 +113,7 @@
               <div class="form-group">
                 <label for="artikel_{{ forloop.counter }}">Artikel {{ forloop.counter }}:</label>
                 <select class="form-control artikel" name="kode_artikel-{{ forloop.counter }}:"
-                  id="kode_artikel-{{ forloop.counter }}:" onchange="loadArtikelOptions(this)">
+                  id="kode_artikel-{{ forloop.counter }}:" onchange="loaddetailspk(this);loadversioption(this)">
                   <option value="">Masukkan Kode Artikel</option>
                   {% for item in dataartikel %}
                   {% if item.KodeArtikel == i.DetailSPK.KodeArtikel.KodeArtikel %}
@@ -128,17 +128,20 @@
             <div class="col-md-2">
               <div class="form-group">
                 <label for="artikel_1">Nomor SPK</label>
-                <select class="form-control" name="detail_spkawal[]">
-                  <option value="">Masukkan Nomor SPK</option>
-                  {% for item in data %}
+                <div id="nomor_spk_{{forloop.counter}}">
 
-                  {% if item.IDDetailSPK == i.DetailSPK.IDDetailSPK %}
-                  <option selected value="{{ item.IDDetailSPK }}">{{ item.NoSPK }}</option>
-                  {% else %}
-                  <option value="{{ item.IDDetailSPK }}"> {{ item.NoSPK }}</option>
-                  {% endif %}>
-                  {% endfor %}
-                </select>
+                  <select class="form-control" name="detail_spkawal[]">
+                    <option value="">Masukkan Nomor SPK</option>
+                    {% for item in i.opsispk %}
+                    
+                    {% if item.IDDetailSPK == i.DetailSPK.IDDetailSPK %}
+                    <option selected value="{{ item.IDDetailSPK }}">{{ item.NoSPK }}</option>
+                    {% else %}
+                    <option value="{{ item.IDDetailSPK }}"> {{ item.NoSPK }}</option>
+                    {% endif %}>
+                    {% endfor %}
+                  </select>
+                </div>
 
               </div>
             </div>
@@ -151,19 +154,22 @@
             </div>
             <div class="col-md-2">
               <div class="form-group">
-                <label for="quantity_1">Versi</label>
                 
-                <select name="versiasli" id="" class="form-control">
-                  {% for item in i.opsiversi %}
-                  {% if item == i.VersiArtikel %}
-                  <option value="{{item.id}}" selected>{{item.Versi}}</option>
-                  {% else %}
-                  <option value="{{item.id}}">{{item.Versi}}</option>
-                  {% endif %}
-                  {% endfor %}
-                </select>
+                <label for="quantity_1">Versi</label>
+                <div id="versi_{{forloop.counter}}" >
+                  
+                  <select name="versiasli" id="" class="form-control">
+                    {% for item in i.opsiversi %}
+                    {% if item == i.VersiArtikel %}
+                    <option value="{{item.id}}" selected>{{item.Versi}}</option>
+                    {% else %}
+                    <option value="{{item.id}}">{{item.Versi}}</option>
+                    {% endif %}
+                    {% endfor %}
+                  </select>
+                </div>
               </div>
-            </div>
+              </div>
             <div class="col-md-2">
               <div class="form-group">
                 <label>Purchase Order</label>
@@ -219,6 +225,7 @@
             <div class="col-md-3">
               <div class="form-group">
                 <label for="display_1">Nomor SPK</label>
+                <div class="detail_spk-{{forloop.counter}}"></div>
                 <select class="form-control" name="detail_spkdisplayawal[]">
                   <option value="">Masukkan Nomor SPK</option>
                   {% for item in dataspkdisplay %}
@@ -369,7 +376,7 @@ function addBahan() {
     productRow.innerHTML = `<div class="col-md-3">
                                   <div class="form-group">
                                       <label for="artikel_1">Artikel ${productCounter}:</label>
-                                      <select class="form-control artikel" name="kode_artikel-${productCounter}" id="kode_artikel-${productCounter}" onchange="loadArtikelOptions(this);loadversioption(this)">
+                                      <select class="form-control artikel" name="kode_artikel-${productCounter}" id="kode_artikel-${productCounter}" onchange="loaddetailspk(this);loadversioption(this)">
                                         <option value="">Masukkan Kode Artikel</option>
                                           {% for item in dataartikel %}
                                           <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
@@ -380,7 +387,7 @@ function addBahan() {
                                 <div class="col-md-2">
                                   <div class="form-group">
                                     <label for="artikel_1">Nomor SPK</label>
-                                    <div id="detail_spk_${productCounter}">
+                                    <div id="nomor_spk_${productCounter}">
                                       {% include 'produksi/opsi_artikel.html' %}
                                     </div>
                                   </div>
@@ -491,7 +498,7 @@ function addBahan() {
   }
   function loadversioption(selectElement) {
     var kodeartikel = selectElement.value;
-    var productCounter = selectElement.id.split('-')[1];
+    var productCounter = selectElement.id.split('-')[1].replace(':','');
     var versidiv = document.getElementById('versi_' + productCounter);
     console.log(kodeartikel,productCounter,versidiv,productCounter)
 
@@ -513,11 +520,13 @@ function addBahan() {
       }
     });
   }
-  function loadArtikelOptions(selectElement) {
+  function loaddetailspk(selectElement) {
     var spkNumber = selectElement.value;
-    var productCounter = selectElement.id.split('-')[1];
-    var detailSpkDiv = document.getElementById('detail_spk_' + productCounter);
-    var url = "{% url 'load_artikel' %}";
+
+    var productCounter = selectElement.id.split('-')[1].replace(':','');
+    var detailSpkDiv = document.getElementById('nomor_spk_'+productCounter)
+    console.log(selectElement)
+    var url = "{% url 'load_detailspkfromartikel' %}";
 
     // Menghapus opsi sebelumnya jika ada
     detailSpkDiv.innerHTML = '';

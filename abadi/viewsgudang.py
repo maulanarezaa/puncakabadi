@@ -170,6 +170,7 @@ def add_gudang(request):
         detailsjp = models.DetailSuratJalanPembelian.objects.all()
         detailsj = models.SuratJalanPembelian.objects.all()
         getproduk = models.Produk.objects.all()
+        
 
         return render(
             request,
@@ -192,6 +193,10 @@ def add_gudang(request):
     #     if existing_entry:
     #         messages.warning(request,(f'No Surat Jalan {nosuratjalan} sudah terdaftar pada sistem'))
     #         return redirect("addgudang")
+        filternosuratjalan = models.SuratJalanPembelian.objects.filter(NoSuratJalan = nosuratjalan)
+        if filternosuratjalan.exists():
+            messages.error(request,f'Nomor Surat Jalan sudah terdaftar dalam sistem')
+            return redirect('addgudang')
 
         nosuratjalanobj = models.SuratJalanPembelian(
             NoSuratJalan=nosuratjalan, Tanggal=tanggal, supplier=supplier
@@ -292,13 +297,20 @@ def delete_gudang(request, id):
     2. Menghapus data detail surat jalan pembelian
     '''
     datasbj = models.DetailSuratJalanPembelian.objects.get(IDDetailSJPembelian=id)
+    nosuratjalan = datasbj.NoSuratJalan
     models.transactionlog(
         user="Gudang",
         waktu=datetime.now(),
         jenis="Delete",
         pesan=f"No Surat Jalan : {datasbj.NoSuratJalan} Kode Barang : {datasbj.KodeProduk}",
     ).save()
-    datasbj.delete()
+    filterceknosuratjalan = models.DetailSuratJalanPembelian.objects.filter(NoSuratJalan = nosuratjalan).exclude(pk = datasbj.pk).count()
+    print(filterceknosuratjalan)
+    if filterceknosuratjalan == 0:
+        datasuratjalanpembelian = models.SuratJalanPembelian.objects.get(pk = datasbj.NoSuratJalan.pk)
+        datasuratjalanpembelian.delete()
+    else:
+        datasbj.delete()
     messages.success(request,'Data berhasil dihapus')
     return redirect("baranggudang")
 
