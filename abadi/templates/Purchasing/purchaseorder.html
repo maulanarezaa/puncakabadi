@@ -56,6 +56,7 @@
                         <thead>
                             <tr>
                                 <th>Tanggal</th>
+                                <th>Supplier</th>
                                 <th>Kode PO</th>
                                 <th>Kode Bahan Baku</th>
                                 <th>Nama Bahan Baku</th>
@@ -69,6 +70,10 @@
                             {% for i in datasjb %}
                             <tr>
                                 <td>{{i.Tanggal}}</td>
+                                <td>
+                                    {% if i.Supplier != None %}
+                                    {{i.Supplier}}
+                                {% endif %}</td>
                                 <td>{{i.KodePO}}</td>
                                 <td>
                                     <ul>

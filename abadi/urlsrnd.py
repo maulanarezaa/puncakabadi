@@ -13,6 +13,7 @@ urlpatterns = [
     path("display/delete/<str:id>", viewsrnd.deletedisplay, name="delete_display"),
     path("penyusun", viewsrnd.views_penyusun, name="penyusun_artikel"),
     path('updateversi',viewsrnd.updateversi,name='updateversi'),
+    path('rekapproduksi',viewsrnd.rekap_produksi,name='rekapproduksirnd'),
 
     # path(
     #     "penyusun/tambah/<str:id>/<str:versi>",

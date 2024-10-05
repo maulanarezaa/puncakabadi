@@ -2856,7 +2856,9 @@ def exportkeseluruhanksbb (request,periode):
     7. Mengiterasi semua data listdataframe untuk dieksport
     '''
     waktuawalproses = time.time()
-    allproduk = models.Produk.objects.all()
+    allproduk = models.Produk.objects.all().order_by('KodeProduk')
+    print(allproduk)
+
     # allproduk = models.Produk.objects.filter(KodeProduk__in=['A-001-01','A-001-02','A-001-04'])
     listdataframe = []
     listkodestok = []
@@ -3543,7 +3545,7 @@ def add_purchaseorder(request):
 
         return render(
             request,
-            "purchasing/addpurchaseorder.html",
+            "Purchasing/addpurchaseorder.html",
             { "detailsj": detailsj, "getproduk": getproduk},
         )
     elif request.method == "POST":
@@ -3552,6 +3554,7 @@ def add_purchaseorder(request):
         kode = request.POST.getlist("kodeproduk")
         kodepo = request.POST["nomorpo"]
         tanggal = request.POST["tanggal"]
+        supplier = request.POST['supplier']
 
         
     #     existing_entry = models.SuratJalanPembelian.objects.filter
@@ -3567,7 +3570,7 @@ def add_purchaseorder(request):
             messages.error(request,f'Kode PO {kodepo} telah terdaftar pada sistem')
             return redirect('add_purchaseorder')
         nomorpoobj = models.PurchaseOrder(
-            KodePO=kodepo, Tanggal=tanggal, Status = False
+            KodePO=kodepo, Tanggal=tanggal, Status = False,Supplier = supplier
         )
         listkodeproduk = request.POST.getlist("kodeproduk")
         error = 0
@@ -3653,6 +3656,7 @@ def update_purchaseorder(request, id):
 
         # print(asd)
         kodepo = request.POST.get("kodepo")
+        supplier = request.POST['supplier']
         # try:
         #     kode_produkobj = models.Produk.objects.get(KodeProduk=kode_produk)
         # except:
@@ -3669,6 +3673,7 @@ def update_purchaseorder(request, id):
         datapo.KodePO = kodepo
         datapo.Tanggal = tanggal
         datapo.Status = (status)
+        datapo.Supplier = supplier
         datapo.save()
 
         # iterasi existing obj 

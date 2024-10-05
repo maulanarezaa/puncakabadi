@@ -176,6 +176,7 @@ class PurchaseOrder(models.Model):
     KodePO = models.CharField(max_length=100, unique=True)
     Tanggal = models.DateField()
     Status = models.BooleanField()
+    Supplier = models.TextField(null=True,blank=True)
 
     def __str__(self):
         return f"{self.KodePO} - {self.Tanggal}"
