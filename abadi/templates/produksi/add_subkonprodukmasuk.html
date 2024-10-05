@@ -67,15 +67,16 @@
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">Produk</label>
                 <div class="col-sm-9">
-                  <input required type="text" class="form-control kodebarang-input"
-                    placeholder="Masukkan Nama Produk Subkon" aria-label="Masukkan Nama Produk Subkon" list="kodebarang"
-                    id="kodebarangInput_1">
-                  <input type="hidden" name="kodebarangHidden" id="kodebarangHidden_1">
-                  <datalist id="kodebarang">
-                    {% for i in getproduk %}
-                    <option data-id="{{i.IDProdukSubkon}}" value="{{i.NamaProduk}} {{i.KodeArtikel}}"></option>
-                    {% endfor %}
-                  </datalist>
+
+                  
+                    <select name="produk" class="form-control" id="">
+                      {% for i in getproduk %}
+
+                      <option data-id="{{i.IDProdukSubkon}}"  value="{{i.IDProdukSubkon}}">{{i.NamaProduk}} {{i.KodeArtikel}}</option>
+                      {% endfor %}
+                    </select>
+                  
+
                 </div>
               </div>
             </div>
@@ -125,15 +126,11 @@
                                   <div class="form-group row">
                                       <label class="col-sm-3 col-form-label">Produk</label>
                                       <div class="col-sm-9">
-                                        <input type="text" class="form-control kodebarang-input" placeholder="Masukkan Nama Produk Subkon"
-                                          aria-label="Masukkan Nama Produk Subkon" list="kodebarang"
-                                          id="kodebarangInput_${productCounter}">
-                                        <input type="hidden" name="kodebarangHidden" id="kodebarangHidden_${productCounter}">
-                                        <datalist id="kodebarang">
-                                            {% for i in getproduk %}
-                                            <option data-id="{{i.IDProdukSubkon}}" value="{{i.NamaProduk}} {{i.KodeArtikel}}"></option>
-                                            {% endfor %}
-                                        </datalist>
+                                        <select name="produk" class="form-control" id="">
+                      {% for i in getproduk %}
+                      <option data-id="{{i.IDProdukSubkon}}"  value="{{i.IDProdukSubkon}}">{{i.NamaProduk}} {{i.KodeArtikel}}</option>
+                      {% endfor %}
+                    </select>
                                       </div>
                                   </div>
                               </div>

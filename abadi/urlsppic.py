@@ -21,6 +21,7 @@ urlpatterns = [
     path("updateco/<str:id>", viewsppic.updateco, name="updateco"),
     path("deleteco/<str:id>", viewsppic.deleteco, name="deleteco"),
     path("deletedetailco/<str:id>", viewsppic.deletedetailco, name="deletedetailco"),
+    path('detaillaporanbarangkeluargudang',viewsppic.detaillaporanbarangkeluargudang,name='detaillaporanbarangkeluargudang'),
     path(
         "laporanpersediaanbarang2",
         viewsppic.laporanpersediaan,

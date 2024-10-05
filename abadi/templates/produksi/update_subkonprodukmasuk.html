@@ -61,7 +61,11 @@
                   
                     <select name="produk" class="form-control" id="">
                       {% for i in getproduk %}
-                      <option data-id="{{i.IDProdukSubkon}}" value="{{i.NamaProduk}} {{i.KodeArtikel}}">{{i.NamaProduk}} {{i.KodeArtikel}}</option>
+                      {% if detailsjp.KodeProduk == i %}
+                      <option data-id="{{i.IDProdukSubkon}}" selected value="{{i.IDProdukSubkon}}">{{i.NamaProduk}} {{i.KodeArtikel}}</option>
+                      {% else %}
+                      <option data-id="{{i.IDProdukSubkon}}"  value="{{i.IDProdukSubkon}}">{{i.NamaProduk}} {{i.KodeArtikel}}</option>
+                      {% endif %}
                       {% endfor %}
                     </select>
                   

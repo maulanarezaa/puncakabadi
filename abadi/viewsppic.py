@@ -987,7 +987,45 @@ def gethargapurchasingperbulanperproduk(tanggal,kodeproduk):
     # print(tes)
     return datahargaperbulan[0]
 
+def getbarangkeluargudang(last_days,stopindex,awaltahun,hargapurchasing=None):
+    hargapurchasingperbulan = hargapurchasing
+    if hargapurchasingperbulan == None:
+        hargapurchasingperbulan = gethargapurchasingperbulan(
+            last_days, stopindex, awaltahun
+        )
+    print(last_days)
+    print(stopindex)
+    # datatransaksigudang = models.TransaksiGudang.objects.filter(Tanggal__range - )
+    print(hargapurchasingperbulan)
+    listdata = []
 
+    # print(asd)
+    for index, hari in enumerate(last_days[:stopindex]):
+        print(index,hari)
+
+        
+        if index == 0:
+            datatransaksigudang = models.TransaksiGudang.objects.filter(
+                tanggal__range=(awaltahun, hari),
+                jumlah__gte=0,
+            )
+        else:
+            datatransaksigudang = models.TransaksiGudang.objects.filter(
+                tanggal__range=(last_days[index - 1], hari),
+                jumlah__gte=0,
+            )
+        totaltransaksi = 0
+        for item in datatransaksigudang:
+            item.hargasatuan = hargapurchasingperbulan[item.KodeProduk]["data"][index][
+                "hargasatuan"
+            ]
+            item.hargatotal = item.hargasatuan * item.jumlah
+            totaltransaksi += item.hargatotal
+        listdata.append({'transaksi': datatransaksigudang,'totalharga':totaltransaksi})
+
+    print(listdata)
+    # print(ads)
+    return listdata
 
 
 def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
@@ -1639,6 +1677,47 @@ def getbarangmasuk(last_days, stopindex, awaltahun):
     # print(rekapbarangmasukperbulan)
     # print(asdasd)
     return rekapbarangmasukperbulan
+
+def detaillaporanbarangkeluargudang(request):
+    if len(request.GET) > 0:
+        print(request.GET)
+        bulan = request.GET["bulan"]
+        waktu = request.GET["waktu"]
+        waktuobj = datetime.strptime(waktu, "%Y-%m")
+        awaltahun = datetime(waktuobj.year, 1, 1)
+        listbulan = [
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "Novermber",
+            "Desember",
+        ]
+        index = listbulan.index(request.GET["bulan"]) + 1
+        # print(index)
+        last_days = []
+        for month in range(1, 13):
+            last_day = calendar.monthrange(waktuobj.year, month)[1]
+            last_days.append(date(waktuobj.year, month, last_day))
+        # print(last_days)
+        # print(last_days[:index+1])
+        barangkeluargudang = getbarangkeluargudang(last_days, index, awaltahun)
+
+        return render(
+            request,
+            "ppic/detaillaporanbarangkeluargudang.html",
+            {
+                "transaksi": barangkeluargudang[index - 1]["transaksi"],
+                "totalbiaya": barangkeluargudang[index - 1]["totalharga"],
+                "bulan": bulan,
+            },
+        )
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["ppic"])
@@ -2774,6 +2853,7 @@ def perhitunganpersediaan(
     bahanbakumasuk,
     barangkeluar,
     saldofg,
+    barangkeluargudang
 
 ):
     listbulan = [
@@ -2876,6 +2956,7 @@ def perhitunganpersediaan(
             "stokawalproduksi": datasaldoawalbahanproduksi[index],
             "totalsaldo": total,
             "saldowip": saldowip,
+            'barangkeluargudang': barangkeluargudang[index]['totalharga']
         }
 
         datakirim[listbulan[index]] = dummy
@@ -2911,6 +2992,9 @@ def laporanpersediaan(request):
         for month in range(1, 13):
             last_day = calendar.monthrange(waktuobj.year, month)[1]
             last_days.append(date(waktuobj.year, month, last_day))
+        
+        """SECTION BARANG KELUAR GUDANG"""
+        barangkeluargudang = getbarangkeluargudang(last_days,index,awaltahun)
 
         """SECTION BARANG KELUAR"""
         awalbarangkeluar = time.time()
@@ -2943,7 +3027,8 @@ def laporanpersediaan(request):
             baranggudang,
             barangmasuk,
             totalbiayakeluar[1],
-            saldofg
+            saldofg,
+            barangkeluargudang
         )
         akhirpersediaan = time.time()
 

@@ -5752,7 +5752,7 @@ def add_subkonprodukmasuk(request):
     if request.method == "GET":
         subkonkirim = models.DetailSuratJalanPenerimaanProdukSubkon.objects.all()
         detailsk = models.SuratJalanPenerimaanProdukSubkon.objects.all()
-        getproduk = models.ProdukSubkon.objects.all()
+        getproduk = models.ProdukSubkon.objects.all().order_by('KodeArtikel__KodeArtikel','NamaProduk')
 
         return render(
             request,
@@ -5772,7 +5772,7 @@ def add_subkonprodukmasuk(request):
             messages.error(request, "No Surat Jalan sudah ada")
             return redirect("add_subkonprodukmasuk")
         else:
-            listkode = request.POST.getlist("kodebarangHidden")
+            listkode = request.POST.getlist("produk")
             listjumlah = request.POST.getlist("jumlah")
             listket = request.POST.getlist("keterangan")
             error = 0
@@ -5851,8 +5851,11 @@ def update_subkonprodukmasuk(request, id):
     else:
         nosuratjalan = request.POST["nosuratjalan"]
         tanggal = request.POST["tanggal"]
-        kode_produk = request.POST["kodebarangHiddens"]
+        kode_produk = request.POST["produk"]
+        
         supplier = request.POST['supplier']
+        print(request.POST)
+        # print(asd)
         try:
             produksubkonobj = models.ProdukSubkon.objects.get(IDProdukSubkon=kode_produk)
 
@@ -8066,16 +8069,17 @@ def eksportksbjsubkonperartikel(request,id,tahun):
         # Laporan Persediaan Section
         # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
         for data,produk in zip(listdf,listproduksubkon):
+            sheettitle = clean_string(produk.NamaProduk)
 
-            data.to_excel(writer, index=False, startrow=5, sheet_name=f"{produk.NamaProduk}")
-            writer.sheets[f"{produk.NamaProduk}"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {produk.NamaProduk}")
-            writer.sheets[f"{produk.NamaProduk}"].cell(row=2, column = 1,value =f"ARTIKEL PERUNTUKAN: {produk.KodeArtikel}")
-            writer.sheets[f"{produk.NamaProduk}"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {produk.Unit}")
+            data.to_excel(writer, index=False, startrow=5, sheet_name=f"{sheettitle}")
+            writer.sheets[f"{sheettitle}"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {produk.NamaProduk}")
+            writer.sheets[f"{sheettitle}"].cell(row=2, column = 1,value =f"ARTIKEL PERUNTUKAN: {produk.KodeArtikel}")
+            writer.sheets[f"{sheettitle}"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {produk.Unit}")
             maxrow = len(data)+1
             maxcol = len(data.columns)
-            apply_number_format(writer.sheets[f"{produk.NamaProduk}"],6,maxrow+5,1,maxcol)
-            apply_borders_thin(writer.sheets[f"{produk.NamaProduk}"],6,maxrow+5,maxcol)
-            adjust_column_width(writer.sheets[f"{produk.NamaProduk}"],data,1,1)
+            apply_number_format(writer.sheets[f"{sheettitle}"],6,maxrow+5,1,maxcol)
+            apply_borders_thin(writer.sheets[f"{sheettitle}"],6,maxrow+5,maxcol)
+            adjust_column_width(writer.sheets[f"{sheettitle}"],data,1,1)
 
     buffer.seek(0)
     # print('tes')
@@ -8136,18 +8140,19 @@ def eksportksbjsubkon(request,id,tahun):
             return redirect(back_url)
         else:
             return('ksbjsubkon')
+    sheettitle = clean_string(kodeprodukobj.NamaProduk)
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         # Laporan Persediaan Section
         # df.to_excel(writer, index=False, startrow=1, sheet_name="Laporan Persediaan")
-        dfksbjsubkon.to_excel(writer, index=False, startrow=5, sheet_name=f"{kodeprodukobj.NamaProduk}")
-        writer.sheets[f"{kodeprodukobj.NamaProduk}"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {kodeprodukobj.NamaProduk}")
-        writer.sheets[f"{kodeprodukobj.NamaProduk}"].cell(row=2, column = 1,value =f"ARTIKEL PERUNTUKAN: {kodeprodukobj.KodeArtikel}")
-        writer.sheets[f"{kodeprodukobj.NamaProduk}"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {kodeprodukobj.Unit}")
+        dfksbjsubkon.to_excel(writer, index=False, startrow=5, sheet_name=f"{sheettitle}")
+        writer.sheets[f"{sheettitle}"].cell(row=1, column = 1,value =f"KARTU STOK BAHAN BAKU : {kodeprodukobj.NamaProduk}")
+        writer.sheets[f"{sheettitle}"].cell(row=2, column = 1,value =f"ARTIKEL PERUNTUKAN: {kodeprodukobj.KodeArtikel}")
+        writer.sheets[f"{sheettitle}"].cell(row=3, column = 1,value =f"SATUAN BAHAN BAKU : {kodeprodukobj.Unit}")
         maxrow = len(dfksbjsubkon)+1
         maxcol = len(dfksbjsubkon.columns)
-        apply_number_format(writer.sheets[f"{kodeprodukobj.NamaProduk}"],6,maxrow+5,1,maxcol)
-        apply_borders_thin(writer.sheets[f"{kodeprodukobj.NamaProduk}"],6,maxrow+5,maxcol)
-        adjust_column_width(writer.sheets[f"{kodeprodukobj.NamaProduk}"],dfksbjsubkon,1,1)
+        apply_number_format(writer.sheets[f"{sheettitle}"],6,maxrow+5,1,maxcol)
+        apply_borders_thin(writer.sheets[f"{sheettitle}"],6,maxrow+5,maxcol)
+        adjust_column_width(writer.sheets[f"{sheettitle}"],dfksbjsubkon,1,1)
 
     buffer.seek(0)
     # print('tes')

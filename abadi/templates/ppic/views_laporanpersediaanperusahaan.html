@@ -82,6 +82,9 @@
                                     {% endif %}
                                 </td>
                                 <td>
+                                    <a href="{% url 'detaillaporanbarangkeluargudang'%}?waktu={{waktu}}&bulan={{bulan}}">Barang Keluar Gudang</a>
+                                </td>
+                                <td>
                                     Total
 
 
@@ -94,6 +97,7 @@
                                 <td>{{data.barangmasuk|custom_thousands_separator}}</td>
                                 <td>{{data.saldoawalgudang|custom_thousands_separator}}</td>
                                 <td>{{data.stokawalproduksi|custom_thousands_separator}}</td>
+                                <td>{{data.barangkeluargudang|custom_thousands_separator}}</td>
                                 <td>{{data.totalsaldo|custom_thousands_separator}}</td>
                             </tr>
                         </tbody>
