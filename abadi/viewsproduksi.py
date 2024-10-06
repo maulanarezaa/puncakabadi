@@ -1607,6 +1607,13 @@ def delete_mutasi(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_gudang(request):
+    '''
+    Fitur ini digunakan untuk menampilkan total transaksi mutasi kode stok dari gudang menuju produksi (WIP/FG)
+    Algoritma :
+    1. Mengambil data transaksi gudang dengan kriteria Jumlah > 0 (mengidikasi mutasi), dan rentang tanggal antara tangga awal dan tanggal akhir
+    2. menampilkan data
+    '''
+
     if len(request.GET) == 0:
         tanggalakhir = datetime.now().date()
         tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
@@ -1629,6 +1636,12 @@ def view_gudang(request):
 @login_required  
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_gudangretur(request):
+    '''
+    Fitur ini digunakan untuk menampilkan total transaksi mutasi kode stok dari gudang menuju produksi (WIP/FG)
+    Algoritma :
+    1. Mengambil data transaksi gudang dengan kriteria Jumlah < 0 (mengidikasi retur), dan rentang tanggal antara tangga awal dan tanggal akhir
+    2. menampilkan data
+    '''
     if len(request.GET) == 0:
         tanggalakhir = datetime.now().date()
         tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
@@ -1653,6 +1666,17 @@ def view_gudangretur(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_gudang(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data transaksi mutasi kode stok dari Gudang ke Produksi (WIP/FG)
+    Algoritma
+    1. Mengambil seluruh data Bahan Baku 
+    2. Mengambil data Lokasi
+    3. Mengambil data SPK dengan kriteria Status Aktif = True (mengidikasikan SPK Aktif saja)
+    4. Program menampilkan form input transaksi Bahan Baku
+    5. Program menerima input user berupa list kode stok, list lokasi, list tanggal, list jumlah, list keterangan, dan list detail SPK
+    6. mengiterasi semua input dalam 1 set index
+    7. Menyimpan data transaksi transaksi Bahan
+    '''
     if request.method == "GET":
         data_produk = models.Produk.objects.all()
         data_lokasi = models.Lokasi.objects.all()
@@ -1751,6 +1775,16 @@ def add_gudang(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_gudangretur(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data transaksi mutasi kode stok dari Gudang ke Produksi (WIP/FG)
+    Algoritma
+    1. Mengambil seluruh data Bahan Baku 
+    2. Mengambil data Lokasi
+    4. Program menampilkan form input transaksi Bahan Baku
+    5. Program menerima input user berupa list kode stok, list lokasi, list tanggal, list jumlah dan list keterangan
+    6. mengiterasi semua input dalam 1 set index
+    7. Menyimpan data transaksi transaksi Bahan Baku Retur
+    '''
     if request.method == "GET":
         data_produk = models.Produk.objects.all()
         data_lokasi = models.Lokasi.objects.all()
@@ -1809,6 +1843,16 @@ def add_gudangretur(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_gudang(request, id):
+    '''
+    Fitur ini digunakan untuk mengupdate data transaksi gudang
+    Algoritma
+    1. Mengambil data TransaksiGudang dengan kriteria IDDetailTransaksiGudang = id (id didapatkan dari passing values HTML)
+    2. mengambil data kode stok
+    3. Mengambil data Lokasi 
+    5. Menampilkan input from update bahan baku
+    6. Program mendapatkan input berupa Kode Stok, lokasi, tanggal, jumlah, dan keterangan
+    7. Menyimpan perubahan 
+    '''
     gudangobj = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     data_produk = models.Produk.objects.all()
     data_lokasi = models.Lokasi.objects.all()
@@ -1938,6 +1982,16 @@ def update_gudang(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_gudangretur(request, id):
+    '''
+    Fitur ini digunakan untuk mengupdate data transaksi barang retur
+    Algoritma
+    1. Mengambil data TransaksiGudang dengan kriteria IDDetailTransaksiGudang = id (id didapatkan dari passing values HTML)
+    2. mengambil data kode stok
+    3. Mengambil data Lokasi 
+    5. Menampilkan input from update barang retur
+    6. Program mendapatkan input berupa Kode Stok, lokasi, tanggal, jumlah, dan keterangan
+    7. Menyimpan perubahan 
+    '''
     gudangobj = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     data_produk = models.Produk.objects.all()
     data_lokasi = models.Lokasi.objects.filter(NamaLokasi__in=("WIP","FG"))
@@ -1991,6 +2045,12 @@ def update_gudangretur(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_gudang(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data transaksi Gudang  pada produksi
+    Algoritma 
+    1. Mengambil data transaksi gudang dengan kriteria IDDetailTransaksiGudang = id (id didapatkan dari passing values HTML)
+    2. Menghapus data Transaksi barang masuk produksi
+    '''
     datagudang = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     datagudang.delete()
     messages.success(request, "Data Berhasil dihapus")
@@ -2007,6 +2067,12 @@ def delete_gudang(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_gudangretur(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data transaksi barang retur pada produksi
+    Algoritma 
+    1. Mengambil data transaksi gudang dengan kriteria IDDetailTransaksiGudang = id (id didapatkan dari passing values HTML)
+    2. Menghapus data Transaksi barang retur
+    '''
     datagudang = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     datagudang.delete()
     messages.success(request, "Data Berhasil dihapus")
@@ -2553,6 +2619,15 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_ksbb3(request):
+    '''
+    Fitur ini digunakan untuk menampilkan halaman KSBB bahan Baku Produksi
+    Algoritma
+    1. Mendapatkan data Produk 
+    2. Menampilkan form input pada user
+    3. Program mendapatkan input berupa Kodeproduk dan periode
+    4. Memanggil fungsi CalculateKSBB
+    5. Menampilkan data KSBB produksi
+    '''
     kodeproduk = models.Produk.objects.all()
     sekarang = datetime.now().year
     
@@ -2603,6 +2678,21 @@ def view_ksbb3(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def detailksbb(request, id, tanggal,lokasi):
+    '''
+    Fitur ini digunakan untuk melihat detail tanggal KSBB
+    Algoritma
+    1. Mengambil data transaksi Gudang dengan kriteria Tanggal = tanggal (tanggal didapatkan dari passing values HTML), KodeProduk = id (id didapatkan dari passing values HTML), dan Jumlah > 0 (mengindikasikan permintaan barang)
+    2. Mengambil data transaksi Gudang dengan kriteria Tanggal = tanggal (tanggal didapatkan dari passing values HTML), KodeProduk = id (id didapatkan dari passing values HTML), dan Jumlah < 0 (mengindikasikan retur barang)
+    3. Mengiterasi data list barang retur 
+    4. Mengalikan jumlah retur dengan -1 (untuk mendapatkan hasil Positif)
+    5. Mendapatkan data list versi dari tabel penysuun dengan kriteria Kode Produk = id (id didapatkan dari passing values)
+    6. Mendapatkan data list artikel dari tabel penyusun dengan kriteria Kode Produk = id (id didapatkan dari passing values)
+    7. Mencari data Transaksi Produksi dengan kriteria VersiArtikel pada listversi, Jenis="Mutasi", dan Tanggal = tanggal(tanggal didapatkan dari passing values HTML)
+    8. Mencari data pemusnahan bahan baku dengan kriteria Tanggal = tanggal (tanggal didapatkan dari passing values HTML), KodeProduk = id (id didapatkan dari passing values HTML), NamaLokasi = Lokasi (Lokkasi didapatkan dari passing values HTMl)
+    9. mencari data pemusnahan artikel dengan kriteria Kode artikel berada dalam list kode artikel, Tanggal = tanggal (tanggal didapatkan dari passing values HTML)
+    10. Mencari data transaksi mutasi kode stok keluar pada tabel transaksi mutasi kode stok dengan kriteria Tanggal = tanggal (tanggal didapatkan dari passing values HTML), KodeProdukAsal = id (id didapatkan dari passing values HTML), NamaLokasi = lokasi (lokasi didapatkan dari passing values)
+    10. Mencari data transaksi mutasi kode stok Masuk pada tabel transaksi mutasi kode stok dengan kriteria Tanggal = tanggal (tanggal didapatkan dari passing values HTML), KodeProdukTujuan = id (id didapatkan dari passing values HTML), NamaLokasi = lokasi (lokasi didapatkan dari passing values)
+    '''
     tanggal = datetime.strptime(tanggal, "%Y-%m-%d")
     tanggal = tanggal.strftime("%Y-%m-%d")
 
@@ -2655,6 +2745,13 @@ def detailksbb(request, id, tanggal,lokasi):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_ksbj2(request):
+    '''
+    Fitur ini digunakan untuk menampilkan KSBJ Produksi 
+    Algoritma : 
+    1. Mendapatkan data artikel
+    2. Menampilkan input artikel dan periode KSBJ
+    3. Memanggil fungsi calculate_Ksbj
+    '''
     dataartikel = models.Artikel.objects.all()
     if len(request.GET) == 0:
         return render(request,'produksi/view_ksbj.html', {"dataartikel": dataartikel})
@@ -2708,8 +2805,32 @@ def calculate_ksbj(artikel,lokasi,tahun):
     Algortima
     1. Mencari bahan baku penyusun utama .
         A. Apabila data data bahan baku penyusun utama maka akan muncul tulisan error
-        B. Apabila ada maka lanjut
-    2. 
+        B. Apabila ada maka lanjut ke nomor 2
+    2. Mengambil data Transaksi Produksi dengan kriteria KodeArtikel = artiktel (artikel didapatkan dari fungsi lainnya) dan Jenis = 'Mutasi'
+    3. Mengambil data Transaksi Gudang dengan kriteria DetailSPK__KodeArtikel = artikel, KodeProduk = bahan baku utama
+    4. Mendapatkan data List tanggal dengan berisi list tanggal masuk transaksi gudang
+    5. Apabila Lokasi WIP :
+        A. Mencari data pemusnahan artikel dengan kriteria Kode Artikel = artikel, Tanggal berada dalam rentang tanggal mulai dan tanggal akhir (didapatkan dari fungsi lain) dan Lokasi = 'WIP'
+        B. Membuat data tanggal pemusnahan artikel
+        C. Mencari data Saldo awal artikel dengan kriteria KodeArtikel = artikel, Lokasi = WIP, dan Tanggal berada dalam rentang tanggal mulai dan tanggal akhir
+        D. Melakukan filter data pada Transaksi Produksi dengan tambahan filter lokasi = 'WIP'
+        E. Membuat tanggal list yang terdiri dari tanggal Transaksi Produksi, Tanggal Transaksi Gudang, dan tanggal pemusnahan
+        F. melooping semua tanggal 
+        G. Rumus Sisa Stok Artikel = Saldo awal + Jumlah Transaksi Gudang * Konversi Penyusun - Jumlah Mutasi WIPFG - Jumlah Pemusnahan
+        H. Menambahkan pada list data
+    7. Apabila lokasi FG
+        A. Mencari data tanggal Transaksi Produksi dengan lokasi WIP
+        B. Mencari Saldo Awal Artikel dengan kriteria Kode Artikel = artikel, Lokasi = FG, Tanggal berada dalam rentang tanggal mulai dan tanggal akhir
+        C. Mencari list tanggal mutasi dari tabel transaksi produksi dengan kriteria Tanggal berada dalam rentang tanggal mulai dan tanggal akhir, lokasi = FG dan Jneis = "Mutas"
+        D. Mencari data Pengiriman dari tabel detailSPPB dengan kriteria KodeArtikel = artikel,Tanggal berada dalam rentang tanggal mulai dan akhir,
+        E. Mencari list tanggal pengiriman detailSPPB
+        F. Mencarai data Pemusnahan Artikel dengan kriteria kodeArtikel = artikel, Lokasi = "FG", Tanggal berada dalam rentang tanggal mulai dan akhir
+        G. Mencari list tanggal pemusnahan
+        F. Menggabungkan list tanggal yang terdiri dari tanggal mutasi, tanggal sppb, dan tanggal pemusnahan
+        G. Melooping semua tanggal
+        F. Rumus Sisa stok artikel = Saldo awal + Jumlah Mutasi WIPFG - Pemusnahan Artikel FG - Pengiriman SPPB
+        G. Menambahkan pada list data
+
     
     '''
     tanggal_mulai = datetime(year=tahun, month=1, day=1)
@@ -3022,7 +3143,14 @@ def calculate_ksbj(artikel,lokasi,tahun):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_rekapbarang(request):
-
+    '''
+    Fitur ini digunakan untuk melihat rekapitulasi semua bahan baku pada area produksi
+    Algoritma 
+    1. Mengambil data produk
+    2. mengiterasi data produk
+        A. Memanggil fungsi calculate_KSBB
+    3. Menampilkan hasil rekapitulasi bahan baku  
+    '''
     tanggal_akhir = request.GET.get("periode")
     try:
 
@@ -3060,6 +3188,18 @@ def view_rekapbarang(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_rekaprusak(request):
+    '''
+    FItur ini digunakan untuk melihat rekapitulasi pemusnahan bahan baku dan artikel pada Produksi
+    Algoritma:
+    1. Mendapatkan data waktu akhir rekapitulasi
+    2. Medapatkan data input lokasi 
+    3. Mengambil data pemusnahan bahan baku dengan kriteria Lokasi = lokasi (lokasi didapatkan dari input user), tanggal berada dalam rentang tanggal mulai dan akhir. Tanggal mulai diseting awal tahun 
+    4. Mengambil data pemusnahan Artikel bahan baku dengan kriteria Lokasi = lokasi (lokasi didapatkan dari input user), tanggal berada dalam rentang tanggal mulai dan akhir. Tanggal mulai diseting awal tahun 
+    5. Mengakumulasi data pemusnahan bahan baku
+    6. Mengakumulasi data pemusnahan artikel
+    7. Menampilkan rekap ke user
+     
+    '''
 
     tanggal_akhir = request.GET.get("periode")
     
@@ -3090,6 +3230,19 @@ def view_rekaprusak(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_rekapproduksi(request):
+    '''
+    Fitur ini digunakan untuk membuat rekapitulasi artikel pada setiap bulan pada WIP dan FG dalam 1 tahun
+    Algoritma
+    1. Mengambil data tanggal mulai dan tanggal akhir
+    2. Mengambil data artikel
+    3. mengiterasi data artikel
+        A. Mendapatkan data bahan baku penyusun utama pada tabel penyusun dengan kriteria Kode ARtikel = artikel., dan Status = 1
+        B. Mengambil data mutasi dari tabel Transaksi Produksi dengan kriteria Kode Artikel = artikel, Jenis = Mutasi, Tanggal berada dalam rentang tanggal mulai dan tanggal akhir
+        C. mengambil data masuk dari tabel transaksi gydang dengan kriteria Kode artikel = artikel.id, Tanggal berada adalam rentang tanggal mulai dan akhir
+    4. Membuat dataframe 
+    5. Menampilkan data rekap
+
+    '''
     if len(request.GET) == 0:
         return render(request, "produksi/rekap_produksi.html")
     else:
@@ -3138,134 +3291,10 @@ def view_rekapproduksi(request):
                 listdata = []
 
                 if lokasi.NamaLokasi == "WIP":
-                    datapemusnahan = models.PemusnahanArtikel.objects.filter(Tanggal__range=(tanggal_mulai,tanggal_akhir),KodeArtikel = artikel,lokasi__NamaLokasi = 'WIP')
-                    listtanggalpemusnahan = datapemusnahan.values_list('Tanggal',flat=True).distinct()
-                    data = data.filter(Lokasi=lokasi.IDLokasi)
-                    try:
-                        # tessaldo = models.SaldoAwalArtikel.objects.filter(IDArtikel__KodeArtikel=artikel.KodeArtikel, IDLokasi=lokasi.IDLokasi,Tanggal__range =(tanggal_mulai,tanggal_akhir))
-                        # print(artikel)
-                        # print(tessaldo)
-                        saldoawalobj = models.SaldoAwalArtikel.objects.get(IDArtikel__KodeArtikel=artikel.KodeArtikel, IDLokasi=lokasi.IDLokasi,Tanggal__range =(tanggal_mulai,tanggal_akhir))
-                        saldo = saldoawalobj.Jumlah
-                        listtanggalsaldo = models.SaldoAwalArtikel.objects.filter(IDArtikel__KodeArtikel=artikel.KodeArtikel, IDLokasi=lokasi.IDLokasi,Tanggal__range =(tanggal_mulai,tanggal_akhir)).values_list("Tanggal", flat=True).distinct()
-                        saldoawalobj.Tanggal = saldoawalobj.Tanggal.strftime("%Y-%m-%d")
-
-                    except models.SaldoAwalArtikel.DoesNotExist :
-                        saldo = 0
-                        saldoawal = None
-                        saldoawalobj = {'Tanggal' : 'Belum ada Data','saldo' : saldo}
-                        listtanggalsaldo = None
-                        
-
-                    tanggallist = data.filter(Tanggal__range=(tanggal_mulai, tanggal_akhir)).values_list("Tanggal", flat=True).distinct()
-                    saldoawal = saldo                        
-
-                    if listtanggalsaldo:
-                        tanggallist = sorted(list(set((tanggallist.union(listtanggalmasuk.union(listtanggalsaldo).union(listtanggalpemusnahan))))))
-                    else:
-                        tanggallist = sorted(list(set((tanggallist.union(listtanggalmasuk).union(listtanggalpemusnahan)))))
-
-                    for i in tanggallist:
-                        datamodels = {
-                            "Tanggal" : None,
-                            "Sisa" : None
-                        }
-
-                        filtertanggal = data.filter(Tanggal=i)
-                        filtertanggaltransaksigudang = datamasuk.filter(tanggal=i)
-                        filtertanggalpemusnahan = datapemusnahan.filter(Tanggal = i)
-
-                        jumlahmutasi =  filtertanggal.filter(Jenis ="Mutasi").aggregate(total = Sum('Jumlah'))['total']
-                        jumlahmasuk = filtertanggaltransaksigudang.aggregate(total = Sum('jumlah'))['total']
-                        jumlahpemusnahan =  filtertanggalpemusnahan.aggregate(total = Sum('Jumlah'))['total']
-                       
-                        # if jumlahmasuk != None:
-
-                        #     # print(asd)
-
-                        if jumlahmutasi is None:
-                            jumlahmutasi = 0
-                        if jumlahmasuk is None :
-                            jumlahmasuk = 0
-                        if jumlahpemusnahan is None:
-                            jumlahpemusnahan = 0
-
-                        # Cari data penyusun sesuai tanggal 
-                        penyusunfiltertanggal = models.Penyusun.objects.filter(KodeArtikel = artikel.id,Status = 1,KodeVersi__Tanggal__lte = i).order_by('-KodeVersi__Tanggal').first()
-
-                        if not penyusunfiltertanggal:
-                            penyusunfiltertanggal = models.Penyusun.objects.filter(KodeArtikel = artikel.id, Status = 1, KodeVersi__Tanggal__gte = i).order_by('KodeVersi__Tanggal').first()
-
-                        # konversimasterobj = models.KonversiMaster.objects.get(KodePenyusun=penyusunfiltertanggal.IDKodePenyusun)
-
-                        cekpenyesuaian = models.PenyesuaianArtikel.objects.filter(KodeArtikel = artikel, TanggalMulai__lte=i, TanggalMinus__gte=i)
-                        allowance = penyusunfiltertanggal.Allowance
-                        # print('ini penyesuaian : ', cekpenyesuaian)
-                        try:
-                            masukpcs = math.ceil(jumlahmasuk/((allowance)))
-                        except:
-                            masukpcs = 0
-                            messages.error(request,"Data allowance belum di setting")
-                        if cekpenyesuaian.exists():
-                            masukpcs = round(masukpcs*cekpenyesuaian.first().konversi)
-                        saldoawal = saldoawal - jumlahmutasi + masukpcs -jumlahpemusnahan
-                        print(i)
-                        print(saldoawal)
-                        
-                       
-                            # print(asd)
-                        datamodels['Tanggal'] = i.strftime("%Y-%m-%d")
-                        datamodels['Sisa'] = saldoawal
-
-                        listdata.append(datamodels)
+                    listdata,saldoawal = calculate_ksbj(artikel,'WIP',tahun)
 
                 else:
-                    datapemusnahan = models.PemusnahanArtikel.objects.filter(Tanggal__range=(tanggal_mulai,tanggal_akhir),KodeArtikel = artikel,lokasi__NamaLokasi = 'FG')
-                    listtanggalpemusnahan = datapemusnahan.values_list('Tanggal',flat=True).distinct()
-                    data = data.filter(Lokasi=1)
-                    try:
-                        saldoawalobj = models.SaldoAwalArtikel.objects.get(IDArtikel__KodeArtikel= artikel.KodeArtikel, IDLokasi=lokasi.IDLokasi,Tanggal__range =(tanggal_mulai,tanggal_akhir))
-                        saldo = saldoawalobj.Jumlah
-                        saldoawalobj.Tanggal = saldoawalobj.Tanggal.strftime("%Y-%m-%d")
-                    except models.SaldoAwalArtikel.DoesNotExist :
-                        saldo = 0
-                        saldoawalobj ={
-                            'Tanggal' : 'Belum ada Data',
-                            'saldo' : saldo
-                        }
-
-                    tanggalmutasi = data.filter(Jenis = 'Mutasi',Tanggal__range=(tanggal_mulai,tanggal_akhir)).values_list('Tanggal',flat=True).distinct()
-                    sppb = models.DetailSPPB.objects.filter(DetailSPK__KodeArtikel__KodeArtikel = artikel.KodeArtikel, NoSPPB__Tanggal__range = (tanggal_mulai,tanggal_akhir))
-                    tanggalsppb = sppb.values_list('NoSPPB__Tanggal',flat=True).distinct()
-                    tanggallist = sorted(list(set(tanggalmutasi.union(tanggalsppb).union(listtanggalpemusnahan))))
-                    saldoawal = saldo
-
-                    for i in tanggallist:
-                        datamodels = {
-                            "Tanggal" : None,
-                            "Sisa" : None
-                        }
-
-                        penyerahanwip = models.TransaksiProduksi.objects.filter(Tanggal = i, KodeArtikel__KodeArtikel = artikel.KodeArtikel, Jenis = "Mutasi", Lokasi__NamaLokasi = "WIP" )
-                        detailsppbjobj = sppb.filter(NoSPPB__Tanggal = i)
-                        filteredpemusnahan = datapemusnahan.filter(Tanggal = i)
-
-                        totalpenyerahanwip = penyerahanwip.aggregate(total=Sum('Jumlah'))['total']
-                        totalkeluar = detailsppbjobj.aggregate(total=Sum('Jumlah'))['total']
-                        totalpemusnahan = filteredpemusnahan.aggregate(total=Sum('Jumlah'))['total']
-                        
-                        if not totalpenyerahanwip:
-                            totalpenyerahanwip = 0
-                        if not totalkeluar :
-                            totalkeluar = 0
-                        if not totalpemusnahan:
-                            totalpemusnahan = 0
-
-                        saldoawal += totalpenyerahanwip - totalkeluar - totalpemusnahan
-
-                        datamodels ['Tanggal'] = i.strftime('%Y-%m-%d')
-                        datamodels['Sisa'] = saldoawal
-                        listdata.append(datamodels)
+                    listdata,saldoawal = calculate_ksbj(artikel,'FG',tahun)
 
                 if not listdata:
                     pass
@@ -3307,6 +3336,13 @@ def view_rekapproduksi(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_pemusnahan(request):
+    '''
+    Fitur ini digunakan unutk melakukan manajemen data pemusnahan artikel pada sistem
+    Algoritma
+    1. Mendefinisikan tanggal awal dan tanggal akhir secara default tanggal awal adalah awal bulan ketika user mengakses, akhir bulan adalah hari user mengakases
+    2. mengambil data Pemusnahan Artikel dengan kriteria rentang tanggal berada dalam rentang tanggal awal dan tanggal akhir
+    3. Menampilkan data pemusnahan artikel
+    '''
     if len(request.GET) == 0:
         tanggalakhir = datetime.now().date()
         tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
@@ -3329,6 +3365,16 @@ def view_pemusnahan(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_pemusnahan(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data pemusnahan artikel pada sistem
+    Algoritma
+    1. Mengambil data aritkel
+    2. Mengambil data lokasi 
+    3. Menampilkan form input data pemusnahan artikel
+    4. program mendapatkan inputan Versi artikel,kodeartikel, lokasi, jumlah, tanggal, dan keterangan
+    5. Cek apakah kode artikel valid ? apabila tidak akan menampilkan pesan error
+    6. Menyimpan data transaksi pemusnahan artikel 
+    '''
     dataartikel = models.Artikel.objects.all()
     datalokasi = models.Lokasi.objects.all()
     if request.method == "GET":
@@ -3373,6 +3419,16 @@ def add_pemusnahan(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_pemusnahan(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update pemusnahan artikel 
+    Algoritma
+    1. Mengambil data semua artikel
+    2. Mengambil data Pemusnahan Artikel
+    3. Mengambil data Versi dengan kriteria Kode Artikel = artikel pada transaksi pemusnahanArtikel
+    4. Menampilkan form update pemusnahan 
+    5. Program menerima input berupa Kode Artikel, Lokasi, Jumlah, Tanggal, Keterangan, dan Versi Artikel
+    6. Mengupdate data transaksi pemusnahan artikel
+    '''
     dataartikel = models.Artikel.objects.all()
     dataobj = models.PemusnahanArtikel.objects.get(IDPemusnahanArtikel=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -3427,6 +3483,12 @@ def update_pemusnahan(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_pemusnahan(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data transaksi pemusnahan artikel pada Produksi
+    Algoritma:
+    1. Mengambil data transaksi pemusnahna Artikel dengan kriteria IDPemusnahanARtikel = id (id didapatkan dari passing values HTML)
+    2. Menghapus data 
+    '''
     dataobj = models.PemusnahanArtikel.objects.get(IDPemusnahanArtikel=id)
     dataobj.delete()
 
@@ -3445,6 +3507,13 @@ def delete_pemusnahan(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_pemusnahanbarang(request):
+    '''
+    Fitur ini digunakan unutk melakukan manajemen data pemusnahan Bahan Baku pada Produksi
+    Algoritma
+    1. Mendefinisikan tanggal awal dan tanggal akhir secara default tanggal awal adalah awal bulan ketika user mengakses, akhir bulan adalah hari user mengakases
+    2. mengambil data Pemusnahan Bahan Baku dengan kriteria rentang tanggal berada dalam rentang tanggal awal dan tanggal akhir, Lokasi pada WIP dan FG
+    3. Menampilkan data pemusnahan artikel
+    '''
     if len(request.GET) == 0:
         tanggalakhir = datetime.now().date()
         tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
@@ -3467,6 +3536,16 @@ def view_pemusnahanbarang(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_pemusnahanbarang(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data pemusnahan Bahan Baku pada Produksi
+    Algoritma
+    1. Mengambil data Kode Bahan Baku
+    2. Mengambil data lokasi 
+    3. Menampilkan form input data pemusnahan artikel
+    4. program mendapatkan inputan  kode bahan baku, lokasi, jumlah, tanggal, dan keterangan
+    5. Cek apakah kode artikel valid ? apabila tidak akan menampilkan pesan error
+    6. Menyimpan data transaksi pemusnahan artikel 
+    '''
     databarang = models.Produk.objects.all()
     datalokasi = models.Lokasi.objects.all()
     if request.method == "GET":
@@ -3509,6 +3588,15 @@ def add_pemusnahanbarang(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_pemusnahanbarang(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update pemusnahan Bahan Baku Produksi 
+    Algoritma
+    1. Mengambil data semua Produk
+    2. Mengambil data Versi dengan kriteria IDPemusnahanBahanBaku = id (id didapatkan dari passing values HTML)
+    3. Menampilkan form update pemusnahan 
+    4. Program menerima input berupa Kode Bahan Baku, Lokasi, Jumlah, Tanggal, Keterangan
+    5. Mengupdate data transaksi pemusnahan Bahan Baku
+    '''
     databarang = models.Produk.objects.all()
     dataobj = models.PemusnahanBahanBaku.objects.get(IDPemusnahanBahanBaku=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -3550,10 +3638,17 @@ def update_pemusnahanbarang(request, id):
         ).save()
         messages.success(request,'Data berhasil diupdate')
         return redirect("view_pemusnahanbarang")
+        
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_pemusnahanbarang(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data transaksi pemusnahan Bahan Baku pada Produksi
+    Algoritma:
+    1. Mengambil data transaksi pemusnahna BahanBaku dengan kriteria IDPemusnahanBahanBaku = id (id didapatkan dari passing values HTML)
+    2. Menghapus data 
+    '''
     dataobj = models.PemusnahanBahanBaku.objects.get(IDPemusnahanBahanBaku=id)
 
     dataobj.delete()
@@ -3571,6 +3666,13 @@ def delete_pemusnahanbarang(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_pemusnahanproduksubkon(request):
+    '''
+    Fitur ini digunakan unutk melakukan manajemen data pemusnahan produk subkon pada Produksi
+    Algoritma
+    1. Mendefinisikan tanggal awal dan tanggal akhir secara default tanggal awal adalah awal bulan ketika user mengakses, akhir bulan adalah hari user mengakases
+    2. mengambil data Pemusnahan produk subkon dengan kriteria rentang tanggal berada dalam rentang tanggal awal dan tanggal akhir
+    3. Menampilkan data pemusnahan produk subkon
+    '''
     if len(request.GET) == 0:
         tanggalakhir = datetime.now().date()
         tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
@@ -3593,6 +3695,15 @@ def view_pemusnahanproduksubkon(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_pemusnahanproduksubkon(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data pemusnahan produk subkon pada Produksi
+    Algoritma
+    1. Mengambil data Kode produk subkon
+    2. Menampilkan form input data pemusnahan Produk Subkon
+    3. program mendapatkan inputan  kode bahan baku, jumlah, tanggal, dan keterangan
+    4. Cek apakah kode produk subkon valid ? apabila tidak akan menampilkan pesan error
+    5. Menyimpan data transaksi pemusnahan produk subkon 
+    '''
     dataartikel = models.ProdukSubkon.objects.all()
     datalokasi = models.Lokasi.objects.all()
     if request.method == "GET":
@@ -3634,6 +3745,15 @@ def add_pemusnahanproduksubkon(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_pemusnahanproduksubkon(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update pemusnahan produk subkon  
+    Algoritma
+    1. Mengambil data semua Produksubkon
+    2. Mengambil data pemusnahan produk subkon dengan kriteria IDPemusnahanArtikel = id (id didapatkan dari passing values HTML)
+    3. Menampilkan form update pemusnahan 
+    4. Program menerima input berupa Kode produk subkon, Jumlah, Tanggal, Keterangan
+    5. Mengupdate data transaksi pemusnahan produk subkon
+    '''
     dataartikel = models.ProdukSubkon.objects.all()
     dataobj = models.PemusnahanProdukSubkon.objects.get(IDPemusnahanArtikel=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -3680,6 +3800,12 @@ def update_pemusnahanproduksubkon(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_pemusnahanproduksubkon(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data transaksi pemusnahan Produk Subkon pada Produksi
+    Algoritma:
+    1. Mengambil data transaksi pemusnahna Produk Subkon dengan kriteria IDPemusnahanArtikel = id (id didapatkan dari passing values HTML)
+    2. Menghapus data 
+    '''
     dataobj = models.PemusnahanProdukSubkon.objects.get(IDPemusnahanArtikel=id)
     dataobj.delete()
 
@@ -3698,6 +3824,13 @@ def delete_pemusnahanproduksubkon(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_pemusnahanbarangsubkon(request):
+    '''
+    Fitur ini digunakan unutk melakukan manajemen data pemusnahan Bahan Baku subkon pada Produksi
+    Algoritma
+    1. Mendefinisikan tanggal awal dan tanggal akhir secara default tanggal awal adalah awal bulan ketika user mengakses, akhir bulan adalah hari user mengakases
+    2. mengambil data Pemusnahan Bahan Baku subkon dengan kriteria rentang tanggal berada dalam rentang tanggal awal dan tanggal akhir
+    3. Menampilkan data pemusnahan Bahan Baku subkon
+    '''
     if len(request.GET) == 0:
         tanggalakhir = datetime.now().date()
         tanggalawal = date(tanggalakhir.year,tanggalakhir.month,1).strftime('%Y-%m-%d')
@@ -3720,6 +3853,15 @@ def view_pemusnahanbarangsubkon(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_pemusnahanbarangsubkon(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data pemusnahan Bahan Baku subkon pada Produksi
+    Algoritma
+    1. Mengambil data Kode Bahan Baku subkon
+    2. Menampilkan form input data pemusnahan Bahan Baku Subkon
+    3. program mendapatkan inputan  kode bahan baku, jumlah, tanggal, dan keterangan
+    4. Cek apakah kode Bahan Baku subkon valid ? apabila tidak akan menampilkan pesan error
+    5. Menyimpan data transaksi pemusnahan Bahan Baku subkon 
+    '''
     databarang = models.BahanBakuSubkon.objects.all()
     datalokasi = models.Lokasi.objects.all()
     if request.method == "GET":
@@ -3762,6 +3904,15 @@ def add_pemusnahanbarangsubkon(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_pemusnahanbarangsubkon(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update pemusnahan Bahan Baku subkon  
+    Algoritma
+    1. Mengambil data semua Produksubkon
+    2. Mengambil data pemusnahan Bahan Baku subkon dengan kriteria IDPemusnahanPemusnahanBahanBaku = id (id didapatkan dari passing values HTML)
+    3. Menampilkan form update pemusnahan 
+    4. Program menerima input berupa Kode Bahan Baku subkon, Jumlah, Tanggal, Keterangan
+    5. Mengupdate data transaksi pemusnahan Bahan Baku subkon
+    '''
     databarang = models.BahanBakuSubkon.objects.all()
     dataobj = models.PemusnahanBahanBakuSubkon.objects.get(IDPemusnahanBahanBaku=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -3807,6 +3958,12 @@ def update_pemusnahanbarangsubkon(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_pemusnahanbarangsubkon(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data transaksi pemusnahan Bahan Baku Subkon pada Produksi
+    Algoritma:
+    1. Mengambil data transaksi pemusnahna Produk Subkon dengan kriteria IDPemusnahanBahanBaku = id (id didapatkan dari passing values HTML)
+    2. Menghapus data 
+    '''
     dataobj = models.PemusnahanBahanBakuSubkon.objects.get(IDPemusnahanBahanBaku=id)
 
     dataobj.delete()
@@ -3825,6 +3982,12 @@ def delete_pemusnahanbarangsubkon(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def penyesuaianartikel(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data penyesuaian Artikel pada produksi
+    Algoritma
+    1. Mengambil data Penyesuaian Artikel 
+    2. mengubah format tanggal minus dan tanggal mulai menjadi YYYY-mm-dd
+    '''
     datapenyesuaian = models.PenyesuaianArtikel.objects.all()
     for item in datapenyesuaian:
         item.TanggalMinus = item.TanggalMinus.strftime('%Y-%m-%d')
@@ -3836,6 +3999,15 @@ def penyesuaianartikel(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def addpenyesuaianartikel(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data penyesuaian artikel 
+    Algoritma
+    1. Mengambil data semua artikel 
+    2. menampilkan form input penyesuaian artikel
+    3. program menerima input berupa Tanggal mulai, Tanggal minus, list artikel, list kuantitas
+    4. mengiterasi list artikel dan kuantitas
+        A. Menyimpan data penyesuaian artikel
+    '''
     dataartikel = models.Artikel.objects.all()
     if request.method == "GET":
         return render(
@@ -3878,7 +4050,15 @@ def addpenyesuaianartikel(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_penyesuaianartikel(request, id):
-    
+    '''
+    Fitur ini digunakan untuk melakukan update penyesuaian artikel 
+    Algoritma
+    1. Mendapatkan data Artikel
+    2. mendapatakan data transaksi penyesuaianArtikel dengan kriteria pk (primarykey) = id (id didapatkan dari passing values HTML)
+    3.  menampilkan form update transaksi penyesuaian artikel
+    4. program menerima input berupa tanggal mulai, tanggal minus, id penyeusian, kuantitas, dan artikel
+    5. Mengupdate data penyesuaian artikel
+    '''
     dataartikel = models.Artikel.objects.all()
 
     datapenyesuaianobj = models.PenyesuaianArtikel.objects.get(pk = id)
@@ -3930,6 +4110,12 @@ def update_penyesuaianartikel(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_penyesuaianartikel(request, id):
+    '''
+    Fitur ini diguanakan untuk menghapus data penyesuian Artikel
+    Algoritma
+    1. Mengambil data Penyesuaian Artikel dengan kriteria IDPenyesuaian = id (id didapatkan dari passing values HTML)
+    2. Menghapus data penyesuaian
+    '''
     datapenyesuaianobj = models.PenyesuaianArtikel.objects.get(IDPenyesuaian=id)
     datapenyesuaianobj.delete()
 
@@ -3945,6 +4131,12 @@ def delete_penyesuaianartikel(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def penyesuaian(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data penyesuaian Bahan Baku pada produksi
+    Algoritma
+    1. Mengambil data Penyesuaian Bahan Baku 
+    2. mengubah format tanggal minus dan tanggal mulai menjadi YYYY-mm-dd
+    '''
     datapenyesuaian = models.Penyesuaian.objects.all()
     for item in datapenyesuaian:
         item.TanggalMulai = item.TanggalMulai.strftime('%Y-%m-%d')
@@ -3956,6 +4148,15 @@ def penyesuaian(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def addpenyesuaian(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data penyesuaian Kode Bahan Baku 
+    Algoritma
+    1. Mengambil data semua Kode Bahan Baku 
+    2. menampilkan form input penyesuaian Kode Bahan Baku
+    3. program menerima input berupa Tanggal mulai, Tanggal minus, list Kode Bahan Baku, list kuantitas
+    4. mengiterasi list Kode Bahan Baku dan kuantitas
+        A. Menyimpan data penyesuaian Kode Bahan Baku
+    '''
     dataartikel = models.Artikel.objects.all()
     kodebahanbaku = models.Produk.objects.all()
     if request.method == "GET":
@@ -4003,6 +4204,15 @@ def addpenyesuaian(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_penyesuaian(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update penyesuaian Kode Bahan Baku 
+    Algoritma
+    1. Mendapatkan data Kode Bahan Baku
+    2. mendapatakan data transaksi Penyesuaian dengan kriteria pk (primarykey) = id (id didapatkan dari passing values HTML)
+    3.  menampilkan form update transaksi penyesuaian Kode Bahan Baku
+    4. program menerima input berupa tanggal mulai, tanggal minus, id penyeusian, kuantitas, dan Kode Bahan Baku
+    5. Mengupdate data penyesuaian Kode Bahan Baku
+    '''
     
     dataartikel = models.Artikel.objects.all()
     dataproduk = models.Produk.objects.all()
@@ -4063,6 +4273,12 @@ def update_penyesuaian(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_penyesuaian(request, id):
+    '''
+    Fitur ini diguanakan untuk menghapus data penyesuian Bahan Baku
+    Algoritma
+    1. Mengambil data Penyesuaian Bahan Baku dengan kriteria IDPenyesuaian = id (id didapatkan dari passing values HTML)
+    2. Menghapus data penyesuaian
+    '''
     datapenyesuaianobj = models.Penyesuaian.objects.get(IDPenyesuaian=id)
     datapenyesuaianobj.delete()
 
@@ -4078,6 +4294,32 @@ def delete_penyesuaian(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def kalkulatorpenyesuaian2(request):
+    '''
+    Fitur ini digunakan untuk melakukan kalkulasi perhitungan penyesuaian
+    Algoritma
+    1. Mengambil data semua produk 
+    2. Menampilkan form input kode produk
+    3. Program menerima inputan Kode produk
+    4. Memanggil fungsi Calculate_KSBB untuk menghitung KSBB dari produk yang dipilih
+    4. Menampilkan data KSBB dari produk dan input Tanggal mulai, tagnggal akhir, Jumlah Aktual
+    5. Apabila program mendapatkan input Tanggal Mulai, Tanggal Akhir dan jumlah aktual maka akan melanjutkan proses kalkulasi
+    6. Mengiterasi data hasil Calculate_KSBB
+        A. Apabila Tanggal iterasi berada pada rentang Tanggal mulai dan tanggal akhir maka melanjutkan program
+        B. Menghitung Sumproduct dengan cara Jumlah kotak * Konversi untuk setiap data pada rentang tanggal mulai dan akhir
+        C. Menghitung kumulasi Jumlah data masuk  pada rentang  tanggal mulai dan akhir
+        D. Menghitung kumulasi jumlah keluar pada rentang tanggal mulai dan akhir
+        E. Menambahkan data Jumlah x Konversi dan Jumlah bahan baku tiap artikel pada dictionary jumlahxkonversi
+    7. Mendapatkan saldo data terakhir dengan cara mengambil saldo data terakhir dari rentang tanggal mulai dan akhir
+    8. Mengambil data pemusnahan bahan baku dengan kriteria Kode Bahan Baku = bahan baku terpilih, Tanggal diantara tanggal mulai dan akhir
+    9. Apabila ada data pemusnahan baku pada maka jumlah data aktual dijumlahkan dengan agregasi total pemusnahan bahan baku 
+    10. Menghitung Keluar penyesuaian dengan rumus = Jumlah Keluar - (Jumlah Aktual - saldo data)
+    11. Mengiterasi data jumlahxkonversi
+        A. menghitung jumlah penyesuaian = keluar penyesuaian/jumlah barang keluar perartikel
+        B. menghitung productpersumproduct = jumlahxkonversi / total sumproduct
+        C. Menghitung konveri baru = Jumlah penyesuaian * Productpersumproduct
+    12. Mengupdate perhitungan pada hasil calculate_KSBB
+
+    '''
     kodeproduk = models.Produk.objects.all()
     if len(request.GET) == 0:
         return render(
@@ -4361,277 +4603,293 @@ def kalkulatorpenyesuaian2(request):
                 },
             )
 
-@login_required
-@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
-def kalkulatorpenyesuaianbahanbaku(request):
-    kodeproduk = models.Produk.objects.all()
-    if len(request.GET) == 0:
-        return render(
-            request,
-            "produksi/kalkulator_penyesuaian.html",
-            {"kodeprodukobj": kodeproduk},
-        )
-    else:
-        """
-        1. Cari 
-        """
-        try:
-            produk = models.Produk.objects.get(KodeProduk=request.GET["kodebarang"])
-            nama = produk.NamaProduk
-            satuan = produk.unit
-        except:
-            messages.error(request, "Data Produk tidak ditemukan")
-            return redirect("view_ksbb")
+# @login_required
+# @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+# def kalkulatorpenyesuaianbahanbaku(request):
+#     kodeproduk = models.Produk.objects.all()
+#     if len(request.GET) == 0:
+#         return render(
+#             request,
+#             "produksi/kalkulator_penyesuaian.html",
+#             {"kodeprodukobj": kodeproduk},
+#         )
+#     else:
+#         """
+#         1. Cari 
+#         """
+#         try:
+#             produk = models.Produk.objects.get(KodeProduk=request.GET["kodebarang"])
+#             nama = produk.NamaProduk
+#             satuan = produk.unit
+#         except:
+#             messages.error(request, "Data Produk tidak ditemukan")
+#             return redirect("view_ksbb")
         
-        if request.GET["periode"]:
-            tahun = int(request.GET["periode"])
-        else:
-            sekarang = datetime.now()
-            tahun = sekarang.year
+#         if request.GET["periode"]:
+#             tahun = int(request.GET["periode"])
+#         else:
+#             sekarang = datetime.now()
+#             tahun = sekarang.year
 
-        tanggal_mulai = datetime(year=tahun, month=1, day=1)
-        tanggal_akhir = datetime(year=tahun, month=12, day=31)
-        lokasi = request.GET['lokasi']
-        listdata,saldoawal = calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi)
-        print(listdata) 
-        # print(asd)    
+#         tanggal_mulai = datetime(year=tahun, month=1, day=1)
+#         tanggal_akhir = datetime(year=tahun, month=12, day=31)
+#         lokasi = request.GET['lokasi']
+#         listdata,saldoawal = calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi)
+#         print(listdata) 
+#         # print(asd)    
 
-        datasisaminus = 0
-        datajumlah = 0
-        dataajumlahartikel = {}
-        datakonversiartikel = {}
-        # print(data)
+#         datasisaminus = 0
+#         datajumlah = 0
+#         dataajumlahartikel = {}
+#         datakonversiartikel = {}
+#         # print(data)
 
-        firstindex = True
+#         firstindex = True
 
-        listartikel = models.Penyusun.objects.filter(KodeProduk = produk).values_list("KodeArtikel__KodeArtikel",flat=True).distinct()
-        # Mendapatkan data minus pertama
-        sisa_minus_pertama = None
-        tanggalminus = None
-        lanjut = True
-        datakuantitasperhitungan = {
-            'saldodata': 0,
-            'saldofisik':None,
-            'datakeluar': 0,
-        }
-        print(request.GET)
-        # print(asd)
-        tanggalstokopname = request.GET['tanggalstokopname']
-        tanggalawalperhitungan = request.GET['tanggalawal']
-        for item in listdata:
-            sisa = item['Sisa']
-            for j in sisa:
-                if j <0 :
-                    sisa_minus_pertama = sisa.index(j)
-                    tanggalminus = item['Tanggal']
-                    datasisaminus = j
-                    lanjut = False
-                    break
-            if not lanjut:
-                break
-        listdataperhitungan = {}
-        print(tanggalminus)
-        if not tanggalminus and tanggalstokopname == "":
-            return render(
-            request,
-            "produksi/newkalkulator_penyesuaian.html",
-            {
-                "kodebarang": request.GET["kodebarang"],
-                "nama": nama,
-                "satuan": satuan,
-                "data": listdata,
-                'dataperhitungan' : listdataperhitungan,
-                "saldo": saldoawal,
-                "tahun": tahun,
-                "jumlahartikel": dataajumlahartikel,
-                "konversiawal": datakonversiartikel,
-                "datakuantitas" : datakuantitasperhitungan,
-                'kodeproduk' : kodeproduk,
-                'lokasi' : lokasi
+#         listartikel = models.Penyusun.objects.filter(KodeProduk = produk).values_list("KodeArtikel__KodeArtikel",flat=True).distinct()
+#         # Mendapatkan data minus pertama
+#         sisa_minus_pertama = None
+#         tanggalminus = None
+#         lanjut = True
+#         datakuantitasperhitungan = {
+#             'saldodata': 0,
+#             'saldofisik':None,
+#             'datakeluar': 0,
+#         }
+#         print(request.GET)
+#         # print(asd)
+#         tanggalstokopname = request.GET['tanggalstokopname']
+#         tanggalawalperhitungan = request.GET['tanggalawal']
+#         for item in listdata:
+#             sisa = item['Sisa']
+#             for j in sisa:
+#                 if j <0 :
+#                     sisa_minus_pertama = sisa.index(j)
+#                     tanggalminus = item['Tanggal']
+#                     datasisaminus = j
+#                     lanjut = False
+#                     break
+#             if not lanjut:
+#                 break
+#         listdataperhitungan = {}
+#         print(tanggalminus)
+#         if not tanggalminus and tanggalstokopname == "":
+#             return render(
+#             request,
+#             "produksi/newkalkulator_penyesuaian.html",
+#             {
+#                 "kodebarang": request.GET["kodebarang"],
+#                 "nama": nama,
+#                 "satuan": satuan,
+#                 "data": listdata,
+#                 'dataperhitungan' : listdataperhitungan,
+#                 "saldo": saldoawal,
+#                 "tahun": tahun,
+#                 "jumlahartikel": dataajumlahartikel,
+#                 "konversiawal": datakonversiartikel,
+#                 "datakuantitas" : datakuantitasperhitungan,
+#                 'kodeproduk' : kodeproduk,
+#                 'lokasi' : lokasi
 
-            },
-        )
-            '''
-            1. Kumpulkan data perartikel (v)
-            2. Cek index dan sisa minus  (v)
-            3. Datajumlah artikel tetap 
-            4. datakonversiartikel tetap (v)
-            '''
+#             },
+#         )
+#             '''
+#             1. Kumpulkan data perartikel (v)
+#             2. Cek index dan sisa minus  (v)
+#             3. Datajumlah artikel tetap 
+#             4. datakonversiartikel tetap (v)
+#             '''
     
             
     
       
-        dataproduksi = models.TransaksiProduksi.objects.filter(Tanggal__range=(tanggal_mulai,tanggalminus),Jenis = 'Mutasi',KodeArtikel__KodeArtikel__in=listartikel)
+#         dataproduksi = models.TransaksiProduksi.objects.filter(Tanggal__range=(tanggal_mulai,tanggalminus),Jenis = 'Mutasi',KodeArtikel__KodeArtikel__in=listartikel)
 
-        totaljumlahkotakperartikel = dataproduksi.values('KodeArtikel__KodeArtikel').annotate(total=Sum('Jumlah'))
+#         totaljumlahkotakperartikel = dataproduksi.values('KodeArtikel__KodeArtikel').annotate(total=Sum('Jumlah'))
 
         
-        '''Coba V2'''
-        sumproduct = 0
-        jumlahkeluar = 0
-        jumlahxkonversidictionary = {}
-        datapenyesuaian = models.Penyesuaian.objects.filter(KodeProduk = produk).values_list('TanggalMinus',flat=True).distinct().order_by('-TanggalMinus')
-        print(datapenyesuaian)
-        # print(asd)
-        print(tanggalstokopname)
-        print(tanggalminus)
+#         '''Coba V2'''
+#         sumproduct = 0
+#         jumlahkeluar = 0
+#         jumlahxkonversidictionary = {}
+#         datapenyesuaian = models.Penyesuaian.objects.filter(KodeProduk = produk).values_list('TanggalMinus',flat=True).distinct().order_by('-TanggalMinus')
+#         print(datapenyesuaian)
+#         # print(asd)
+#         print(tanggalstokopname)
+#         print(tanggalminus)
 
-        if tanggalstokopname != "":
-            enddate = tanggalstokopname
-        else:
-            enddate = tanggalminus
-        enddate = datetime.strptime(enddate,"%Y-%m-%d")
+#         if tanggalstokopname != "":
+#             enddate = tanggalstokopname
+#         else:
+#             enddate = tanggalminus
+#         enddate = datetime.strptime(enddate,"%Y-%m-%d")
 
-        if tanggalawalperhitungan != "":
-            tanggalawalperhitungan = datetime.strptime(tanggalawalperhitungan,"%Y-%m-%d")
-            print('masuk')
-            startdate = tanggalawalperhitungan
-            if datapenyesuaian.exists():
-                datapenyesuaianawal = datetime.strptime(str(datapenyesuaian[0]),"%Y-%m-%d")
-                print(tanggalawalperhitungan, datapenyesuaian.first())
-                if tanggalawalperhitungan < datapenyesuaianawal:
-                    print('tidak valid menggunakan data penyesuaian saat ini') 
-                    startdate = datapenyesuaianawal
-        else:
-            if datapenyesuaian.exists():
-                datapenyesuaian = datapenyesuaian.filter(TanggalMinus__lte = enddate)
-                print(datapenyesuaian)
-                if datapenyesuaian:
-                    startdate =datetime.strptime(str(datapenyesuaian[0]),"%Y-%m-%d")
-                else:
-                    startdate = tanggal_mulai
-            else:
-                startdate = tanggal_mulai
-        print(startdate,enddate)
-        # print(listdata)
-        print('\n\n\n\n\n')
-        for item in listdata:
+#         if tanggalawalperhitungan != "":
+#             tanggalawalperhitungan = datetime.strptime(tanggalawalperhitungan,"%Y-%m-%d")
+#             print('masuk')
+#             startdate = tanggalawalperhitungan
+#             if datapenyesuaian.exists():
+#                 datapenyesuaianawal = datetime.strptime(str(datapenyesuaian[0]),"%Y-%m-%d")
+#                 print(tanggalawalperhitungan, datapenyesuaian.first())
+#                 if tanggalawalperhitungan < datapenyesuaianawal:
+#                     print('tidak valid menggunakan data penyesuaian saat ini') 
+#                     startdate = datapenyesuaianawal
+#         else:
+#             if datapenyesuaian.exists():
+#                 datapenyesuaian = datapenyesuaian.filter(TanggalMinus__lte = enddate)
+#                 print(datapenyesuaian)
+#                 if datapenyesuaian:
+#                     startdate =datetime.strptime(str(datapenyesuaian[0]),"%Y-%m-%d")
+#                 else:
+#                     startdate = tanggal_mulai
+#             else:
+#                 startdate = tanggal_mulai
+#         print(startdate,enddate)
+#         # print(listdata)
+#         print('\n\n\n\n\n')
+#         for item in listdata:
 
-            # print(asd)
+#             # print(asd)
             
 
-            tanggal = item['Tanggal']
+#             tanggal = item['Tanggal']
 
-            datetimetanggal = datetime.strptime(tanggal,"%Y-%m-%d")
+#             datetimetanggal = datetime.strptime(tanggal,"%Y-%m-%d")
 
-            if datetimetanggal > enddate:
-                break
-            elif datetimetanggal <= startdate:
-                continue
-            print(datetimetanggal,startdate)
-            if item['Artikel']:
-                for artikel,jumlah,konversi in zip(item['Artikel'],item['Perkotak'],item['Konversi']):
-                    sumproduct += jumlah * konversi
-                    sisa = item['Sisa']
-                    if artikel in jumlahxkonversidictionary:
-                        jumlahxkonversidictionary[artikel]['jumlahxkonversi'] += jumlah * konversi
-                        jumlahxkonversidictionary[artikel]['jumlah'] += jumlah 
-                    else:
-                        jumlahxkonversidictionary[artikel] = {'jumlahxkonversi': jumlah*konversi,'jumlah':jumlah}
+#             if datetimetanggal > enddate:
+#                 break
+#             elif datetimetanggal <= startdate:
+#                 continue
+#             print(datetimetanggal,startdate)
+#             if item['Artikel']:
+#                 for artikel,jumlah,konversi in zip(item['Artikel'],item['Perkotak'],item['Konversi']):
+#                     sumproduct += jumlah * konversi
+#                     sisa = item['Sisa']
+#                     if artikel in jumlahxkonversidictionary:
+#                         jumlahxkonversidictionary[artikel]['jumlahxkonversi'] += jumlah * konversi
+#                         jumlahxkonversidictionary[artikel]['jumlah'] += jumlah 
+#                     else:
+#                         jumlahxkonversidictionary[artikel] = {'jumlahxkonversi': jumlah*konversi,'jumlah':jumlah}
             
-            jumlahkeluar += sum(item['Keluar'])
-            print(item)
+#             jumlahkeluar += sum(item['Keluar'])
+#             print(item)
         
-        # print(asdas)
-        print(jumlahxkonversidictionary)
-        # print(asd)
+#         # print(asdas)
+#         print(jumlahxkonversidictionary)
+#         # print(asd)
         
-        saldodata = sisa[-1]
-        print(sisa)
-        # print(asd)
-        datakuantitasperhitungan["datakeluar"] = jumlahkeluar
-        print(jumlahkeluar)
-        datakuantitasperhitungan["saldodata"] = saldodata
-        datakuantitasperhitungan['Tanggalminus'] = enddate.strftime("%Y-%m-%d")
-        # print(datasisaminus)
-        # print(adasd)
-        try:
-            dataaktual = int(request.GET["jumlah"])
-        except Exception:
-            return render(
-            request,
-            "produksi/newkalkulator_penyesuaian.html",
-            {
-                "kodebarang": request.GET["kodebarang"],
-                "nama": nama,
-                "satuan": satuan,
-                "data": listdata,
-                "saldo": saldoawal,
-                "tahun": tahun,
-                "datakuantitas" : datakuantitasperhitungan,
-                'tanggalstokopname' : tanggalstokopname,
-                'kodeproduk' : kodeproduk,
-                                'lokasi' : lokasi
+#         saldodata = sisa[-1]
+#         print(sisa)
+#         # print(asd)
+#         datakuantitasperhitungan["datakeluar"] = jumlahkeluar
+#         print(jumlahkeluar)
+#         datakuantitasperhitungan["saldodata"] = saldodata
+#         datakuantitasperhitungan['Tanggalminus'] = enddate.strftime("%Y-%m-%d")
+#         # print(datasisaminus)
+#         # print(adasd)
+#         try:
+#             dataaktual = int(request.GET["jumlah"])
+#         except Exception:
+#             return render(
+#             request,
+#             "produksi/newkalkulator_penyesuaian.html",
+#             {
+#                 "kodebarang": request.GET["kodebarang"],
+#                 "nama": nama,
+#                 "satuan": satuan,
+#                 "data": listdata,
+#                 "saldo": saldoawal,
+#                 "tahun": tahun,
+#                 "datakuantitas" : datakuantitasperhitungan,
+#                 'tanggalstokopname' : tanggalstokopname,
+#                 'kodeproduk' : kodeproduk,
+#                                 'lokasi' : lokasi
 
 
-            },
-        )
-        # Cari jumlah pemusnahan
-        jumlahpemusnahanobj = models.PemusnahanBahanBaku.objects.filter(KodeBahanBaku = produk,Tanggal__gt =startdate,Tanggal__lte = enddate).aggregate(total = Sum('Jumlah'))['total']
-        if jumlahpemusnahanobj :
-            dataaktual += jumlahpemusnahanobj
-        else:
-            jumlahpemusnahanobj = 0
-        print(jumlahpemusnahanobj)
-        print(startdate,enddate)
-        # print(asd)
-        datakuantitasperhitungan["saldofisik"] = dataaktual
-        saldoaktual = dataaktual
-        print(saldoaktual)
-        keluarpenyesuaian = jumlahkeluar -  (saldoaktual - saldodata)
-        datakonversiakhir = {}
-        for key,value in jumlahxkonversidictionary.items():
-            try:
-                jumlahpenyesuaian =  keluarpenyesuaian/value['jumlah']
-                productpersumproduct = value['jumlahxkonversi'] / sumproduct
-                konversiakhir = jumlahpenyesuaian*productpersumproduct
-                print(f'Artikel : {key} Jumlah Penyesuaian : {jumlahpenyesuaian} Sumproductperproduct : {productpersumproduct}')
-            except ZeroDivisionError:
-                jumlahxkonversidictionary[key].delete()
-            datakonversiakhir[key] = {'jumlah': value['jumlah'],'konversiakhir':(konversiakhir)}
+#             },
+#         )
+#         # Cari jumlah pemusnahan
+#         jumlahpemusnahanobj = models.PemusnahanBahanBaku.objects.filter(KodeBahanBaku = produk,Tanggal__gt =startdate,Tanggal__lte = enddate).aggregate(total = Sum('Jumlah'))['total']
+#         if jumlahpemusnahanobj :
+#             dataaktual += jumlahpemusnahanobj
+#         else:
+#             jumlahpemusnahanobj = 0
+#         print(jumlahpemusnahanobj)
+#         print(startdate,enddate)
+#         # print(asd)
+#         datakuantitasperhitungan["saldofisik"] = dataaktual
+#         saldoaktual = dataaktual
+#         print(saldoaktual)
+#         keluarpenyesuaian = jumlahkeluar -  (saldoaktual - saldodata)
+#         datakonversiakhir = {}
+#         for key,value in jumlahxkonversidictionary.items():
+#             try:
+#                 jumlahpenyesuaian =  keluarpenyesuaian/value['jumlah']
+#                 productpersumproduct = value['jumlahxkonversi'] / sumproduct
+#                 konversiakhir = jumlahpenyesuaian*productpersumproduct
+#                 print(f'Artikel : {key} Jumlah Penyesuaian : {jumlahpenyesuaian} Sumproductperproduct : {productpersumproduct}')
+#             except ZeroDivisionError:
+#                 jumlahxkonversidictionary[key].delete()
+#             datakonversiakhir[key] = {'jumlah': value['jumlah'],'konversiakhir':(konversiakhir)}
         
-        print(f'Keluar Penyesuaian : {keluarpenyesuaian} Jumlah Keluar : {jumlahkeluar} Saldo Aktual : {saldoaktual} Saldo Data : {saldodata}')
-        print(datakonversiakhir)
+#         print(f'Keluar Penyesuaian : {keluarpenyesuaian} Jumlah Keluar : {jumlahkeluar} Saldo Aktual : {saldoaktual} Saldo Data : {saldodata}')
+#         print(datakonversiakhir)
         
 
 
-        # print(sumproduct)
-        # print(saldodata)
-        # print(jumlahkeluar)
-        # print(dataproduksi)
-        # print('\n',listdata)
-        # print('\njumlahxkonversi : ',jumlahxkonversidictionary)
-        # print('\ntotaljumlahkotakperartikel :',totaljumlahkotakperartikel)
-        # print(asdas)
+#         # print(sumproduct)
+#         # print(saldodata)
+#         # print(jumlahkeluar)
+#         # print(dataproduksi)
+#         # print('\n',listdata)
+#         # print('\njumlahxkonversi : ',jumlahxkonversidictionary)
+#         # print('\ntotaljumlahkotakperartikel :',totaljumlahkotakperartikel)
+#         # print(asdas)
 
         
-        return render(
-            request,
-            "produksi/newkalkulator_penyesuaian.html",
-            {
-                "kodebarang": request.GET["kodebarang"],
-                "nama": nama,
-                "satuan": satuan,
-                "data": listdata,
-                'dataperhitungan' : listdataperhitungan,
-                "saldo": saldoawal,
-                "tahun": tahun,
-                "dataaktual" : dataaktual-jumlahpemusnahanobj,
-                "jumlahartikel": dataajumlahartikel,
-                "konversiawal": datakonversiartikel,
-                "datakuantitas" : datakuantitasperhitungan,
-                "konversiakhirfix" : datakonversiakhir,
-                'tanggalstokopname' : tanggalstokopname,
-                'kodeproduk' : kodeproduk,
-                                'lokasi' : lokasi
+#         return render(
+#             request,
+#             "produksi/newkalkulator_penyesuaian.html",
+#             {
+#                 "kodebarang": request.GET["kodebarang"],
+#                 "nama": nama,
+#                 "satuan": satuan,
+#                 "data": listdata,
+#                 'dataperhitungan' : listdataperhitungan,
+#                 "saldo": saldoawal,
+#                 "tahun": tahun,
+#                 "dataaktual" : dataaktual-jumlahpemusnahanobj,
+#                 "jumlahartikel": dataajumlahartikel,
+#                 "konversiawal": datakonversiartikel,
+#                 "datakuantitas" : datakuantitasperhitungan,
+#                 "konversiakhirfix" : datakonversiakhir,
+#                 'tanggalstokopname' : tanggalstokopname,
+#                 'kodeproduk' : kodeproduk,
+#                                 'lokasi' : lokasi
 
-            },
-        )
+#             },
+#         )
 
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def kalkulatorpenyesuaianartikel(request):
+    '''
+    Fitur ini digunakan untuk melakukan kalkulasi penyeusian Artikel
+    Algoritma
+    1. Mendapatkan data Artikel
+    2. Menampilkan form input kode artikel 
+    3. Program mendapatkan input kode artikel, Tanggal Awal, Tanggal Akhir, dan Jumlah
+    4. Memanggil fungsi Calculate_KSBJ
+    5. Mengiterasi data hasil Calculate_KSBJ
+        A. Apabila tanggal data diantara tanggal awal dan akhir maka melanjutkan program
+        B. Menghitung jumlah masuk pada rentang tanggal awal dan akhir
+    6. Menghitung selisih dengan cara menghitung Sisa data terakhir pada rentang tanggal awal dan akhir - jumlahaktual
+    7. Menghitung jumlah selisih masuk dengan rumus = Jumlah Masuk - Selisih
+    8. Menghitung penyesuaian Baru dengan rumus = selisih masuk / jumlah masuk
+    9. Mengiterasi data hasil calculate_KSBJ
+        A. Mengupdate konversi masuk pada rentang tnaggal awal dan akhir
+    '''
     kodeproduk = models.Artikel.objects.all()
     if len(request.GET) == 0:
         return render(
@@ -4787,6 +5045,12 @@ def kalkulatorpenyesuaianartikel(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_saldobahan(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data saldo awal bahan baku produksi
+    Algoritma
+    1. Mendapatkan data saldoawal bahan baku dengan kriteria Nama Lokasi = WIP/FG
+    2. Menampilkan data saldo awal bahan baku
+    '''
     dataproduk = models.SaldoAwalBahanBaku.objects.filter(IDLokasi__NamaLokasi__in=("WIP","FG")).order_by("-Tanggal")
     for i in dataproduk:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
@@ -4798,6 +5062,15 @@ def view_saldobahan(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_saldobahan(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data saldo awal bahan baku pada sistem 
+    Algoritma
+    1. Mendapatkan data semua bahan baku
+    2. Menampilkan form input data saldo awal bahan baku 
+    3. Program mendapatkan input berupa Kode bahan baku, Lokasi, Jumlah, tanggal
+    4. Apabila tahun pada tanggal yang diinput sudah memiliki kode stok tersebut maka akan menampilkan pesan error
+    5. menyimpan data saldo awal bahan baku
+    '''
     databarang = models.Produk.objects.all()
     datalokasi = models.Lokasi.objects.all()
     if request.method == "GET":
@@ -4848,6 +5121,15 @@ def add_saldobahan(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_saldobahan(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update saldo awal bahan baku pada sistem
+    Algoritma
+    1. Mendapatkan data semua produk
+    2. Mendapatkan data saldo awal bahan baku dengan kriteria IDSaldoAwalBahanBaku = id (id didapatkan dari passing values HTML)
+    3. menampilkan form update saldo awal bahan baku
+    4. program menerima input berupa kode bahan baku, Lokasi, Jumlah, dan Tanggal
+    5. Mengupdate data saldo awal bahan baku
+    '''
     databarang = models.Produk.objects.all()
     dataobj = models.SaldoAwalBahanBaku.objects.get(IDSaldoAwalBahanBaku=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -4903,6 +5185,12 @@ def update_saldobahan(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_saldobahan(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data saldo awal bahan baku pada sistem
+    Algoritma 
+    1. Mengambil data saldo awal bahan baku dengan kriteria IDSaldoAwalBahanBaku = id (id didapatkan dari passing values HTML)
+    2. Menghapus data saldo awal bahan baku
+    '''
     dataobj = models.SaldoAwalBahanBaku.objects.get(IDSaldoAwalBahanBaku=id)
 
     dataobj.delete()
@@ -4921,6 +5209,12 @@ def delete_saldobahan(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_saldoartikel(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data saldo awal Artikel produksi
+    Algoritma
+    1. Mendapatkan data saldoawal Artikel 
+    2. Menampilkan data saldo awal Artikel
+    '''
     dataartikel = models.SaldoAwalArtikel.objects.all().order_by("-Tanggal")
     for i in dataartikel:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
@@ -4932,6 +5226,15 @@ def view_saldoartikel(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_saldoartikel(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data saldo awal Artikel pada sistem 
+    Algoritma
+    1. Mendapatkan data semua Artikel
+    2. Menampilkan form input data saldo awal Artikel 
+    3. Program mendapatkan input berupa Kode Artikel, Lokasi, Jumlah, tanggal
+    4. Apabila tahun pada tanggal yang diinput sudah memiliki kode stok tersebut maka akan menampilkan pesan error
+    5. menyimpan data saldo awal Artikel
+    '''
     dataartikel = models.Artikel.objects.all()
     datalokasi = models.Lokasi.objects.all()
     if request.method == "GET":
@@ -4981,6 +5284,15 @@ def add_saldoartikel(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_saldoartikel(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update saldo awal Artikel pada sistem
+    Algoritma
+    1. Mendapatkan data semua produk
+    2. Mendapatkan data saldo awal Artikel dengan kriteria IDSaldoAwalBahanBaku = id (id didapatkan dari passing values HTML)
+    3. menampilkan form update saldo awal Artikel
+    4. program menerima input berupa kode Artikel, Lokasi, Jumlah, dan Tanggal
+    5. Mengupdate data saldo awal Artikel
+    '''
     dataartikel = models.Artikel.objects.all()
     dataobj = models.SaldoAwalArtikel.objects.get(IDSaldoAwalBahanBaku=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -5039,6 +5351,12 @@ def update_saldoartikel(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_saldoartikel(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data saldo awal artikel pada sistem
+    Algoritma 
+    1. Mengambil data saldo awal artikel dengan kriteria IDSaldoAwalArtikel = id (id didapatkan dari passing values HTML)
+    2. Menghapus data saldo awal artikel
+    '''
     dataobj = models.SaldoAwalArtikel.objects.get(IDSaldoAwalBahanBaku=id)
 
     dataobj.delete()
@@ -5058,6 +5376,12 @@ def delete_saldoartikel(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_saldosubkon(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data saldo awal Produk Subkon produksi
+    Algoritma
+    1. Mendapatkan data saldoawal Produk Subkon 
+    2. Menampilkan data saldo awal Produk Subkon
+    '''
     datasubkon = models.SaldoAwalSubkon.objects.all().order_by("-Tanggal")
     for i in datasubkon:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
@@ -5069,6 +5393,15 @@ def view_saldosubkon(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_saldosubkon(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data saldo awal Produk Subkon pada sistem 
+    Algoritma
+    1. Mendapatkan data semua Produk Subkon
+    2. Menampilkan form input data saldo awal Produk Subkon 
+    3. Program mendapatkan input berupa Kode Produk Subkon, Lokasi, Jumlah, tanggal
+    4. Apabila tahun pada tanggal yang diinput sudah memiliki kode stok tersebut maka akan menampilkan pesan error
+    5. menyimpan data saldo awal Produk Subkon
+    '''
     datasubkon = models.ProdukSubkon.objects.all()
     if request.method == "GET":
         return render(
@@ -5116,6 +5449,15 @@ def add_saldosubkon(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_saldosubkon(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update saldo awal Produk Subkon pada sistem
+    Algoritma
+    1. Mendapatkan data semua produk
+    2. Mendapatkan data saldo awal Produk Subkon dengan kriteria IDSaldoAwalProdukSubkon = id (id didapatkan dari passing values HTML)
+    3. menampilkan form update saldo awal Produk Subkon
+    4. program menerima input berupa kode Produk Subkon, Jumlah, dan Tanggal
+    5. Mengupdate data saldo awal Produk Subkon
+    '''
     dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
     datasubkon = models.ProdukSubkon.objects.all()
@@ -5163,6 +5505,12 @@ def update_saldosubkon(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_saldosubkon(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data saldo awal Produk Subkon pada sistem
+    Algoritma 
+    1. Mengambil data saldo awal Produk Subkon dengan kriteria IDSaldoAwalProdukSubkon = id (id didapatkan dari passing values HTML)
+    2. Menghapus data saldo awal Produk Subkon
+    '''
     dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
 
     dataobj.delete()
@@ -5181,6 +5529,12 @@ def delete_saldosubkon(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_saldobahansubkon(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data saldo awal Bahan Baku Subkon produksi
+    Algoritma
+    1. Mendapatkan data saldoawal Bahan Baku Subkon 
+    2. Menampilkan data saldo awal Bahan Baku Subkon
+    '''
     datasubkon = models.SaldoAwalBahanBakuSubkon.objects.all().order_by("-Tanggal")
     for i in datasubkon:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
@@ -5192,6 +5546,15 @@ def view_saldobahansubkon(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_saldobahansubkon(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data saldo awal Bahan Baku Subkon pada sistem 
+    Algoritma
+    1. Mendapatkan data semua Bahan Baku Subkon
+    2. Menampilkan form input data saldo awal Bahan Baku Subkon 
+    3. Program mendapatkan input berupa Kode Bahan Baku Subkon, Lokasi, Jumlah, tanggal
+    4. Apabila tahun pada tanggal yang diinput sudah memiliki kode stok tersebut maka akan menampilkan pesan error
+    5. menyimpan data saldo awal Bahan Baku Subkon
+    '''
     datasubkon = models.BahanBakuSubkon.objects.all()
     if request.method == "GET":
         return render(
@@ -5237,6 +5600,15 @@ def add_saldobahansubkon(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_saldobahansubkon(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update saldo awal Bahan Baku Subkon pada sistem
+    Algoritma
+    1. Mendapatkan data semua produk
+    2. Mendapatkan data saldo awal Bahan Baku Subkon dengan kriteria IDSaldoAwalBahan BakuSubkon = id (id didapatkan dari passing values HTML)
+    3. menampilkan form update saldo awal Bahan Baku Subkon
+    4. program menerima input berupa kode Bahan Baku Subkon, Jumlah, dan Tanggal
+    5. Mengupdate data saldo awal Bahan Baku Subkon
+    '''
     dataobj = models.SaldoAwalBahanBakuSubkon.objects.get(IDSaldoAwalBahanBakuSubkon=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
     datasubkon = models.BahanBakuSubkon.objects.all()
@@ -5287,6 +5659,12 @@ def update_saldobahansubkon(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_saldobahansubkon(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data saldo awal BahanBaku Subkon pada sistem
+    Algoritma 
+    1. Mengambil data saldo awal BahanBaku Subkon dengan kriteria IDSaldoAwalBahanBakuSubkon = id (id didapatkan dari passing values HTML)
+    2. Menghapus data saldo awal BahanBaku Subkon
+    '''
     dataobj = models.SaldoAwalBahanBakuSubkon.objects.get(IDSaldoAwalBahanBakuSubkon=id)
 
     dataobj.delete()
@@ -5306,12 +5684,26 @@ def delete_saldobahansubkon(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def read_bahanbaku(request):
+    '''
+    Fitur ini digunakan untuk melihat semua data bahan baku pada sistem
+    Algoritma
+    1. Mendapatkan data semua data Produk 
+    2. Menampilkan pada sistem
+    '''
     produkobj = models.Produk.objects.all()
     return render(request, "produksi/read_produk.html", {"produkobj": produkobj})
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_produk_produksi(request, id):
+    '''
+    FItur ini digunakan untuk mengupdate data produk pada sistem
+    Algoritma
+    1. Mendapatkan data produk dengan kriteria KodeProduk = id (id didapatkan dari passing values HTML)
+    2. Menampilkan form update bahan baku 
+    3. Program mendapatkan input berupa Keterangan Produk 
+    4. Mengupdate data bahan baku
+    '''
     produkobj = models.Produk.objects.get(KodeProduk=id)
     if request.method == "GET":
         return render(request, "produksi/update_produk.html", {"produkobj": produkobj})
@@ -5335,12 +5727,25 @@ def update_produk_produksi(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def read_bahansubkon(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data bahan baku subkon
+    Algoritma
+    1. Mendapatkan semua data bahan baku subkon
+    2. Menampilkan data bahan baku subkon
+    '''
     produkobj = models.BahanBakuSubkon.objects.all()
     return render(request, "produksi/read_bahansubkon.html", {"produkobj": produkobj})
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def create_bahansubkon(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data bahan baku subkon pada sistem
+    Algoritma
+    1. Menampilkan form input bahan baku subkon
+    2. Program mendapatkan input berupa Kode stok , Nama , dan unit dari bahan baku subkon
+    3. Menyimpan dalam sistem
+    '''
     if request.method == "GET":
         return render(
             request, "produksi/create_bahansubkon.html")
@@ -5374,6 +5779,13 @@ def create_bahansubkon(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_bahansubkon(request, id):
+    '''
+    Fitur ini digunakan untuk mengupdate data bahan baku subkon 
+    Algoritma
+    1. Mendapatkan data bahan baku subkon dengan kriteria pk (primary key) = id (id didapatkan dari passing values HTML)
+    2. Menampilkan form update bahan baku subkon 
+    3. Program mendapatkan input berupa kode stok, nama, dan unit bahan baku subkon
+    '''
     produkobj = models.BahanBakuSubkon.objects.get(pk=id)
 
     if request.method == "GET":
@@ -5411,6 +5823,12 @@ def update_bahansubkon(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_bahansubkon(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data bahan baku subkon 
+    Algoritma :
+    1. Mendapatkan data bahan baku subkon dengan kriteria id = id (id didapatkan dari passing values HTML)
+    2. Menghapus data 
+    '''
     produkobj = models.BahanBakuSubkon.objects.get(id=id)
     produkobj.delete()
     messages.success(request, "Data Berhasil dihapus")
@@ -5429,12 +5847,25 @@ def delete_bahansubkon(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def read_produksubkon(request):
+    '''
+    Fitur ini digunakan untuk melihat semua data Produk Subkon pada sistem
+    Algoritma
+    1. Mendapatkan data semua data Produk 
+    2. Menampilkan pada sistem
+    '''
     produkobj = models.ProdukSubkon.objects.all()
     return render(request, "produksi/read_produksubkon.html", {"produkobj": produkobj})
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def create_produksubkon(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data produk subkon pada sistem
+    Algoritma
+    1. Menampilkan form input produk subkon
+    2. Program mendapatkan input berupa Kode stok , kode artikel peruntukan, Nama , dan unit dari bahan baku subkon
+    3. Menyimpan dalam sistem
+    '''
     kodeartikel = models.Artikel.objects.all()
     if request.method == "GET":
         return render(
@@ -5484,6 +5915,13 @@ def create_produksubkon(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_produksubkon(request, id):
+    '''
+    Fitur ini digunakan untuk mengupdate data produk subkon 
+    Algoritma
+    1. Mendapatkan data produk subkon dengan kriteria pk (primary key) = id (id didapatkan dari passing values HTML)
+    2. Menampilkan form update produk subkon 
+    3. Program mendapatkan input berupa kode stok, nama, dan unit produk subkon
+    '''
     produkobj = models.ProdukSubkon.objects.get(pk=id)
     dataartikel = models.Artikel.objects.all()
     if request.method == "GET":
@@ -5534,6 +5972,12 @@ def update_produksubkon(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_produksubkon(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data produk subkon 
+    Algoritma :
+    1. Mendapatkan data produk subkon dengan kriteria IDProdukSubkon = id (id didapatkan dari passing values HTML)
+    2. Menghapus data 
+    '''
     produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=id)
     produkobj.delete()
     messages.success(request, "Data Berhasil dihapus")
@@ -5552,6 +5996,12 @@ def delete_produksubkon(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_subkonbahankeluar(request):
+    '''
+    Fitur ini digunakan untuk pengiriman bahan baku subkon menuju vendor
+    Algoritma 
+    1. mendapatkan data detail surat jalan pengiriman bahan baku subkon 
+    2. menampilkan pada sistem
+    '''
     datasubkon = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.all().order_by("NoSuratJalan__Tanggal")
     for i in datasubkon:
         i.NoSuratJalan.Tanggal = i.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
@@ -5561,6 +6011,19 @@ def view_subkonbahankeluar(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_subkonbahankeluar(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data surat jalan pengiriman bahan baku subkon ke vendor
+    Algoritma.
+    1. Mendapatkan data detail surat jalan pengiriman bahan baku subkon 
+    2. Mendapatkan data surat jalan pengiriman bahan baku subkon
+    3. Mendapatkan data bahan baku subkon 
+    4. menampilkan form input surat jalan pengiriman bahan baku subkon
+    5. program mendapatkan input berupa no surat jalan, tanggal,list kode bahan baku subkon, list jumlah, dan list keterangan
+    6. cek apakah no surat jalan subkon sudah ada pada sistem atau belum. Apabila ada maka akan menampilkan pesan error
+    7. Menyimpan data surat jalan subkon pada sistem
+    8. mengiterasi list kode bahan baku subko, list jumlah dan list keterangan
+        A. membuat data detail transaksi bahan baku subkon pada surat jalan bahan baku subkon terakhir
+    '''
     if request.method == "GET":
         subkonkirim = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.all()
         detailsk = models.SuratJalanPengirimanBahanBakuSubkon.objects.all()
@@ -5622,6 +6085,16 @@ def add_subkonbahankeluar(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_subkonbahankeluar(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update surat jalan pengiriman bahan baku subkon 
+    Algoritma
+    1. MEndapatkan data Detail Surat Jalan pengiriman bahan baku subkon dengan kriteria IDDEtailSJPengriimanSubkon = id (id diapatkan dari passing values HTML)
+    2. Mendapatkan data objec surat jalan pengiriman bahan baku subkon 
+    3. mendapatkan semua data bahan baku subkon 
+    4. menampilkan form input transaksi pengiriman bahan baku subkon 
+    5. Program mendapatkan input berupa No Surat Jalan, Tanggal, Kode Produk, Jumlah dan Keterangan
+    6. Mengupdate data suratjalan dan detail surat jalan pengiriman bahan baku subkon 
+    '''
     datasjp = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.get(IDDetailSJPengirimanSubkon=id)
 
     datasjp_getobj = models.SuratJalanPengirimanBahanBakuSubkon.objects.get(
@@ -5711,6 +6184,14 @@ def update_subkonbahankeluar(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_subkonbahankeluar(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data detail surat jalan pengiriman bahan baku subkon 
+    ALgoritma
+    1. Mengambil data detail surat jalan pengiriman bahan baku subkon dengan kondeisi IDDetailSJPengirimanSubkon = id (id didapatkan dari passing values HTML)
+    2. cek apakah memiliki detail surat jalan pengiriman lebih dari 1 ?
+    3. APabila tidak ada maka akan menghapus data surat jalan pengiriman bahan baku subkon (terhubung kedalam detail suratjalan )
+    4. Apabila ada data lebih dari 1 maka akan menghapus detail surat jalan pengiriman bahan baku subkon
+    '''
     dataskk = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.get(IDDetailSJPengirimanSubkon=id)
     kodesuratjalan = dataskk.NoSuratJalan
     # dataskk.delete()
