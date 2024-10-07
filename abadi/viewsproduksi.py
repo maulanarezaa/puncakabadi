@@ -8969,15 +8969,19 @@ def eksportksbjproduksi(request,id,lokasi,tahun):
     print(saldoawal)
     print(listdata)
     if saldoawal:
-        if saldoawal['Tanggal'] is not 'Belum ada Data':
-            datamodelsksbj["Tanggal"].append(tanggalmulai.strftime('%Y-%m-%d'))
-            datamodelsksbj['SPK'].append('')
-            datamodelsksbj['Kode Produk'].append('')
-            datamodelsksbj['Masuk Lembar'].append('')
-            datamodelsksbj["Masuk Konversi"].append('')
-            datamodelsksbj['Hasil'].append('')
-            datamodelsksbj['Keluar'].append('')
-            datamodelsksbj["Sisa"].append(saldoawal.Jumlah)
+        # print(saldoawal)
+        try:
+            if saldoawal.Tanggal:
+                datamodelsksbj["Tanggal"].append(tanggalmulai.strftime('%Y-%m-%d'))
+                datamodelsksbj['SPK'].append('')
+                datamodelsksbj['Kode Produk'].append('')
+                datamodelsksbj['Masuk Lembar'].append('')
+                datamodelsksbj["Masuk Konversi"].append('')
+                datamodelsksbj['Hasil'].append('')
+                datamodelsksbj['Keluar'].append('')
+                datamodelsksbj["Sisa"].append(saldoawal.Jumlah)
+        except:
+            pass
     for item in listdata:
         datamodelsksbj["Tanggal"].append(item['Tanggal'])
         dummy = []
@@ -9012,13 +9016,17 @@ def eksportksbjproduksi(request,id,lokasi,tahun):
     }
     sisaakhir = 0
     if saldoawal:
-        if saldoawal['Tanggal'] is not 'Belum ada Data':
-            datamodelsksbjfg["Tanggal"].append(tanggalmulai.strftime('%Y-%m-%d'))
-            datamodelsksbjfg["Penyerahan WIP"].append('')
-            datamodelsksbjfg["Keluar"].append('')
-            datamodelsksbjfg["Nomor SPPB"].append('')
-            datamodelsksbjfg["Jumlah Kirim"].append('')
-            datamodelsksbjfg["Sisa"].append(saldoawal.Jumlah)
+        print(saldoawal)
+        try:
+            if saldoawal.Tanggal:
+                datamodelsksbjfg["Tanggal"].append(tanggalmulai.strftime('%Y-%m-%d'))
+                datamodelsksbjfg["Penyerahan WIP"].append('')
+                datamodelsksbjfg["Keluar"].append('')
+                datamodelsksbjfg["Nomor SPPB"].append('')
+                datamodelsksbjfg["Jumlah Kirim"].append('')
+                datamodelsksbjfg["Sisa"].append(saldoawal.Jumlah)
+        except:
+            pass
     for item in listdata:
         index = 0
         if len(item['DetailSPPB']) > 1:
