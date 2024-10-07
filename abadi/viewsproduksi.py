@@ -6038,7 +6038,7 @@ def add_subkonbahankeluar(request):
         nosuratjalan = request.POST["nosuratjalan"]
         tanggal = request.POST["tanggal"]
 
-        datasj = models.DetailSuratJalanPengirimanBahanBakuSubkon.objects.filter(NoSuratJalan__NoSuratJalan=nosuratjalan).exists()
+        datasj = models.SuratJalanPengirimanBahanBakuSubkon.objects.filter(NoSuratJalan=nosuratjalan).exists()
         if datasj:
             messages.error(request, "No Surat Jalan sudah ada")
             return redirect("add_subkonbahankeluar")
@@ -6058,7 +6058,7 @@ def add_subkonbahankeluar(request):
             listkode = request.POST.getlist("kodeproduk")
             listjumlah = request.POST.getlist("jumlah")
             listket = request.POST.getlist("keterangan")
-
+            detail_added = False
             for kodeproduk, jumlah, keterangan in zip(listkode, listjumlah, listket):
                 try:
                     bahanobj = models.BahanBakuSubkon.objects.get(KodeProduk=kodeproduk)
@@ -6072,13 +6072,19 @@ def add_subkonbahankeluar(request):
                     NoSuratJalan=subkonkirimobj,
                 )
                 newprodukobj.save()
-
+                detail_added = True
+        
                 models.transactionlog(
                     user="Produksi",
                     waktu=datetime.now(),
                     jenis="Create",
                     pesan=f"Detail SJ Kirim Bahan Subkon. Kode Bahan Baku: {bahanobj.KodeProduk} Nama Bahan Baku : {bahanobj.NamaProduk}  Jumlah : {jumlah} Keterangan : {keterangan}",
                 ).save()
+            if not detail_added:
+                # If no detail is added, delete the main Surat Jalan object
+                subkonkirimobj.delete()
+                messages.error(request,"Transaksi Gagal, cek kembali kode bahan baku subkom")
+                return redirect("add_subkonbahankeluar")
             messages.success(request,"Data berhasil disimpan")
             return redirect("view_subkonbahankeluar")
 
