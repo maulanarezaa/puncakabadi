@@ -3144,8 +3144,7 @@ def views_rekaphargasubkon(request):
         sekarang = datetime.now().date()
         input_awal = date(sekarang.year,sekarang.month,1).strftime('%Y-%m-%d')
         input_terakhir = sekarang.strftime('%Y-%m-%d')
-        list_harga_total1 = []
-        list_ppn = []
+        
         harga_setelah_ppn = []
         list_total_ppn = []
         sjball = models.DetailSuratJalanPenerimaanProdukSubkon.objects.filter(NoSuratJalan__Tanggal__range=(input_awal,input_terakhir)).order_by(
@@ -3225,33 +3224,19 @@ def views_rekaphargasubkon(request):
             messages.error(request, "Data tidak ditemukan")
         if len(filtersjb) > 0:
 
-            for x in filtersjb:
-                harga_total = x.Jumlah * x.Harga
-                x.NoSuratJalan.Tanggal = x.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
-                if x.NoSuratJalan.TanggalInvoice is not None:
-                    x.NoSuratJalan.TanggalInvoice = x.NoSuratJalan.TanggalInvoice.strftime("%Y-%m-%d")
-                list_harga_total.append(harga_total)
-                harga_setelah_pemotongan = math.ceil(x.Harga - (x.Harga * inputppn))
-                total_harga_setelah_pemotongan = harga_setelah_pemotongan * x.Jumlah
-                harga_setelah_ppn.append(harga_setelah_pemotongan)
-                list_total_ppn.append(total_harga_setelah_pemotongan)
-            i = 0
             for item in filtersjb:
-                item.harga_total = list_harga_total[i]
-                if item.Potongan:
-
-                    item.harga_ppn_1 = harga_setelah_ppn[i]
-                    item.harga_total_ppn_1 = list_total_ppn[i]
-                else:
-                    item.harga_ppn_1 = 0
-                    item.harga_total_ppn_1 = 0
-                i += 1
+                item.NoSuratJalan.Tanggal = item.NoSuratJalan.Tanggal.strftime('%Y-%m-%d')
+                item.hargatotalsebelumpotongan = item.Harga * item.Jumlah
+                item.hargatotalsetelahpemotongan = item.hargapotongan * item.Jumlah
+                if not item.Potongan:
+                    item.hargatotalsetelahpemotongan = item.Harga * item.Jumlah
+                    item.hargapotongan = 0
             return render(
                 request,
                 "Purchasing/masuk_subkon.html",
                 {
                     "data_hasil_filter": filtersjb,
-                    "harga_total": harga_total,
+                    # "harga_total": harga_total,
                     "input_awal": input_awal,
                     "input_terakhir": input_terakhir,
                     "valueppn" : valueppn

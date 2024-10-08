@@ -143,14 +143,15 @@
                       {% for i in data_hasil_filter %}
                       <tr>
                         <td>{{i.NoSuratJalan.Tanggal}}</td>
-                        <td>{{i.NoSuratJalan.supplier}}</td>
+                        <td>{{i.NoSuratJalan.Supplier}}</td>
                         <td>{{i.KodeProduk}}</td>
                         <td>{{i.KodeProduk.NamaProduk}}</td>
-                        <td>{{i.Jumlah}}</td>
+                        <td>{{i.KodeProduk.Unit}}</td>
+                        <td>{{i.Jumlah|separator_ribuan}}</td>
                         <td>{{i.Harga|custom_thousands_separator}}</td>
-                        <td>{{i.harga_total|custom_thousands_separator}}</td>
-                        <td>{{i.harga_ppn_1|custom_thousands_separator}}</td>
-                        <td>{{i.harga_total_ppn_1|custom_thousands_separator}}</td>
+                        <td>{{i.hargatotalsebelumpotongan|custom_thousands_separator}}</td>
+                        <td>{{i.hargapotongan|custom_thousands_separator}}</td>
+                        <td>{{i.hargatotalsetelahpemotongan|custom_thousands_separator}}</td>
                         <td>
                           {% if i.NoSuratJalan.TanggalInvoice == None %}
                           -
@@ -161,10 +162,13 @@
                           {% if i.NoSuratJalan.NoInvoice == None %}
                           -
                           {% else %}
+                          
                           {{i.NoSuratJalan.NoInvoice}}
                           {% endif %}
                         </td>
+                        
                         <td>
+                          {% if user.groups.first.name != 'ppic' %}
                           <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->
                           <div class="template-demo">
                             <a href="{% url 'updatebarangsubkonmasuk' i.IDDetailSJPenerimaanSubkon %}">
@@ -173,6 +177,7 @@
                               </button>
                             </a>
                           </div>
+                          {% endif %}
                         </td>
                       </tr>
                       {% endfor %}
