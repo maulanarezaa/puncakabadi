@@ -3193,6 +3193,8 @@ def exportlaporanbulananexcel(request):
     waktugetbarangkeluar = time.time()
     datatransaksikeluar = datatransaksikeluar[index-1]
     rekapartikel,rekaptransaksidisplay,rekapdatabahankeluar,rekapgolongand,rekaptransaksilainlain,rekappemusnahanartikel,rekappemusnahanbahanbaku = create_rekaptransaksikeluar(datatransaksikeluar)
+    """SECTION PENGELUARAN BARANG GUDANG"""
+    barangkeluargudang = getbarangkeluargudang(last_days,index,awaltahun)
     """SECTION BARANG MASUK"""
     waktustartdatatransaksimasuk = time.time()
     barangmasuk = getbarangmasuk(last_days, index, awaltahun)
@@ -3221,6 +3223,7 @@ def exportlaporanbulananexcel(request):
         barangmasuk,
         totalbiayakeluar,
         stokfg,
+        barangkeluargudang
 
     )
     waktuperhitunganpersediaan = time.time()
@@ -3246,6 +3249,7 @@ def exportlaporanbulananexcel(request):
         "Saldo Akhir Gudang" : [datapersediaan['saldoakhirgudang']],
         "Saldo Akhir FG" : [datapersediaan['stokfg']],
         "Saldo Akhir WIP" : [datapersediaan['saldowip']],
+        "Total Barang Keluar Gudang" : [datapersediaan['barangkeluargudang']]
     }
     dfpersediaan = pd.DataFrame(datamodelpersediaan)
 
@@ -4187,6 +4191,8 @@ def exportlaporanbulananexcelkeseluruhan(request):
     datadetailsppb, totalbiayakeluar, datapenyusun, listdatadetailsppb,transaksilainlain, transaksigold, detailbiaya, datatransaksikeluar = (
         getbarangkeluar(last_days, index, awaltahun)
     )
+    """SECTION TOTAL BARANG KELUAR"""
+    barangkeluargudang = getbarangkeluargudang(last_days,index,awaltahun)
     """SECTION HARGA AKHIR PERBULAN """
     hargaakhirbulan = gethargapurchasingperbulan(last_days, index, awaltahun)
     """SECTION BARANG MASUK"""
@@ -4213,6 +4219,7 @@ def exportlaporanbulananexcelkeseluruhan(request):
         barangmasuk,
         totalbiayakeluar,
         stokfg,
+        barangkeluargudang
 
     )
 

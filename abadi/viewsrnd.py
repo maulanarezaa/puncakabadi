@@ -2497,15 +2497,22 @@ def updatepenyusundarikonversimaster(request):
     #     dataawal = dataversifilter.first()
     #     dataawal.isdefault= True
     #     dataawal.save()
-    datadetailsppb = models.DetailSPPB.objects.all()
-    for item in datadetailsppb :
-        print(item.VersiArtikel, item.DetailSPK.KodeArtikel,item.NoSPPB.Tanggal)
-        # if item.VersiArtikel == None:
-        kodeversidefault = models.Versi.objects.filter(KodeArtikel = item.DetailSPK.KodeArtikel,isdefault = True).first()
-        print(kodeversidefault,item,item)
-        # print(asd)
-        item.VersiArtikel = kodeversidefault
-        item.save()
+    # datadetailsppb = models.DetailSPPB.objects.all()
+    # for item in datadetailsppb :
+    #     print(item.VersiArtikel, item.DetailSPK.KodeArtikel,item.NoSPPB.Tanggal)
+    #     # if item.VersiArtikel == None:
+    #     kodeversidefault = models.Versi.objects.filter(KodeArtikel = item.DetailSPK.KodeArtikel,isdefault = True).first()
+    #     print(kodeversidefault,item,item)
+    #     # print(asd)
+    #     item.VersiArtikel = kodeversidefault
+    #     item.save()
+    '''CEK SURAT JALAN PENERIMAAN YANG TIDAK MEMILIKI DETAIL'''
+    no_surat_jalan_with_detail = models.DetailSuratJalanPembelian.objects.values_list("NoSuratJalan__NoSuratJalan", flat=True).distinct()
+    # Ambil daftar SuratJalanPembelian yang tidak ada di daftar di atas
+    surat_jalan_without_detail = models.SuratJalanPembelian.objects.exclude(NoSuratJalan__in=no_surat_jalan_with_detail).distinct()
+    print(surat_jalan_without_detail)
+    '''CEK SURAT JALAN PRODUK SUBKON YANG TIDAK MEMILIKI DETAIL'''
+    ''''''
         
     
 def createhargafg (request):
