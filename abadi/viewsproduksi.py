@@ -193,6 +193,15 @@ def load_detailspkfromartikel(request):
     print(detailspk)
 
     return render(request, "produksi/opsi_detailspkfromartikel.html", {"detailspk": detailspk})
+@login_required
+@logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
+def load_detailspkfromartikeltambahan(request):
+    kode_artikel = request.GET.get("kode_artikel")
+    artikelobj = models.Artikel.objects.get(KodeArtikel=kode_artikel)
+    detailspk = models.DetailSPK.objects.filter(KodeArtikel=artikelobj).distinct()
+    print(detailspk)
+
+    return render(request, "produksi/opsi_detailspkfromartikeltambahan.html", {"detailspk": detailspk})
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
@@ -936,6 +945,8 @@ def detail_sppb(request, id):
         )
 
     elif request.method == "POST":
+        print(request.POST)
+        # print
         nomor_sppb = request.POST["nomor_sppb"]
         tanggall = request.POST["tanggal"]
         keterangan = request.POST["keterangan"]
@@ -953,7 +964,7 @@ def detail_sppb(request, id):
         jumlahdisplay_list = request.POST.getlist('quantitydisplay[]')
         confirmationorderdisplay = request.POST.getlist("purchaseorderdisplay")
 
-        artikel_baru = request.POST.getlist('detail_spk[]')
+        artikel_baru = request.POST.getlist('detail_spktambahan[]')
         jumlah_baru = request.POST.getlist('quantitybaru[]')
         purchaseorder_artikelbaru = request.POST.getlist('purchaseorderartikelbaru')
         listversibaru = request.POST.getlist('versiartikel')
@@ -969,7 +980,7 @@ def detail_sppb(request, id):
 
         datasppbbaru = models.SPPB.objects.filter(NoSPPB=nomor_sppb)
         existsppb = datasppbbaru.exists()
-        print(request.POST)
+        # print(request.POST['detail_spk[]'])
         # print(asd)
         if existsppb and datasppb != datasppbbaru.first():
             messages.error(request, "Nomor SPPB sudah ada")
@@ -988,6 +999,7 @@ def detail_sppb(request, id):
             ).save()
 
         if datadetailsppbbahan:
+            # print(asd)
             for detail, bahan, jumlah, confirmationorder in zip(datadetailsppbbahan,bahan_list, jumlahbahan, confirmationorderbahan):
 
                 kode_bahan = models.Produk.objects.get(KodeProduk=bahan)
@@ -1009,6 +1021,8 @@ def detail_sppb(request, id):
 
 
         if datadetailsppbArtikel:
+            print(datadetailsppbArtikel, artikel_list, jumlah_list, confirmationorderartikel,listversi)
+            # print(asd)
             for detail, artikel_id, jumlah, confirmationorder,versi in zip(
                 datadetailsppbArtikel, artikel_list, jumlah_list, confirmationorderartikel,listversi
             ):
@@ -6227,6 +6241,12 @@ def delete_subkonbahankeluar(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_subkonprodukmasuk(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data produk subkon yang masuk kedalam sistem
+    Algoritma:
+    1. Mendapatkan data detail surat jalan penerimaan produk subkon 
+    2. Menampilkan data pada sistem
+    '''
     datasubkon = models.DetailSuratJalanPenerimaanProdukSubkon.objects.all().order_by("NoSuratJalan__Tanggal")
     for i in datasubkon:
         i.NoSuratJalan.Tanggal = i.NoSuratJalan.Tanggal.strftime("%Y-%m-%d")
@@ -6236,6 +6256,19 @@ def view_subkonprodukmasuk(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_subkonprodukmasuk(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data produk subkon yang masuk kedalam perusahaan
+    Algoritma:
+    1. Mendapatkan data produk subkon 
+    2. Menampilkan form input data surat jalan penerimaan produk subkon
+    3. Program mendapatkan inputan berupa No Surat Jalan, Tanggal, Supplier, list produk subkon, list jumlah, list keterangan
+    4. Cek apakah sudah ada data No Srurat Jalan yang diinput pada sistem sebelumnya ? Apabila ada maka akan menampilkan pesan error
+    5. melakukan iterasi pada list produk subkon untuk melihat apakah ada error produk subkon yang tidak terdaftar dalam sistem 
+    6. membuat object surat jalan penerimaan produk subkon dengan kriteria No Surat Jalan = input no suratjalan, Tanggal = input tanggal, dan Supplier = input supplier
+    7. Melakukan iterasi pada List Produk Subkon, List Jumlah, dan List Keterangan produk subkon
+        A. Membuat Object Detail Surat Jalan Penerimaan Produk Subkon dengan kriteria Kode Produk = produksubkon iterasi, Jumlah = jumlah iterasi, dan keterangan = keterangan iterasi
+        B. Menyimpan detail surat jalan penerimaan produk subkon
+    '''
     if request.method == "GET":
         subkonkirim = models.DetailSuratJalanPenerimaanProdukSubkon.objects.all()
         detailsk = models.SuratJalanPenerimaanProdukSubkon.objects.all()
@@ -6317,6 +6350,16 @@ def add_subkonprodukmasuk(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_subkonprodukmasuk(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update data surat jalan penerimaan produk subkon
+    Algoritma 
+    1. Mengambil detail surat jalan penerimaan produk subkon dengan kriteria IDDetailSJPenerimaanSubkon = id (id didapatkan dari passing values HTML)
+    2. Mendapatkan data Surat jalan penerimaan produk subkon
+    3. Menampilkan data form update detail surat jalan produk subkon
+    4. Program menerima input berupa update berupa No Surat Jalan, Tanggal, Produk, Supplier, Jumlah dan keterangan
+    5. Cek apakah kode produk subkon ada pada sistem ? Jika tidak maka akan menampilkan pesan error
+    6. Mengupdate data
+    '''
     datasjp = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPenerimaanSubkon=id)
 
     datasjp_getobj = models.SuratJalanPenerimaanProdukSubkon.objects.get(
@@ -6419,6 +6462,15 @@ def update_subkonprodukmasuk(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_subkonprodukmasuk(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus detail surat jalan penerimaan produk subkon
+    Algoritma : 
+    1. Ambil data detail surat jalan penerimaan produk subkon dengan kriteria IDDetailaSJPenerimaanSubkon = id (id didapatkan dari passing values HTML)
+    2. Cek apakah ada DetailSuratJalanPenerimaanProdukSubkon lagi selain object terpilih poin 1 pada Surat Jalan Penerimaan Produk Subkon
+    3. Apabila Ada Maka hapus detailsuratjalanpenerimaanproduksubkon
+    4. Apabila tidak ada maka hapus Surat Jalan Penerimaan Produk Subkon dengan No Surat Jalan yang sama pada object detail surat jalan penerimaan produk subkon poin 1
+
+    '''
     dataskk = models.DetailSuratJalanPenerimaanProdukSubkon.objects.get(IDDetailSJPenerimaanSubkon=id)
     kodesuratjalan = dataskk.NoSuratJalan
 
@@ -6445,6 +6497,13 @@ def delete_subkonprodukmasuk(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def transaksi_subkonbahan_masuk(request):
+    '''
+    Fitur ini digunakan untuk manajemen data Transaksi Bahan Baku Subkon Masuk dari Produksi (dari Kode Stok Bahan Baku menajdi Kode stok bahan baku subkon)
+    Algoritma
+    1. Mengamil data transakasi bahan baku subkon 
+    2. Menampilkan data pada sistem
+    '''
+
     produkobj = models.TransaksiBahanBakuSubkon.objects.all().order_by("-Tanggal")
     for i in produkobj:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
@@ -6455,6 +6514,16 @@ def transaksi_subkonbahan_masuk(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def create_transaksi_subkonbahan_masuk(request):
+    '''
+    Fitur ini diguanakan untuk menambahkan data transaksi bahan baku masuk subkon pada sistem
+    Algoritma
+    1. Mengambil semua data bahan baku subkon 
+    2. Menampilkan form input data transaksi subkon bahan baku masuk
+    3. Program mendapatkan input berupa List Nama Kode, List Jumlah, List Keterangan 
+    4. Mengiterasi list Nama Kode Bahan Baku, List Jumlah, List Keterangan
+        A. Membuat Object Transaki bahan baku subkon dengan kriteria Tanggal = tanggal iterasi, Jumlah = jumlah iterasi, Kode Bahan Baku = kode bahan baku subkon iterasi, keterangan = keterangan iterasi
+        B. Menyimpan data pada sistem
+    '''
     produksubkon = models.BahanBakuSubkon.objects.all()
     if request.method == "GET":
         return render(
@@ -6497,6 +6566,14 @@ def create_transaksi_subkonbahan_masuk(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_transaksi_subkonbahan_masuk(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update transaksi subkon bahan baku masuk pada sistem 
+    Algoritma
+    1. Mendapatkan data transaksi bahan baku subkon dengan kriteraia pk (primary key) = id (id didapatkan dari passing values HTML)
+    2. menampilkan form update transaksi bahan baku subkon 
+    3. Program mendapatkan input berupa Jumlah, kode bahan baku, keterangan, dan tanggal 
+    4. Mengupdate data 
+    '''
     produkobj = models.TransaksiBahanBakuSubkon.objects.get(pk=id)
     produkobj.Tanggal = produkobj.Tanggal.strftime("%Y-%m-%d")
     produksubkon = models.BahanBakuSubkon.objects.all()
@@ -6535,6 +6612,12 @@ def update_transaksi_subkonbahan_masuk(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_transaksi_subkonbahan_masuk(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data transaksi subkon masuk
+    Algoritma
+    1. Mendapatkan data transaksi bahan baku subkon dengan kreiteria IDTransaksiBahanBakuSubkon = id (id didapatkan dari passing valeus HTML)
+    2. Menghapus data transaksi bahan baku subkon 
+    '''
     produkobj = models.TransaksiBahanBakuSubkon.objects.get(IDTransaksiBahanBakuSubkon=id)
     produkobj.delete()
     messages.success(request, "Data Berhasil dihapus")
@@ -6553,6 +6636,12 @@ def delete_transaksi_subkonbahan_masuk(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def views_produksiproduksubkon(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data transaksi produksi produk subkon pada perusahaan
+    ALgoritma
+    1. Mendapatkan data transaksi produksi produk subkon 
+    2. Menampilkan pada user
+    '''
     datasubkon = models.TransaksiProduksiProdukSubkon.objects.all().order_by("-Tanggal")
     for i in datasubkon:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
@@ -6562,6 +6651,15 @@ def views_produksiproduksubkon(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_produksiproduksubkon(request):
+    '''
+    FItur ini digunakan unutk menambahkan data produksi produk subkon pada sistem
+    Algoritma
+    1. Mendapatkan data produk subkon 
+    2. MEnampilkan form input data transaksi produksi produk subkon
+    3. Program mendapatkan input Tanggal, list kode barang, list jumlah, dan list keterangan
+    4. Mengiterasi List Kode Barang, List Jumlah, List Keterangan
+        A. Menyimpan data transaksi produksi produk subkon
+    '''
     if request.method == "GET":
         subkonkirim = models.DetailSuratJalanPenerimaanProdukSubkon.objects.all()
         detailsk = models.SuratJalanPenerimaanProdukSubkon.objects.all()
@@ -6619,6 +6717,14 @@ def add_produksiproduksubkon(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_produksiproduksubkon(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update transaksi produksi produk subkon pada sistem
+    Algoritma
+    1. Mendapatkan data transaksi produksi produk subkon dengan kriteria pk (primary key) = id (id didapatkan dari passing values HTML)
+    2. Menampilkan form update pada user
+    3. Program menerima inputan berupa Tanggal, Kode produk, Jumlah, dan Keterangan 
+    4. Mengupdate data transaksi produksi produk subkon
+    '''
     produkobj = models.TransaksiProduksiProdukSubkon.objects.get(pk = id)
     produkobj.Tanggal = produkobj.Tanggal.strftime('%Y-%m-%d')
     getproduk = models.ProdukSubkon.objects.all()
@@ -6668,6 +6774,12 @@ def update_produksiproduksubkon(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_produksiproduksubkon(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus transaksi produksi produk subkon 
+    Algoritma
+    1. Mendapatkan data transaksi produksi produk subkon 
+    2. Menghapus data
+    '''
     dataskk = models.TransaksiProduksiProdukSubkon.objects.get(pk=id)
     dataskk.delete()
 
@@ -6685,6 +6797,12 @@ def delete_produksiproduksubkon(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def transaksi_subkon_terima(request):
+    '''
+    Fitur ini digunakan untuk mengeluarkan produk subkon untuk keperluan Produksi pada WIP
+    Algoritma
+    1. Mengambil data transaksi subkon 
+    2. Menampilkan data 
+    '''
     produkobj = models.TransaksiSubkon.objects.all().order_by("-Tanggal")
     for i in produkobj:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
@@ -6695,6 +6813,16 @@ def transaksi_subkon_terima(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def create_transaksi_subkon_terima(request):
+    '''
+    Fitur ini digunakan untuk menambahkan transaksi produk subkon keluar
+    Algoritma
+    1. Mengambil semua data produk subkon 
+    2. Menampilkan form input produk subkon 
+    3. Program mendapatkan input berupa Tanggal, list kode produk subkon, list Jumlah, dan list keterangan
+    4. Mengiterasi List Kode Produk Subkon, List Jumlah, dan List Keterangan
+        A. Membuat object Transaksi Subkon dengan kriteria Tanggal = tanggal iterasi, Jumlah = jumlah iterasi, KodeProduk = produksubkon iterasi, Keterangan = keterangan iterasi
+        B. Menyimpan object Transaksi Subkon 
+    '''
     produksubkon = models.ProdukSubkon.objects.all()
     if request.method == "GET":
         return render(
@@ -6740,6 +6868,14 @@ def create_transaksi_subkon_terima(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_transaksi_subkon_terima(request, id):
+    '''
+    FItur ini digunakan untuk melakukan update data transaksi subkon terima
+    Algoritma
+    1. Mendapatkan data TransaksiSubkon dengan kriteria pk (primary key) = id (id didapatkan dari passing values HTML)
+    2. menampilkan form update transaksi subkon 
+    3. Program menerima jumlah, Kode Produk, Tanggal, dan Keterangan 
+    4.  Mengupdate data 
+    '''
     produkobj = models.TransaksiSubkon.objects.get(pk=id)
     produkobj.Tanggal = produkobj.Tanggal.strftime("%Y-%m-%d")
     produksubkon = models.ProdukSubkon.objects.all()
@@ -6784,6 +6920,12 @@ def update_transaksi_subkon_terima(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_transaksi_subkon_terima(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data transaksi subkon untuk produksi
+    Algorima:
+    1. Mengambil data transaksi produk subkon dengan kriteria IDTransaksiProdukSubkon = id (id didapatkan dari passing values HTML)
+    2. Menghapus data transaksi produk subkon
+    '''
     produkobj = models.TransaksiSubkon.objects.get(IDTransaksiProdukSubkon=id)
     produkobj.delete()
     messages.success(request, "Data Berhasil dihapus")
@@ -6798,6 +6940,26 @@ def delete_transaksi_subkon_terima(request, id):
     return redirect("transaksi_subkon_terima")
 
 def calculateksbjsubkon(produk,tanggal_mulai,tanggal_akhir):
+    '''
+    Fitur ini digunakan untuk melakukan kalkulasi KSBJ Subkon
+    Algoritma
+    1. Mengamnbil data TransaksiSubkon dengan kriteria KodeProduk = produk (produk didapatkan dari fungsi lain berisi object kode produk subkon), tanggal berada dalam rentang Tanggal_mulai dan tanggal_akhir (tanggal Mulai dan Tanggal akhir didapatkan dari fungsi lain)
+    2. Menambil data transaksi produksi produk subkon dengan kriteria KodeProduk = produk(produk didapatkan dari fungsi lain berisi object kode produk subkon), Tanggal berada dalam rentang tanggal mulai dan tanggal akhir
+    3. Mengambil data Detail trasnaski surat jalan penerimaan produk subkon dengan kriteria KodeProduk = produk(produk didapatkan dari fungsi lain berisi object kode produk sibkon), tanggal berada dalam rentang tanggal mulai dan tanggal akhir
+    4. mengambil data pemusnahan produk subkon dengan kriteria Kode Produk Subkon = produk, Tanggal berada dalam rentang tanggal mulai dan akhir
+    5. Membuat tanggal masuk dari data Transaksi Subkon
+    6. Membuat tanggal produksi dari data transaksi produksi produk subkon
+    7. Membuat tanggal pemusnahan dari data pemusnahan produk subkon
+    8. membuat tanggal keluar dari data detail transaksi surat jalan penerimaaan produk subkon
+    9. Menggabungkan semua list tanggal 
+    10. Mencari data Saldo awal Subkon dengan kriteria IDProdukSubkon = produk (produk didapat dari parameter fungsi ) dan tanggal berada dalam rentang tanggal mulai dan akhir, Apabila tidak ada maka set saldo awal menjadi 0
+    11. Mengiterasi list tanggal 
+        A. Membuat models data transaksi KSBJ Subkon 
+        B. menghitung jumlah masuk dengan rumus = Jumlah masuk Detail Surat Jalan Penerimaan Produk Subkon + Data Produksi Subkon 
+        C. Menghitung jumlah Keluar dengan rumus = Jumlah Pemusnahan Produk subkon + jumlah transaksi produk subkon 
+        D. Menghitung stok setiap iterasi dengan rumus. Sisa = Jumlah masuk - jumlah keluar
+    12. Mengembalikan data listdata dan saldoawal. List data berisi models data transaksi KSBJ Subkon, saldoawal berisi saldoawal object. Semisal tidak ada saldo awal maka akan None
+    '''
     # Menceri data transaksi gudang dengan kode 
     dataterima = models.TransaksiSubkon.objects.filter(
         KodeProduk=produk.IDProdukSubkon, Tanggal__range=(tanggal_mulai, tanggal_akhir)
@@ -6879,6 +7041,15 @@ def calculateksbjsubkon(produk,tanggal_mulai,tanggal_akhir):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_ksbjsubkon(request):
+    '''
+    FItur ini digunakan untuk melihat KSBJ Subkon yang ada pada sistem
+    Algoritma
+    1. Mengambil data produk subkon
+    2. Menampilkan form inpiut kode produk subkon 
+    3. Program menerima input berupa kode produk subkon 
+    4. Memanggil fungsi Calculateksbjsubkon
+    5. menampilkan data transaksi KSBJ Subkon
+    '''
     kodeproduk = models.ProdukSubkon.objects.all()
     print(kodeproduk)
     if len(request.GET) == 0:
@@ -6917,6 +7088,29 @@ def view_ksbjsubkon(request):
         return render(request, "produksi/view_ksbjsubkon.html",{"data":listdata,'saldo':saldoawal,"nama": nama,"satuan": satuan,"artikel":artikel,"kodeprodukobj": kodeproduk, 'produk':produk,'tahun':tahun})
 
 def calculateksbbsubkon(produk,tanggal_mulai,tanggal_akhir):
+    '''
+    Fungsi ini digunakan untuk menghitung transaksi KSBB Subkon 
+    Parameter : 
+    1. Produk = digunakan untuk menampung Object bahan baku subkon dari fungsi lain 
+    2. Tanggal_mulai = digunakan untuk menampung tanggal mulai dari fungsi lain 
+    3. Tanggal_akhir = digunakan untuk menampung tanggal akhir dari fungsi lain 
+    Algoritma
+    1. Mengambil data transaksi bahan baku subkon dengan kriteria Kode Produk = produk (didapatkan dari parameter),Tanggal berada dalam rentang tanggal_mulai dan tanggal_akhir
+    2. Mengambil data detail surat jalan pengiriman bahan baku subkon dengan kriteria Kode produk = produk (didapatan dari parameter), tanggal berada dalam rentang tanggal mulai dan tanggal akhir
+    3. Mengambil data pemusnahan bahan baku subkon dengan kriteria Kode Bahan Baku = produk (parameter) dan tanggal berada dalam rentang tanggal mulai dan tanggal akhir 
+    4. Membuat list tanggal dari transaksi bahan baku subkon 
+    5. Membuat list tanggal dari transaksi detail surat jalan pengiriman bahan baku subkon 
+    6. Membuat list tanggal dari transaksi pemusnahan bahan baku subkon 
+    7. Menggabungkan list tanggal semua trasnaksi 
+    8. Mencari saldo awal bahan baku subkon dengan kriteria KodeProduk = produk (parameter), Tanggal berada dalam rentang tanggal mulai dan akhir. Jika tidak ada maka set menjadi 0
+    9. Mengiterasi data tanggal 
+        A. Membuat models data transaksi KSBB Subkon
+        B. menghitung jumlah masuk dengan rumus = Jumlah Transaksi Bahan Baku Subkon
+        C. Menghitung jumlah Keluar dengan rumus = Jumlah Pemusnahan Produk subkon + jumlah detail surat jalan pengiriman bahan baku subkon 
+        D. Menghitung stok setiap iterasi dengan rumus. Sisa = Jumlah masuk - jumlah keluar
+    10. fungsi mengembalikan listdata dan saldoawal. List data berisi models data transaksi KSBB Subkon tiap tanggal, dan Saldo Awal berisi saldo awal object dari Bahan Baku subkon selama taun yang diinput
+
+    '''
     # Menceri data transaksi gudang dengan kode 
     databahan = models.TransaksiBahanBakuSubkon.objects.filter(
         KodeBahanBaku__KodeProduk=produk.KodeProduk, Tanggal__range=(tanggal_mulai, tanggal_akhir)
@@ -6993,6 +7187,15 @@ def calculateksbbsubkon(produk,tanggal_mulai,tanggal_akhir):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def view_ksbbsubkon(request):
+    '''
+    Fitur ini digunakan untuk melihat KSBB Subkon yang ada pada perusahaan
+    Algoritma
+    1. Mengambil semua data bahan baku subkon
+    2. menampilkan input form kode stok bahan baku subkon
+    3. Program menerima input berupa kode stok bahan baku 
+    4. Memanggil fungsi calculateksbbsubkon
+    5. Menampilkan KSBB Subkon
+    '''
     kodeproduk = models.BahanBakuSubkon.objects.all()
     if len(request.GET) == 0:
         return render(request, "produksi/view_ksbbsubkon.html", {"kodeprodukobj": kodeproduk})
@@ -7464,6 +7667,32 @@ def update_transaksicat(request, id):
         return redirect("view_transaksicat")
 
 def trackingartikelspksppb(request):
+    '''
+    Fitur ini digunakan untuk melakukan tracking artikel dan display berdasarkan SPK
+    Algoritma
+    1. Mengambil data artikel 
+    2. Mengambil data display
+    3. Menampilkan form input kode artikel atau kode display pada user
+    4. Program menerima input kode artikel atau kode display
+    5. Mengambil data object kode artikel / display
+    6. Apabila data artikel ada 
+        A. Mengambil data SPK dengan rkiteria Kode Artikel = object artikel
+        B. Mengurutkan data SPK berdasarkan tanggal terlama ke terbaru
+        C. Mengiterasi data SPK 
+            I. Mengambil data detailSPPB dengan kriteria DetailSPK = spkiterasi
+            II. Menghitung jumlah Masuk
+            III. Menghitung sisa produksi SPK 
+        D. Menambahkan data sisa produksi SPK ke dalam models data
+    7. Apabila data display ada
+        A. Mengambil data SPK dengan kriteria Kode Display = object display
+        B. Mengurutkan data SPK berdasarkan tanggal terlama ke terbaru
+        C. Mengiterasi data SPK
+            I. Mengambil data detailSPPB dengan kriteria DetailSPK = spkiterasi
+            II. Menghitung jumlah Masuk
+            III. Menghitung sisa produksi SPK 
+        D. Menambahkan data sisa produksi SPK ke dalam models data
+    8. Menampilkan data
+    '''
     dataartikel = models.Artikel.objects.all()
     datadisplay = models.Display.objects.all()
 
@@ -7573,6 +7802,14 @@ def delete_pemusnahancat(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["produksi",'ppic'])
 def views_penyusun(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data konversi pada tiap artikel
+    Pada bagian ini user dapat melakukan Melihat Konversi Artikel, Melihat Versi pada Artikel, dan manajemen konversi data artikel
+    Algoritma
+    1. User mengisi form input kode artikel yang akan dilihat
+    2. Secara default, program akan menampilkan data konversi untuk versi default dari kode artikel tersebut
+    3. User dapat melakukan manajemen data konversi pada halaman tersebut.
+    '''
     print(request.GET)
     data = request.GET
     if len(request.GET) == 0:
@@ -7921,6 +8158,12 @@ def views_penyusun(request):
             )
 
 def view_transaksimutasistok(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data transaksi mutasi kode stok
+    Algoritma
+    1. Mendapatkan data transaksu mutasi kode stok
+    2. Menampilkan data transaksi mutasi kode stok
+    '''
     sekarang = datetime.now().date()
     awal_tahun = date(sekarang.year,1,1)
     akhir_tahun = date(sekarang.year,12,31)
@@ -7934,6 +8177,19 @@ def view_transaksimutasistok(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def add_mutasikodestok(request):
+    '''
+    Fitur ini digunakan untuk menambahkan transaski mutasi kode stok 
+    Algoritma
+    1. Mendapatkan data kode stok bahan baku pada sistem
+    2. Menampilkan form input trasnasksi mutasi kode stok 
+    3. Program menerima inputan berupa tanggal, list KodeAsal, list KodeTujuan, list jumlah, list nama lokasi, list keterangan
+    4. Mengiterasi List Kode Asal, List Kode Tujuan, List Jumlah, dan list keterangan
+        A. Cek apakah kode produk asal ada dalam database ? apabila tidak ada maka akan menampilkan pesan error dan melanjutkan iterasi
+        B. Cek apakah kode produk tujuan ada dalam database ? apabila tidak ada maka akan menampilkan pesan error dan melanjutkan iterasi
+        C. Cek apakah kode produk asal dan kode produk tujuan sama ? apabila sama maka akan menampilkan pesan error dan melanjutkan iterasi
+        D. Membuat object Transaksi mutasi Kode Stok dengan kriteria Kode Produk Asal = produk asal iterasi, Kode Produk Tujuan = produk tujuan iterasi,Jumlah = jumlah iterasi, Keterangan = keterangan iterasi, Tanggal = tanggal iterasi, dan lokasi = lokasi iterasi
+        E. Menyimpan data object trasnaksi mtuasi kode stok 
+    '''
     if request.method == "GET":
         data_produk = models.Produk.objects.all()
         lokasi = models.Lokasi.objects.filter(NamaLokasi__in=('WIP','FG'))
@@ -8011,6 +8267,12 @@ def add_mutasikodestok(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def delete_mutasikodestok(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data mutasi kodestok
+    Algoritma
+    1. Mengambil transaksi mutasi kode stok dengan kriteria pk (primary key) = id (id didapatkan dari passing values HTML)
+    2. Menghapus data 
+    '''
     dataproduksi = models.transaksimutasikodestok.objects.get(pk=id)
     dataproduksi.delete()
     messages.success(request, "Data Berhasil dihapus")
@@ -8022,6 +8284,14 @@ def delete_mutasikodestok(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
 def update_mutasikodestok(request, id):
+    '''
+    Fitur ini digunakan untuk update transaksi mutasi kode stok
+    Algoritma
+    1. mengambil data transaksi mutasi kode stok dengan kriteria id = id(id didapatkan dari passing values HTML)
+    2. menampilkan data pada user
+    3. Program mendapatkan input Kode Stok asal, kode stok tujuan, tanggal, jumlah, keterangan, dan lokasi
+    4. Mengupdate data
+    '''
     produksiobj = models.transaksimutasikodestok.objects.get(id=id)
     dataproduk = models.Produk.objects.all()
     lokasi = models.Lokasi.objects.filter(NamaLokasi__in=('WIP','FG'))

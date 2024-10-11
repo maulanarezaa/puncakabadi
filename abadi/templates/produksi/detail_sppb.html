@@ -112,7 +112,7 @@
             <div class="col-md-3">
               <div class="form-group">
                 <label for="artikel_{{ forloop.counter }}">Artikel {{ forloop.counter }}:</label>
-                <select class="form-control artikel" name="kode_artikel-{{ forloop.counter }}:"
+                <select class="form-control artikel" name="kode_artikel_awal"
                   id="kode_artikel-{{ forloop.counter }}:" onchange="loaddetailspk(this);loadversioption(this)">
                   <option value="">Masukkan Kode Artikel</option>
                   {% for item in dataartikel %}
@@ -376,7 +376,7 @@ function addBahan() {
     productRow.innerHTML = `<div class="col-md-3">
                                   <div class="form-group">
                                       <label for="artikel_1">Artikel ${productCounter}:</label>
-                                      <select class="form-control artikel" name="kode_artikel-${productCounter}" id="kode_artikel-${productCounter}" onchange="loaddetailspk(this);loadversioption(this)">
+                                      <select class="form-control artikel" name="kode_artikel-${productCounter}" id="kode_artikel-${productCounter}" onchange="loaddetailspktambahan(this);loadversioption(this)">
                                         <option value="">Masukkan Kode Artikel</option>
                                           {% for item in dataartikel %}
                                           <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
@@ -388,7 +388,7 @@ function addBahan() {
                                   <div class="form-group">
                                     <label for="artikel_1">Nomor SPK</label>
                                     <div id="nomor_spk_${productCounter}">
-                                      {% include 'produksi/opsi_artikel.html' %}
+                                      {% include 'produksi/opsi_detailspkfromartikeltambahan.html' %}
                                     </div>
                                   </div>
                                 </div>
@@ -527,6 +527,29 @@ function addBahan() {
     var detailSpkDiv = document.getElementById('nomor_spk_'+productCounter)
     console.log(selectElement)
     var url = "{% url 'load_detailspkfromartikel' %}";
+
+    // Menghapus opsi sebelumnya jika ada
+    detailSpkDiv.innerHTML = '';
+
+    // Memuat opsi baru berdasarkan nomor SPK yang dipilih
+    $.ajax({
+      url: url,
+      data: {
+        'kode_artikel': spkNumber
+      },
+      dataType: 'html',
+      success: function (data) {
+        detailSpkDiv.innerHTML = data;
+      }
+    });
+  }
+  function loaddetailspktambahan(selectElement) {
+    var spkNumber = selectElement.value;
+
+    var productCounter = selectElement.id.split('-')[1].replace(':','');
+    var detailSpkDiv = document.getElementById('nomor_spk_'+productCounter)
+    console.log(selectElement)
+    var url = "{% url 'load_detailspkfromartikeltambahan' %}";
 
     // Menghapus opsi sebelumnya jika ada
     detailSpkDiv.innerHTML = '';
