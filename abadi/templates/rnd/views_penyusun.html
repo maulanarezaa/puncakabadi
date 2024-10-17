@@ -86,7 +86,7 @@
                     </div>
                     {% endif %}
                     {% endif %}
-                    
+                    {% if versiterpilihobj %}
                     <div class="col-lg-2">
                         <form action="{% url 'updateversi' %}" method="post">
                             {% csrf_token %}
@@ -110,6 +110,7 @@
                             Hapus Versi
                         </button>
                     </div>
+                    {% endif %}
                 </div>
 
                 <h4 class="card-title">Versi : <span style="font-weight: lighter;">

@@ -1346,6 +1346,9 @@ def add_mutasi(request):
                     detailversi = models.Versi.objects.get(pk = versi)
                 except:
                     detailversi = models.Versi.objects.filter(KodeArtikel = artikelref).order_by('Tanggal').last()
+                    if detailversi == None:
+                        messages.error(request,f'Artikel {artikelref.KodeArtikel} belum memiliki kode Versi')
+                        continue
                     messages.error(request,f'Detail Versi {versi} tidak ditemukan pada artikel {kode}\nVersi diset pada versi Tanggal terakhir {detailversi.Versi} - {detailversi.Tanggal}')
 
                 data_produksi = models.TransaksiProduksi(
