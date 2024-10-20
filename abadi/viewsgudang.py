@@ -140,7 +140,7 @@ def masuk_gudang(request):
 
 def load_detailpo(request):
     kodeproduk = request.GET.get("kodeproduk")
-    detailpoobj = models.DetailPO.objects.filter(KodeProduk__KodeProduk=kodeproduk,KodePO__Status = False).values_list('KodePO__KodePO',flat=True).distinct()
+    detailpoobj = models.DetailPO.objects.filter(KodeProduk__KodeProduk=kodeproduk,KodePO__Status = False)
 
     print(detailpoobj)
     print('tets')
@@ -215,6 +215,7 @@ def add_gudang(request):
         nosuratjalanobj = models.SuratJalanPembelian.objects.get(
             NoSuratJalan=nosuratjalan
         )
+        issaved = False
         for kodeproduk, jumlah, kodepo in zip(
             request.POST.getlist("kodeproduk"), request.POST.getlist("jumlah"),request.POST.getlist('detailpo')
         ):
@@ -230,7 +231,7 @@ def add_gudang(request):
                 detailpoobj = None
             else:
                 try:
-                    detailpoobj = models.DetailPO.objects.get(KodePO__KodePO = kodepo,KodeProduk__KodeProduk = kodeproduk)
+                    detailpoobj = models.DetailPO.objects.get(id = kodepo)
                 except models.DetailPO.DoesNotExist:
                     messages.error(request,f'Detail PO tidak ditemukan {kodepo}')
                     detailpoobj = None
@@ -249,7 +250,10 @@ def add_gudang(request):
                 pesan=f"No Surat Jalan : {newprodukobj.NoSuratJalan} Kode Barang : {newprodukobj.KodeProduk}",
             ).save()
             newprodukobj.save()
+            issaved = True
         messages.success(request, "Data berhasil disimpan")
+        if issaved == False:
+            nosuratjalanobj.delete()
         return redirect("baranggudang")
 
 
@@ -1265,7 +1269,7 @@ def update_gudang(request, id):
         detailpo = request.POST['detailpo']
         if detailpo != '':
             try:
-                detailpoobj = models.DetailPO.objects.get(KodePO__KodePO = detailpo,KodeProduk__KodeProduk = kode_produk)
+                detailpoobj = models.DetailPO.objects.get(pk = detailpo)
             except models.DetailPO.DoesNotExist:
                 messages.error(request,f'Detail PO tidak ditemukan {detailpo}')
                 detailpoobj = None

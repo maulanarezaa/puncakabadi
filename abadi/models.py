@@ -99,6 +99,9 @@ class Produk(models.Model):
     def delete(self, *args, **kwargs):
         self.is_deleted = True
         self.save()
+    def hard_delete(self, *args, **kwargs):
+        # Hard delete akan memanggil delete bawaan Django dan menghapus dari database
+        super(Produk, self).delete(*args, **kwargs)
 
 
 class Artikel(models.Model):

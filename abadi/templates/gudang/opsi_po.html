@@ -2,6 +2,6 @@
     <option value="" selected>Masukkan Kode</option>
 
     {% for i in kodepo %}
-    <option value="{{i}}">{{i}}</option>
+    <option value="{{i.pk}}">{{i.KodePO.KodePO}} {{i.Jumlah}} </option>
     {% endfor %}
 </select>

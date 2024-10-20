@@ -2510,6 +2510,8 @@ def updatepenyusundarikonversimaster(request):
     no_surat_jalan_with_detail = models.DetailSuratJalanPembelian.objects.values_list("NoSuratJalan__NoSuratJalan", flat=True).distinct()
     # Ambil daftar SuratJalanPembelian yang tidak ada di daftar di atas
     surat_jalan_without_detail = models.SuratJalanPembelian.objects.exclude(NoSuratJalan__in=no_surat_jalan_with_detail).distinct()
+    # for item in surat_jalan_without_detail:
+    #     item.delete()
     print(surat_jalan_without_detail)
     '''CEK SURAT JALAN PRODUK SUBKON YANG TIDAK MEMILIKI DETAIL'''
     ''''''

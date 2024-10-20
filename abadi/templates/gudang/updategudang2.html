@@ -110,9 +110,9 @@
                     {% endif %}
                     {% for i in availablepo %}
                     {% if i == detailsjp.PO %}
-                    <option value="{{i.KodePO.KodePO}}" selected > {{i}}</option>
+                    <option value="{{i.pk}}" selected > {{i.KodePO.KodePO}} {{i.Jumlah}}</option>
                     {% else %}
-                    <option value="{{i.KodePO.KodePO}}">{{i}}</option>
+                    <option value="{{i.pk}}">{{i.KodePO.KodePO}} {{i.Jumlah}}</option>
                     {% endif %}
                     {% endfor %}
                 </select>

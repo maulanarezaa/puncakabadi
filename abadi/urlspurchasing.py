@@ -86,5 +86,6 @@ urlpatterns = [
     path('updatepurchaseorder/<str:id>',viewspurchasing.update_purchaseorder,name='update_purchaseorder'),
     path('deletepurchaseorder/<str:id>',viewspurchasing.delete_purchaseorder,name='delete_purchaseorder'),
     path('deletedetailpurchaseorder/<str:id>',viewspurchasing.delete_detailpurchaseorder),
-    path('trackingpo/<str:id>',viewspurchasing.trackingpurchaseorder,name='trackingpo')
+    path('trackingpo/<str:id>',viewspurchasing.trackingpurchaseorder,name='trackingpo'),
+    path('deletproduk/<str:id>',viewspurchasing.harddelete_produk,name='harddeletedproduk'),
 ]

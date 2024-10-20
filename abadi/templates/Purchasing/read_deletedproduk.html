@@ -52,6 +52,12 @@
                                                     <i class="typcn typcn-edit"></i>
                                                 </button>
                                             </a>
+                                            <a>
+                                                <button onclick="confirmDelete('{{ i.pk }}')" type="button"
+                                                class="btn btn-danger">
+                                                <i class="typcn typcn typcn-trash"></i>
+                                            </button>
+                                        </a>
                                         </div>
                                         
                                     </div>
@@ -97,7 +103,7 @@
     function confirmDelete(id) {
         console.log(id)
         var deleteForm = document.getElementById('deleteForm');
-        deleteForm.action = "delete_produk/" + id;
+        deleteForm.action = "deletproduk/" + id;
         $('#confirmDeleteModal').modal('show');
     }
 </script>

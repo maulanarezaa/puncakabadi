@@ -1398,6 +1398,11 @@ def restore_deletedproduk(request,id):
     dataobj.save()
     return redirect('read_deletedproduk')
 
+def harddelete_produk(request,id):
+    dataobj = models.Produk.objects.with_deleted().get(pk = id)
+    dataobj.hard_delete()
+    return redirect('read_deletedproduk')
+
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing"])
@@ -2455,9 +2460,8 @@ def views_rekapharga(request):
         kode_produk = request.GET["kode_produk"]
         tahun = request.GET["tahun"]
         tahun_period = tahun
-        try:
-            produkobj = models.Produk.objects.get(KodeProduk = kode_produk)
-        except:
+        produkobj = models.Produk.objects.with_deleted().filter(KodeProduk = kode_produk).first()
+        if produkobj == None:
             messages.error(request,'Kode Stok tidak ditemukan')
             return redirect('rekapharga')
 
@@ -2497,7 +2501,6 @@ def getksbbproduk(kodeproduk,periode):
     13. Apabila ada pembagian dengan hasil Null / pembagi 0 maka akan diset menjadi 0
     '''
     kode_produk = kodeproduk
-    kodeprodukobj = models.Produk.objects.get(KodeProduk = kode_produk)
     tahun = periode
     tahun_period = tahun
 
@@ -2508,7 +2511,7 @@ def getksbbproduk(kodeproduk,periode):
     awaltahun = datetime(tahun.year, 1, 1)
     akhirtahun = datetime(tahun.year, 12, 31)
 
-    produkobj = models.Produk.objects.get(KodeProduk=kode_produk)
+    produkobj = models.Produk.objects.with_deleted().filter(KodeProduk=kode_produk).first()
 
     masukobj = models.DetailSuratJalanPembelian.objects.filter(
         KodeProduk__KodeProduk=produkobj.KodeProduk, NoSuratJalan__Tanggal__range=(awaltahun,akhirtahun)
@@ -3494,12 +3497,14 @@ def trackingpurchaseorder(request,id):
     datadetailpo =models.DetailPO.objects.filter(KodePO = datapo)
     transaksigudang = models.DetailSuratJalanPembelian.objects.filter(PO__KodePO= datapo)
     # Rekap dan kurang
-    datarekap = transaksigudang.values('KodeProduk__KodeProduk',"KodeProduk__NamaProduk","KodeProduk__unit").annotate(total = Sum('Jumlah'))
+    datarekap = transaksigudang.values('pk','KodeProduk__KodeProduk',"KodeProduk__NamaProduk","KodeProduk__unit").annotate(total = Sum('Jumlah'))
     print(datarekap)
+    print(datadetailpo)
+    # print(asd)
     for item in datadetailpo:
         totalpo = item.Jumlah
         totaltransaksigudangmasuk = 0
-        transaksigudangmasuk = transaksigudang.filter(KodeProduk = item.KodeProduk)
+        transaksigudangmasuk = transaksigudang.filter(PO__pk = item.pk)
         if transaksigudangmasuk.exists():
             totaltransaksigudangmasuk = transaksigudangmasuk.aggregate(total = Sum('Jumlah'))['total']
         selisih = totalpo-totaltransaksigudangmasuk
