@@ -28,125 +28,15 @@ def dashboard(request):
     1. Mengambil semua data Artikel 
     2. Mencari data penyusun dengan last edit kurang dari 7 hari dari sekarang.
     '''
-    data = models.Artikel.objects.all()
+    harisekarang = (datetime.now()+timedelta(days=1)).date().strftime('%Y-%m-%d')
+    harisebelumnya = (datetime.now() - timedelta(days=7)).date().strftime('%Y-%m-%d')
+    datapenyusunfiltered = models.Penyusun.objects.filter(lastedited__range =(harisebelumnya,harisekarang) )
+    artikels = models.Artikel.objects.all()
+    for data in datapenyusunfiltered:
+        data.lastedited = data.lastedited.strftime('%Y-%m-%d %H:%M:%S')
     alldata = []
-    for artikel in data:
-        kodeartikel = artikel.KodeArtikel
-
-        get_id_kodeartikel = models.Artikel.objects.get(KodeArtikel=kodeartikel)
-        data = models.Penyusun.objects.filter(KodeArtikel=get_id_kodeartikel.id )
-
-        datakonversi = []
-        nilaifg = 0
-
-        if data.exists():
-            for item in data:
-                tanggal_sekarang = datetime.now().date()
-                tanggal_awal = (datetime.now() - timedelta(days=7)).date()
-                if item.lastedited and (tanggal_awal <= item.lastedited.date() <= tanggal_sekarang):
-                    pass
-                else:
-                    continue
-                datacache = models.CacheValue.objects.filter(KodeProduk = item.KodeProduk, Tanggal__month = tanggal_sekarang.month)
-                hargaterakhir = 0
-                if datacache.exists():
-                    datacache = datacache.first()
-                    hargasatuanawal = datacache.Harga
-                
-                else:
-                
-                    masukobj = models.DetailSuratJalanPembelian.objects.filter(KodeProduk=item.KodeProduk)
-
-                    tanggalmasuk = masukobj.values_list(
-                        "NoSuratJalan__Tanggal", flat=True
-                    )
-                    keluarobj = models.TransaksiGudang.objects.filter(
-                        jumlah__gte=0, KodeProduk=item.KodeProduk
-                    )
-                    tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
-                    saldoawalobj = (
-                        models.SaldoAwalBahanBaku.objects.filter(
-                            IDBahanBaku__KodeProduk=item.KodeProduk.KodeProduk
-                        )
-                        .order_by("-Tanggal")
-                        .first()
-                    )
-                    if saldoawalobj:
-                        saldoawal = saldoawalobj.Jumlah
-                        hargasatuanawal = saldoawalobj.Harga
-                        hargatotalawal = saldoawal * hargasatuanawal
-                    else:
-                        saldoawal = 0
-                        hargasatuanawal = 0
-                        hargatotalawal = saldoawal * hargasatuanawal
-
-                    
-                    listtanggal = sorted(list(set(tanggalmasuk.union(tanggalkeluar))))
-                    for i in listtanggal:
-                        jumlahmasukperhari = 0
-                        hargamasuktotalperhari = 0
-                        hargamasuksatuanperhari = 0
-                        jumlahkeluarperhari = 0
-                        hargakeluartotalperhari = 0
-                        hargakeluarsatuanperhari = 0
-                        sjpobj = masukobj.filter(NoSuratJalan__Tanggal=i)
-                        if sjpobj.exists():
-                            for j in sjpobj:
-                                hargamasuktotalperhari += j.Harga * j.Jumlah
-                                jumlahmasukperhari += j.Jumlah
-                            hargamasuksatuanperhari += (
-                                hargamasuktotalperhari / jumlahmasukperhari
-                            )
-                        else:
-                            hargamasuktotalperhari = 0
-                            jumlahmasukperhari = 0
-                            hargamasuksatuanperhari = 0
-
-                        transaksigudangobj = keluarobj.filter(tanggal=i)
-
-                        if transaksigudangobj.exists():
-                            for j in transaksigudangobj:
-                                jumlahkeluarperhari += j.jumlah
-                                hargakeluartotalperhari += j.jumlah * hargasatuanawal
-                            hargakeluarsatuanperhari += (
-                                hargakeluartotalperhari / jumlahkeluarperhari
-                            )
-                        else:
-                            hargakeluartotalperhari = 0
-                            hargakeluarsatuanperhari = 0
-                            jumlahkeluarperhari = 0
-
-                        saldoawal += jumlahmasukperhari - jumlahkeluarperhari
-                        hargatotalawal += (
-                            hargamasuktotalperhari - hargakeluartotalperhari
-                        )
-                        try:
-                            hargasatuanawal = hargatotalawal / saldoawal
-                        except ZeroDivisionError:
-                            hargasatuanawal = 0
-
-                hargaterakhir += hargasatuanawal
-                kuantitaskonversi = item.Kuantitas
-                tanggalupdate = item.lastedited.strftime("%Y-%m-%d")
-                kuantitasallowance = item.Allowance
-                hargaperkotak = hargaterakhir * kuantitasallowance
-                nilaifg += hargaperkotak
-
-                datakonversi.append(
-                    {
-                        "kodeartikel": get_id_kodeartikel,
-                        "Penyusunobj": item,
-                        "Tanggal" : tanggalupdate,
-                        "HargaSatuan": round(hargaterakhir, 2),
-                        "Konversi": round(kuantitaskonversi, 5),
-                        "Allowance": round(kuantitasallowance, 5),
-                        "Hargakotak": round(hargaperkotak, 2),
-                    }
-                )
-
-        alldata.append(datakonversi)
-
-    return render(request, "produksi/dashboard.html",{"data": alldata})
+    print(datapenyusunfiltered)
+    return render(request, "produksi/dashboard.html",{"data": datapenyusunfiltered})
 
 
 #Load dropdown

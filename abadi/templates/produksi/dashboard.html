@@ -30,19 +30,18 @@
                         </thead>
                         <tbody>
                             {% for row in data %}
-                            {% for item in row %}
                             <tr>
-                                <td>{{ item.Tanggal }}</td>
-                                <td>{{ item.kodeartikel }}</td>
-                                <td>{{ item.Penyusunobj.KodeVersi.Versi}}</td>
-                                <td>{{ item.Penyusunobj.KodeProduk}}</td>
-                                <td>{{ item.Penyusunobj.KodeProduk.NamaProduk}}</td>
-                                <td>{{ item.Penyusunobj.KodeProduk.unit}}</td>
-                                <td>{{ item.Penyusunobj.Lokasi.NamaLokasi}}</td>
-                                <td>{{ item.Penyusunobj.Status}}</td>
+                                <td>{{ row.lastedited }}</td>
+                                <td>{{ row.KodeArtikel.KodeArtikel }}</td>
+                                <td>{{ row.KodeVersi.Versi}}</td>
+                                <td>{{ row.KodeProduk}}</td>
+                                <td>{{ row.KodeProduk.NamaProduk}}</td>
+                                <td>{{ row.KodeProduk.unit}}</td>
+                                <td>{{ row.Lokasi.NamaLokasi}}</td>
+                                <td>{{ row.Status}}</td>
                             </tr>
                             {% endfor %}
-                            {% endfor %}
+
                         </tbody>
                     </table>
 

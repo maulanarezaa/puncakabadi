@@ -1679,6 +1679,84 @@ def delete_pemusnahanbarang(request, id):
     messages.success(request,'Data berhasil dihapus')
     return redirect('read_pemusnahanbahangudang')
 
+# Purchase Order
+@login_required
+@logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
+def view_purchaseorder(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data Purchase Order pada sistem
+    Algoritma 
+    1. Mengambil data semua purchase order pada sistem
+    2. Mengiterasi semua data PO
+    3. mengambil data detail PO dengan kriteria KodePO = nomor PO
+    '''
+    datapo = models.PurchaseOrder.objects.all().order_by("Tanggal")
+    # datasjb = models.DetailSuratJalanPembelian.objects.all().order_by(
+    #     "NoSuratJalan__Tanggal"
+    # )
+    date = request.GET.get("mulai")
+    dateakhir = request.GET.get("akhir")
+    print(date, dateakhir)
+    if date =="":
+        date = datetime.min.date()
+    if dateakhir == "":
+        dateakhir = datetime.max.date()
+    print(date,dateakhir)
+    if date is not None and dateakhir is not None:
+        datapo = models.PurchaseOrder.objects.filter(
+            Tanggal__range=(date, dateakhir)
+        ).order_by("Tanggal")
+    for item in datapo:
+        item.detailpo = models.DetailPO.objects.filter(KodePO = item.pk)
+        item.Tanggal = item.Tanggal.strftime('%Y-%m-%d')
+    # for i in date:
+    #     i.KodePO.Tanggal = i.KodePO.Tanggal.strftime("%Y-%m-%d")
+
+    if len(datapo) == 0:
+        messages.info(request, "Tidak ada data PO")
+
+    return render(
+        request,
+        "gudang/purchaseorder.html",
+        {"datasjb": datapo, "date": date, "mulai": date, "akhir": dateakhir},
+    )
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["gudang"])
+def trackingpurchaseorder(request,id):
+    '''
+    Fitur ini digunakan untuk melakukan tracking pada Purchase Order yang ada pada sistem
+    1. Mengambil data purchase order dengan kriteria id (primary key) = id (id didapatkan dari passing values HTML)
+    2. Mengambil data detail PO dengan kriteria KodePO = data purchase order poin 1
+    3. Mengambil data transaksi detail surat jalan pembelian yang menginputkan dengan kode po yang dipilih. 
+    4. Mengiterasi data detail PO
+    5. mencari selisih dengan cara selisih = Total jumlah PO - TOtal transaksi gudang masuk. Selisih PO artininya selisih kurangnya PO yang belum datang ke perusahaan
+    
+
+    '''
+    datapo = models.PurchaseOrder.objects.get(id=id)
+    datadetailpo =models.DetailPO.objects.filter(KodePO = datapo)
+    transaksigudang = models.DetailSuratJalanPembelian.objects.filter(PO__KodePO= datapo)
+    # Rekap dan kurang
+    datarekap = transaksigudang.values('pk','KodeProduk__KodeProduk',"KodeProduk__NamaProduk","KodeProduk__unit").annotate(total = Sum('Jumlah'))
+    print(datarekap)
+    print(datadetailpo)
+    # print(asd)
+    datapo.Tanggal = datapo.Tanggal.strftime('%Y-%m-%d')
+    for item in datadetailpo:
+        totalpo = item.Jumlah
+        totaltransaksigudangmasuk = 0
+        transaksigudangmasuk = transaksigudang.filter(PO__pk = item.pk)
+        if transaksigudangmasuk.exists():
+            totaltransaksigudangmasuk = transaksigudangmasuk.aggregate(total = Sum('Jumlah'))['total']
+        selisih = totalpo-totaltransaksigudangmasuk
+        item.jumlahmasuk = totaltransaksigudangmasuk
+        item.selisih = selisih
+
+    return render(request,'gudang/trackingpo.html',{'datapo':datapo,'datadetailpo':datadetailpo,"transaksigudang":transaksigudang,})
+
+
 def readcachevalue(request):
     cachevalue = models.CacheValue.objects.all()
     for item in cachevalue:

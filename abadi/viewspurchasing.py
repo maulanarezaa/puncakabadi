@@ -1437,7 +1437,11 @@ def create_produk(request):
                 TanggalPembuatan=datetime.now(),
                 Jumlahminimal=jumlah_minimal,
             )
-            new_produk.save()
+            try:
+                new_produk.save()
+            except:
+                messages.error(request,f'Kode Stok berada dalam daftar Soft Deleted. Silahkan kunjungi url read_deletedproduk untuk merestore atau menghapus permanen')
+                return redirect('create_produk')
             models.transactionlog(
                 user="Purchasing",
                 waktu=datetime.now(),
@@ -3501,6 +3505,7 @@ def trackingpurchaseorder(request,id):
     print(datarekap)
     print(datadetailpo)
     # print(asd)
+    datapo.Tanggal = datapo.Tanggal.strftime('%Y-%m-%d')
     for item in datadetailpo:
         totalpo = item.Jumlah
         totaltransaksigudangmasuk = 0

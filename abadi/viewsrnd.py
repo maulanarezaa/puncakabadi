@@ -1856,6 +1856,7 @@ def updatepenyusun(request, id):
         allowance = request.POST["allowance"]
         kodeversi = request.POST['kodeversi']
         keterangan = request.POST['keterangan']
+        keteranganversi = request.POST['keteranganversi']
 
         datapenyusun = (
             models.Penyusun.objects.filter(KodeArtikel= data.KodeArtikel,KodeVersi=data.KodeVersi, Status=True)
@@ -1884,10 +1885,14 @@ def updatepenyusun(request, id):
         data.Kuantitas = kuantitas
         data.Allowance = allowance
         data.keterangan = keterangan
+        data.lastedited = datetime.now()
         
         if data.KodeVersi.Versi != kodeversi:
             data.KodeVersi.Versi = kodeversi
             print(data.KodeVersi.Versi,kodeversi)
+            data.KodeVersi.save()
+        if data.KodeVersi.Keterangan != keteranganversi:
+            data.KodeVersi.Keterangan = keteranganversi
             data.KodeVersi.save()
 
         data.save()

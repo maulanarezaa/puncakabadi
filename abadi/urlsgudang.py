@@ -79,5 +79,8 @@ urlpatterns = [
     path('readcachevalue',viewsgudang.readcachevalue),
     path('load_po',viewsgudang.load_detailpo,name='load_detailpo'),
     path('exportbackup',viewsgudang.exportbackup),
-    path('bulkaddsjpdsjp',viewsgudang.bulkaddsjpdsjp)
+    path('bulkaddsjpdsjp',viewsgudang.bulkaddsjpdsjp),
+    path('purchaseorder',viewsgudang.view_purchaseorder,name='view_purchaseordergudang'),
+    path('trackingpo/<str:id>',viewsgudang.trackingpurchaseorder,name='trackingpogudang'),
+
 ]
