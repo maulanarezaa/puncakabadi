@@ -419,6 +419,10 @@ urlpatterns = [
     path('eksportksbbsubkonkeseluruhan/<str:id>/<str:tahun>',viewsproduksi.eksportksbbsubkonkeseluruhan,name='eksportksbbsubkonkeseluruhan'),
     path('eksportksbjsubkon/<str:id>/<str:tahun>',viewsproduksi.eksportksbjsubkon,name='eksportksbjsubkon'),
     path('eksportksbjsubkonperartikel/<str:id>/<str:tahun>',viewsproduksi.eksportksbjsubkonperartikel,name='eksportksbjsubkonperartikel'),
+    path("viewartikel", viewsproduksi.views_artikel, name="views_artikelproduksi"),
+    path("viewdisplay", viewsproduksi.views_display, name="views_displayproduksi"),
+
+
 
     # '''BULK CREATE'''d
     path('bulk_createtransaksiproduksi',viewsproduksi.bulkcreate_transaksiproduksi),

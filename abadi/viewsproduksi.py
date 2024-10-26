@@ -1532,7 +1532,7 @@ def view_gudang(request):
             tanggalawal = datetime.min
         if tanggalakhir == '':
             tanggalakhir = datetime.max
-    datagudang = models.TransaksiGudang.objects.filter(jumlah__gt=0,tanggal__range=(tanggalawal,tanggalakhir)).order_by(
+    datagudang = models.TransaksiGudang.objects.filter(jumlah__gt=0,tanggal__range=(tanggalawal,tanggalakhir),Lokasi__NamaLokasi__in=('WIP','FG')).order_by(
         "-tanggal", "KodeProduk"
     )
     for i in datagudang:
@@ -10083,3 +10083,38 @@ def createhargafg (request):
         return render(request,'error/errorsjp.html',{'data':listerror})
 
     return render(request, "produksi/bulk_createproduk.html")
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["produksi",'ppic'])
+def views_artikel(request):
+    '''
+    FItur ini digunakan untuk manajemen data Artikel pada sistem
+    Algoritma
+    1. Mendapatkan semua data Artikel pada tabel Artikel
+    2. Mengiterasi semua data Artikel pada tabel
+    3. Mencari kode bahan baku penyusun utama tiap artikel 
+    4. Apabila ada data penysuun utama maka akan menambahkan kedapat detailartikelobj untuk objek penyusunnya
+    5. Apabila ada lebih dari 1 bahan baku utama (multiple version) maka akan diambil yang terakhir
+    6. Apabila tidak ada bahan baku penyusun utama maka akan menambhakan keterangan "Belum diset"
+    '''
+    datakirim = []
+    data = models.Artikel.objects.all()
+    for item in data:
+        detailartikelobj = models.Penyusun.objects.filter(KodeArtikel=item.id).filter(
+            Status=1
+        )
+        if detailartikelobj.exists():
+            datakirim.append([item, detailartikelobj.last()])
+        else:
+            datakirim.append([item, "Belum diset"])
+    return render(request, "produksi/views_artikel.html", {"data": datakirim})
+
+
+@login_required
+@logindecorators.allowed_users(allowed_roles=["produksi",'ppic'])
+def views_display(request):
+    '''
+    Fitur ini digunakan untuk melakukan manajemen data Display pada sistem
+    '''
+    data = models.Display.objects.all()
+    return render(request, "produksi/views_display.html", {"data": data})

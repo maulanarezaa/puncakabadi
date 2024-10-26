@@ -648,10 +648,10 @@ def views_rekapharga(request):
         )
         print(saldoawalobj)
         if (
-            not keluarobj.exists()
-            and not returobj.exists()
-            and not masukobj.exists()
-            and saldoawalobj is not None
+           not keluarobj.exists()
+                                and not returobj.exists()
+                                and not masukobj.exists()
+                                and saldoawalobj is None
         ):
             messages.error(request, "Tidak ditemukan data Transaksi Barang")
             return redirect("rekaphargarnd")
@@ -712,7 +712,10 @@ def views_rekapharga(request):
                 }
                 saldoawal += jumlahmasukperhari - jumlahkeluarperhari
                 hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
-                hargasatuanawal = hargatotalawal / saldoawal
+                try:
+                    hargasatuanawal = hargatotalawal / saldoawal
+                except ZeroDivisionError:
+                    hargasatuanawal = 0 
 
                 # print("Sisa Stok Hari Ini : ", saldoawal)
                 # print("harga awal Hari Ini :", hargasatuanawal)
@@ -1953,10 +1956,14 @@ def updatekonversi(request, id):
         listkuantitas = request.POST.getlist("kuantitas")
         listallowance = request.POST.getlist("allowance")
         listketerangan = request.POST.getlist('keterangan')
-        print(listketerangan)
-        # print(asd)
+        # print(listketerangan)
         kodeartikel = request.POST['kodeartikel']
         kodeversi = request.POST['kodeversi']
+        print(kodeversi)
+        if data.Versi != kodeversi:
+            data.Versi = kodeversi
+            data.save()
+        # print(asd)
         
         # kodeversi = request.POST['kodeversi']
         dataversi = models.Versi.objects.filter(KodeArtikel__KodeArtikel = kodeartikel,Versi = kodeversi).first()

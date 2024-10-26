@@ -227,6 +227,18 @@
         <span class="menu-title">Bahan Baku</span>
       </a>
     </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'views_artikelproduksi' %}">
+        <i class="typcn typcn-link menu-icon"></i>
+        <span class="menu-title">Daftar Artikel</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'views_displayproduksi' %}">
+        <i class="typcn typcn-link menu-icon"></i>
+        <span class="menu-title">Daftar Display</span>
+      </a>
+    </li>
     {% if user.groups.first.name == 'ppic' %}
     <li class="nav-item">
       <a class="nav-link" href="{% url 'dashboardppic' %}">
