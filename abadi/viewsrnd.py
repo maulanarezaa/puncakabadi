@@ -2524,9 +2524,16 @@ def updatepenyusundarikonversimaster(request):
     surat_jalan_without_detail = models.SuratJalanPembelian.objects.exclude(NoSuratJalan__in=no_surat_jalan_with_detail).distinct()
     # for item in surat_jalan_without_detail:
     #     item.delete()
-    print(surat_jalan_without_detail)
+    # print(surat_jalan_without_detail)
     '''CEK SURAT JALAN PRODUK SUBKON YANG TIDAK MEMILIKI DETAIL'''
     ''''''
+    tanggal_mulai = date(2024, 3, 22).strftime('%Y-%m-%d')  # Sesuaikan dengan tahun yang diinginkan
+    tanggal_akhir = date(2024, 9, 12).strftime('%Y-%m-%d')  # Sesuaikan dengan tahun yang diinginkan
+
+# Hapus data dengan filter rentang tanggal
+    data = models.SuratJalanPembelian.objects.filter(Tanggal__range=(tanggal_mulai, tanggal_akhir))
+    print(data)
+    data.delete()
         
     
 def createhargafg (request):
