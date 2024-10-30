@@ -620,7 +620,7 @@ def views_rekapharga(request):
         except models.Produk.DoesNotExist:
             messages.error(request, "Kode bahan baku tidak ditemukan")
             return render(
-                request, "Purchasing/views_ksbb.html", {"kodeprodukobj": kodeprodukobj}
+                request, "rnd/views_ksbb.html", {"kodeprodukobj": kodeprodukobj}
             )
         masukobj = models.DetailSuratJalanPembelian.objects.filter(
             KodeProduk__KodeProduk=produkobj.KodeProduk, NoSuratJalan__Tanggal__gte=awaltahun
@@ -647,14 +647,11 @@ def views_rekapharga(request):
             .first()
         )
         print(saldoawalobj)
-        if (
-           not keluarobj.exists()
-                                and not returobj.exists()
-                                and not masukobj.exists()
-                                and saldoawalobj is None
-        ):
-            messages.error(request, "Tidak ditemukan data Transaksi Barang")
-            return redirect("rekaphargarnd")
+        print(keluarobj)
+        print(returobj)
+        print(masukobj)
+        print(saldoawalobj)
+        
         # print(asdas)
         if saldoawalobj:
             print("ada data")

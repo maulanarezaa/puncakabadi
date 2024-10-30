@@ -942,6 +942,11 @@ def addgudang3(request):
 def updatetransaksilainlain(request, id):
     '''
     Fitur ini digunakan untuk melakukan update transaksi lain lain
+    Algoritma
+    1. Ambil data transaksi lain lain dengan kriteria IDDetailTransaksiGudang = id (id didapatkan dari passing values HTML)
+    2. Menampilkan form input update data transaksi 
+    3. Program menerima input berupa Kode Produk, Lokasi, Tanggal, Jumlah, dan Keterangan
+    4. Mengupdate data transaksi lain lain
     '''
     gudangobj = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     allproduk = models.Produk.objects.all()
@@ -984,7 +989,12 @@ def updatetransaksilainlain(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def deletetransaksilainlain(request, id):
-    '''fitur ini digunakan untuk menghapus data transaksi lain lain'''
+    '''
+    fitur ini digunakan untuk menghapus data transaksi lain lain
+    Algoritma:
+    1. Mengambil data transaksi lain lain dengan kriteria IDDetailTransaksiGudang = id (id didapatkan dari passing values HTML)
+    2. Menghapus data transaksi lain lain 
+    '''
     datagudang = models.TransaksiGudang.objects.get(IDDetailTransaksiGudang=id)
     datagudang.delete()
     messages.success(request, "Data Berhasil dihapus")
@@ -1013,6 +1023,11 @@ def update_produk_gudang(request, id):
     '''
     Fitur ini digunakan untuk melakukan update bahan baku.
     Data yang dapat diubah adalah KeteranganGudang, dan jumlah minimal saja sedangkan sisanya dari Purchasing
+    Algoritma
+    1. Mengambil data produk gudang dengan kriteria KodeProduk = id (id didapatkan dari passing values HTML)
+    2. Menampilkan form update bahan baku 
+    3. Program mendapat input berupa data keteragan gudang dan Jumlah Minimal
+    4. Mengupdate data produk
     '''
     produkobj = models.Produk.objects.get(KodeProduk=id)
     if request.method == "GET":
@@ -1129,6 +1144,9 @@ def addsaldo(request):
 def delete_saldo(request, id):
     '''
     Fitur ini digunakan untuk menghapus data saldo awal bahan baku gudang
+    Algoritma
+    1. Mengambil data saldo awal bahan baku gudang dengan parameter IDSaldoAwalBahanBaku = id
+    2. Menghapus data saldo awal bahan baku gudang
     '''
     dataobj = models.SaldoAwalBahanBaku.objects.get(IDSaldoAwalBahanBaku=id)
     models.transactionlog(
@@ -1571,6 +1589,13 @@ def clean_string(s):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang","ppic"])
 def view_pemusnahanbarang(request):
+    '''
+    Fitur ini digunakan untuk menampilkan semua data pemusnahan bahan baku pada sistem
+    Algoritma
+    1. Mengambil data Pemusnahan Bahan Baku dengan kriteria lokasi = Gudang
+    2. Mengubah format tanggal menjadi YYYY-MM-DD
+    3. Menampilkan data pemusnahan 
+    '''
     dataproduksi = models.PemusnahanBahanBaku.objects.filter(
         lokasi__NamaLokasi="Gudang"
     ).order_by("-Tanggal")
@@ -1584,6 +1609,14 @@ def view_pemusnahanbarang(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def add_pemusnahanbarang(request):
+    '''
+    Fitur ini digunakan untuk menambahkan data pemusnahan bahan baku pada gudang
+    Algoritma
+    1. Mengambil semua data bahan baku pada sistem
+    2. Menampilkan form input pemusnhan bahan baku 
+    3. Program mendapatkan input berupa Kode Produk, Jumlah, Tanggal, dan Keterangan
+    4. Menyimpan transaksi pemusnahan bahan baku pada gudang
+    '''
     databarang = models.Produk.objects.all()
     datalokasi = models.Lokasi.objects.filter(NamaLokasi="Gudang")
     if request.method == "GET":
@@ -1623,6 +1656,13 @@ def add_pemusnahanbarang(request):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def update_pemusnahanbarang(request, id):
+    '''
+    Fitur ini digunakan untuk melakukan update transaksi pemusnahan bahan baku pada gudang
+    Algoritma
+    1. Mendapatkan semua data bahan baku
+    2. Mendaatkan data transaksi pemusnahna bahan baku dengan kriteria IDPemusnahanBahanBaku = id (id didapatkan dari passing values HTML)
+    3. Program mendapatkan input berupa kode produk, Lokasi, Jumlah, Tanggal, dan Keterangan
+    '''
     databarang = models.Produk.objects.all()
     dataobj = models.PemusnahanBahanBaku.objects.get(IDPemusnahanBahanBaku=id)
     dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
@@ -1666,6 +1706,12 @@ def update_pemusnahanbarang(request, id):
 @login_required
 @logindecorators.allowed_users(allowed_roles=["gudang"])
 def delete_pemusnahanbarang(request, id):
+    '''
+    Fitur ini digunakan untuk menghapus data pemusnahan bahan baku gudang
+    Algoritma
+    1. Mendapatkan data pemusnahan bahan baku dengan kriteria IDPemusnahanBahanBaku = id (id didapatkan dari passing values HTML)
+    2. Menghapus data pemusnahan bahan baku
+    '''
     dataobj = models.PemusnahanBahanBaku.objects.get(IDPemusnahanBahanBaku=id)
 
     dataobj.delete()
