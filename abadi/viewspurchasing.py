@@ -1636,7 +1636,7 @@ def track_spk(request, id):
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
 def view_sppb(request):
     '''
-    Digunakan untuk melakukan manajemen data SPPB
+    Digunakan untuk melakukan melihat data SPPB
     Algoritma : 
     1. Mengambil semua data SPPB 
     2. mengubah format tanggal menjadi yyyy-mm-dd

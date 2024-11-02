@@ -232,6 +232,8 @@ def deleteartikel(request, id):
 def delete_penyusun(request, id):
     '''
     Fitur ini digunakan untuk menghapus salah satu penyusun dari versi yang ada
+    Algoritma
+    1. Mendapatkan data penyusun dengan kriteria IDKodePenysun = id (id didapatkan dari passing values HTML)
     '''
     penyusunobj = models.Penyusun.objects.get(IDKodePenyusun=id)
     kodeversiobj = models.Versi.objects.get(Versi = penyusunobj.KodeVersi.Versi,KodeArtikel = penyusunobj.KodeVersi.KodeArtikel)
@@ -250,6 +252,9 @@ def delete_penyusun(request, id):
 def delete_versi(request, id):
     '''
     Fitur ini digunakan untuk menghapus keseluruhan versi lengkap dengan penyusunnya
+    Algoritma
+    1. Mengambil data Versi dengan kriteria pk (primary key) = id (id didapatkan dari passing values HTML)
+    2. Menghapus data Versi
     '''
     print(id)
     kodeversi = models.Versi.objects.get(pk = id)
@@ -346,6 +351,10 @@ def konversimaster_delete(request, id):
 def views_sppb(request):
     '''
     FItur ini digunakan untuk menampilkan SPPB yang ada pada sistem
+    Algoritma
+    1. Mengambil semua data SPPB pada sistem
+    2. Mengiterasi data SPPB
+    3. Mengambil data Detail SPPB dari data iterasi SPPB
     '''
     data = models.SPPB.objects.all()
     for sppb in data:
@@ -360,6 +369,9 @@ def views_sppb(request):
 def view_spk(request):
     '''
     FItur ini digunakan untuk menampilkan data SPK pada sistem
+    Algoritma
+    1. Mengambil semua data SPK pada sistem
+    2. Menampilkan data SPK pada sistem
     '''
     dataspk = models.SPK.objects.all().order_by("-Tanggal")
 
@@ -1912,15 +1924,15 @@ def updatepenyusun(request, id):
 @logindecorators.allowed_users(allowed_roles=["rnd",'ppic'])
 def updatekonversi(request, id):
     '''
-    Fitur ini digunakan untuk melakukan update data bahan penyusun sesuai dengan kode penyusunnya
+    Fitur ini digunakan untuk melakukan update data bahan penyusun dalam 1 versi konversi
     Algoritma : 
-    1. mendapatkan data penysuun dengan kriteria IDKodePenyusun = id (id didapatkan dari passing values HTML)
+    1. mendapatkan data Versi dengan kriteria pk (primary key) = id (id didapatkan dari passing values HTML)
+    2. Mengambil semua penyusun pada Versi terpilih dengan kriteria KodeVersi = data 
     2. menampilkan form update penyusun 
-    3. program menerima input kodeproduk, lokasi, status, kuantitas, allowance, dan kodeversi
+    3. program menerima input list kodeproduk, list lokasi, list status, list kuantitas, list allowance, dan  list kodeversi
     4. Mengupdate data penyusun dengan kode produk input, lokasi input, status input, kuantitas input, dan allowance input
     5. menyimpan data penyusun
     6. Apabila kodeversi berubah, mengupdate data versi
-
     '''
     data = models.Versi.objects.get(pk=id)
     filterdetailkonversi = models.Penyusun.objects.filter(KodeVersi = data)
@@ -2227,6 +2239,9 @@ def bulk_createpenyusun(request):
 def views_display(request):
     '''
     Fitur ini digunakan untuk melakukan manajemen data Display pada sistem
+    Algoritma
+    1. Mendapatkan data Display pada sistem
+    2. Menampilkan data Display
     '''
     data = models.Display.objects.all()
     return render(request, "rnd/views_display.html", {"data": data})

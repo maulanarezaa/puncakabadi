@@ -249,7 +249,7 @@ urlpatterns = [
         name="delete_transaksi_subkon_terima",
     ),
     path(
-        "viewproduksiproduksubkon",
+        "viewproduksisubkonproduk",
         viewsproduksi.views_produksiproduksubkon,
         name="view_produksiproduksubkon",
     ),

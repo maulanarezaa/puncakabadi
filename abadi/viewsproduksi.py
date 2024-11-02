@@ -784,8 +784,28 @@ def detail_sppb(request, id):
     7. Mendapatkan data DetailSPPB
     8. Mendapatkan data detailSPPBDisplay
     9. mendapatkan data Confirmationorder
-    10. Menanmpilkan form update data SPPB
-    11. Mendapatkan data
+    10. Menampilkan form update data SPPB
+    11. Mendapatkan data No SPPB, Tanggal, Keterangan, list kode bahan baku awal,  list kuantitas bahn baku awal, list purchase order bahan baku awal, list Artikel awal, List Jumlah awal, Lust confirmation order awal,list versi awal, list display awal, list jumlah display awal, list purchase order display awal, list artikel baru, list jumlah artikel baru, list versi artikel baru, list purchaseorderartikel baru, list display baru, ist jumlah display baru, list purchase order display baru, list bahan baku baru, list jumlah bahan baku baru, list purchase order bahan baku baru.
+    12. Cek apakah nosppb ada update atau tidak
+    13. Apabila ada update maka akan cek apakah kode sppb sudah ada pada aplikasi atau belum
+    14. Apabila sudah ada kode sppb sebelumnya maka akan menampilkan pesan eror
+    15. Apabila tidak ada maka lanjut ke nomor 16
+    16. mengupdate object SPPB dengan kriteria NoSPPB = nomor sppb, Tanggal = tanggal sppb, Keterangan = keterangan sppb
+    17. Cek apakah ada data detail pengiriman bahan baku pada sppb sebelumnya
+        A. Apabila ada maka akan mengiterasi tiap detail bahan baku sppb yang ada untuk di update
+    18. Cek apakah ada data detail pengiriman artikel pada sppb sebelumnya
+        A. Apabila ada maka akan mengiterasi tiap detail artikel dan mengupdate data detail sppb
+    19. Cek apakah ada detail pengiriman display pada sppb sebelumnya
+        A. Apabila ada maka akan mengiterasi tiap detail display dan mengupdate data detail sppb display
+    20. Cek apakah ada pengiriman bahan baku baru ?
+        A. Apabila ada maka mengiterasi list bahan baku baru 
+        B. Menyimpan data bahan baku baru
+    21. Cek apakah ada pengiriman artikel baru ? 
+        A. Apabila ada maka mengiterasi list artikel baru 
+        B. Menyimpan data artikel baru
+    22. Cek apakah ada pengiriman display baru ?
+        A. Apabila ada maka mengiterasi list display baru
+        B. Menyimpan data display baru
     '''
     
     databahan = models.Produk.objects.all()
@@ -1487,6 +1507,7 @@ def delete_mutasi(request, id):
     Fitur ini digunakan untuk mengahapus data mutasi WIP FG
     Algoritma : 
     1. Mengambil data transaksi produksi dengan kriteria IDTransaksiProduksi = id (id didapatkan dari passing values HTML)
+    2. Menghapus Data Transaksi 
     '''
     dataproduksi = models.TransaksiProduksi.objects.get(idTransaksiProduksi=id)
     dataproduksi.delete()
@@ -2735,8 +2756,8 @@ def calculate_ksbj(artikel,lokasi,tahun):
         G. Mencari list tanggal pemusnahan
         F. Menggabungkan list tanggal yang terdiri dari tanggal mutasi, tanggal sppb, dan tanggal pemusnahan
         G. Melooping semua tanggal
-        F. Rumus Sisa stok artikel = Saldo awal + Jumlah Mutasi WIPFG - Pemusnahan Artikel FG - Pengiriman SPPB
-        G. Menambahkan pada list data
+        H. Rumus Sisa stok artikel = Saldo awal + Jumlah Mutasi WIPFG - Pemusnahan Artikel FG - Pengiriman SPPB
+        I. Menambahkan pada list data
 
     
     '''
@@ -3146,6 +3167,7 @@ def view_rekapproduksi(request):
         A. Mendapatkan data bahan baku penyusun utama pada tabel penyusun dengan kriteria Kode ARtikel = artikel., dan Status = 1
         B. Mengambil data mutasi dari tabel Transaksi Produksi dengan kriteria Kode Artikel = artikel, Jenis = Mutasi, Tanggal berada dalam rentang tanggal mulai dan tanggal akhir
         C. mengambil data masuk dari tabel transaksi gydang dengan kriteria Kode artikel = artikel.id, Tanggal berada adalam rentang tanggal mulai dan akhir
+        D. Memanggil fungsi calculate KSBJ
     4. Membuat dataframe 
     5. Menampilkan data rekap
 
