@@ -73,8 +73,8 @@
           <div class="col-md-5">
             <div class="form-group">
               <label for="quantity_{{ forloop.counter }}">Jumlah</label>
-              <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity"
-                value="{{i.Jumlah|separator_ribuan}}" readonly>
+              <input type="text" class="form-control quantity" name="quantity[]"
+                value="{{i.Jumlah|separator_ribuan_versi2}}" readonly>
             </div>
           </div>
 
@@ -100,8 +100,8 @@
           <div class="col-md-5">
             <div class="form-group">
               <label for="quantity_{{ forloop.counter }}">Jumlah</label>
-              <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity"
-                value="{{i.Jumlah|separator_ribuan}}" readonly>
+              <input type="text" class="form-control quantity" name="quantity[]" 
+                value="{{i.Jumlah|separator_ribuan_versi2}}" readonly>
             </div>
           </div>
 

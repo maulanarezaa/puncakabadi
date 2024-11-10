@@ -27,6 +27,17 @@ def separator_ribuan(value):
         return formatted_value
     except (ValueError, TypeError):
         return value
+
+@register.filter
+def separator_ribuand00313(value):
+    try:
+        # Format value with commas as thousand separators
+        formatted_value = f"{float(value):,.3f}"
+        # Replace commas with dots
+        formatted_value = formatted_value.replace(',', '.')
+        return formatted_value
+    except (ValueError, TypeError):
+        return value
 @register.filter
 def separator_ribuan_versi2(value):
     try:
@@ -37,7 +48,7 @@ def separator_ribuan_versi2(value):
         formatted_value = formatted_value.replace('.', ',')
         formatted_value = formatted_value.replace('X', '.')
         return formatted_value
-    except (ValueError, TypeError):
+    except :
         return value
 
 @register.filter

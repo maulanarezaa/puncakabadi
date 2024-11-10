@@ -1320,7 +1320,7 @@ def view_rekapbarang(request):
     tanggal_mulai = datetime(year=tahun, month=1, day=1)
 
     dataproduk = models.Produk.objects.all()
-    # dataproduk = models.Produk.objects.filter(KodeProduk = 'A-001-07')
+    dataproduk = models.Produk.objects.filter(KodeProduk = 'A-004-04')
     try:
 
         lokasi = request.GET['lokasi']
@@ -1342,7 +1342,7 @@ def view_rekapbarang(request):
                 listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, tanggal_akhir,lokasi)
 
                 if listdata:
-                    produk.kuantitas = listdata[-1]["Sisa"][0]
+                    produk.kuantitas = listdata[-1]["Sisa"][-1]
                 else:
                     produk.kuantitas = 0
         endtime = time.time()
@@ -1352,7 +1352,7 @@ def view_rekapbarang(request):
             listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, sekarang,lokasi)
 
             if listdata:
-                produk.kuantitas = listdata[-1]["Sisa"][0]
+                produk.kuantitas = listdata[-1]["Sisa"][-1]
             else:
                 produk.kuantitas = 0
     return render(
@@ -2534,7 +2534,7 @@ def getksbbproduk(kodeproduk,periode):
     # print(pemusnahanobj)
     # print(asd)
     tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
-    tanggalretur = returobj.values_list("tanggal", flat=True)
+    # tanggalretur = returobj.values_list("tanggal", flat=True)
     tanggalpemusnahan = pemusnahanobj.values_list("Tanggal",flat=True)
     print("ini kode bahan baku", keluarobj)
     saldoawalobj = (
@@ -2571,8 +2571,11 @@ def getksbbproduk(kodeproduk,periode):
     print(tanggalmasuk)
     print(tanggalkeluar)
     listtanggal = sorted(
-        list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalretur).union(tanggalpemusnahan)))
+        list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalpemusnahan)))
     )
+    # listtanggal = sorted(
+    #     list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalretur).union(tanggalpemusnahan)))
+    # )
     print(listtanggal)
     statusmasuk = False
     for i in listtanggal:
@@ -2684,19 +2687,19 @@ def getksbbproduk(kodeproduk,periode):
         #     hargakeluarsatuanperhari = 0
         #     jumlahkeluarperhari = 0
 
-        transaksireturobj = returobj.filter(tanggal=i)
-        if transaksireturobj.exists():
-            for j in transaksireturobj:
-                jumlahmasukperhari += j.jumlah * -1
-                hargamasuktotalperhari += j.jumlah * hargasatuanawal * -1
-            try:
-                hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
-            except ZeroDivisionError:
-                hargamasuksatuanperhari = 0
-        else:
-            hargamasuktotalperhari = 0
-            hargamasuksatuanperhari = 0
-            jumlahmasukperhari = 0
+        # transaksireturobj = returobj.filter(tanggal=i)
+        # if transaksireturobj.exists():
+        #     for j in transaksireturobj:
+        #         jumlahmasukperhari += j.jumlah * -1
+        #         hargamasuktotalperhari += j.jumlah * hargasatuanawal * -1
+        #     try:
+        #         hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
+        #     except ZeroDivisionError:
+        #         hargamasuksatuanperhari = 0
+        # else:
+        #     hargamasuktotalperhari = 0
+        #     hargamasuksatuanperhari = 0
+        #     jumlahmasukperhari = 0
 
 
         print("Tanggal : ", i)

@@ -70,6 +70,8 @@
                 </form>
                 <h4 class="card-title">Versi : <span style="font-weight: lighter;">
                     {{versiterpilihobj.Versi}} {% if versiterpilihobj.isdefault == True %} - Default {% endif %}</span></h4>
+                    <h4 class="card-title">Keterangan Versi : <span style="font-weight: lighter;">{% if versiterpilihobj.Keterangan != None %} {{versiterpilihobj.Keterangan}} {% else  %} - {% endif %}
+                    </span></h4>
                 <h4 class="card-title">Nilai FG : <span style="font-weight: lighter;">
                     Rp{{nilaifg |custom_thousands_separator}}</span></h4>
                     <h4 class="card-title">Nilai FG Input Manual : 

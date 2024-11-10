@@ -87,6 +87,7 @@
                     {% endif %}
                     {% endif %}
                     {% if versiterpilihobj %}
+                    {% if user.groups.first.name != 'ppic' %}
                     <div class="col-lg-2">
                         <form action="{% url 'updateversi' %}" method="post">
                             {% csrf_token %}
@@ -110,6 +111,7 @@
                             Hapus Versi
                         </button>
                     </div>
+                    {% endif %}
                     {% endif %}
                 </div>
 
