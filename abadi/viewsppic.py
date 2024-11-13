@@ -9,7 +9,7 @@ import pandas as pd
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Border,Side
 from openpyxl.utils import get_column_letter
-from datetime import datetime, date
+from datetime import datetime, date,timedelta
 import calendar
 from . import logindecorators
 from django.contrib.auth.decorators import login_required
@@ -751,7 +751,7 @@ def detaillaporanbarangkeluar(request):
             "Agustus",
             "September",
             "Oktober",
-            "Novermber",
+            "November",
             "Desember",
         ]
         index = listbulan.index(request.GET["bulan"]) + 1
@@ -1011,7 +1011,7 @@ def getbarangkeluargudang(last_days,stopindex,awaltahun,hargapurchasing=None):
             )
         else:
             datatransaksigudang = models.TransaksiGudang.objects.filter(
-                tanggal__range=(last_days[index - 1], hari),
+                tanggal__range=(last_days[index - 1]+ timedelta(days=1), hari),
                 jumlah__gte=0,
             )
         totaltransaksi = 0
@@ -1113,28 +1113,28 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
         else:
             datadetailsppb = models.DetailSPPB.objects.filter(
                 NoSPPB__Tanggal__lte=hari,
-                NoSPPB__Tanggal__gt=last_days[index - 1],
+                NoSPPB__Tanggal__gt=last_days[index - 1]+ timedelta(days=1),
                 DetailSPK__isnull=False,
             )
             # Transaksi Golongan D
             datatransaksigold = models.TransaksiGudang.objects.filter(
                 KodeProduk__KodeProduk__istartswith="D",
-                tanggal__range=(last_days[index - 1], hari),
+                tanggal__range=(last_days[index - 1]+ timedelta(days=1), hari),
                 jumlah__gte=0,
             )
             datatransaksilainlain = models.TransaksiGudang.objects.filter(
-                tanggal__range=(last_days[index - 1], hari),
+                tanggal__range=(last_days[index - 1]+ timedelta(days=1), hari),
                 jumlah__gte=0,
                 Lokasi__NamaLokasi="Lain-Lain",
             )
             datatransaksisppbdisplay = models.DetailSPPB.objects.filter(
-            DetailSPKDisplay__isnull = False,NoSPPB__Tanggal__range = (last_days[index-1],hari)
+            DetailSPKDisplay__isnull = False,NoSPPB__Tanggal__range = (last_days[index-1]+ timedelta(days=1),hari)
             )
             datatransaksibahanbaku = models.DetailSPPB.objects.filter(
-            DetailBahan__isnull = False,NoSPPB__Tanggal__range = (last_days[index-1],hari)
+            DetailBahan__isnull = False,NoSPPB__Tanggal__range = (last_days[index-1]+ timedelta(days=1),hari)
             )
-            datapemusnahanbahanbaku = models.PemusnahanBahanBaku.objects.filter(Tanggal__range = (last_days[index-1],hari))
-            datapemusnahanartikel = models.PemusnahanArtikel.objects.filter(Tanggal__range = (last_days[index-1],hari))
+            datapemusnahanbahanbaku = models.PemusnahanBahanBaku.objects.filter(Tanggal__range = (last_days[index-1]+ timedelta(days=1),hari))
+            datapemusnahanartikel = models.PemusnahanArtikel.objects.filter(Tanggal__range = (last_days[index-1]+ timedelta(days=1),hari))
 
 
         if datadetailsppb.exists():
@@ -1661,7 +1661,7 @@ def getbarangmasuk(last_days, stopindex, awaltahun):
         else:
             databahanbakumasuk = models.DetailSuratJalanPembelian.objects.filter(
                 NoSuratJalan__Tanggal__lte=hari,
-                NoSuratJalan__Tanggal__gt=last_days[index - 1],
+                NoSuratJalan__Tanggal__gt=last_days[index - 1]+ timedelta(days=1),
             )
         nilaibahanbakumasuk = 0
         for item in databahanbakumasuk:
@@ -1696,7 +1696,7 @@ def detaillaporanbarangkeluargudang(request):
             "Agustus",
             "September",
             "Oktober",
-            "Novermber",
+            "November",
             "Desember",
         ]
         index = listbulan.index(request.GET["bulan"]) + 1
@@ -1739,7 +1739,7 @@ def detaillaporanbarangmasuk(request):
             "Agustus",
             "September",
             "Oktober",
-            "Novermber",
+            "November",
             "Desember",
         ]
         index = listbulan.index(request.GET["bulan"]) + 1
@@ -1883,7 +1883,7 @@ def detaillaporanbaranstokgudang(request):
             "Agustus",
             "September",
             "Oktober",
-            "Novermber",
+            "November",
             "Desember",
         ]
         index = listbulan.index(request.GET["bulan"])
@@ -2247,7 +2247,7 @@ def detaillaporanstokfg(request):
             "Agustus",
             "September",
             "Oktober",
-            "Novermber",
+            "November",
             "Desember",
         ]
         index = listbulan.index(request.GET["bulan"]) + 1
@@ -2405,7 +2405,7 @@ def perhitunganmutasiwipterakhir(artikel, tanggaltes):
 
         hargamutasiakhirbulan[artikel][last_days[index]] = hargamutasiakhirbulan[
             artikel
-        ][last_days[index - 1]]
+        ][last_days[index - 1]+ timedelta(days=1)]
 
         return hargamutasiakhirbulan
     else:
@@ -2491,10 +2491,10 @@ def getstokartikelfg(last_days, stopindex, awaltahun):
 
         else:
             datatransaksiproduksi = models.TransaksiProduksi.objects.filter(
-                Tanggal__lte=hari, Tanggal__gt=last_days[index - 1], Jenis="Mutasi"
+                Tanggal__lte=hari, Tanggal__gt=last_days[index - 1]+ timedelta(days=1), Jenis="Mutasi"
             )
             databarangkeluar = models.DetailSPPB.objects.filter(
-                NoSPPB__Tanggal__lte=hari, NoSPPB__Tanggal__gt=last_days[index - 1]
+                NoSPPB__Tanggal__lte=hari, NoSPPB__Tanggal__gt=last_days[index - 1]+ timedelta(days=1)
             )
 
         jumlahkumulatifbiayaperbulan = 0
@@ -2518,7 +2518,7 @@ def getstokartikelfg(last_days, stopindex, awaltahun):
                 stokdifg = datastokbahanbakufg[index - 1][bahanbaku]["stok"]
 
                 datatransaksigudangfg = models.TransaksiGudang.objects.filter(
-                    tanggal__gt=last_days[index - 1],
+                    tanggal__gt=last_days[index - 1]+ timedelta(days=1),
                     tanggal__lte=hari,
                     Lokasi__NamaLokasi="FG",
                     KodeProduk=bahanbaku,
@@ -2629,7 +2629,7 @@ def getsaldoawalgudang(request):
             "Agustus",
             "September",
             "Oktober",
-            "Novermber",
+            "November",
             "Desember",
         ]
         index = listbulan.index(request.GET["bulan"]) + 1
@@ -2645,6 +2645,7 @@ def getsaldoawalgudang(request):
             "ppic/detailstockgudang.html",
             {
                 "data": data,
+                'bulan':listbulan[index-1]
             },
         )
 
@@ -2833,7 +2834,7 @@ def detaillaporanbaranstokwip(request):
             "Agustus",
             "September",
             "Oktober",
-            "Novermber",
+            "November",
             "Desember",
         ]
         index = waktuobj.month
@@ -2867,7 +2868,7 @@ def perhitunganpersediaan(
         "Agustus",
         "September",
         "Oktober",
-        "Novermber",
+        "November",
         "Desember",
     ]
     datakirim = {}
@@ -2984,7 +2985,7 @@ def laporanpersediaan(request):
             "Agustus",
             "September",
             "Oktober",
-            "Novermber",
+            "November",
             "Desember",
         ]
         index = int(waktuobj.month)
@@ -3073,7 +3074,7 @@ def detaillaporanbaranstokawalproduksi(request):
             "Agustus",
             "September",
             "Oktober",
-            "Novermber",
+            "November",
             "Desember",
         ]
         index = listbulan.index(request.GET["bulan"]) + 1
@@ -3115,7 +3116,7 @@ def detaillaporanbaranstokawalgudang(request):
             "Agustus",
             "September",
             "Oktober",
-            "Novermber",
+            "November",
             "Desember",
         ]
         index = listbulan.index(request.GET["bulan"]) + 1
@@ -3168,7 +3169,7 @@ def exportlaporanbulananexcel(request):
         "Agustus",
         "September",
         "Oktober",
-        "Novermber",
+        "November",
         "Desember",
     ]
     index = int(waktuobj.month)
@@ -4179,7 +4180,7 @@ def exportlaporanbulananexcelkeseluruhan(request):
         "Agustus",
         "September",
         "Oktober",
-        "Novermber",
+        "November",
         "Desember",
     ]
     index = int(waktuobj.month)

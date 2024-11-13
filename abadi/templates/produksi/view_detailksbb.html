@@ -85,7 +85,7 @@
         </table>
       </div>
       <div class="table-responsive pt-3 mt-3">
-
+{% if lokasi == 'WIP' %}
         <h5>Mutasi Barang ke FG</h5>
         <table class="table table-bordered">
           <thead>
@@ -119,6 +119,46 @@
             {% endif %}
           </tbody>
         </table>
+        {% else %}
+        <h5>Mutasi Barang ke FG</h5>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Tanggal Pengiriman</th>
+              <th>Nomor SPPB</th>
+              <th>Nomor SPK</th>
+              <th>Artikel </th>
+              <th>Jumlah</th>
+              <th>Versi Artikel</th>
+              <th>Keterangan</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if datasppb %}
+            {% for i in datasppb %}
+            <tr>
+              <td>{{i.NoSPPB.Tanggal}}</td>
+              <td>{{i.NoSPPB.NoSPPB}}</td>
+              {% if i.DetailSPK %}
+              <td>{{i.DetailSPK.NoSPK}}</td>
+              {% else %}
+              <td>-</td>
+              {% endif %}
+              <td>{{i.DetailSPK.KodeArtikel}}</td>
+              <td>{{i.Jumlah}}</td>
+              <td>{{i.VersiArtikel}}</td>
+              <td>{{i.NoSPPB.Keterangan}}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="5">Tidak ada data</td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+{% endif %}
+        
 
       </div>
       <div class="table-responsive pt-3 mt-3">

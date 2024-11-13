@@ -2322,7 +2322,9 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,
         else:
             print(i)
             for j in datapengiriman:
-                penyusunartikelkeluar = models.Penyusun.objects.filter(KodeArtikel = j.DetailSPK.KodeArtikel, KodeProduk = produk, KodeVersi = j.VersiArtikel).aggregate(total = Sum('Allowance'))['total']
+                penyusunartikelkeluar = models.Penyusun.objects.filter(KodeArtikel = j.DetailSPK.KodeArtikel, KodeProduk = produk, KodeVersi = j.VersiArtikel,Lokasi__NamaLokasi = lokasi).aggregate(total = Sum('Allowance'))['total']
+                print(penyusunartikelkeluar)
+                # print(asd)
                 if penyusunartikelkeluar == None:
                     penyusunartikelkeluar = 0
                     continue
@@ -2626,10 +2628,22 @@ def detailksbb(request, id, tanggal,lokasi):
     '''
     tanggal = datetime.strptime(tanggal, "%Y-%m-%d")
     tanggal = tanggal.strftime("%Y-%m-%d")
+    print('ini lokasi',lokasi)
+    print(id)
+    
 
     # Transaksi Gudang
     datagudang = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk__KodeProduk=id,Lokasi__NamaLokasi=(lokasi),jumlah__gte=0)
     dataretur = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk__KodeProduk=id,Lokasi__NamaLokasi=(lokasi),jumlah__lt=0)
+    penyusun_produk = (
+        models.Penyusun.objects.filter(KodeProduk__KodeProduk=id,Lokasi__NamaLokasi = lokasi)
+        .values_list("KodeArtikel", flat=True)
+        .distinct()
+    )
+    datasppb = models.DetailSPPB.objects.filter(
+        NoSPPB__Tanggal=tanggal,DetailSPK__KodeArtikel__id__in=penyusun_produk).exclude(DetailSPKDisplay__isnull = False)
+    print(datasppb)
+    # print(asd)
     for item in dataretur:
         item.jumlah = item.jumlah * -1
     listartikel = (
@@ -2669,7 +2683,10 @@ def detailksbb(request, id, tanggal,lokasi):
             'datapemusnahanbahanbaku' : datapemusnahanbahanbaku,
             "dataretur" : dataretur,
             'datamutasikodestokkeluar':datamutasikodestokkeluar,
-            'datamutasikodestokmasuk': datamutasikodestokmasuk
+            'datamutasikodestokmasuk': datamutasikodestokmasuk,
+            'lokasi' : lokasi,
+            'datasppb' : datasppb
+
         },
     )
 
