@@ -23,8 +23,8 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Masukkan Kode Barang"
-                                        aria-label="Masukkan Kode Barang" name="kodebarang" value="{{kodebarang}}">
+                                    <input type="text" class="form-control" placeholder="Masukkan Artikel"
+                                        aria-label="Masukkan Artikel" name="kodebarang" value="{{kodebarang}}">
                                 </div>
                             </div>
                         </div>
@@ -32,7 +32,7 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="number" class="form-control" placeholder="Jumlah Kotak Aktual" min="0"
+                                    <input type="number" class="form-control" placeholder="Jumlah Aktual" min="0"
                                         name="jumlah">
                                     <div class="input-group-append">
                                         <button class="btn btn-sm btn-primary" type="submit">Hitung</button>
@@ -64,8 +64,8 @@
                         <div class="col-lg-4">
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Masukkan Kode Barang"
-                                        aria-label="Masukkan Kode Barang" name="kodebarang" list="kodebarang">
+                                    <input type="text" class="form-control" placeholder="Masukkan Artikel"
+                                        aria-label="Masukkan Artikel" name="kodebarang" list="kodebarang">
                                     <datalist id="kodebarang">
                                         {% for i in kodeprodukobj %}
                                         <option value="{{i.KodeProduk}}">{{i.NamaProduk}}</option>

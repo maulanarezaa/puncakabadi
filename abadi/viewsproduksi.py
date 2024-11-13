@@ -175,6 +175,7 @@ def view_spk(request):
     for j in dataspk:
         j.Tanggal = j.Tanggal.strftime('%Y-%m-%d')
         total_detail_spk = models.DetailSPK.objects.filter(NoSPK=j).values('KodeArtikel').annotate(total=Sum('Jumlah'))
+        j.detailspk = models.DetailSPK.objects.filter(NoSPK=j)
         for detail_spk in total_detail_spk:
             kode_artikel = detail_spk['KodeArtikel']
             total_requested = detail_spk['total']
@@ -603,6 +604,7 @@ def view_sppb(request):
     datasppb = models.SPPB.objects.all().order_by("-Tanggal")
     for i in datasppb:
         i.Tanggal = i.Tanggal.strftime("%Y-%m-%d")
+        i.detailsppb = models.DetailSPPB.objects.filter(NoSPPB = i)
 
     return render(request, "produksi/view_sppb.html", {"datasppb": datasppb})
 
@@ -2016,7 +2018,7 @@ def delete_gudangretur(request, id):
 
 
 # Rekapitulasi
-def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,startdate=None,enddate=None):
+def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,startdate=None,enddate=None,requests=None):
     '''
     Perhitungan KSBB : 
     1. Jumlah Transaksi Gudang dalam rentang 1 tahun per produk 
@@ -2314,6 +2316,9 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,
                 datamodelsperkotak.append(j.Jumlah)
                 sisa -= totalpenggunaanbahanbaku
                 datamodelssisa.append(sisa)
+                if sisa < 0  and requests != None:
+                    messages.warning(requests,f'Sisa stok menjadi negatif pada tanggal {i}')
+                    
         else:
             print(i)
             for j in datapengiriman:
@@ -2582,11 +2587,9 @@ def view_ksbb3(request):
         tanggal_mulai = datetime(year=tahun, month=1, day=1)
         tanggal_akhir = datetime(year=tahun, month=12, day=31)
 
-        listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, tanggal_akhir,lokasi)
+        listdata, saldoawal = calculate_KSBB(produk, tanggal_mulai, tanggal_akhir,lokasi,requests=request)
 
-        print(tahun)
-        print(listdata)
-        print(saldoawal)
+
         # print(asd)
         if saldoawal != None:
             saldoawal.Tanggal = datetime.strptime(saldoawal.Tanggal,"%Y-%m-%d")
@@ -2703,8 +2706,9 @@ def view_ksbj2(request):
         lokasi = request.GET['lokasi']
         lokasiobj = models.Lokasi.objects.get(NamaLokasi = lokasi)
         try:
-            listdata,saldoawal = calculate_ksbj(Artikelobj,lokasi,tanggal_mulai.year)
-        except ValueError:
+            listdata,saldoawal = calculate_ksbj(Artikelobj,lokasi,tanggal_mulai.year,requests=request)
+        except Exception as e:
+            print(e)
             messages.error(request,'Bahan Baku Utama belum diset')
             return redirect('view_ksbj')
 
@@ -2726,7 +2730,7 @@ def view_ksbj2(request):
             },
         )
         
-def calculate_ksbj(artikel,lokasi,tahun):
+def calculate_ksbj(artikel,lokasi,tahun,requests=None):
     '''
     Fitur ini digunakan untuk menghitung besar KSBJ tiap artikel,tahun dan lokasi
     Parameter fungsi ini ada 3 yaitu Artikel (Artikejkobj, Lokasi dalam string, dan tahun
@@ -2764,9 +2768,13 @@ def calculate_ksbj(artikel,lokasi,tahun):
     tanggal_mulai = datetime(year=tahun, month=1, day=1)
     tanggal_akhir = datetime(year=tahun, month=12, day=31)
     getbahanbakuutama = models.Penyusun.objects.filter(KodeArtikel=artikel.id, Status=1, KodeVersi__isdefault = True).order_by('-KodeVersi__Tanggal').first()
-    # print(getbahanbakuutama)
+    print(getbahanbakuutama)
+    # print(asd)
     if not getbahanbakuutama :
-        raise ValueError('Belum di set')
+        getbahanbakuutama = models.Penyusun.objects.filter(KodeArtikel=artikel.id, Status=1).order_by('-KodeVersi__Tanggal').first()
+        if not getbahanbakuutama :
+
+            raise ValueError('Belum di set')
     
     data = models.TransaksiProduksi.objects.filter(KodeArtikel=artikel.id,Jenis = "Mutasi")
     datamasuk = models.TransaksiGudang.objects.filter(DetailSPK__KodeArtikel = artikel.id,KodeProduk = getbahanbakuutama.KodeProduk,tanggal__range=(tanggal_mulai, tanggal_akhir))
@@ -2863,6 +2871,8 @@ def calculate_ksbj(artikel,lokasi,tahun):
             
                 
             saldoawal = saldoawal - jumlahmutasi + masukpcs-jumlahpemusnahan
+            if saldoawal < 0 and requests != None:
+                messages.warning(requests,f'Sisa stok menjadi negatif pada {i}')
 
             datamodels['Tanggal'] = i.strftime("%Y-%m-%d")
             datamodels['Masuklembar'] = jumlahmasuk
@@ -4902,6 +4912,7 @@ def kalkulatorpenyesuaianartikel(request):
             selisih = sisa - float(jumlahaktual)
             selisihmasuk = jumlahmasuk - selisih
             print(selisihmasuk,jumlahmasuk)
+            # print(asd)
             try:
                 penyesuaianbaru = selisihmasuk/jumlahmasuk
             except ZeroDivisionError:
@@ -6919,7 +6930,8 @@ def calculateksbjsubkon(produk,tanggal_mulai,tanggal_akhir):
             'Tanggal': None,
             'Masuk' : None,
             'Keluar' : None,
-            'Sisa' : None
+            'Sisa' : None,
+            'Pemusnahan' : None
             
         }
         data['Tanggal'] = i.strftime("%Y-%m-%d")
@@ -6940,13 +6952,15 @@ def calculateksbjsubkon(produk,tanggal_mulai,tanggal_akhir):
         # Data Keluar
         datakeluar = dataterima.filter(Tanggal=i)
         keluar = 0
+        pemusnahan = 0
         for k in datakeluar:
             keluar += k.Jumlah
         datapemusnahanproduk = datapemusnahan.filter(Tanggal = i)
         for k in datapemusnahanproduk:
-            keluar +=k.Jumlah
-        sisa -= keluar
+            pemusnahan +=k.Jumlah
+        sisa -= keluar + pemusnahan
         data['Keluar'] = keluar
+        data['Pemusnahan'] = pemusnahan
 
         data['Sisa'] = sisa
 
@@ -7069,7 +7083,8 @@ def calculateksbbsubkon(produk,tanggal_mulai,tanggal_akhir):
             'Tanggal': None,
             'Masuk' : None,
             'Keluar' : None,
-            'Sisa' : None
+            'Sisa' : None,
+            'Pemusnahan':None
         }
 
         data['Tanggal'] = i.strftime("%Y-%m-%d")
@@ -7083,15 +7098,17 @@ def calculateksbbsubkon(produk,tanggal_mulai,tanggal_akhir):
         
         # Data Keluar
         keluar = 0
+        pemusnahan = 0
         datakeluar = datakirim.filter(NoSuratJalan__Tanggal = i)
         for k in datakeluar:
             keluar += k.Jumlah
         datapemusnahanbahanbaku = datapemusnahan.filter(Tanggal = i)
         print(datapemusnahanbahanbaku)
         for k in datapemusnahanbahanbaku:
-            keluar += k.Jumlah
-        sisa -= keluar
+            pemusnahan += k.Jumlah
+        sisa -= keluar + pemusnahan
         data['Keluar'] = keluar
+        data['Pemusnahan'] = pemusnahan
 
 
 
@@ -8281,9 +8298,9 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
         output_data.append({
                     'Tanggal': tanggalmulai.strftime('%Y-%m-%d'),
                     'Artikel': None,
+                    'Masuk': None,
                     'Perkotak': None,
                     'Konversi':None,
-                    'Masuk': None,
                     'Keluar': None,
                     'Sisa': jumlahsaldoawal,
                 })
@@ -8315,14 +8332,15 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
                 output_data.append({
                     'Tanggal': tanggal,
                     'Artikel': None,
+                    'Masuk': masuk,
                     'Perkotak': None,
                     'Konversi': None,
-                    'Masuk': masuk,
                     'Keluar': None,
                     'Sisa': sisa_akhir,
                 })
             else:
                 # Menggunakan zip_longest untuk memasukkan setiap artikel, perkotak, konversi, dan keluar
+                statusmasuk = False
                 for artikel, perkotak, konversi, keluar, sisa in zip_longest(artikel_list, perkotak_list, konversi_list, keluar_list, sisa_list, fillvalue=None):
                     # Round konversi to 5 decimal places if it exists
                     konversi = round(konversi, 5) if konversi is not None else None
@@ -8331,16 +8349,19 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
                     sisa_awal = sisa_terakhir
                     sisa_akhir = sisa_awal + masuk - (keluar if keluar is not None else 0)  # Hitung sisa berdasarkan baris
                     sisa_terakhir = sisa_akhir
+                    if statusmasuk == True:
+                        masuk = 0
 
                     output_data.append({
                         'Tanggal': tanggal,
                         'Artikel': artikel,
+                        'Masuk': masuk,
                         'Perkotak': perkotak,
                         'Konversi': konversi,
-                        'Masuk': masuk,
                         'Keluar': keluar,
                         'Sisa': sisa_akhir,
                     })
+                    statusmasuk = True
         dfksbb = pd.DataFrame(output_data)
     print(dfksbb)
     # print(asd)
@@ -8359,9 +8380,9 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
         output_data.append({
                     'Tanggal': '2024',
                     'Artikel': None,
+                    'Masuk': None,
                     'Perkotak': None,
                     'Konversi':None,
-                    'Masuk': None,
                     'Keluar': None,
                     'Sisa': jumlahsaldoawal,
                 })
@@ -9443,6 +9464,7 @@ def rekapakumulasiksbb(request,id,lokasi):
         for item in listdata:
             masuk += item['Masuk']
             keluar += sum(item['Keluar'])
+            print(item)
         
         return render(request,'produksi/view_rekapksbb.html',{'jumlahpemusnahanwip':jumlahpemusnahwip,'jumlahpemusnahanfg':jumlahpemusnahanfg,'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir,'produk':produkobj})
 
@@ -9467,14 +9489,31 @@ def rekapitulasiksbj (request,id,lokasi):
         print(listdata)
         masuk = 0
         keluar = 0
-        for item in listdata:
-            masuk += item['Masukkonversi']
-            keluar += item['Keluar'] + item['Hasil']
+        # for item in listdata:
+        #     masuk += item['Masukkonversi']
+        #     keluar += item['Keluar'] + item['Hasil']
             
         
         print(masuk)
         print(keluar)
-        return render(request,'produksi/view_rekapksbj.html',{'totalpemusnahanfg':totalpemusnahanfg,'totalpemusnahanwip':totalpemusnahanwip,'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir})
+        for item in listdata:
+            print(item.keys())  
+            tanggaldata = datetime.strptime(item['Tanggal'], "%Y-%m-%d")
+            
+            if tanggalmulaidatetime <= tanggaldata <= tanggalakhirdatetime:
+                if lokasi == 'WIP':
+                    masuk += item['Masukkonversi']
+                    keluar += item['Keluar'] + item['Hasil']
+                else:
+                    masuk += item['Penyerahanwip']
+                    keluar += item['Jumlahkirim'] 
+                print(tanggaldata)
+            
+            elif tanggaldata < tanggalmulaidatetime:
+                continue
+            elif tanggaldata > tanggalakhirdatetime:
+                break
+        return render(request,'produksi/view_rekapksbj.html',{'totalpemusnahanfg':totalpemusnahanfg,'totalpemusnahanwip':totalpemusnahanwip,'masuk':masuk,'keluar':keluar,'tanggalawal':tanggalmulai,'tanggalakhir':tanggalakhir,'kodeartikel':Artikelobj})
 
 def rekapitulasiksbjsubkon (request,id):
     produk = models.ProdukSubkon.objects.get(pk = id)

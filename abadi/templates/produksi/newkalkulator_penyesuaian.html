@@ -87,11 +87,11 @@
                                 <label for="">Jumlah Aktual</label>
                                 <div class="input-group">
                                     {% if dataaktual %}
-                                    <input type="number" class="form-control" placeholder="Jumlah Kotak Aktual" min="0"
+                                    <input type="number" class="form-control" placeholder="Jumlah Aktual" min="0"
                                         name="jumlah" value="{{dataaktual}}">
                                     {% else %}
-                                    <input type="number" class="form-control" placeholder="Jumlah Kotak Aktual" min="0"
-                                        name="jumlah">
+                                    <input type="number" class="form-control" placeholder="Jumlah Aktual" min="0"
+                                        name="jumlah" step="any">
                                     {% endif%}
                                     <div class="input-group-append">
                                         <button class="btn btn-sm btn-primary" type="submit">Hitung</button>
@@ -226,6 +226,8 @@
 
 
                 <div class="table-responsive pt-3">
+                                            <h4 class="card-title">Hasil Simulasi</h4>
+
                     {% if data %}
                     <table class="table table-bordered" id="tabelksbb">
                         <thead>

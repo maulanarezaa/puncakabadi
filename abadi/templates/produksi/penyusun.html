@@ -17,6 +17,7 @@
             <div class="card-body">
                 <h4 class="card-title">Penyusun Artikel : <span style="font-weight: lighter;">
                         {{kodeartikel}}</span></h4>
+                        
                 <form action="" method="get">
                     <div class="row">
 
@@ -72,6 +73,8 @@
                 {% endif %}
                 <h4 class="card-title">Versi : <span style="font-weight: lighter;">
                     {{versiterpilihobj.Versi}} {% if versiterpilihobj.isdefault == True %} - Default {% endif %}</span></h4>
+                    <h4 class="card-title">Keterangan Versi : <span style="font-weight: lighter;">{% if versiterpilihobj.Keterangan != None %} {{versiterpilihobj.Keterangan}} {% else  %} - {% endif %}
+                    </span></h4>
                 <div class="table-responsive pt-3">
                     {% if data %}
                     <table class="table table-bordered" id="datapenyusun">

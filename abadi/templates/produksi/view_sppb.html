@@ -26,17 +26,67 @@
             <table class="table table-bordered" id="tabelsppb">
               <thead>
                 <tr>
-                    <th>Tanggal</th>
-                    <th>Nomor SPPB</th>
-                    <th>Keterangan</th>
-                    <th>Action</th>
+                  <th>No</th>
+                  <th>Tanggal</th>
+                  <th>Nomor SPPB</th>
+                  <th>Nomor SPK</th>
+                  <th>Kode Artikel</th>
+                  <th>Jumlah </th>
+                  <th>Keterangan</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {% for i in datasppb %}
                 <tr>
+                  <td>{{forloop.counter}}</td>
                     <td>{{i.Tanggal}}</td>
                     <td>{{i.NoSPPB}}</td>
+                    <td>
+                      <ul>
+                          {% for i in i.detailsppb %}
+                          {% if i.DetailSPKDisplay == None %}
+                          <li>
+                              {{i.DetailSPK.NoSPK}}
+                          </li>
+                          {% else %}
+                          <li>
+
+                              {{i.DetailSPKDisplay.NoSPK}}
+                          </li>
+                          {% endif %}
+                          {% endfor %}
+                      </ul>
+                  </td>
+                  <td>
+                      <ul>
+                          {% for j in i.detailsppb %}
+                      {% if j.DetailSPKDisplay != None %}
+                      <li>
+                          {{j.DetailSPKDisplay.KodeDisplay}}
+                      </li>
+                      {% elif j.DetailBahan != None %}
+                      {{j.DetailBahan.KodeProduk}}
+                      {% else %}
+                      <li>
+                          {{j.DetailSPK.KodeArtikel}}
+                      </li>
+                      {% endif %}
+
+                      {% endfor %}
+                      </ul>
+
+                  </td>
+                  <td>
+                      <ul>
+
+                          {% for i in i.detailsppb %}
+                          <li>
+                              {{ i.Jumlah}}
+                          </li>
+                          {% endfor %}
+                      </ul>
+                  </td>
                     <td>{{i.Keterangan}}</td>
                     <td>
                       <!-- Tambahkan panggilan ke fungsi JavaScript dengan menyediakan ID data -->

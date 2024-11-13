@@ -73,7 +73,11 @@
       $('#myTable').dataTable({
         "order": [[0, "dsc"]],});
       $('#tabelspk').dataTable({
-        "order": [[0, "dsc"]],});
+        "order": [[0, "dsc"]],
+        columnDefs: [
+        { width: '15%', targets: 3 }, // Atur lebar kolom ke-0
+        { width: '15%', targets: 4 }]
+      });
       $('#tabelsppb').dataTable({
         "order": [[0, "dsc"]],});
       $('#tabelpenyesuaian').dataTable();
