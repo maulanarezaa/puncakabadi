@@ -1305,6 +1305,10 @@ def add_mutasi(request):
                     detailspkref = models.DetailSPKDisplay.objects.get(IDDetailSPK=detail_spk)
                 except:
                     detailspkref = None
+                
+                if detail_spk == "":
+                    messages.error(request,"SPK Display Belum di set")
+                    continue
 
                 data_produksi = models.TransaksiProduksi(
                     KodeDisplay=displayref,
