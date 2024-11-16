@@ -6957,13 +6957,14 @@ def calculateksbjsubkon(produk,tanggal_mulai,tanggal_akhir):
         datamasuk = dataproduksi.filter(NoSuratJalan__Tanggal = i)
         for m in datamasuk:
             masuk += m.Jumlah
-        sisa  += masuk
-        data['Masuk'] = masuk
         
+        
+        
+        masukproduksi = 0
         dataproduksimasuk = dataproduksisubkon.filter(Tanggal = i)
         for m in dataproduksimasuk:
-            masuk += m.Jumlah
-        sisa += masuk
+            masukproduksi += m.Jumlah
+        sisa += masuk + masukproduksi
         data['Masuk'] = masuk
         
         # Data Keluar

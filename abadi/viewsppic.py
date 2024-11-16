@@ -1304,8 +1304,11 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
     )
 
 
-def gethargapurchasingperbulan(last_days, stopindex, awaltahun):
-    bahanbaku = models.Produk.objects.with_deleted()
+def gethargapurchasingperbulan(last_days, stopindex, awaltahun,withdeleted = True):
+    if withdeleted == True:
+        bahanbaku = models.Produk.objects.with_deleted()
+    else:
+        bahanbaku = models.Produk.objects.all()
     akhirtahun = date(awaltahun.year,12,31)
     # bahanbaku = models.Produk.objects.filter(KodeProduk="A-101")
 
@@ -2093,7 +2096,7 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
             total = total_saldoawal + total_mutasi - total_pengiriman
             totalsaldo = hargaterakhir[0] * total
             totalsaldoartikel += totalsaldo
-            resultdengansaldoawal.append({'KodeArtikel': kode_artikel, 'total':total,"penyusunfg":konversibahanbaku,'hargafg':hargaterakhir[0],'totalsaldo':totalsaldo})
+            resultdengansaldoawal.append({'KodeArtikel': kode_artikel, 'total':total,"penyusunfg":konversibahanbaku,'hargafg':hargaterakhir[0],'totalsaldo':totalsaldo,'inputmanual':hargaterakhir[1]})
         waktuakhirartikel = time.time()
         print("waktu ambil data database : ", waktuambildata - waktuawal )
         print('Waktu Values : ',waktuvalues-waktuambildata )
@@ -2652,9 +2655,10 @@ def getsaldoawalgudang(request):
 
 def saldogudang(last_days, stopindex, awaltahun,hargapurchasing=None):
     hargaakhirbulanperproduk = hargapurchasing
+
     if hargaakhirbulanperproduk == None:
         hargaakhirbulanperproduk = gethargapurchasingperbulan(
-        last_days, stopindex, awaltahun
+        last_days, stopindex, awaltahun,withdeleted=False
         )
     # print(hargaakhirbulanperproduk)
     # print(asd)

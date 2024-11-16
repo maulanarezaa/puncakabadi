@@ -41,7 +41,7 @@
                                 <td>{{forloop.counter}}</td>
                                 <td>{{item.KodeArtikel}}</td>
                                 <td>{{item.total}}</td>
-                                <td data-order="{{item.hargafg}}">{{item.hargafg|custom_thousands_separator}}</td>
+                                <td data-order="{{item.hargafg}}" {% if item.inputmanual == True %} {% else %} style="background-color: yellow;" {% endif %}>{{item.hargafg|custom_thousands_separator}}</td>
                                 <td data-order="{{item.totalsaldo}}">{{item.totalsaldo|custom_thousands_separator}}</td>
                             </tr>
                             {% endfor %}
