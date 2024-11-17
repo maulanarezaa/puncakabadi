@@ -260,8 +260,10 @@ def delete_versi(request, id):
     kodeversi = models.Versi.objects.get(pk = id)
     print(kodeversi.isdefault)
     if kodeversi.isdefault == True:
-        dataversibaru = models.Versi.objects.filter(KodeArtikel = kodeversi.KodeArtikel).exclude(pk=id).order_by('Tanggal').first()
+        dataversibaru = models.Versi.objects.filter(KodeArtikel = kodeversi.KodeArtikel).exclude(pk=id).order_by('-Tanggal').first()
+
         print(dataversibaru)
+        # print(asd)
         if dataversibaru != None:
             dataversibaru.isdefault = True
             dataversibaru.save()

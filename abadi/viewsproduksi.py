@@ -175,7 +175,10 @@ def view_spk(request):
     for j in dataspk:
         j.Tanggal = j.Tanggal.strftime('%Y-%m-%d')
         total_detail_spk = models.DetailSPK.objects.filter(NoSPK=j).values('KodeArtikel').annotate(total=Sum('Jumlah'))
-        j.detailspk = models.DetailSPK.objects.filter(NoSPK=j)
+        if j.StatusDisplay ==False:
+            j.detailspk = models.DetailSPK.objects.filter(NoSPK=j)
+        else:
+            j.detailspk = models.DetailSPKDisplay.objects.filter(NoSPK=j)
         for detail_spk in total_detail_spk:
             kode_artikel = detail_spk['KodeArtikel']
             total_requested = detail_spk['total']
@@ -2036,7 +2039,7 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,
     '''
     # Menceri data transaksi gudang dengan kode 
     datagudang = models.TransaksiGudang.objects.filter(
-        KodeProduk=produk, tanggal__range=(tanggal_mulai, tanggal_akhir),Lokasi__NamaLokasi=(lokasi),jumlah__gte=0,DetailSPKDisplay__isnull = True
+        KodeProduk=produk, tanggal__range=(tanggal_mulai, tanggal_akhir),Lokasi__NamaLokasi=(lokasi),jumlah__gte=0,DetailSPKDisplay__isnull = True,KeteranganACCPurchasing = True
     )
     dataretur = models.TransaksiGudang.objects.filter(
         KodeProduk=produk, tanggal__range=(tanggal_mulai, tanggal_akhir),Lokasi__NamaLokasi=(lokasi),jumlah__lt=0

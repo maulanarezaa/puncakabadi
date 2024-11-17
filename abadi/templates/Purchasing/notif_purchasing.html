@@ -251,7 +251,7 @@
         <h4 class="card-title">Notifikasi Bahan Baku Keluar Belum ACC</h4>
         <div class="table-responsive pt-3">
          
-          <table class="table table-bordered" id="databarang_notif">
+          <table class="table table-bordered" id="notifikasibaranggudang">
             <thead>
               <tr>
                 <th>Tanggal</th>
@@ -262,9 +262,9 @@
                 <th>Lokasi</th>
                 <th>Status Konfirmasi</th>
                 <th>Action</th>
-            </tr>
+              </tr>
             </thead>
-            <tbody id="tableBody">
+            <tbody >
               {% for i in transaksibelumacc %}
               <tr>
                 <td>{{i.tanggal}}</td>

@@ -475,7 +475,7 @@ def detail_barang(request):
             lokasi__NamaLokasi="Gudang",
         ).order_by("Tanggal")
         datagudang2 = models.TransaksiGudang.objects.filter(
-            KodeProduk__KodeProduk=input_kode, tanggal__year=input_tahun, jumlah__gte=0
+            KodeProduk__KodeProduk=input_kode, tanggal__year=input_tahun, jumlah__gte=0,KeteranganACCPurchasing = True
         ).order_by("tanggal")
         dataretur = models.TransaksiGudang.objects.filter(
             KodeProduk__KodeProduk=input_kode, tanggal__year=input_tahun, jumlah__lt=0
@@ -490,9 +490,11 @@ def detail_barang(request):
         if saldo_awal:
             datasaldoawal = saldo_awal.Jumlah
             sisa = saldo_awal.Jumlah
+            tanggalsaldoawal = saldo_awal.Tanggal.year
         else:
             datasaldoawal = 0
             sisa = 0
+            tanggalsaldoawal = datetime.now().year
         datasjp = (
             models.DetailSuratJalanPembelian.objects.filter(KodeProduk__KodeProduk=input_kode)
             .filter(NoSuratJalan__Tanggal__year=input_tahun)
@@ -566,7 +568,8 @@ def detail_barang(request):
                 "dictdata": dictdata,
                 "datasaldoawal": datasaldoawal,
                 'lokasi' : 'Gudang',
-                'produkobj' : produkobj
+                'produkobj' : produkobj,
+                'tanggalsaldoawal':str(input_tahun)
             },
         )
 

@@ -16,6 +16,9 @@ from django.contrib.auth.decorators import login_required
 import time
 from django.core.cache import cache
 from django.contrib.admin.models import LogEntry
+from .viewspurchasing import getksbbproduk
+
+
 
 
 # Create your views here.
@@ -998,6 +1001,9 @@ def getbarangkeluargudang(last_days,stopindex,awaltahun,hargapurchasing=None):
     # datatransaksigudang = models.TransaksiGudang.objects.filter(Tanggal__range - )
     print(hargapurchasingperbulan)
     listdata = []
+    listksbb = []
+    # for index, hari in enumerate(last_days[:stopindex]):
+    
 
     # print(asd)
     for index, hari in enumerate(last_days[:stopindex]):
@@ -1014,6 +1020,18 @@ def getbarangkeluargudang(last_days,stopindex,awaltahun,hargapurchasing=None):
                 tanggal__range=(last_days[index - 1]+ timedelta(days=1), hari),
                 jumlah__gte=0,
             )
+
+        listbahanbaku = datatransaksigudang.values_list('KodeProduk__KodeProduk',flat=True).distinct()
+        print(listbahanbaku.count())
+        # for dataproduk in listbahanbaku:
+        #     if dataproduk not in listksbb:
+        #         ksbb = getksbbproduk(dataproduk,str(awaltahun.year))
+        #         listksbb.append(ksbb[0])
+        #     else:
+        #         continue
+        # print(listksbb)
+        # print(listksbb[-1])
+        # print(asd)
         totaltransaksi = 0
         for item in datatransaksigudang:
             item.hargasatuan = hargapurchasingperbulan[item.KodeProduk]["data"][index][
@@ -1969,6 +1987,8 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
             datamutasiartikel = models.TransaksiProduksi.objects.filter(Lokasi__NamaLokasi="WIP",Tanggal__range =(awaltahun,hari),Jenis = "Mutasi", KodeArtikel__isnull = False )
             # Mengambil data transaksi display
             datamutasidisplay = models.TransaksiProduksi.objects.filter(Lokasi__NamaLokasi="WIP",Tanggal__range =(awaltahun,hari),Jenis = "Mutasi", KodeDisplay__isnull = False ).order_by('Tanggal')
+            print(datamutasidisplay)
+            # print(asd)
             # Mengambil total data transaksi pengeluaran barang dari FG Artikel
             datapengeluaranartikel = models.DetailSPPB.objects.filter(NoSPPB__Tanggal__range = (awaltahun,hari),DetailSPK__isnull=False)
             # Mengambil total data transaksi pengeluaran barang dari FG Display
@@ -1994,6 +2014,7 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
 
         jumlahmutasidisplay = datamutasidisplay.values('KodeDisplay__KodeDisplay').annotate(total = Sum('Jumlah'))
         # print(jumlahmutasidisplay)
+        # print(asd)
 
         jumlahpengirimanartikel = datapengeluaranartikel.values('DetailSPK__KodeArtikel__KodeArtikel').annotate(total = Sum('Jumlah'))
         
@@ -2014,6 +2035,8 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
         permintaanbahanbaku_dict = {item['KodeProduk__KodeProduk']: item['total'] for item in totalpermintaanbahanbaku}
         saldoawalbahanbaku_dict = {item['IDBahanBaku__KodeProduk']: item['total'] for item in jumlahdatasaldoawalbahanbaku}
         mutasidisplay_dict = {item['KodeDisplay__KodeDisplay']: item['total'] for item in jumlahmutasidisplay}
+        print(mutasidisplay_dict)
+        # print(asd)
         pengirimandisplay_dict = {item['DetailSPKDisplay__KodeDisplay__KodeDisplay']: item['total'] for item in jumlahpengirimandisplay}
         all_kode_artikel = set(mutasi_dict.keys()).union(set(pengiriman_dict.keys()))
         # print(permintaanbahanbaku_dict)
@@ -2123,9 +2146,10 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
             # print(asd)
             nilaijumlahkirim = total_pengiriman
             sisapermintaan = 0
+            datamutasifiltered = datamutasidisplay.filter(KodeDisplay__KodeDisplay = kode_display.KodeDisplay)
             if total_mutasi > 0 or total_pengiriman > 0:
                 valid = False
-                for num,datadetailmutasidisplay in enumerate(datamutasidisplay):
+                for num,datadetailmutasidisplay in enumerate(datamutasifiltered):
                     sisapermintaan = datadetailmutasidisplay.Jumlah - nilaijumlahkirim
                     if sisapermintaan < 0 :
                         nilaijumlahkirim = abs(sisapermintaan)
@@ -2141,8 +2165,10 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
                     stokxhargaperspk = 0
                     jumlahspk = 0
                     weightedaverage = 0
+                    jumlahstokdisplay = 0
 
-                    for num,datadetailmutasidisplay in enumerate(datamutasidisplay):
+                    for num,datadetailmutasidisplay in enumerate(datamutasifiltered):
+                        
                         hargafgdisplay = 0
                         if num == 0 :
                             jumlahstokdisplay = sisapermintaan
@@ -2187,6 +2213,8 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
                 weightedaverage = 0
             totalsaldodisplay += stokxhargaperspk
             resultdisplay.append({'KodeDisplay': kode_display, 'total':jumlahspk,'hargafg':weightedaverage,'totalsaldo':stokxhargaperspk})
+            print(resultdisplay)
+            # print(asd)
 
         waktuakhirdisplay = time.time()
         print('waktu proses display : ', waktuakhirdisplay-waktudisplay)
