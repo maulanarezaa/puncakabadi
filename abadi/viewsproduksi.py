@@ -2039,7 +2039,7 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,
     '''
     # Menceri data transaksi gudang dengan kode 
     datagudang = models.TransaksiGudang.objects.filter(
-        KodeProduk=produk, tanggal__range=(tanggal_mulai, tanggal_akhir),Lokasi__NamaLokasi=(lokasi),jumlah__gte=0,DetailSPKDisplay__isnull = True,KeteranganACCPurchasing = True
+        KodeProduk=produk, tanggal__range=(tanggal_mulai, tanggal_akhir),Lokasi__NamaLokasi=(lokasi),jumlah__gte=0,DetailSPKDisplay__isnull = True,KeteranganACC = True
     )
     dataretur = models.TransaksiGudang.objects.filter(
         KodeProduk=produk, tanggal__range=(tanggal_mulai, tanggal_akhir),Lokasi__NamaLokasi=(lokasi),jumlah__lt=0

@@ -2117,7 +2117,10 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
             waktuhargaakhir = time.time()
             nilaiwaktuharga += waktuhargaakhir-waktuhargaawal
             total = total_saldoawal + total_mutasi - total_pengiriman
-            totalsaldo = hargaterakhir[0] * total
+            if total < 0 : 
+                totalsaldo = 0
+            else:
+                totalsaldo = hargaterakhir[0] * total
             totalsaldoartikel += totalsaldo
             resultdengansaldoawal.append({'KodeArtikel': kode_artikel, 'total':total,"penyusunfg":konversibahanbaku,'hargafg':hargaterakhir[0],'totalsaldo':totalsaldo,'inputmanual':hargaterakhir[1]})
         waktuakhirartikel = time.time()
@@ -2254,6 +2257,7 @@ def getstokfg(request,lastdays, stopindex,awaltahun,hargapurchasing=None):
         
         akhir1loop = time.time()
     print('waktu akhir 1 loop : ',akhir1loop-waktuawal)
+    print(resultdengansaldoawal)
     # print(asd)
         
     return data

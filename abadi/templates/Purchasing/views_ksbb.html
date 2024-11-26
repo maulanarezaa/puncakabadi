@@ -118,16 +118,16 @@
                             {% for i in data %}
                             <tr>
                                 <td>{{i.Tanggal}}</td>
-                                <td>{{i.Jumlahmasuk|separator_ribuan}}</td>
+                                <td>{{i.Jumlahmasuk|custom_thousands_separator}}</td>
                                 <td>{{i.Hargamasuksatuan|custom_thousands_separator}}</td>
                                 <td>{{i.Hargamasuktotal|custom_thousands_separator}}</td>
-                                <td>{{i.Jumlahkeluar|separator_ribuan}}</td>
+                                <td>{{i.Jumlahkeluar|custom_thousands_separator}}</td>
                                 <td>{{i.Hargakeluarsatuan|custom_thousands_separator}}</td>
                                 <td>{{i.Hargakeluartotal|custom_thousands_separator}}</td>
                                 {% if kode_produk.KodeProduk == "D-003-13" %}
                                 <td>{{i.Sisahariini|separator_ribuand00313}}</td>
                                 {% else %}
-                                <td>{{i.Sisahariini|separator_ribuan}}</td>
+                                <td>{{i.Sisahariini|custom_thousands_separator}}</td>
                                 {% endif %}
                                 <td>{{i.Hargasatuansisa|custom_thousands_separator}}</td>
                                 <td>{{i.Hargatotalsisa|custom_thousands_separator}}</td>

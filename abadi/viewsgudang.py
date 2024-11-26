@@ -475,7 +475,7 @@ def detail_barang(request):
             lokasi__NamaLokasi="Gudang",
         ).order_by("Tanggal")
         datagudang2 = models.TransaksiGudang.objects.filter(
-            KodeProduk__KodeProduk=input_kode, tanggal__year=input_tahun, jumlah__gte=0,KeteranganACCPurchasing = True
+            KodeProduk__KodeProduk=input_kode, tanggal__year=input_tahun, jumlah__gte=0,KeteranganACC = True
         ).order_by("tanggal")
         dataretur = models.TransaksiGudang.objects.filter(
             KodeProduk__KodeProduk=input_kode, tanggal__year=input_tahun, jumlah__lt=0

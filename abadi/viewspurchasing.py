@@ -2523,7 +2523,7 @@ def getksbbproduk(kodeproduk,periode):
     tanggalmasuk = masukobj.values_list("NoSuratJalan__Tanggal", flat=True)
 
     keluarobj = models.TransaksiGudang.objects.filter(
-        jumlah__gte=0, KodeProduk__KodeProduk=produkobj.KodeProduk, tanggal__range=(awaltahun,akhirtahun),KeteranganACCPurchasing=True
+        jumlah__gte=0, KodeProduk__KodeProduk=produkobj.KodeProduk, tanggal__range=(awaltahun,akhirtahun),KeteranganACC=True
     )
     returobj = models.TransaksiGudang.objects.filter(
         jumlah__lt=0, KodeProduk__KodeProduk=produkobj.KodeProduk, tanggal__range=(awaltahun,akhirtahun)
