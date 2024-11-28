@@ -14,6 +14,7 @@ from urllib.parse import urlencode, quote
 import math
 from .viewsproduksi import calculate_ksbj,calculate_KSBB
 import re
+from .viewspurchasing import getksbbproduk
 
 
 # Create your views here.
@@ -621,210 +622,14 @@ def views_rekapharga(request):
         kode_produk = request.GET["kode_produk"]
         tahun = request.GET["tahun"]
         tahun_period = tahun
-
-        if tahun == "":
-            tahun = "2024"
-
-        tahun = datetime.strptime(tahun, format("%Y"))
-        awaltahun = datetime(tahun.year, 1, 1)
-        akhirtahun = datetime(tahun.year, 12, 31)
-
-        try:
-            produkobj = models.Produk.objects.get(KodeProduk=kode_produk)
-        except models.Produk.DoesNotExist:
+        produkobj = models.Produk.objects.with_deleted().filter(KodeProduk = kode_produk).first()
+        if produkobj == None:
             messages.error(request, "Kode bahan baku tidak ditemukan")
             return render(
                 request, "rnd/views_ksbb.html", {"kodeprodukobj": kodeprodukobj}
             )
-        masukobj = models.DetailSuratJalanPembelian.objects.filter(
-            KodeProduk__KodeProduk=produkobj.KodeProduk, NoSuratJalan__Tanggal__gte=awaltahun
-        )
-
-        tanggalmasuk = masukobj.values_list("NoSuratJalan__Tanggal", flat=True)
-
-        keluarobj = models.TransaksiGudang.objects.filter(
-            jumlah__gte=0, KodeProduk__KodeProduk=produkobj.KodeProduk, tanggal__gte=awaltahun
-        )
-        returobj = models.TransaksiGudang.objects.filter(
-            jumlah__lt=0, KodeProduk__KodeProduk=produkobj.KodeProduk, tanggal__gte=awaltahun
-        )
-        tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
-        tanggalretur = returobj.values_list("tanggal", flat=True)
-        print("ini kode bahan baku", keluarobj)
-        saldoawalobj = (
-            models.SaldoAwalBahanBaku.objects.filter(
-                IDBahanBaku__KodeProduk=produkobj.KodeProduk,
-                IDLokasi__IDLokasi=3,
-                Tanggal__range=(awaltahun, akhirtahun),
-            )
-            .order_by("-Tanggal")
-            .first()
-        )
-        print(saldoawalobj)
-        print(keluarobj)
-        print(returobj)
-        print(masukobj)
-        print(saldoawalobj)
+        listdata,saldoawalobj,hargaterakhir = getksbbproduk(kode_produk,tahun)
         
-        # print(asdas)
-        if saldoawalobj:
-            print("ada data")
-            saldoawal = saldoawalobj.Jumlah
-            hargasatuanawal = saldoawalobj.Harga
-            hargatotalawal = saldoawal * hargasatuanawal
-            tahun = saldoawalobj.Tanggal.year
-        else:
-            saldoawal = 0
-            hargasatuanawal = 0
-            hargatotalawal = saldoawal * hargasatuanawal
-            tahun = awaltahun.year
-        saldoawalobj = {
-            "saldoawal": saldoawal,
-            "hargasatuanawal": hargasatuanawal,
-            "hargatotalawal": hargatotalawal,
-            "tanggal": tahun,
-        }
-        hargaterakhir = 0
-        listdata = []
-        # print(tanggalmasuk)
-        # print(tanggalkeluar)
-        listtanggal = sorted(
-            list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalretur)))
-        )
-        print(listtanggal)
-        statusmasuk = False
-        for i in listtanggal:
-            jumlahmasukperhari = 0
-            hargamasuktotalperhari = 0
-            hargamasuksatuanperhari = 0
-            jumlahkeluarperhari = 0
-            hargakeluartotalperhari = 0
-            hargakeluarsatuanperhari = 0
-            sjpobj = masukobj.filter(NoSuratJalan__Tanggal=i)
-            if sjpobj.exists():
-                for j in sjpobj:
-                    hargamasuktotalperhari += j.Harga * j.Jumlah
-                    jumlahmasukperhari += j.Jumlah
-                hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
-                # print("data SJP ada")
-                # print(hargamasuksatuanperhari)
-                # print(jumlahmasukperhari)
-                dumy = {
-                    "Tanggal": i.strftime("%Y-%m-%d"),
-                    "Jumlahstokawal": saldoawal,
-                    "Hargasatuanawal": round(hargasatuanawal, 2),
-                    "Hargatotalawal": round(hargatotalawal, 2),
-                    "Jumlahmasuk": jumlahmasukperhari,
-                    "Hargamasuksatuan": round(hargamasuksatuanperhari, 2),
-                    "Hargamasuktotal": round(hargamasuktotalperhari, 2),
-                    "Jumlahkeluar": jumlahkeluarperhari,
-                    "Hargakeluarsatuan": round(hargakeluarsatuanperhari, 2),
-                    "Hargakeluartotal": round(hargakeluartotalperhari, 2),
-                }
-                saldoawal += jumlahmasukperhari - jumlahkeluarperhari
-                hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
-                try:
-                    hargasatuanawal = hargatotalawal / saldoawal
-                except ZeroDivisionError:
-                    hargasatuanawal = 0 
-
-                # print("Sisa Stok Hari Ini : ", saldoawal)
-                # print("harga awal Hari Ini :", hargasatuanawal)
-                # print("harga total Hari Ini :", hargatotalawal, "\n")
-                dumy["Sisahariini"] = saldoawal
-                dumy["Hargasatuansisa"] = round(hargasatuanawal, 2)
-                dumy["Hargatotalsisa"] = round(hargatotalawal, 2)
-                print(dumy)
-                statusmasuk = True
-                listdata.append(dumy)
-                # print(asdasd)
-
-            hargamasuktotalperhari = 0
-            jumlahmasukperhari = 0
-            hargamasuksatuanperhari = 0
-
-            transaksigudangobj = keluarobj.filter(tanggal=i)
-            print(transaksigudangobj)
-            if transaksigudangobj.exists():
-                for j in transaksigudangobj:
-                    jumlahkeluarperhari += j.jumlah
-                    hargakeluartotalperhari += j.jumlah * hargasatuanawal
-                hargakeluarsatuanperhari += (
-                    hargakeluartotalperhari / jumlahkeluarperhari
-                )
-            else:
-                if statusmasuk:
-                    statusmasuk = False
-                    continue
-                hargakeluartotalperhari = 0
-                hargakeluarsatuanperhari = 0
-                jumlahkeluarperhari = 0
-
-            transaksireturobj = returobj.filter(tanggal=i)
-            if transaksireturobj.exists():
-                for j in transaksireturobj:
-                    jumlahmasukperhari += j.jumlah * -1
-                    hargamasuktotalperhari += j.jumlah * hargasatuanawal * -1
-                hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
-            else:
-                hargamasuktotalperhari = 0
-                hargamasuksatuanperhari = 0
-                jumlahmasukperhari = 0
-
-            # print("Tanggal : ", i)
-            # print("Sisa Stok Hari Sebelumnya : ", saldoawal)
-            # print("harga awal Hari Sebelumnya :", hargasatuanawal)
-            # print("harga total Hari Sebelumnya :", hargatotalawal)
-            # print("Jumlah Masuk : ", jumlahmasukperhari)
-            # print("Harga Satuan Masuk : ", hargamasuksatuanperhari)
-            # print("Harga Total Masuk : ", hargamasuktotalperhari)
-            # print("Jumlah Keluar : ", jumlahkeluarperhari)
-            # print("Harga Keluar : ", hargakeluarsatuanperhari)
-            # print(
-            #     "Harga Total Keluar : ", hargakeluarsatuanperhari * jumlahkeluarperhari
-            # )
-            
-
-            dumy = {
-                "Tanggal": i.strftime("%Y-%m-%d"),
-                "Jumlahstokawal": saldoawal,
-                "Hargasatuanawal": round(hargasatuanawal, 2),
-                "Hargatotalawal": round(hargatotalawal, 2),
-                "Jumlahmasuk": jumlahmasukperhari,
-                "Hargamasuksatuan": round(hargamasuksatuanperhari, 2),
-                "Hargamasuktotal": round(hargamasuktotalperhari, 2),
-                "Jumlahkeluar": jumlahkeluarperhari,
-                "Hargakeluarsatuan": round(hargakeluarsatuanperhari, 2),
-                "Hargakeluartotal": round(hargakeluartotalperhari, 2),
-            }
-            """
-            Rumus dari Excel KSBB Purchasing
-            Sisa = Sisa hari sebelumnya + Jumlah masuk hari ini - jumlah keluar hari ini 
-            harga sisa satuan = total sisa / harga total sisa
-            Harga keluar = harga satuan hari sebelumnya
-
-            """
-            dummysaldoawal = saldoawal
-            dummyhargatotalawal = hargatotalawal
-            dummyhargasatuanawal = hargasatuanawal
-
-            saldoawal += jumlahmasukperhari - jumlahkeluarperhari
-            hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
-            try:
-                hargasatuanawal = hargatotalawal / saldoawal
-            except:
-                hargasatuanawal = 0
-
-            # print("Sisa Stok Hari Ini : ", saldoawal)
-            # print("harga awal Hari Ini :", hargasatuanawal)
-            # print("harga total Hari Ini :", hargatotalawal, "\n")
-            dumy["Sisahariini"] = saldoawal
-            dumy["Hargasatuansisa"] = hargasatuanawal 
-            dumy["Hargatotalsisa"] = hargatotalawal
-
-            listdata.append(dumy)
-
-        hargaterakhir += hargasatuanawal
 
         return render(
             request,
