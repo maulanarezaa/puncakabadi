@@ -8,7 +8,7 @@ import pandas as pd
 
 
 @receiver(post_save, sender=models.Produk)
-@receiver(post_save, sender=models.TransaksiGudang)
+# @receiver(post_save, sender=models.TransaksiGudang)
 @receiver(post_save, sender=models.SaldoAwalBahanBaku)
 @receiver(post_save, sender=models.DetailSuratJalanPembelian)
 @receiver(post_save, sender=models.PemusnahanBahanBaku)
@@ -17,10 +17,13 @@ import pandas as pd
 @receiver(post_delete, sender=models.DetailSuratJalanPembelian)
 @receiver(post_delete, sender=models.PemusnahanBahanBaku)
 def updatehargapurchasing(sender, instance, **kwargs):
+    isbreak = False
     print(f'Updating for {sender.__name__}')
     if isinstance(instance,models.TransaksiGudang):
         tanggal = datetime.strptime(str(instance.tanggal), '%Y-%m-%d').date()
         kodeproduk = instance.KodeProduk
+        if instance.KeteranganACC == False:
+            isbreak = True
     elif isinstance(instance,models.SaldoAwalBahanBaku):
         tanggal = datetime.strptime(str(instance.Tanggal), '%Y-%m-%d').date()
         kodeproduk = instance.IDBahanBaku
@@ -33,11 +36,10 @@ def updatehargapurchasing(sender, instance, **kwargs):
     elif isinstance(instance,models.Produk):
         tanggal = datetime.now().date()
         kodeproduk = instance
-    
     data = gethargapurchasingperbulanperproduk(tanggal, kodeproduk)
-    if data != None:
+    if data != None and isbreak == False:
         df = pd.DataFrame(data)
-        print(df)
+        # print(df)
         # Konversi kolom 'Tanggal' ke tipe datetime
         df['Tanggal'] = pd.to_datetime(df['Tanggal'])
 
@@ -52,7 +54,7 @@ def updatehargapurchasing(sender, instance, **kwargs):
 
         # Mengelompokkan data berdasarkan 'EndOfMonth' dan mengambil baris terakhir
         end_of_month_data = df.groupby('EndOfMonth').last().reset_index()
-        print(end_of_month_data)
+        # print(end_of_month_data)
         # print(asd)
         # Mengubah nama kolom sesuai kebutuhan
         end_of_month_data = end_of_month_data.rename(columns={
@@ -77,14 +79,14 @@ def updatehargapurchasing(sender, instance, **kwargs):
 
         # Mengisi NaN dengan 0 untuk bulan-bulan yang tidak memiliki data
         # print(non_zero_months)
-        print(full_year_df)
+        # print(full_year_df)
         full_year_df['EndOfMonthPrice'] = full_year_df['EndOfMonthPrice'].ffill()
         # Cek bulan dengan data yang tidak kosong
         non_zero_months = full_year_df[full_year_df['Balance'] > 0].index
-        print(full_year_df)
+        # print(full_year_df)
         # full_year_df.fillna({'Balance': 0, 'EndOfMonthPrice': 0}, inplace=True)
         full_year_df = full_year_df.ffill()
-        print(full_year_df)
+        # print(full_year_df)
         # print(full_year_df.ffill())
         # print(asd)
 
@@ -125,7 +127,7 @@ def updatehargapurchasing(sender, instance, **kwargs):
         full_year_df.reset_index(inplace=True)
 
         # Menampilkan DataFrame yang telah diolah
-        print(full_year_df)
+        # print(full_year_df)
         # print(ads)
         for item in full_year_df.itertuples(index=False):
             models.CacheValue.objects.update_or_create(
@@ -155,19 +157,32 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
     ).first()
 
 
+    # masukobj = models.DetailSuratJalanPembelian.objects.filter(
+    #     KodeProduk=bahanbaku, NoSuratJalan__Tanggal__range=(awaltahun, akhirtahun)
+    # )
+    # keluarobj = models.TransaksiGudang.objects.filter(
+    #     KodeProduk=bahanbaku,jumlah__gte=0, tanggal__range=(awaltahun, akhirtahun),KeteranganACC = True
+    # )
+    # pemusnahanobj = models.PemusnahanBahanBaku.objects.filter(
+    #     KodeBahanBaku=bahanbaku, Tanggal__range=(awaltahun, akhirtahun),lokasi__NamaLokasi = "Gudang"
+    # )
+    # returobj = models.TransaksiGudang.objects.filter(
+    #         jumlah__lt=0, KodeProduk=bahanbaku, tanggal__range=(awaltahun,akhirtahun),KeteranganACC=True
+    #     )
     masukobj = models.DetailSuratJalanPembelian.objects.filter(
-        KodeProduk=bahanbaku, NoSuratJalan__Tanggal__range=(awaltahun, akhirtahun)
+        KodeProduk=bahanbaku, NoSuratJalan__Tanggal__range=(awaltahun,akhirtahun)
     )
+    tanggalmasuk = masukobj.values_list("NoSuratJalan__Tanggal", flat=True)
+
     keluarobj = models.TransaksiGudang.objects.filter(
-        KodeProduk=bahanbaku,jumlah__gte=0, tanggal__range=(awaltahun, akhirtahun)
-    )
-    pemusnahanobj = models.PemusnahanBahanBaku.objects.filter(
-        KodeBahanBaku=bahanbaku, Tanggal__range=(awaltahun, akhirtahun),lokasi__NamaLokasi = "Gudang"
+        jumlah__gte=0, KodeProduk=bahanbaku, tanggal__range=(awaltahun,akhirtahun),KeteranganACC=True
     )
     returobj = models.TransaksiGudang.objects.filter(
-            jumlah__lt=0, KodeProduk=bahanbaku, tanggal__range=(awaltahun,akhirtahun)
-        )
-    
+        jumlah__lt=0, KodeProduk=bahanbaku, tanggal__range=(awaltahun,akhirtahun)
+    )
+    pemusnahanobj = models.PemusnahanBahanBaku.objects.filter(
+        lokasi__NamaLokasi = 'Gudang',KodeBahanBaku = bahanbaku, Tanggal__range = (awaltahun,akhirtahun)
+    )
     
     if saldoawalobj:
             # print("ada data")
@@ -291,16 +306,16 @@ def gethargapurchasingperbulanperproduk(tanggal, kodeproduk):
             hargakeluarsatuanperhari = 0
             jumlahkeluarperhari = 0
 
-        transaksireturobj = returobj.filter(tanggal=i)
-        if transaksireturobj.exists():
-            for j in transaksireturobj:
-                jumlahmasukperhari += j.jumlah * -1
-                hargamasuktotalperhari += j.jumlah * hargasatuanawal * -1
-            hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
-        else:
-            hargamasuktotalperhari = 0
-            hargamasuksatuanperhari = 0
-            jumlahmasukperhari = 0
+        # transaksireturobj = returobj.filter(tanggal=i)
+        # if transaksireturobj.exists():
+        #     for j in transaksireturobj:
+        #         jumlahmasukperhari += j.jumlah * -1
+        #         hargamasuktotalperhari += j.jumlah * hargasatuanawal * -1
+        #     hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
+        # else:
+        #     hargamasuktotalperhari = 0
+        #     hargamasuksatuanperhari = 0
+        #     jumlahmasukperhari = 0
 
 
         # print("Tanggal : ", i)

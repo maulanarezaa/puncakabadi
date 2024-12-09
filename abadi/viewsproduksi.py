@@ -2025,7 +2025,7 @@ def delete_gudangretur(request, id):
 
 
 # Rekapitulasi
-def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,startdate=None,enddate=None,requests=None):
+def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,startdate=None,enddate=None,requests=None,konversibaru = None):
     '''
     Perhitungan KSBB : 
     1. Jumlah Transaksi Gudang dalam rentang 1 tahun per produk 
@@ -2310,8 +2310,10 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,
                     # print(asd)
                 if startdate != None and enddate !=None:
                     if startdate.date()<=i<=enddate.date():
-                        if kalkulator:
-                            konversi = penyusunartikelkeluar
+                        if kalkulator and konversibaru :
+                            konversi = konversibaru[j.KodeArtikel.KodeArtikel]['konversiakhir']
+                            print(konversi)
+                            print(konversibaru)
                 # print(konversi)
                 # print(produk,i,konversi,j.KodeArtikel)
                 # print(asd)
@@ -2325,6 +2327,13 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,
                 datamodelssisa.append(sisa)
                 if sisa < 0  and requests != None:
                     messages.warning(requests,f'Sisa stok menjadi negatif pada tanggal {i}')
+                print(totalpenggunaanbahanbaku)
+                print(totalartikelmutasi)
+                print(konversi)
+                print(j)
+                # if konversibaru:
+                    # print(asd)
+
                     
         else:
             print(i)
@@ -2350,8 +2359,8 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,
                     # print(asd)
                 if startdate != None and enddate !=None:
                     if startdate.date()<=i<=enddate.date():
-                        if kalkulator:
-                            konversi = penyusunartikelkeluar
+                        if kalkulator and konversibaru:
+                            konversi = konversibaru[j.KodeArtikel.KodeArtikel]['konversiakhir']
                 # print(konversi)
                 # print(produk,i,konversi,j.KodeArtikel)
                 # print(asd)
@@ -2364,8 +2373,6 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,
                 sisa -= totalpenggunaanbahanbaku
                 datamodelssisa.append(sisa)
 
-
-            # print(asd)
         
         for j in datapemusnahan:
             penyesuaianobj = models.Penyesuaian.objects.filter( KodeProduk = produk ,KodeArtikel = j.KodeArtikel, TanggalMulai__range = (tanggal_mulai,tanggal_akhir)).order_by('TanggalMulai')
@@ -2381,8 +2388,8 @@ def calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,kalkulator = False,
                 konversi = penyesuaianobj.konversi
             if startdate != None and enddate !=None:
                 if startdate.date()<=i<=enddate.date():
-                    if kalkulator:
-                        konversi = penyusunartikelkeluar
+                    if kalkulator and konversibaru:
+                        konversi = konversibaru[j.KodeArtikel.KodeArtikel]['konversiakhir']
             totalpenggunaanbahanbaku = totalartikelpemusnahan * konversi
             datamodelskonversi.append(konversi)
             datamodelskeluar.append(totalpenggunaanbahanbaku)
@@ -4313,6 +4320,11 @@ def kalkulatorpenyesuaian2(request):
         lokasi = request.GET['lokasi']
         listdata,saldoawal = calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi)
         print(listdata) 
+        if len(listdata) == 0:
+            messages.warning(request,f'Tidak ditemukan transaksi ')
+            return render(
+            request,
+            "produksi/kalkulator_penyesuaian.html",{"kodeprodukobj": kodeproduk})
         # print(asd)    
 
         datasisaminus = 0
@@ -4407,9 +4419,15 @@ def kalkulatorpenyesuaian2(request):
             # if penyesuaianobj.exists():
             #     datapenyesuaianawal = penyesuaianobj.order_by('TanggalMulai').first()
             #     messages.warning(request,f"Sudah ada record penyesuai dengan tanggal mulai {datapenyesuaianawal.TanggalMulai}\nTanggal mulai disetting pada {datapenyesuaianawal.TanggalMulai + timedelta(1)}")
-            print(listdata[0])
+            # print(listdata[0])
             listdata,saldoawal = calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,True,startdate,enddate)
-            print(listdata[0])
+            print(listdata)
+            if len(listdata) == 0:
+                messages.warning(request,f'Tidak ditemukan transaksi ')
+                return render(
+                request,
+                "produksi/kalkulator_penyesuaian.html",{"kodeprodukobj": kodeproduk},
+)
             # print(asd)
 
             for item in listdata:
@@ -4435,7 +4453,7 @@ def kalkulatorpenyesuaian2(request):
                 
                 jumlahkeluar += sum(item['Keluar'])
             print(jumlahxkonversidictionary)
-            print(sisa,item)
+            # print(sisa,item)
             # print(asd)
             saldodata = sisa[-1]
             # print(asd)
@@ -4463,6 +4481,7 @@ def kalkulatorpenyesuaian2(request):
             print(keluarpenyesuaian)
             # print(asd)
             datakonversiakhir = {}
+
             for key,value in jumlahxkonversidictionary.items():
                 try:
                     jumlahpenyesuaian =  keluarpenyesuaian/value['jumlah']
@@ -4475,56 +4494,60 @@ def kalkulatorpenyesuaian2(request):
             
             print(f'Keluar Penyesuaian : {keluarpenyesuaian} Jumlah Keluar : {jumlahkeluar} Saldo Aktual : {saldoaktual} Saldo Data : {saldodata}')
             print(datakonversiakhir)
+            # print(asd)
+            listdata,saldoawal = calculate_KSBB(produk,tanggal_mulai,tanggal_akhir,lokasi,True,startdate,enddate,konversibaru=datakonversiakhir)
+            print(listdata)
+            # print(asd)
+
             saldoakhirperhari = None
+            statusberubah = False
             print(listdata[0])
-            for i,item in enumerate(listdata):
-                # print(item)
-                tanggal = item['Tanggal']
-                datetimetanggal = datetime.strptime(tanggal,"%Y-%m-%d")
-                if datetimetanggal > enddate:
-                    break
-                if datetimetanggal < startdate:
-                    continue
-                print(datetimetanggal,startdate)
-                if item['Artikel']:
-                    for x,(artikel,jumlah,konversi) in enumerate(zip(item['Artikel'],item['Perkotak'],item['Konversi'])):
-                        print(artikel,jumlah,konversi)
-                        try:
-                            konversi = datakonversiakhir[artikel]['konversiakhir']
-                        except KeyError:
-                            konversi = konversi
-                        listdata[i]['Konversi'][x]= konversi
-                        if saldoakhirperhari == None:
-                            saldoakhirperhari =  listdata[i]['Sisa'][x] + listdata[i]['Keluar'][x]
-                        listdata[i]['Keluar'][x] = konversi * jumlah
-                        saldoakhirperhari -= listdata[i]['Keluar'][x]
+            # for i,item in enumerate(listdata):
+            #     tanggal = item['Tanggal']
+            #     datetimetanggal = datetime.strptime(tanggal,"%Y-%m-%d")
+            #     if datetimetanggal < startdate:
+            #         continue
+            #     print(datetimetanggal,startdate)
+            #     if item['Artikel']:
+            #         print(item)
+            #         for x,(artikel,jumlah,konversi) in enumerate(zip(item['Artikel'],item['Perkotak'],item['Konversi'])):
+            #             print(artikel,jumlah,konversi)
+            #             try:
+            #                 konversi = datakonversiakhir[artikel]['konversiakhir']
+            #             except KeyError:
+            #                 konversi = konversi
+            #             listdata[i]['Konversi'][x]= konversi
+            #             if saldoakhirperhari == None:
+            #                 saldoakhirperhari =  listdata[i]['Sisa'][x] + listdata[i]['Keluar'][x]
+            #             listdata[i]['Keluar'][x] = konversi * jumlah
+            #             saldoakhirperhari -= listdata[i]['Keluar'][x]
                     
-                    saldoakhirperhari += listdata[i]['Masuk']
-                    listdata[i]['Sisa'][x] = saldoakhirperhari
-                    if len(listdata[i]['Keluar']) != x+1:
-                        j = 1
-                        for pemusnahan in listdata[i]['Keluar'][x+1:]:
-                            saldoakhirperhari -= pemusnahan
-                        print(item)
-                        print(saldoakhirperhari)
-                        print(x)
-                        listdata[i]['Sisa'][x+j] = saldoakhirperhari
+            #         saldoakhirperhari += listdata[i]['Masuk']
+            #         listdata[i]['Sisa'][x] = saldoakhirperhari
+            #         if len(listdata[i]['Keluar']) != x+1:
+            #             j = 1
+            #             for pemusnahan in listdata[i]['Keluar'][x+1:]:
+            #                 saldoakhirperhari -= pemusnahan
+            #             print(item)
+            #             print(saldoakhirperhari)
+            #             print(x)
+            #             listdata[i]['Sisa'][x+j] = saldoakhirperhari
 
-                    # print(asd)
+            #         # print(asd)
 
-                else:
-                    print(item)
-                    print(saldoakhirperhari)
-                    if saldoakhirperhari == None:
-                        saldoakhirperhari = 0
-                    jumlahkeluar = 0
-                    if listdata[i]['Keluar']:
-                        jumlahkeluar = sum(listdata[i]['Keluar'])
-                    print(jumlahkeluar)
-                    listdata[i]['Sisa'][0] = saldoakhirperhari +  listdata[i]['Masuk']-jumlahkeluar
-                    saldoakhirperhari =listdata[i]['Sisa'][0] 
+            #     else:
+            #         print(item)
+            #         print(saldoakhirperhari)
+            #         if saldoakhirperhari == None:
+            #             saldoakhirperhari = 0
+            #         jumlahkeluar = 0
+            #         if listdata[i]['Keluar']:
+            #             jumlahkeluar = sum(listdata[i]['Keluar'])
+            #         print(jumlahkeluar)
+            #         listdata[i]['Sisa'][0] = saldoakhirperhari +  listdata[i]['Masuk']-jumlahkeluar
+            #         saldoakhirperhari =listdata[i]['Sisa'][0] 
 
-                    # print(asd)
+            #         # print(asd)
                         
 
                         

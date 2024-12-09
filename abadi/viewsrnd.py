@@ -2346,13 +2346,29 @@ def updatepenyusundarikonversimaster(request):
     # print(surat_jalan_without_detail)
     '''CEK SURAT JALAN PRODUK SUBKON YANG TIDAK MEMILIKI DETAIL'''
     ''''''
-    tanggal_mulai = date(2024, 3, 22).strftime('%Y-%m-%d')  # Sesuaikan dengan tahun yang diinginkan
-    tanggal_akhir = date(2024, 9, 12).strftime('%Y-%m-%d')  # Sesuaikan dengan tahun yang diinginkan
+#     tanggal_mulai = date(2024, 3, 22).strftime('%Y-%m-%d')  # Sesuaikan dengan tahun yang diinginkan
+#     tanggal_akhir = date(2024, 9, 12).strftime('%Y-%m-%d')  # Sesuaikan dengan tahun yang diinginkan
+
+# # Hapus data dengan filter rentang tanggal
+#     data = models.SuratJalanPembelian.objects.filter(Tanggal__range=(tanggal_mulai, tanggal_akhir))
+#     print(data)
+#     data.delete()
+    '''
+    Update Keterangan ACC Gudang
+    '''
+    tanggal_mulai = date(2024, 1, 1).strftime('%Y-%m-%d')  # Sesuaikan dengan tahun yang diinginkan
+    tanggal_akhir = date(2024, 11, 28).strftime('%Y-%m-%d')  # Sesuaikan dengan tahun yang diinginkan
 
 # Hapus data dengan filter rentang tanggal
-    data = models.SuratJalanPembelian.objects.filter(Tanggal__range=(tanggal_mulai, tanggal_akhir))
-    print(data)
-    data.delete()
+    datagudang = models.TransaksiGudang.objects.filter(
+    tanggal__range=(tanggal_mulai, tanggal_akhir),KeteranganACC = False 
+    )    
+    print(datagudang)
+    print(datagudang.count())
+    for item in datagudang:
+        item.KeteranganACC = True
+        item.KeteranganACCPurchasing = True
+        item.save()
         
     
 def createhargafg (request):
