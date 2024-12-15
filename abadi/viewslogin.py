@@ -4,7 +4,37 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
 
+
+@login_required
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            form.save()  # Simpan password baru
+            update_session_auth_hash(request, form.user)  # Agar tetap login
+            messages.success(request, 'Password berhasil diubah.')
+            user = request.user
+            selectedgrup = str(user.groups.all()[0])
+            print(selectedgrup)
+            if selectedgrup == "rnd":
+                return redirect("dashboardrnd")
+            elif selectedgrup == "produksi":
+                return redirect("dashboardproduksi")
+            elif selectedgrup == "gudang":
+                return redirect("viewgudang")
+            elif selectedgrup == "purchasing":
+                return redirect("notif_purchasing")
+            elif selectedgrup == "ppic":
+                return redirect("dashboardppic")  # Ganti dengan URL tujuan Anda
+        else:
+            messages.error(request, 'Silakan perbaiki kesalahan di formulir.')
+    else:
+        form = PasswordChangeForm(user=request.user)
+    
+    return render(request, 'login/changepassword.html', {'form': form})
 def redirectlogin(request):
     return redirect('login')
 
@@ -93,3 +123,5 @@ def custom_error_404(request, exception):
     print("test")
     print(exception)
     return render(request, "error/404.html")
+
+

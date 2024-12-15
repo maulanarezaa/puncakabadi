@@ -8,4 +8,5 @@ urlpatterns = [
     path("logout/", viewslogin.logout_view, name="logout"),
     path("register/", viewslogin.register_view, name="register"),
     path("dashboard", viewslogin.guestpage, name="guestpage"),
+    path('change-password/', viewslogin.change_password, name='change_password'),
 ]
