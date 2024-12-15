@@ -2431,7 +2431,37 @@ def kebutuhan_barang(request):
                 },
             )
 
-
+def detailksbb(request,id,tanggal):
+    '''
+    Fitur ini digunakan untuk menampilkan detail transaksi dari KSBB
+    pada fitur ini akan ada 4 bagian detail yang mencakup
+    1. Barang Masuk : Diambil dari data DetailSuratJalanPembelian
+    2. Barang keluar Gudang : Diambil dari data TransaksiGudang dengan kriteria Jumlah > 0
+    3. Barang retur ke Gudang : Diambil dari data TransaksiGudang dengan kriteria Jumlah < 0
+    4. Pemusnahan barang : Diambil dari data pemusnahan bahan baku gudang 
+    '''
+    tanggal = datetime.strptime(tanggal, "%Y-%m-%d")
+    tanggal = tanggal.strftime("%Y-%m-%d")
+    # SJP
+    datamasuk = models.DetailSuratJalanPembelian.objects.filter(KodeProduk__KodeProduk = id, NoSuratJalan__Tanggal = tanggal)
+    # Transaksi Gudang
+    datagudang = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk__KodeProduk=id,jumlah__gte=0)
+    dataretur = models.TransaksiGudang.objects.filter(tanggal=tanggal, KodeProduk__KodeProduk=id,jumlah__lt=0)
+    for item in dataretur:
+        item.jumlah = item.jumlah *-1
+    print(datagudang,dataretur)
+    # Transaksi Pemusnahan Bahan Baku
+    datapemusnahanbahanbaku  =models.PemusnahanBahanBaku.objects.filter(Tanggal = tanggal,KodeBahanBaku__KodeProduk = id,lokasi__NamaLokasi='Gudang')
+    return render(
+        request,
+        "Purchasing/view_detailksbb.html",
+        {
+            "datagudang": datagudang,
+            'datapemusnahanbahanbaku' : datapemusnahanbahanbaku,
+            "dataretur" : dataretur,
+            'datamasuk':datamasuk
+        },
+    )
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=["purchasing",'ppic'])
@@ -2523,7 +2553,7 @@ def getksbbproduk(kodeproduk,periode):
     tanggalmasuk = masukobj.values_list("NoSuratJalan__Tanggal", flat=True)
 
     keluarobj = models.TransaksiGudang.objects.filter(
-        jumlah__gte=0, KodeProduk__KodeProduk=produkobj.KodeProduk, tanggal__range=(awaltahun,akhirtahun),KeteranganACC=True
+        jumlah__gte=0, KodeProduk__KodeProduk=produkobj.KodeProduk, tanggal__range=(awaltahun,akhirtahun),KeteranganACC=True,TransaksiRetur = False
     )
     returobj = models.TransaksiGudang.objects.filter(
         jumlah__lt=0, KodeProduk__KodeProduk=produkobj.KodeProduk, tanggal__range=(awaltahun,akhirtahun)

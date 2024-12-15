@@ -105,9 +105,23 @@
                 </div>
               </div>
             </div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group row">
+                  <label class="col-sm-3 col-form-label">Transaksi Retur</label>
+                  <div class="col-sm-9 mt-2">
+                    <select name="transaksiretur" class="form-control" id="">
+                      <option value="True">Transaksi Retur</option>
+                      <option value="False" selected>Bukan Transaksi Retur</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <br><br>
         </div>
+        
         <div class="row">
           <div class="col-auto mr-auto">
             <button type="button" class="btn btn-success" onclick="addProduct()">
@@ -197,6 +211,19 @@
                                   </div>
                                 </div>
                               </div>
+                              <div class="row">
+              <div class="col-md-6">
+                <div class="form-group row">
+                  <label class="col-sm-3 col-form-label">Transaksi Retur</label>
+                  <div class="col-sm-9 mt-2">
+                    <select name="transaksiretur" class="form-control" id="">
+                      <option value="True">Transaksi Retur</option>
+                      <option value="False" selected>Bukan Transaksi Retur</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
                               <div>
                                 <label for="hapus1"></label>
                                 <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>

@@ -99,7 +99,7 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>{{Saldoawal.tahun}} -Saldo Awal</td>
+                                <td data-order="{{Saldoawal.tahun}}-00-00">{{Saldoawal.tahun}} -Saldo Awal</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -117,7 +117,12 @@
                             {% if data %}
                             {% for i in data %}
                             <tr>
-                                <td>{{i.Tanggal}}</td>
+                                <td data-order="{{i.Tanggal}}">
+                                    <a style="color: black;" href="{% url 'detailksbbpurchasing' kode_produk i.Tanggal  %}">
+
+                                    {{i.Tanggal}}
+                                    </a>
+                                </td>
                                 <td>{{i.Jumlahmasuk|custom_thousands_separator}}</td>
                                 <td>{{i.Hargamasuksatuan|custom_thousands_separator}}</td>
                                 <td>{{i.Hargamasuktotal|custom_thousands_separator}}</td>

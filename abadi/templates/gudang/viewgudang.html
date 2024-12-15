@@ -25,6 +25,7 @@
                                 <th>Detail SPK</th>
                                 <th>Kuantitas</th>
                                 <th>Lokasi</th>
+                                <th>Transaksi Retur</th>
                                 <th>Status Konfirmasi</th>
                                 <th>Action</th>
                             </tr>
@@ -38,6 +39,7 @@
                                 <td>{{i.DetailSPK}}</td>
                                 <td>{{i.jumlah|separator_ribuan}}</td>
                                 <td>{{i.Lokasi}}</td>
+                                <td>{{i.TransaksiRetur}}</td>
                                 <td>
                                     {% if i.KeteranganACC == False and i.KeteranganACCPurchasing == False %}
                                     Belum ACC Gudang & Purchasing

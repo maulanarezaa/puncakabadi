@@ -268,6 +268,8 @@ class TransaksiGudang(models.Model):
     DetailSPKDisplay = models.ForeignKey(
         DetailSPKDisplay, on_delete=models.CASCADE, null=True, blank=True
     )
+    TransaksiRetur = models.BooleanField(default=False)
+
 
     def __str__(self):
         return f"{self.tanggal} - {self.KodeProduk}"

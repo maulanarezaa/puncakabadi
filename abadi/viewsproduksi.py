@@ -1639,10 +1639,13 @@ def add_gudang(request):
         listjumlah = request.POST.getlist("jumlah[]")
         listketerangan = request.POST.getlist("keterangan[]")
         listdetail = request.POST.getlist("detail_spk[]")
+        listtransaksiretur = request.POST.getlist('transaksiretur')
+        print(request.POST)
+        # print(asd)
 
         i = 1
-        for produk, lokasi, jumlah, keterangan, detail in zip(
-            listkode, listlokasi, listjumlah, listketerangan, listdetail
+        for produk, lokasi, jumlah, keterangan, detail,transaksiretur in zip(
+            listkode, listlokasi, listjumlah, listketerangan, listdetail,listtransaksiretur
         ):
             nomorspk = request.POST[f"nomor_spk-{i}"]
 
@@ -1654,6 +1657,10 @@ def add_gudang(request):
                 messages.error(request,f'Kode stok {produk} tidak ditemukan')
                 continue
             lokasiref = models.Lokasi.objects.get(IDLokasi=lokasi)
+            if transaksiretur == "True":
+                transaksiretur = True
+            else:
+                transaksiretur = False
 
             data_gudang = models.TransaksiGudang(
                 KodeProduk=produkref,
@@ -1662,7 +1669,9 @@ def add_gudang(request):
                 jumlah=jumlah,
                 keterangan=keterangan,
                 KeteranganACC=False,
-                KeteranganACCPurchasing = False
+                KeteranganACCPurchasing = False,
+                TransaksiRetur = transaksiretur
+                
             )
             
             if detail != "":
@@ -1831,9 +1840,14 @@ def update_gudang(request, id):
         tanggal = request.POST["tanggal"]
         jumlah = request.POST["jumlah"]
         keterangan = request.POST["keterangan"]
+        transaksiretur = request.POST['transaksiretur']
 
         getproduk = models.Produk.objects.get(KodeProduk=kode_produk)
         getlokasi = models.Lokasi.objects.get(IDLokasi=lokasi)
+        if transaksiretur == "True":
+            transaksiretur = True
+        else:
+            transaksiretur = False
 
         gudangobj.KodeProduk = getproduk
         gudangobj.Lokasi = getlokasi
@@ -1842,6 +1856,7 @@ def update_gudang(request, id):
         gudangobj.keterangan = keterangan
         gudangobj.KeteranganACCPurchasing = False
         gudangobj.KeteranganACC = False
+        gudangobj.TransaksiRetur = transaksiretur
         print('tes uopdate keterangan')
         detail_spk = request.POST["detail_spk[]"]
         nomorspk = request.POST["nomor_spk"]
@@ -6987,14 +7002,10 @@ def calculateksbjsubkon(produk,tanggal_mulai,tanggal_akhir):
         datamasuk = dataproduksi.filter(NoSuratJalan__Tanggal = i)
         for m in datamasuk:
             masuk += m.Jumlah
-        
-        
-        
-        masukproduksi = 0
         dataproduksimasuk = dataproduksisubkon.filter(Tanggal = i)
         for m in dataproduksimasuk:
-            masukproduksi += m.Jumlah
-        sisa += masuk + masukproduksi
+            masuk += m.Jumlah
+        sisa += masuk
         data['Masuk'] = masuk
         
         # Data Keluar
@@ -8858,18 +8869,22 @@ def eksportksbjsubkon(request,id,tahun):
         'Tanggal':[],
         'Masuk' : [],
         'Keluar' : [],
-        'Sisa' : []
+        'Pemusnahan' :[],
+        'Sisa' : [],
     }
     if saldoawal:
         datamodels["Tanggal"].append(tanggalmulai)
         datamodels['Masuk'].append('')
         datamodels['Keluar'].append('')
+        datamodels['Pemusnahan'].append('')
         datamodels['Sisa'].append(saldoawal.Jumlah)
 
     for item in listdata:
+        print(item)
         datamodels["Tanggal"].append(item['Tanggal'])
         datamodels['Masuk'].append(item['Masuk'])
         datamodels['Keluar'].append(item['Keluar'])
+        datamodels['Pemusnahan'].append(item['Pemusnahan'])
         datamodels['Sisa'].append(item['Sisa'])
     dfksbjsubkon = pd.DataFrame(datamodels)
     buffer = BytesIO()

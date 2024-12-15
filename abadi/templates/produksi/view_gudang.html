@@ -60,7 +60,7 @@
                     <th>Nama Bahan Baku</th>
                     <th>Jumlah</th>
                     <th>Keterangan</th>
-
+                    <th>Transaksi Retur</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
@@ -85,6 +85,7 @@
                     <td>{{i.KodeProduk.NamaProduk}}</td>
                     <td>{{i.jumlah|intcomma}}</td>
                     <td>{{i.keterangan}}</td>
+                    <td>{{i.TransaksiRetur}}</td>
                     <td>
                       {% if i.KeteranganACC == False %}
                       Belum ACC Gudang

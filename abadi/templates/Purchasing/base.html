@@ -169,7 +169,13 @@
     });
 
     $(document).ready(function () {
-      $('#data_ksbb').dataTable();
+      $('#data_ksbb').dataTable({
+        "order": [0, "asc"],
+        columnDefs: [
+        { width: '12%', targets: 0 }, // Atur lebar kolom ke-0
+        ]
+      });
+      
     });
 
     $(document).ready(function () {
