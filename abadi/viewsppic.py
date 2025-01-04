@@ -1034,6 +1034,7 @@ def getbarangkeluargudang(last_days,stopindex,awaltahun,hargapurchasing=None):
         # print(asd)
         totaltransaksi = 0
         for item in datatransaksigudang:
+            item.tanggal = item.tanggal.strftime('%Y-%m-%d')
             item.hargasatuan = hargapurchasingperbulan[item.KodeProduk]["data"][index][
                 "hargasatuan"
             ]
@@ -1729,6 +1730,7 @@ def detaillaporanbarangkeluargudang(request):
         # print(last_days)
         # print(last_days[:index+1])
         barangkeluargudang = getbarangkeluargudang(last_days, index, awaltahun)
+        
 
         return render(
             request,

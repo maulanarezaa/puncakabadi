@@ -1320,7 +1320,7 @@ def view_rekapbarang(request):
     tanggal_mulai = datetime(year=tahun, month=1, day=1)
 
     dataproduk = models.Produk.objects.all()
-    dataproduk = models.Produk.objects.filter(KodeProduk = 'A-004-04')
+    # dataproduk = models.Produk.objects.filter(KodeProduk = 'A-004-04')
     try:
 
         lokasi = request.GET['lokasi']

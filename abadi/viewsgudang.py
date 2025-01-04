@@ -353,25 +353,34 @@ def rekap_gudang(request):
     tahun = datenow.year
     mulai = datetime(year=tahun, month=1, day=1)
     date = request.GET.get("date")
+    datestrp = datetime.strptime(date,'%Y-%m-%d')
+    awaltahunterpilih = datetime(year=datestrp.year,month=1,day=1)
+    print(date)
+    print(datenow)
     
 
     for i in dataproduk:
         listproduk.append(i.KodeProduk)
         listnama.append(i.NamaProduk)
         satuan.append(i.unit)
+        datagudang = models.TransaksiGudang.objects.filter(
+                tanggal__range=(mulai, date), KodeProduk=i
+            )
+        print(datagudang)
+        # print(asd)
 
         if date is not None:
             datagudang = models.TransaksiGudang.objects.filter(
-                tanggal__range=(mulai, date), KodeProduk=i
+                tanggal__range=(awaltahunterpilih, date), KodeProduk=i
             ).aggregate(kuantitas=Coalesce(Sum("jumlah"), Value(0,output_field=FloatField())))
             datasjp = models.DetailSuratJalanPembelian.objects.filter(
-                NoSuratJalan__Tanggal__range=(mulai, date), KodeProduk=i
+                NoSuratJalan__Tanggal__range=(awaltahunterpilih, date), KodeProduk=i
             ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0,output_field=FloatField())))
             saldoawal = models.SaldoAwalBahanBaku.objects.filter(
-                Tanggal__range=(mulai, date), IDBahanBaku=i, IDLokasi="3"
+                Tanggal__range=(awaltahunterpilih, date), IDBahanBaku=i, IDLokasi="3"
             ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0,output_field=FloatField())))
             pemusnahan = models.PemusnahanBahanBaku.objects.filter(
-                Tanggal__range=(mulai, date), KodeBahanBaku=i, lokasi="3"
+                Tanggal__range=(awaltahunterpilih, date), KodeBahanBaku=i, lokasi="3"
             ).aggregate(kuantitas=Coalesce(Sum("Jumlah"), Value(0,output_field=FloatField())))
         else:
             datagudang = models.TransaksiGudang.objects.filter(
@@ -1092,54 +1101,62 @@ def addsaldo(request):
             {"nama_lokasi": datalokasi, "databarang": databarang},
         )
     else:
-        kodeproduk = request.POST["produk"]
-        lokasi = request.POST["nama_lokasi"]
-        jumlah = request.POST["jumlah"]
-        harga = 0
+        produk_list = request.POST.getlist("produk[]")
+        lokasi_list = request.POST.getlist("nama_lokasi[]")
+        jumlah_list = request.POST.getlist("jumlah[]")
+        # harga = 0
         tanggal = request.POST["tanggal"]
+        print(request.POST)
+        # print(asd)
 
         # Ubah format tanggal menjadi YYYY-MM-DD
         tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
         # Periksa apakah entri sudah ada
-        try:
-            produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
-        except:
-            messages.error(request, f"Data bahan baku {kodeproduk} tidak ditemukan ")
-            return redirect("addsaldobahan")
-        existing_entry = models.SaldoAwalBahanBaku.objects.filter(
-            Tanggal__year=tanggal_formatted.year,
-            IDBahanBaku__KodeProduk=kodeproduk,
-            IDLokasi__NamaLokasi=lokasi,
-        ).exists()
-        if existing_entry:
-            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
-            messages.warning(
-                request, ("Sudah ada Entry pada tahun", tanggal_formatted.year)
+        for kodeproduk, lokasi, jumlah in zip(produk_list, lokasi_list, jumlah_list):
+            try:
+                produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
+            except models.Produk.DoesNotExist:
+                messages.error(request, f"Data bahan baku {kodeproduk} tidak ditemukan.")
+                return redirect("addsaldobahan")
+
+            try:
+                lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
+            except models.Lokasi.DoesNotExist:
+                messages.error(request, f"Lokasi {lokasi} tidak ditemukan.")
+                return redirect("addsaldobahan")
+
+            existing_entry = models.SaldoAwalBahanBaku.objects.filter(
+                Tanggal__year=datetime.strptime(tanggal, "%Y-%m-%d").year,
+                IDBahanBaku__KodeProduk=kodeproduk,
+                IDLokasi__NamaLokasi=lokasi,
+            ).exists()
+
+            if existing_entry:
+                messages.warning(
+                    request, f"Sudah ada entry pada tahun {datetime.strptime(tanggal, '%Y-%m-%d').year} untuk produk {kodeproduk} di lokasi {lokasi}."
+                )
+                continue
+
+            saldoawalobj = models.SaldoAwalBahanBaku(
+                Tanggal=tanggal,
+                Jumlah=jumlah,
+                IDBahanBaku=produkobj,
+                IDLokasi=lokasiobj,
+                Harga=0,  # Sesuaikan jika ada input harga
             )
-            return redirect("addsaldobahan")
 
-        produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
-        lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
-        lokasi = str(lokasiobj.IDLokasi)
+            saldoawalobj.save()
 
-        pemusnahanobj = models.SaldoAwalBahanBaku(
-            Tanggal=tanggal,
-            Jumlah=jumlah,
-            IDBahanBaku=produkobj,
-            IDLokasi_id=lokasi,
-            Harga=harga,
-        )
+            models.transactionlog(
+                user="Gudang",
+                waktu=datetime.now(),
+                jenis="Create",
+                pesan=f"Kode Barang: {kodeproduk}, Lokasi: {lokasi}.",
+            ).save()
 
-        models.transactionlog(
-            user="Gudang",
-            waktu=datetime.now(),
-            jenis="Create",
-            pesan=f"Kode Barang : {kodeproduk} Lokasi : {lokasi}",
-        ).save()
+            messages.success(request, f"Data {produkobj.KodeProduk} berhasil ditambahkan.")
+    return redirect("read_saldoawalbahan")
 
-        pemusnahanobj.save()
-        messages.success(request,"Data berhasil ditambah")
-        return redirect("read_saldoawalbahan")
 
 
 @login_required
