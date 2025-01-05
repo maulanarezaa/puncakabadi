@@ -51,7 +51,8 @@
                                     value="{{data.KodeProduk.KodeProduk}}" id="" list="listkodeproduk">
                                 <datalist id="listkodeproduk">
                                     {% for i in kodestok %}
-                                    <option value="{{i.KodeProduk}}" data-nama="{{i.NamaProduk}}" data-satuan="{{i.unit}}">                                    {% endfor %}
+                                    <option value="{{i.KodeProduk}}" data-nama="{{i.NamaProduk}}" data-satuan="{{i.unit}}">{{i.NamaProduk}}</option>                        
+                                        {% endfor %}
                                 </datalist>
 
                             </div>

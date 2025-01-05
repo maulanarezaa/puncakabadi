@@ -5094,6 +5094,7 @@ def add_saldobahan(request):
         jumlah_list = request.POST.getlist("jumlah[]")
 
         for kodeproduk, lokasi, jumlah in zip(produk_list, lokasi_list, jumlah_list):
+            lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
             try:
                 # Periksa apakah entri sudah ada
                 existing_entry = models.SaldoAwalBahanBaku.objects.filter(
@@ -5104,7 +5105,7 @@ def add_saldobahan(request):
                 if existing_entry:
                     messages.warning(
                         request,
-                        f"Data untuk Bahan Baku {kodeproduk} di lokasi {lokasi} pada tahun {tanggal_formatted.year} sudah ada."
+                        f"Data untuk Bahan Baku {kodeproduk} di lokasi {lokasiobj.NamaLokasi} pada tahun {tanggal_formatted.year} sudah ada."
                     )
                     continue
 
@@ -5112,7 +5113,6 @@ def add_saldobahan(request):
                 produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
 
                 # Validasi lokasi
-                lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
 
                 # Simpan data
                 saldo_bahan_obj = models.SaldoAwalBahanBaku(
@@ -5273,42 +5273,62 @@ def add_saldoartikel(request):
             {"nama_lokasi": datalokasi[:2], "dataartikel": dataartikel},
         )
     else:
-        artikel = request.POST["artikel"]
-        lokasi = request.POST["nama_lokasi"]
-        jumlah = request.POST["jumlah"]
         tanggal = request.POST["tanggal"]
+        artikel_list = request.POST.getlist("artikel[]")
+        lokasi_list = request.POST.getlist("nama_lokasi[]")
+        jumlah_list = request.POST.getlist("jumlah[]")
 
-        # Ubah format tanggal menjadi YYYY-MM-DD
+        # Format tanggal menjadi YYYY-MM-DD
         tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
-        # Periksa apakah entri sudah ada
-        existing_entry = models.SaldoAwalArtikel.objects.filter(
-            Tanggal__year=tanggal_formatted.year,
-            IDArtikel__KodeArtikel=artikel,
-            IDLokasi=lokasi
-        ).exists()
-        if existing_entry:
-            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
-            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("add_saldoartikel")
-        try:
-            artikelobj = models.Artikel.objects.get(KodeArtikel=artikel)
-        except :
-            messages.error(request,f"Tidak ditemukan data artikel {artikel}")
-            return redirect('add_saldoartikel')
-        lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
-        pemusnahanobj = models.SaldoAwalArtikel(
-            Tanggal=tanggal, Jumlah=jumlah, IDArtikel=artikelobj, IDLokasi=lokasiobj
-        )
-        pemusnahanobj.save()
 
-        models.transactionlog(
-            user="Produksi",
-            waktu=datetime.now(),
-            jenis="Create",
-            pesan=f"Saldo Artikel. Kode Bahan Baku : {artikelobj.KodeArtikel} Jumlah : {jumlah} Lokasi : {lokasiobj.NamaLokasi}",
-        ).save()
-        messages.success(request,'Data berhasil disimpan')
+        for artikel, lokasi, jumlah in zip(artikel_list, lokasi_list, jumlah_list):
+            # Periksa apakah entri sudah ada
+            existing_entry = models.SaldoAwalArtikel.objects.filter(
+                Tanggal__year=tanggal_formatted.year,
+                IDArtikel__KodeArtikel=artikel,
+                IDLokasi=lokasi,
+            ).exists()
+
+            if existing_entry:
+                # Jika sudah ada, beri pesan peringatan
+                messages.warning(request, f"Sudah ada entri untuk artikel {artikel} di lokasi {lokasi} pada tahun {tanggal_formatted.year}.")
+                continue  # Lewati penyimpanan untuk artikel ini
+
+            try:
+                artikelobj = models.Artikel.objects.get(KodeArtikel=artikel)
+            except models.Artikel.DoesNotExist:
+                messages.error(request, f"Tidak ditemukan data artikel dengan kode {artikel}.")
+                continue
+
+            try:
+                lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
+            except models.Lokasi.DoesNotExist:
+                messages.error(request, f"Tidak ditemukan lokasi dengan ID {lokasi}.")
+                continue
+
+            # Simpan data ke dalam database
+            saldo_awal_obj = models.SaldoAwalArtikel(
+                Tanggal=tanggal,
+                Jumlah=jumlah,
+                IDArtikel=artikelobj,
+                IDLokasi=lokasiobj,
+            )
+            saldo_awal_obj.save()
+            messages.success(request, f"Data {artikelobj.KodeArtikel} - {tanggal_formatted.year} berhasil disimpan.")
+
+            # Catat ke dalam log transaksi
+            models.transactionlog(
+                user="Produksi",
+                waktu=datetime.now(),
+                jenis="Create",
+                pesan=f"Saldo Artikel. Kode Artikel: {artikelobj.KodeArtikel}, Jumlah: {jumlah}, Lokasi: {lokasiobj.NamaLokasi}.",
+            ).save()
+
+        # Berikan pesan sukses jika ada data yang berhasil disimpan
         return redirect("view_saldoartikel")
+
+    # Render halaman form jika bukan POST
+    # return render(request, "produksi/add_saldoartikel.html")
 
 @login_required
 @logindecorators.allowed_users(allowed_roles=['produksi','ppic'])
@@ -5592,38 +5612,54 @@ def add_saldobahansubkon(request):
             { "datasubkon": datasubkon},
         )
     else:
-        kodeproduk = request.POST["produk"]
-        jumlah = request.POST["jumlah"]
+        kodeproduk_list = request.POST.getlist("produk[]")
+        jumlah_list = request.POST.getlist("jumlah[]")
         tanggal = request.POST["tanggal"]
 
         # Ubah format tanggal menjadi YYYY-MM-DD
         tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
-        # Periksa apakah entri sudah ada
-        existing_entry = models.SaldoAwalBahanBakuSubkon.objects.filter(
-            Tanggal__year=tanggal_formatted.year,
-            IDBahanBakuSubkon__KodeProduk=kodeproduk,
-        ).exists()
+        errors = []
 
-        if existing_entry:
-            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
-            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("add_saldobahansubkon")
-        try:
-            produkobj = models.BahanBakuSubkon.objects.get(KodeProduk=kodeproduk)
-        except:
-            messages.error(request,f"Kode Bahan Baku Subkon {kodeproduk} tidak ditemukan dalam sistem")
-            return redirect("add_saldobahansubkon")
-        pemusnahanobj = models.SaldoAwalBahanBakuSubkon(
-            Tanggal=tanggal, Jumlah=jumlah, IDBahanBakuSubkon=produkobj)
-        pemusnahanobj.save()
+        for kodeproduk, jumlah in zip(kodeproduk_list, jumlah_list):
+            # Validasi apakah entri sudah ada
+            existing_entry = models.SaldoAwalBahanBakuSubkon.objects.filter(
+                Tanggal__year=tanggal_formatted.year,
+                IDBahanBakuSubkon__KodeProduk=kodeproduk,
+            ).exists()
 
-        models.transactionlog(
-            user="Produksi",
-            waktu=datetime.now(),
-            jenis="Create",
-            pesan=f"Saldo Bahan Baku Subkon. Kode Bahan Baku: {produkobj.KodeProduk} Jumlah : {jumlah}",
-        ).save()
-        messages.success(request,'Data berhasil disimpan')
+            if existing_entry:
+                errors.append(f"Data untuk kode produk {kodeproduk} pada tahun {tanggal_formatted.year} sudah ada.")
+                continue
+
+            # Validasi apakah kode produk ditemukan
+            try:
+                produkobj = models.BahanBakuSubkon.objects.get(KodeProduk=kodeproduk)
+            except models.BahanBakuSubkon.DoesNotExist:
+                errors.append(f"Kode produk {kodeproduk} tidak ditemukan.")
+                continue
+
+            # Simpan entri baru
+            pemusnahanobj = models.SaldoAwalBahanBakuSubkon(
+                Tanggal=tanggal_formatted,
+                Jumlah=jumlah,
+                IDBahanBakuSubkon=produkobj,
+            )
+            pemusnahanobj.save()
+            messages.success(request,f'Data {produkobj.KodeProduk} - {tanggal_formatted.year} berhasil disimpan')
+
+            # Catat transaksi
+            models.transactionlog(
+                user="Produksi",
+                waktu=datetime.now(),
+                jenis="Create",
+                pesan=f"Saldo Bahan Baku Subkon. Kode Bahan Baku: {produkobj.KodeProduk}, Jumlah: {jumlah}",
+            ).save()
+
+        # Berikan pesan sesuai hasil
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+
         return redirect("view_saldobahansubkonproduksi")
 
 @login_required
@@ -9333,8 +9369,8 @@ def eksportksbjproduksi(request,id,lokasi,tahun):
     # print(asd)
     datamodelsksbjfg = {
         'Tanggal': [],
-        "SPK (Keluar)":[],
         'Masuk (WIP)': [],
+        "SPK (Keluar)":[],
         'SPPB' : [],
         'Keluar (Kirim)' : [],
         'Pemusnahan' : [],

@@ -1,11 +1,11 @@
 {% extends "produksi/base.html" %}
 {% load static %}
 
-<!-- Specific Page CSS goes HERE  -->
+<!-- Specific Page CSS goes HERE -->
 {% block stylesheets %}
 {% endblock stylesheets %}
 
-<!-- Page content  -->
+<!-- Page content -->
 {% block content %}
 <div class="col-12 grid-margin">
   <div class="card">
@@ -20,7 +20,7 @@
         </a>
       </div>
       <br>
-      <form class="form-sample" action="" method="post">
+      <form class="form-sample" action="" method="post" id="main-form">
         {% csrf_token %}
         <div class="row">
           <div class="col-md-6">
@@ -31,11 +31,14 @@
               </div>
             </div>
           </div>
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Artikel</label>
-              <div class="col-sm-9">
-                <input type="text" name="artikel" list="listartikel" class="form-control" required>
+        </div>
+
+        <div id="form-container">
+          <div class="row form-entry">
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Artikel</label>
+                <input type="text" name="artikel[]" list="listartikel" class="form-control" required>
                 <datalist id="listartikel">
                   {% for i in dataartikel %}
                   <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
@@ -43,40 +46,86 @@
                 </datalist>
               </div>
             </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Lokasi</label>
-              <div class="col-sm-9">
-                <select class="form-control" id="exampleSelectGender" name="nama_lokasi" required>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Lokasi</label>
+                <select class="form-control" name="nama_lokasi[]" required>
                   {% for i in nama_lokasi %}
                   <option value="{{i.IDLokasi}}">{{i.NamaLokasi}}</option>
                   {% endfor %}
                 </select>
               </div>
             </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Jumlah</label>
-              <div class="col-sm-9">
-                <input type="number" min="0" class="form-control" name="jumlah" required />
+            <div class="col-md-3">
+              <div class="form-group">
+                <label>Jumlah</label>
+                <input type="number" min="0" class="form-control" name="jumlah[]" required />
               </div>
             </div>
           </div>
         </div>
+
+        <button type="button" class="btn btn-success" id="add-form">Tambah Data</button>
         <button type="submit" class="btn btn-primary mr-2">Submit</button>
       </form>
     </div>
   </div>
 </div>
+
 <script>
   // Mendapatkan tanggal hari ini dalam format YYYY-MM-DD
   var today = new Date().toISOString().split('T')[0];
-
-  // Mengatur nilai input tanggal ke tanggal hari ini
   document.getElementById('tanggal').value = today;
+
+  // Menambahkan fungsi untuk tombol "Tambah Data"
+  document.getElementById('add-form').addEventListener('click', function () {
+    const formContainer = document.getElementById('form-container');
+
+    // Membuat elemen baru untuk input data
+    const newForm = document.createElement('div');
+    newForm.classList.add('row', 'form-entry');
+    newForm.innerHTML = `
+      <div class="col-md-4">
+        <div class="form-group">
+          <label>Artikel</label>
+          <input type="text" name="artikel[]" list="listartikel" class="form-control" required>
+          <datalist id="listartikel">
+            {% for i in dataartikel %}
+            <option value="{{i.KodeArtikel}}">{{i.KodeArtikel}}</option>
+            {% endfor %}
+          </datalist>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="form-group">
+          <label>Lokasi</label>
+          <select class="form-control" name="nama_lokasi[]" required>
+            {% for i in nama_lokasi %}
+            <option value="{{i.IDLokasi}}">{{i.NamaLokasi}}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label>Jumlah</label>
+          <input type="number" min="0" class="form-control" name="jumlah[]" required />
+        </div>
+      </div>
+      <div class="col-md-1 d-flex align-items-center">
+        <button type="button" class="btn btn-danger btn-sm remove-form">Hapus</button>
+      </div>`;
+
+    // Menambahkan elemen baru ke container
+    formContainer.appendChild(newForm);
+  });
+
+  // Menambahkan fungsi untuk tombol "Hapus"
+  document.getElementById('form-container').addEventListener('click', function (event) {
+    if (event.target.classList.contains('remove-form')) {
+      const formEntry = event.target.closest('.form-entry');
+      formEntry.remove();
+    }
+  });
 </script>
 {% endblock content %}
