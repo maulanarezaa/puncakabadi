@@ -1,11 +1,9 @@
 {% extends "produksi/base.html" %}
 {% load static %}
 
-<!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 {% endblock stylesheets %}
 
-<!-- Page content  -->
 {% block content %}
 <div class="col-12 grid-margin">
   <div class="card">
@@ -20,67 +18,90 @@
         </a>
       </div>
       <br>
-      <form class="form-sample" action="" method="post">
+      <form class="form-sample" action="" method="post" id="multiInputForm">
         {% csrf_token %}
         <div class="row">
           <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Tanggal</label>
-              <div class="col-sm-9">
-                <input type="date" class="form-control" name="tanggal" required id="tanggal" />
-              </div>
-            </div>
+            <label>Tanggal</label>
+            <input type="date" class="form-control" name="tanggal" required id="tanggal" />
           </div>
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Produk</label>
-              <div class="col-sm-9">
-                <input type="text" class="form-control" placeholder="Masukkan Nama Produk Subkon"
-                    aria-label="Masukkan Nama Produk Subkon" list="kodebarang"
-                    id="kodebarangInput">
-                <input type="hidden" name="kodebarangHidden" id="kodebarangHidden">
-                <datalist id="kodebarang">
-                    {% for i in datasubkon %}
-                    <option data-id="{{i.IDProdukSubkon}}" value="{{i.NamaProduk}} {{i.KodeArtikel}}"></option>
-                    {% endfor %}
-                </datalist>
-              </div>
+        </div>
+        <br>
+        <div id="inputRows">
+          <!-- Template Row -->
+          <div class="row mb-3 inputRow">
+            <div class="col-md-6">
+              <label>Produk</label>
+              <input type="text" class="form-control productInput" placeholder="Masukkan Nama Produk Subkon" 
+                  list="kodebarang" aria-label="Masukkan Nama Produk Subkon" />
+              <input type="hidden" name="kodebarangHidden[]" class="hiddenProductId" />
+              <datalist id="kodebarang">
+                {% for i in datasubkon %}
+                <option data-id="{{i.IDProdukSubkon}}" value="{{i.NamaProduk}} {{i.KodeArtikel}}"></option>
+                {% endfor %}
+              </datalist>
+            </div>
+            <div class="col-md-4">
+              <label>Jumlah</label>
+              <input type="number" min="0" class="form-control" name="jumlah[]" required />
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+              <button type="button" class="btn btn-danger btn-remove" hidden>Hapus</button>
             </div>
           </div>
         </div>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="form-group row">
-              <label class="col-sm-3 col-form-label">Jumlah</label>
-              <div class="col-sm-9">
-                <input type="number" min="0" class="form-control" name="jumlah" required />
-              </div>
-            </div>
-          </div>
-        </div>
+        <button type="button" class="btn btn-success mr-2" id="addRow">Tambah Data</button>
         <button type="submit" class="btn btn-primary mr-2">Submit</button>
       </form>
     </div>
   </div>
 </div>
+
 <script>
   // Mendapatkan tanggal hari ini dalam format YYYY-MM-DD
   var today = new Date().toISOString().split('T')[0];
-
-  // Mengatur nilai input tanggal ke tanggal hari ini
   document.getElementById('tanggal').value = today;
-</script>
-<script>
-  document.getElementById('kodebarangInput').addEventListener('input', function() {
-      var input = this;
-      var list = input.getAttribute('list');
-      var options = document.getElementById(list).childNodes;
-      for (var i = 0; i < options.length; i++) {
-          if (options[i].value === input.value) {
-              document.getElementById('kodebarangHidden').value = options[i].getAttribute('data-id');
-              break;
+
+  // Menambah baris baru untuk input Produk dan Jumlah
+  document.getElementById('addRow').addEventListener('click', function () {
+      const inputRows = document.getElementById('inputRows');
+      const templateRow = document.querySelector('.inputRow');
+      const newRow = templateRow.cloneNode(true);
+
+      // Reset nilai input dalam baris baru
+      newRow.querySelectorAll('input').forEach(input => {
+          if (input.classList.contains('productInput') || input.name === 'jumlah[]') {
+              input.value = '';
           }
-      }
+      });
+
+      inputRows.appendChild(newRow);
+      addRemoveRowListener(newRow);
   });
-  </script>
+
+  // Tambahkan event listener untuk tombol hapus
+  function addRemoveRowListener(row) {
+      const removeButton = row.querySelector('.btn-remove');
+      removeButton.addEventListener('click', function () {
+          row.remove();
+      });
+
+      // Tambahkan event listener untuk datalist produk
+      const productInput = row.querySelector('.productInput');
+      const hiddenField = row.querySelector('.hiddenProductId');
+      productInput.addEventListener('input', function () {
+          const options = document.getElementById(productInput.getAttribute('list')).childNodes;
+          hiddenField.value = ''; // Reset nilai hidden field
+          for (let i = 0; i < options.length; i++) {
+              if (options[i].value === productInput.value) {
+                  hiddenField.value = options[i].getAttribute('data-id');
+                  break;
+              }
+          }
+      });
+  }
+
+  // Inisialisasi untuk baris pertama
+  addRemoveRowListener(document.querySelector('.inputRow'));
+</script>
 {% endblock content %}

@@ -5460,39 +5460,65 @@ def add_saldosubkon(request):
         )
     else:
         print(request.POST)
-        kodeproduk = request.POST["kodebarangHidden"]
-        jumlah = request.POST["jumlah"]
-        tanggal = request.POST["tanggal"]
+        # print(asd)
+        kodebarang_hidden_list = request.POST.getlist("kodebarangHidden[]")
+        jumlah_list = request.POST.getlist("jumlah[]")
+        tanggal = request.POST.get("tanggal")
 
         # Ubah format tanggal menjadi YYYY-MM-DD
         tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
-        # Periksa apakah entri sudah ada
-        existing_entry = models.SaldoAwalSubkon.objects.filter(
-            Tanggal__year=tanggal_formatted.year,
-            IDProdukSubkon__pk=kodeproduk,
-        ).exists()
+        log_entries = []  # Untuk menyimpan log transaksi yang akan dibuat
 
-        if existing_entry:
-            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
-            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("add_saldosubkonproduksi")
-        try:
-            produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=kodeproduk)
-        except:
-            messages.error(request,"Tidak ditemukan data Produk pada sistem")
-            return redirect('add_saldosubkonproduksi')
+        for kodeproduk, jumlah in zip(kodebarang_hidden_list, jumlah_list):
+            try:
+                # Periksa apakah entri sudah ada
+                existing_entry = models.SaldoAwalSubkon.objects.filter(
+                    Tanggal__year=tanggal_formatted.year,
+                    IDProdukSubkon__pk=kodeproduk,
+                ).exists()
 
-        pemusnahanobj = models.SaldoAwalSubkon(
-            Tanggal=tanggal, Jumlah=jumlah, IDProdukSubkon=produkobj)
-        pemusnahanobj.save()
+                produkobj = models.ProdukSubkon.objects.get(IDProdukSubkon=kodeproduk)
+                if existing_entry:
+                    messages.warning(
+                        request,
+                        f"Sudah ada entry pada tahun {tanggal_formatted.year} untuk produk dengan ID {produkobj.NamaProduk} artikel {produkobj.KodeArtikel}.",
+                    )
+                    continue
 
-        models.transactionlog(
-            user="Produksi",
-            waktu=datetime.now(),
-            jenis="Create",
-            pesan=f"Saldo Produk Subkon. Nama Produk : {produkobj.NamaProduk} Kode Artikel : {produkobj.KodeArtikel} Jumlah : {jumlah}",
-        ).save()
-        messages.success(request,'Data berhasil disimpan')
+                # Ambil objek produk
+
+                # Simpan saldo awal
+                pemusnahanobj = models.SaldoAwalSubkon(
+                    Tanggal=tanggal_formatted,
+                    Jumlah=jumlah,
+                    IDProdukSubkon=produkobj,
+                )
+                pemusnahanobj.save()
+                messages.success(request,f"Data {produkobj.NamaProduk} artikel {produkobj.KodeArtikel} berhasil disimpan dalam sistem")
+
+                # Tambahkan ke log transaksi
+                log_entries.append(
+                    f"Saldo Produk Subkon. Nama Produk: {produkobj.NamaProduk}, "
+                    f"Kode Artikel: {produkobj.KodeArtikel}, Jumlah: {jumlah}"
+                )
+
+            except models.ProdukSubkon.DoesNotExist:
+                messages.error(
+                    request,
+                    f"Produk dengan ID {kodeproduk} tidak ditemukan dalam sistem.",
+                )
+                continue
+
+        # Simpan semua log transaksi
+        for log_entry in log_entries:
+            models.transactionlog(
+                user="Produksi",
+                waktu=datetime.now(),
+                jenis="Create",
+                pesan=log_entry,
+            ).save()
+
+        
         return redirect("view_saldosubkonproduksi")
 
 @login_required
