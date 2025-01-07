@@ -8461,12 +8461,12 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
                     'Perkotak': None,
                     'Konversi':None,
                     'Keluar': None,
-                    'Sisa': jumlahsaldoawal,
+                    'Saldo': jumlahsaldoawal,
                 })
         
         sisa_terakhir = jumlahsaldoawal
 
-    # Memetakan setiap artikel dan perkotak per tanggal, dan menghitung Sisa
+    # Memetakan setiap artikel dan perkotak per tanggal, dan menghitung Saldo
         for record in listdata:
             tanggal = record['Tanggal']
             artikel_list = record.get('Artikel', [])
@@ -8474,9 +8474,9 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
             konversi_list = record.get('Konversi', [])
             keluar_list = record.get('Keluar', [])
             masuk = record['Masuk']
-            sisa_list = record.get('Sisa', [])
+            sisa_list = record.get('Saldo', [])
 
-            # Jika ini adalah hari pertama, ambil Sisa awal dari data
+            # Jika ini adalah hari pertama, ambil Saldo awal dari data
             print(konversi_list)
             # print(asd)
             if sisa_terakhir is None:
@@ -8499,7 +8499,7 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
                     'Perkotak': None,
                     'Konversi': None,
                     'Keluar': jumlahkeluar,
-                    'Sisa': sisa_akhir,
+                    'Saldo': sisa_akhir,
                 })
             else:
                 # Menggunakan zip_longest untuk memasukkan setiap artikel, perkotak, konversi, dan keluar
@@ -8508,7 +8508,7 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
                     # Round konversi to 5 decimal places if it exists
                     konversi = round(konversi, 5) if konversi is not None else None
                     print(konversi)
-                    # Hitung Sisa: menggunakan sisa sebelumnya jika ada
+                    # Hitung Saldo: menggunakan sisa sebelumnya jika ada
                     if statusmasuk == True:
                         masuk = " "
                     else:
@@ -8523,7 +8523,7 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
                         'Perkotak': perkotak,
                         'Konversi': konversi,
                         'Keluar': keluar,
-                        'Sisa': sisa_akhir,
+                        'Saldo': sisa_akhir,
                     })
                     statusmasuk = True
         dfksbb = pd.DataFrame(output_data)
@@ -8548,12 +8548,12 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
                     'Perkotak': None,
                     'Konversi':None,
                     'Keluar': None,
-                    'Sisa': jumlahsaldoawal,
+                    'Saldo': jumlahsaldoawal,
                 })
         
         sisa_terakhir = jumlahsaldoawal
 
-    # Memetakan setiap artikel dan perkotak per tanggal, dan menghitung Sisa
+    # Memetakan setiap artikel dan perkotak per tanggal, dan menghitung Saldo
         for record in listdata:
             tanggal = record['Tanggal']
             artikel_list = record.get('Artikel', [])
@@ -8561,7 +8561,7 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
             konversi_list = record.get('Konversi', [])
             keluar_list = record.get('Keluar', [])
             masuk = record['Masuk']
-            sisa_list = record.get('Sisa', [])
+            sisa_list = record.get('Saldo', [])
 
             # Jika ini adalah hari pertama, ambil Sisa awal dari data
             print(konversi_list)
@@ -8588,7 +8588,7 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
                     'Perkotak': None,
                     'Konversi': None,
                     'Keluar': jumlahkeluar,
-                    'Sisa': sisa_akhir,
+                    'Saldo': sisa_akhir,
                 })
             else:
                 statusmasuk = True
@@ -8597,7 +8597,7 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
                     # Round konversi to 5 decimal places if it exists
                     konversi = round(konversi, 5) if konversi is not None else None
                     print(keluar,' keluar')
-                    # Hitung Sisa: menggunakan sisa sebelumnya jika ada
+                    # Hitung Saldo: menggunakan sisa sebelumnya jika ada
                     if statusmasuk == False:
                         masuk = ' '
                     else:
@@ -8611,7 +8611,7 @@ def eksportksbbproduksi(request,id,lokasi,tahun):
                         'Perkotak': perkotak,
                         'Konversi': konversi,
                         'Keluar': keluar,
-                        'Sisa': sisa_akhir,
+                        'Saldo': sisa_akhir,
                     })
                     statusmasuk = False
                     print(record)
