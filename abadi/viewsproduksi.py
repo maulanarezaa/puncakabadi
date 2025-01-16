@@ -4315,6 +4315,7 @@ def kalkulatorpenyesuaian2(request):
             {"kodeprodukobj": kodeproduk},
         )
     else:
+        print(request.GET)
         """
         1. Cari 
         """
@@ -4326,8 +4327,8 @@ def kalkulatorpenyesuaian2(request):
             messages.error(request, "Data Produk tidak ditemukan")
             return redirect("view_ksbb")
         
-        if request.GET["periode"]:
-            tahun = int(request.GET["periode"])
+        if request.GET["tahundata"]:
+            tahun = int(request.GET["tahundata"])
         else:
             sekarang = datetime.now()
             tahun = sekarang.year
@@ -4446,6 +4447,7 @@ def kalkulatorpenyesuaian2(request):
                 "produksi/kalkulator_penyesuaian.html",{"kodeprodukobj": kodeproduk},
 )
             # print(asd)
+            sisa = [0]
 
             for item in listdata:
                 tanggal = item['Tanggal']
@@ -4601,7 +4603,7 @@ def kalkulatorpenyesuaian2(request):
                     'tanggalstokopname' : tanggalakhirperhitungan,
                     'tanggalawal' : tanggalawalperhitungan,
                     'kodeproduk' : kodeproduk,
-                                    'lokasi' : lokasi
+                                    'lokasi' : lokasi,
 
                 },
             )
@@ -4901,6 +4903,8 @@ def kalkulatorpenyesuaianartikel(request):
             {"kodeprodukobj": kodeproduk},
         )
     else:
+        print(request.GET)
+        
         """
         1. Cari 
         """
@@ -4916,6 +4920,11 @@ def kalkulatorpenyesuaianartikel(request):
         else:
             sekarang = datetime.now()
             tahun = sekarang.year
+        try:
+            tahun = int(request.GET['periodetahun'])
+        except:
+            pass
+            
 
         tanggal_mulai = datetime(year=tahun, month=1, day=1)
         tanggal_akhir = datetime(year=tahun, month=12, day=31)

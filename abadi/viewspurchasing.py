@@ -1154,6 +1154,8 @@ def rekap_gudang(request):
         satuan.append(i.unit)
 
         if date is not None:
+            datetimestart = datetime.strptime(date,'%Y-%m-%d')
+            mulai = datetime(year=datetimestart.year,month=1,day=1)
             datagudang = models.TransaksiGudang.objects.filter(
                 tanggal__range=(mulai, date), KodeProduk=i
             ).aggregate(kuantitas=Coalesce(Sum("jumlah"), Value(0,output_field=FloatField())))
@@ -2227,11 +2229,16 @@ def kebutuhan_barang(request):
                 print(list_kode_art)
 
             artall = models.Artikel.objects.all()
+
             waktusekarang = datetime.now()
             awaltahun = datetime(year = waktusekarang.year,month=1,day=1)
+            # waktusekarang = getspk.Tanggal
+            # awaltahun = datetime(year=waktusekarang.year,month=1,day=1)
             dataproduk = models.CacheValue.objects.filter(Tanggal__year = waktusekarang.year, Tanggal__month = waktusekarang.month)
+            
             print(dataproduk)
             print(len(dataproduk))
+            # print(asd)
             if dataproduk.exists():
                 for item in dataproduk:
                     list_q_gudang.append({item.KodeProduk.id:item.Jumlah})
@@ -2365,10 +2372,24 @@ def kebutuhan_barang(request):
                 kode_produk = item["Kode Produk"]
                 hasil_konversi = item["Hasil Konversi"]
                 datacachevalue = models.CacheValue.objects.filter(KodeProduk = kode_produk,Tanggal__year = waktusekarang.year, Tanggal__month = waktusekarang.month).first()
+                if datacachevalue == None :
+                    
+                    allprodukobj = models.Produk.objects.filter(id = kode_produk)
+                    # allprodukobj = models.Produk.objects.filter(KodeProduk = 'A-004-01')
+                    
+                    # print(asd)
+                    for produk in allprodukobj:
+                        produk.save()
+                    
+                    datacachevalue = models.CacheValue.objects.filter(KodeProduk = kode_produk,Tanggal__year = waktusekarang.year, Tanggal__month = waktusekarang.month).first()
+
+
                 print(datacachevalue)
                 print(kode_produk)
-                if datacachevalue.KodeProduk.KodeProduk == 'A-001-02':
-                    print(datacachevalue.Jumlah)
+                print(waktusekarang)
+                # print(models.Produk.objects.filter(id = kode_produk))
+                # if datacachevalue.KodeProduk.KodeProduk == 'A-001-02':
+                #     print(datacachevalue.Jumlah)
                     # print(asd)
                 gudang_jumlah = datacachevalue.Jumlah
                 hasil_akhir = gudang_jumlah - hasil_konversi

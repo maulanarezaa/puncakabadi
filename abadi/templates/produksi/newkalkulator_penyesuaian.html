@@ -22,7 +22,7 @@
                 <form action="" method="get">
                     {% if kodebarang %}
                     <div class="row">
-                        <div class="col-lg-3">
+                        <div class="col-lg-2">
                             <label for="">Kode Bahan Baku</label>
                             <div class="form-group">
                                 <div class="input-group">
@@ -36,7 +36,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-2">
+                        <div class="col-lg-1">
                             <label for="">Lokasi</label>
                             <div class="form-group">
                                 <div class="input-group">
@@ -49,6 +49,14 @@
                                         <option value="FG" selected>FG</option>
                                         {% endif %}
                                     </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2">
+                            <label for="">Tahun</label>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="number" min="2024" class="form-control" name="tahundata" value="{{tahun}}">
                                 </div>
                             </div>
                         </div>
@@ -87,10 +95,10 @@
                                 <label for="">Jumlah Aktual</label>
                                 <div class="input-group">
                                     {% if dataaktual %}
-                                    <input type="number" class="form-control" placeholder="Jumlah Aktual" min="0"
+                                    <input type="number" class="form-control" placeholder="Jumlah Aktual" min="0" step="any"
                                         name="jumlah" value="{{dataaktual}}">
                                     {% else %}
-                                    <input type="number" class="form-control" placeholder="Jumlah Aktual" min="0"
+                                    <input type="number" class="form-control" placeholder="Jumlah Aktual" min="0" step="any"
                                         name="jumlah" step="any">
                                     {% endif%}
                                     <div class="input-group-append">

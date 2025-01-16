@@ -31,10 +31,14 @@ def separator_ribuan(value):
 @register.filter
 def separator_ribuand00313(value):
     try:
-        # Format value with commas as thousand separators
-        formatted_value = f"{float(value):,.3f}"
-        # Replace commas with dots
-        formatted_value = formatted_value.replace(',', '.')
+        # Format value with 2 decimal places
+        formatted_value = f"{value:,.3f}"
+        # Replace ',' with 'X' temporarily
+        formatted_value = formatted_value.replace(',', 'X')
+        # Replace '.' with ','
+        formatted_value = formatted_value.replace('.', ',')
+        # Replace 'X' with '.'
+        formatted_value = formatted_value.replace('X', '.')
         return formatted_value
     except (ValueError, TypeError):
         return value
