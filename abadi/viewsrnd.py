@@ -970,13 +970,20 @@ def views_penyusun(request):
                 if data.exists():
                     for item in data:
                         hargaterakhir = 0
-                        print(item, item.IDKodePenyusun)
+                        # print(item, item.IDKodePenyusun)
                         
                         kuantitaskonversi = item.Kuantitas
                         kuantitasallowance = item.Allowance
-                        cachevalue = models.CacheValue.objects.filter(KodeProduk = item.KodeProduk, Tanggal__month =sekarang.month).first()
+                        cachevalue = models.CacheValue.objects.filter(KodeProduk = item.KodeProduk, Tanggal__month =sekarang.month,Tanggal__year = sekarang.year).first()
                         if cachevalue:
                             hargasatuanawal = cachevalue.Harga
+                            # print('Masuk')
+                            # print(item)
+                            # print(hargasatuanawal)
+                            # print(sekarang)
+                            # print('Done')
+                            # if item.KodeProduk.NamaProduk == "C-003-05":
+                            #     print(asd)
                         else:
                         # print(konversidataobj.Kuantitas)
                             masukobj = models.DetailSuratJalanPembelian.objects.filter(
@@ -999,7 +1006,7 @@ def views_penyusun(request):
                             tanggalkeluar = keluarobj.values_list("tanggal", flat=True)
                             tanggalretur = returobj.values_list("tanggal", flat=True)
                             tanggalpemusnahan = pemusnahanobj.values_list("Tanggal",flat=True)
-                            print("ini kode bahan baku", keluarobj)
+                            # print("ini kode bahan baku", keluarobj)
                             saldoawalobj = (
                                 models.SaldoAwalBahanBaku.objects.filter(
                                     IDBahanBaku=item.KodeProduk,
@@ -1009,8 +1016,8 @@ def views_penyusun(request):
                                 .order_by("-Tanggal")
                                 .first()
                             )
-                            print(saldoawalobj)
-                            print('ini item',item)
+                            # print(saldoawalobj)
+                            # print('ini item',item)
                             if (
                                 not keluarobj.exists()
                                 and not returobj.exists()
@@ -1030,7 +1037,7 @@ def views_penyusun(request):
                             # print(asdas)
                             else :
                                 if saldoawalobj:
-                                    print("ada data")
+                                    # print("ada data")
                                     saldoawal = saldoawalobj.Jumlah
                                     hargasatuanawal = saldoawalobj.Harga
                                     hargatotalawal = saldoawal * hargasatuanawal
@@ -1050,12 +1057,12 @@ def views_penyusun(request):
                                 }
                                 
                                 listdata = []
-                                print(tanggalmasuk)
-                                print(tanggalkeluar)
+                                # print(tanggalmasuk)
+                                # print(tanggalkeluar)
                                 listtanggal = sorted(
                                     list(set(tanggalmasuk.union(tanggalkeluar).union(tanggalretur).union(tanggalpemusnahan)))
                                 )
-                                print(listtanggal)
+                                # print(listtanggal)
                                 statusmasuk = False
                                 for i in listtanggal:
                                     jumlahmasukperhari = 0
@@ -1070,9 +1077,9 @@ def views_penyusun(request):
                                             hargamasuktotalperhari += j.Harga * j.Jumlah
                                             jumlahmasukperhari += j.Jumlah
                                         hargamasuksatuanperhari += hargamasuktotalperhari / jumlahmasukperhari
-                                        print("data SJP ada")
-                                        print(hargamasuksatuanperhari)
-                                        print(jumlahmasukperhari)
+                                        # print("data SJP ada")
+                                        # print(hargamasuksatuanperhari)
+                                        # print(jumlahmasukperhari)
                                         dumy = {
                                             "Tanggal": i.strftime("%Y-%m-%d"),
                                             "Jumlahstokawal": saldoawal,
@@ -1089,13 +1096,13 @@ def views_penyusun(request):
                                         hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
                                         hargasatuanawal = hargatotalawal / saldoawal
 
-                                        print("Sisa Stok Hari Ini : ", saldoawal)
-                                        print("harga awal Hari Ini :", hargasatuanawal)
-                                        print("harga total Hari Ini :", hargatotalawal, "\n")
+                                        # print("Sisa Stok Hari Ini : ", saldoawal)
+                                        # print("harga awal Hari Ini :", hargasatuanawal)
+                                        # print("harga total Hari Ini :", hargatotalawal, "\n")
                                         dumy["Sisahariini"] = saldoawal
                                         dumy["Hargasatuansisa"] = round(hargasatuanawal, 2)
                                         dumy["Hargatotalsisa"] = round(hargatotalawal, 2)
-                                        print(dumy)
+                                        # print(dumy)
                                         statusmasuk = True
                                         listdata.append(dumy)
                                         # print(asdasd)
@@ -1173,18 +1180,18 @@ def views_penyusun(request):
                                         jumlahmasukperhari = 0
 
 
-                                    print("Tanggal : ", i)
-                                    print("Sisa Stok Hari Sebelumnya : ", saldoawal)
-                                    print("harga awal Hari Sebelumnya :", hargasatuanawal)
-                                    print("harga total Hari Sebelumnya :", hargatotalawal)
-                                    print("Jumlah Masuk : ", jumlahmasukperhari)
-                                    print("Harga Satuan Masuk : ", hargamasuksatuanperhari)
-                                    print("Harga Total Masuk : ", hargamasuktotalperhari)
-                                    print("Jumlah Keluar : ", jumlahkeluarperhari)
-                                    print("Harga Keluar : ", hargakeluarsatuanperhari)
-                                    print(
-                                        "Harga Total Keluar : ", hargakeluarsatuanperhari * jumlahkeluarperhari
-                                    )
+                                    # print("Tanggal : ", i)
+                                    # print("Sisa Stok Hari Sebelumnya : ", saldoawal)
+                                    # print("harga awal Hari Sebelumnya :", hargasatuanawal)
+                                    # print("harga total Hari Sebelumnya :", hargatotalawal)
+                                    # print("Jumlah Masuk : ", jumlahmasukperhari)
+                                    # print("Harga Satuan Masuk : ", hargamasuksatuanperhari)
+                                    # print("Harga Total Masuk : ", hargamasuktotalperhari)
+                                    # print("Jumlah Keluar : ", jumlahkeluarperhari)
+                                    # print("Harga Keluar : ", hargakeluarsatuanperhari)
+                                    # print(
+                                    #     "Harga Total Keluar : ", hargakeluarsatuanperhari * jumlahkeluarperhari
+                                    # )
                                     
 
                                     dumy = {
@@ -1212,15 +1219,15 @@ def views_penyusun(request):
 
                                     saldoawal += jumlahmasukperhari - jumlahkeluarperhari
                                     hargatotalawal += hargamasuktotalperhari - hargakeluartotalperhari
-                                    print(hargatotalawal, saldoawal)
+                                    # print(hargatotalawal, saldoawal)
                                     try:
                                         hargasatuanawal = hargatotalawal / saldoawal
                                     except:
                                         hargasatuanawal = 0
 
-                                    print("Sisa Stok Hari Ini : ", saldoawal)
-                                    print("harga awal Hari Ini :", hargasatuanawal)
-                                    print("harga total Hari Ini :", hargatotalawal, "\n")
+                                    # print("Sisa Stok Hari Ini : ", saldoawal)
+                                    # print("harga awal Hari Ini :", hargasatuanawal)
+                                    # print("harga total Hari Ini :", hargatotalawal, "\n")
                                     dumy["Sisahariini"] = saldoawal
                                     dumy["Hargasatuansisa"] = round(hargasatuanawal, 2)
                                     dumy["Hargatotalsisa"] = round(hargatotalawal, 2)
@@ -1246,7 +1253,7 @@ def views_penyusun(request):
                     hargaartikel = models.HargaArtikel.objects.filter(KodeArtikel =get_id_kodeartikel,Tanggal__month = sekarang.month)
                     if hargaartikel.exists():
                         HargaFGArtikel = hargaartikel.first().Harga
-
+                    # print('datakonversi \n',datakonversi)
                     return render(
                         request,
                         "rnd/views_penyusun.html",

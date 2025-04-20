@@ -107,7 +107,26 @@
         </div>
     </div>
 </div>
+{% block javascripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector("form");
+        const tanggalAwalInput = document.querySelector("input[name='tanggalawal']");
+        const tanggalAkhirInput = document.querySelector("input[name='tanggalakhir']");
+
+        if (form && tanggalAwalInput && tanggalAkhirInput) {
+            form.addEventListener("submit", function (e) {
+                const tglAwal = new Date(tanggalAwalInput.value);
+                const tglAkhir = new Date(tanggalAkhirInput.value);
+
+                if (tglAwal.getFullYear() !== tglAkhir.getFullYear()) {
+                    e.preventDefault();
+                    alert("Tanggal awal dan tanggal akhir harus berada dalam tahun yang sama!");
+                }
+            });
+        }
+    });
+</script>
+{% endblock javascripts %}
 {% endblock content %}
 
-{% block javascripts %}
-{% endblock javascripts %}

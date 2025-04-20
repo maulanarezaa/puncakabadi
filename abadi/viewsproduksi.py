@@ -3136,7 +3136,10 @@ def view_rekapbarang(request):
     3. Menampilkan hasil rekapitulasi bahan baku  
     '''
     tanggal_akhir = request.GET.get("periode")
-    tanggalakhirstrp = datetime.strptime(tanggal_akhir,'%Y-%M-%d')
+    try:
+        tanggalakhirstrp = datetime.strptime(tanggal_akhir,'%Y-%M-%d')
+    except:
+        tanggalakhirstrp = datetime.now()
     tanggalmulaiselected = datetime(year=tanggalakhirstrp.year,month=1,day=1)
     try:
 
@@ -4316,6 +4319,7 @@ def kalkulatorpenyesuaian2(request):
         )
     else:
         print(request.GET)
+        # print(asd)
         """
         1. Cari 
         """
@@ -4327,12 +4331,15 @@ def kalkulatorpenyesuaian2(request):
             messages.error(request, "Data Produk tidak ditemukan")
             return redirect("view_ksbb")
         
-        if request.GET["tahundata"]:
-            tahun = int(request.GET["tahundata"])
+        if request.GET["periode"]:
+            tahun = int(request.GET["periode"])
         else:
             sekarang = datetime.now()
             tahun = sekarang.year
-
+        try:
+            tahun = int(request.GET['tahundata'])
+        except:
+            pass
         tanggal_mulai = datetime(year=tahun, month=1, day=1)
         tanggal_akhir = datetime(year=tahun, month=12, day=31)
         lokasi = request.GET['lokasi']

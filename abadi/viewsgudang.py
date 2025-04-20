@@ -353,7 +353,10 @@ def rekap_gudang(request):
     tahun = datenow.year
     mulai = datetime(year=tahun, month=1, day=1)
     date = request.GET.get("date")
-    datestrp = datetime.strptime(date,'%Y-%m-%d')
+    try:
+        datestrp = datetime.strptime(date,'%Y-%m-%d')
+    except:
+        datestrp = datetime.now()
     awaltahunterpilih = datetime(year=datestrp.year,month=1,day=1)
     print(date)
     print(datenow)
