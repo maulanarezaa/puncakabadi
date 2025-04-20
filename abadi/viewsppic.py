@@ -172,11 +172,12 @@ def gethargafgterakhirberdasarkanmutasi(KodeArtikel, Tanggaltes, HargaPurchasing
             KodeArtikel, cekmutasiwipfg, HargaPurchasing
         )
         # print("\n\n", hargakomponen_fg_fgterakhir)
+        # print(asd)
 
         hargakomponen_wip_fgterakhir = gethargaartikelwipperbulan(
             KodeArtikel, cekmutasiwipfg, HargaPurchasing
         )
-
+        # print(asd)
         if cekmutasiwipfg.month == Tanggaltes.month:
             # print(f"Ada Mutasi WIP ke FG pada {Tanggaltes}, Harga FG Total di update")
             komponen_fg_terakhir = gethargaartikelfgperbulan(
@@ -1326,10 +1327,15 @@ def getbarangkeluar(last_days, stopindex, awaltahun,hargapurchasing=None):
 def gethargapurchasingperbulan(last_days, stopindex, awaltahun,withdeleted = True):
     if withdeleted == True:
         bahanbaku = models.Produk.objects.with_deleted()
+        print('deleted')
     else:
         bahanbaku = models.Produk.objects.all()
     akhirtahun = date(awaltahun.year,12,31)
     # bahanbaku = models.Produk.objects.filter(KodeProduk="A-101")
+    # print(bahanbaku)
+    # for i in bahanbaku:
+    #     print(i)
+    # # print(asd)
 
     hargaakhirbulanperproduk = {}
     for i in bahanbaku:
@@ -1462,7 +1468,8 @@ def gethargaartikelfgperbulan(artikel, tanggal, hargaakhirbulanperproduk):
 
     dataartikel = models.Artikel.objects.filter(KodeArtikel=artikel)
     datahargawipartikel = {}
-    print(tanggal)
+    # print(tanggal)
+    # print(sgd)
     for artikel in dataartikel:
         dataperbulan = {}
         """
@@ -1472,6 +1479,9 @@ def gethargaartikelfgperbulan(artikel, tanggal, hargaakhirbulanperproduk):
         modelsperbulan = {}
         # print("\n\n\n\n", last_days[:tanggal.month])
         for index, hari in enumerate(last_days[: tanggal.month]):
+            # print('Ini Index FG ',index)
+            # print(tanggal)
+
             # Mengambil data terakhir versi penyusun tiap bulannya
             versiterakhirperbulan = (
                 models.Penyusun.objects.filter(
@@ -1501,9 +1511,13 @@ def gethargaartikelfgperbulan(artikel, tanggal, hargaakhirbulanperproduk):
             hargawip = 0
             for penyusun in penyusunversiterpilih:
                 dummy = {}
-                hargapenyusun = hargaakhirbulanperproduk[penyusun.KodeProduk]["data"][
+                try:
+                    hargapenyusun = hargaakhirbulanperproduk[penyusun.KodeProduk]["data"][
                     index
                 ]["hargasatuan"]
+                except:
+                    hargapenyusun = models.CacheValue.objects.filter(KodeProduk__KodeProduk=penyusun.KodeProduk,Tanggal__month =hari.month,Tanggal__year=hari.year).first().Harga
+
                 kuantitas =penyusun.Allowance
 
                 hargabahanbakuwip = hargapenyusun * kuantitas
@@ -1529,6 +1543,8 @@ def gethargaartikelfgperbulan(artikel, tanggal, hargaakhirbulanperproduk):
 
 
 def gethargaartikelwipperbulan(artikel, tanggal, hargaakhirbulanperproduk):
+    print(tanggal)
+    # print(asdasd)
     last_days = []
     for month in range(1, 13):
         last_day = calendar.monthrange(tanggal.year, month)[1]
@@ -1536,6 +1552,11 @@ def gethargaartikelwipperbulan(artikel, tanggal, hargaakhirbulanperproduk):
 
     dataartikel = models.Artikel.objects.filter(KodeArtikel=artikel)
     datahargawipartikel = {}
+    print('Last Dyas Before')
+    print(last_days)
+    print('last days')
+    print(last_days[: tanggal.month])
+    # print(sgd)
     for artikel in dataartikel:
         dataperbulan = {}
         """
@@ -1543,7 +1564,10 @@ def gethargaartikelwipperbulan(artikel, tanggal, hargaakhirbulanperproduk):
         {}
         """
         modelsperbulan = {}
+        # print("\n\n\n\n", last_days[:tanggal.month])
         for index, hari in enumerate(last_days[: tanggal.month]):
+            print('Ini Index WIP ',index)
+            print(hari)
             # Mengambil data terakhir versi penyusun tiap bulannya
             versiterakhirperbulan = (
                 models.Penyusun.objects.filter(
@@ -1577,9 +1601,15 @@ def gethargaartikelwipperbulan(artikel, tanggal, hargaakhirbulanperproduk):
             hargawip = 0
             for penyusun in penyusunversiterpilih:
                 dummy = {}
-                hargapenyusun = hargaakhirbulanperproduk[penyusun.KodeProduk]["data"][
+                # print(last_days)
+                # print(hargaakhirbulanperproduk)
+                # print(penyusun)
+                try:
+                    hargapenyusun = hargaakhirbulanperproduk[penyusun.KodeProduk]["data"][
                     index
                 ]["hargasatuan"]
+                except:
+                    hargapenyusun = models.CacheValue.objects.filter(KodeProduk__KodeProduk=penyusun.KodeProduk,Tanggal__month =hari.month,Tanggal__year=hari.year).first().Harga
                 kuantitas =penyusun.Allowance
                 hargabahanbakuwip = hargapenyusun * kuantitas
                 hargawip += hargabahanbakuwip
@@ -3037,6 +3067,8 @@ def laporanpersediaan(request):
 
         """SECTION BARANG KELUAR"""
         awalbarangkeluar = time.time()
+        # print(last_days,index,awaltahun)
+        # print(asd)
         (totalbiayakeluar) = (getbarangkeluar(last_days, index, awaltahun))
         akhirbarankeluar = time.time()
         """SECTION BARANG MASUK"""
