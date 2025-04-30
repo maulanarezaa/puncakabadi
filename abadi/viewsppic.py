@@ -1566,8 +1566,8 @@ def gethargaartikelwipperbulan(artikel, tanggal, hargaakhirbulanperproduk):
         modelsperbulan = {}
         # print("\n\n\n\n", last_days[:tanggal.month])
         for index, hari in enumerate(last_days[: tanggal.month]):
-            print('Ini Index WIP ',index)
-            print(hari)
+            # print('Ini Index WIP ',index)
+            # print(hari)
             # Mengambil data terakhir versi penyusun tiap bulannya
             versiterakhirperbulan = (
                 models.Penyusun.objects.filter(
